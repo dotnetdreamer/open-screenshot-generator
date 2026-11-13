@@ -37,15 +37,15 @@ export interface MetricSpec {
 }
 
 export const METRICS: Record<MetricId, MetricSpec> = {
-  impressions: { id: 'impressions', label: 'Impressions', hint: 'Times the app was seen in search results, charts and the Today tab', kind: 'count' },
-  pageViews: { id: 'pageViews', label: 'Product page views', hint: 'Times people opened the product page', kind: 'count' },
-  downloads: { id: 'downloads', label: 'First-time downloads', hint: 'People who got the app for the first time', kind: 'count' },
-  conversion: { id: 'conversion', label: 'Conversion rate', hint: 'Downloads for every unique impression', kind: 'rate' },
-  pageConversion: { id: 'pageConversion', label: 'Product page conversion', hint: 'Downloads for every unique product page view', kind: 'rate' },
-  redownloads: { id: 'redownloads', label: 'Redownloads', hint: 'People who got the app back after deleting it', kind: 'count' },
+  impressions: { id: 'impressions', label: 'Times seen', hint: "How often your app showed up in the App Store. In App Store Connect: Impressions", kind: 'count' },
+  pageViews: { id: 'pageViews', label: 'Page visits', hint: "How often people opened your app's page. In App Store Connect: Product Page Views", kind: 'count' },
+  downloads: { id: 'downloads', label: 'New downloads', hint: 'People who downloaded your app for the first time', kind: 'count' },
+  conversion: { id: 'conversion', label: 'Download rate', hint: "How many of the people who saw your app then downloaded your app. In App Store Connect: Conversion Rate", kind: 'rate' },
+  pageConversion: { id: 'pageConversion', label: 'Page download rate', hint: "How many of the people who opened your app's page then downloaded your app", kind: 'rate' },
+  redownloads: { id: 'redownloads', label: 'Redownloads', hint: 'People who downloaded your app again', kind: 'count' },
   updates: { id: 'updates', label: 'Updates', hint: 'Updates installed', kind: 'count' },
   iapUnits: { id: 'iapUnits', label: 'In-app purchases', hint: 'Purchases and subscription renewals', kind: 'count' },
-  proceeds: { id: 'proceeds', label: 'Proceeds', hint: 'What Apple pays you after its commission', kind: 'money' },
+  proceeds: { id: 'proceeds', label: 'Earnings', hint: "What Apple pays you, after Apple's fee", kind: 'money' },
 };
 
 /** Which slice of the data to read. Empty means everything. */

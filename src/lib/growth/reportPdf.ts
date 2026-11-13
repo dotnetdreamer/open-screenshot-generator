@@ -64,7 +64,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 
 async function jpegBytes(canvas: HTMLCanvasElement): Promise<Uint8Array> {
   const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.92));
-  if (!blob) throw new Error('The report page could not be encoded');
+  if (!blob) throw new Error('The report page could not be saved as a picture');
   return new Uint8Array(await blob.arrayBuffer());
 }
 
@@ -109,7 +109,7 @@ export async function reportPdf(sheet: HTMLElement, title: string): Promise<Blob
     canvas.width = picture.naturalWidth;
     canvas.height = Math.max(1, Math.round((end - start) * scale));
     const context = canvas.getContext('2d', { alpha: false });
-    if (!context) throw new Error('This browser could not prepare the report page');
+    if (!context) throw new Error('The report page could not be drawn');
     context.fillStyle = '#ffffff';
     context.fillRect(0, 0, canvas.width, canvas.height);
     context.drawImage(picture, 0, Math.round(start * scale), canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);

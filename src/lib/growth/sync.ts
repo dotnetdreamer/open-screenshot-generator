@@ -175,7 +175,7 @@ function isAbort(error: unknown, signal?: AbortSignal): boolean {
 }
 
 function describe(error: unknown): string {
-  return error instanceof Error ? error.message : 'Something went wrong';
+  return error instanceof Error ? error.message : 'The data could not be loaded. Refresh to try again';
 }
 
 async function runSync(options: SyncOptions): Promise<SyncStatus> {
@@ -219,7 +219,7 @@ async function runSync(options: SyncOptions): Promise<SyncStatus> {
       status[feed] = { ...(await task()), updatedAt: Date.now() };
     } catch (error) {
       if (isAbort(error, options.signal)) {
-        status[feed] = { state: 'idle', message: 'Stopped', updatedAt: Date.now() };
+        status[feed] = { state: 'idle', message: 'The refresh was stopped', updatedAt: Date.now() };
       } else if (error instanceof AscAuthError) {
         authFailure = error.message;
         status[feed] = { state: 'error', message: error.message, updatedAt: Date.now() };
@@ -255,12 +255,12 @@ async function runSync(options: SyncOptions): Promise<SyncStatus> {
 async function syncListing(options: SyncOptions): Promise<FeedStatus> {
   try {
     const listing = await fetchListing(options.credentials, options.app, options.signal);
-    if (!listing) return { state: 'empty', message: 'This app has no App Store version yet' };
+    if (!listing) return { state: 'empty', message: 'Your app has no App Store version yet' };
     await writeListing(listing);
     return { state: 'ok', message: `Version ${listing.versionString}, ${listing.locales.length} language${listing.locales.length === 1 ? '' : 's'}` };
   } catch (error) {
     if (error instanceof AscForbiddenError) {
-      return { state: 'forbidden', message: 'This key cannot read the listing. Use a key with the Admin, App Manager or Marketing role' };
+      return { state: 'forbidden', message: 'Your key cannot load the store page. Use a key with the Admin, App Manager or Marketing role' };
     }
     throw error;
   }
@@ -286,7 +286,7 @@ async function syncReviews(options: SyncOptions, setProgress: (value: SyncProgre
     return { state: 'ok', message: `${total} written review${total === 1 ? '' : 's'}` };
   } catch (error) {
     if (error instanceof AscForbiddenError) {
-      return { state: 'forbidden', message: 'This key cannot read reviews. Use a key with the Admin, App Manager, Customer Support or Marketing role' };
+      return { state: 'forbidden', message: 'Your key cannot load reviews. Use a key with the Admin, App Manager, Customer Support or Marketing role' };
     }
     throw error;
   }
@@ -329,7 +329,7 @@ function withSalesTurn<T>(vendor: string, signal: AbortSignal | undefined, task:
 async function syncSales(options: SyncOptions, setProgress: (value: SyncProgress | null) => void): Promise<FeedStatus> {
   const vendor = options.vendorNumber?.trim();
   if (!vendor) {
-    return { state: 'needs-setup', message: 'Add your vendor number to see downloads, purchases and proceeds' };
+    return { state: 'needs-setup', message: 'Add your vendor number to see downloads, purchases and earnings' };
   }
   return withSalesTurn(vendor, options.signal, () => syncSalesDays(options, vendor, setProgress));
 }
@@ -360,7 +360,7 @@ async function syncSalesDays(options: SyncOptions, vendor: string, setProgress: 
   let notYet = 0;
   let failedDays = 0;
   let fatal: unknown = null;
-  setProgress({ label: 'sales', done, total: wanted.length });
+  setProgress({ label: 'Sales and Trends', done, total: wanted.length });
 
   // A day is recorded as fetched in the same flush that writes its rows, never
   // before. Recorded first, a run stopped in between would leave a fetched day
@@ -411,7 +411,7 @@ async function syncSalesDays(options: SyncOptions, vendor: string, setProgress: 
         console.error(`Growth sync: Sales and Trends for ${day} failed`, error);
       }
       done += 1;
-      setProgress({ label: 'sales', done, total: wanted.length });
+      setProgress({ label: 'Sales and Trends', done, total: wanted.length });
       if (done % 20 === 0) {
         try {
           await flush();
@@ -439,16 +439,16 @@ async function syncSalesDays(options: SyncOptions, vendor: string, setProgress: 
     return {
       state: 'forbidden',
       message: /vendor/i.test(fatal.message)
-        ? 'Apple did not accept the vendor number. Check it under Payments and Financial Reports'
-        : 'This key cannot read Sales and Trends. Use a key with the Admin, Finance or Sales role',
+        ? 'Apple did not accept your vendor number. Check the vendor number in App Store Connect, under Payments and Financial Reports'
+        : 'Your key cannot load Sales and Trends. Use a key with the Admin, Finance or Sales role',
     };
   }
   if (fatal) throw fatal;
   await zeroFill(options.app.id, fetched);
 
   const days = Object.keys(fetched).length;
-  if (days === 0 && notYet > 0) return { state: 'pending', message: 'Apple has not published the first sales report yet' };
-  const retry = failedDays > 0 ? `. ${failedDays} day${failedDays === 1 ? '' : 's'} could not be read and will be tried again on the next sync` : '';
+  if (days === 0 && notYet > 0) return { state: 'pending', message: 'Apple has not sent the first sales numbers yet' };
+  const retry = failedDays > 0 ? `. ${failedDays} day${failedDays === 1 ? '' : 's'} could not be loaded. The next refresh tries again` : '';
   return { state: 'ok', message: `${days} day${days === 1 ? '' : 's'} of sales${retry}`, since: readSince(fetched) };
 }
 
@@ -515,7 +515,7 @@ async function syncAnalytics(options: SyncOptions, setProgress: (value: SyncProg
     if (error instanceof AscForbiddenError) {
       return {
         state: 'forbidden',
-        message: 'This key cannot read App Analytics. Use a key with the Admin, Sales or Finance role',
+        message: 'Your key cannot load App Analytics. Use a key with the Admin, Sales or Finance role',
       };
     }
     throw error;
@@ -524,9 +524,9 @@ async function syncAnalytics(options: SyncOptions, setProgress: (value: SyncProg
     return refusedCreate
       ? {
           state: 'needs-setup',
-          message: 'Apple only makes analytics reports after an Admin key asks for them once. Connect an Admin key, sync, then switch back if you like',
+          message: 'An Admin key has to turn on App Analytics one time',
         }
-      : { state: 'pending', message: 'Analytics reports were requested. Apple usually has the first ones ready within two days' };
+      : { state: 'pending', message: 'Growth asked Apple to turn on App Analytics. The first numbers usually come within two days' };
   }
 
   // Which reports to read, from each request.
@@ -560,11 +560,11 @@ async function syncAnalytics(options: SyncOptions, setProgress: (value: SyncProg
 
   const anyDone = Object.keys(done).length > 0;
   if (batch.length === 0 && !anyDone) {
-    return { state: 'pending', message: 'Apple is preparing the analytics reports. The first ones usually arrive within two days' };
+    return { state: 'pending', message: 'Apple is getting App Analytics ready. The first numbers usually come within two days' };
   }
 
   let processed = 0;
-  setProgress({ label: 'analytics', done: 0, total: batch.length });
+  setProgress({ label: 'App Analytics', done: 0, total: batch.length });
   for (const item of batch) {
     const segments = await listSegments(options.credentials, item.instanceId, options.signal);
     const batches: FeedBatch[] = [];
@@ -577,7 +577,7 @@ async function syncAnalytics(options: SyncOptions, setProgress: (value: SyncProg
     await mergeAndWrite(Array.from(combined, ([date, day]) => ({ appId, date, feed, day })));
     done[item.instanceId] = item.processingDate;
     processed += 1;
-    setProgress({ label: 'analytics', done: processed, total: batch.length });
+    setProgress({ label: 'App Analytics', done: processed, total: batch.length });
     if (processed % 10 === 0) {
       await writeMeta(metaKeys.analyticsDone(appId), done);
       announceGrowthChange(appId);
@@ -590,9 +590,9 @@ async function syncAnalytics(options: SyncOptions, setProgress: (value: SyncProg
   return {
     state: 'ok',
     message: remaining > 0
-      ? `Imported ${processed} report files, ${remaining} more on the next sync`
+      ? `Loaded ${processed} files from Apple. Files left for the next refresh: ${remaining}`
       : latest
-        ? `Reports processed through ${latest}`
+        ? `Loaded up to ${latest}`
         : 'Up to date',
   };
 }
@@ -685,10 +685,10 @@ async function syncRatings(options: SyncOptions, setProgress: (value: SyncProgre
   if (known.length === 0) {
     // Not found is not "not on the store": an app can be sold in a few
     // countries only, and a sweep asks twenty.
-    return { state: 'empty', message: live || lastLive ? 'No ratings yet' : 'Not found in the App Store countries checked' };
+    return { state: 'empty', message: live || lastLive ? 'No ratings yet' : 'Not found on the App Store in the countries checked' };
   }
   const count = known.reduce((sum, rating) => sum + rating.count, 0);
-  return { state: 'ok', message: `${count.toLocaleString('en-US')} ratings in ${known.length} storefront${known.length === 1 ? '' : 's'}` };
+  return { state: 'ok', message: `${count.toLocaleString('en-US')} rating${count === 1 ? '' : 's'} in ${known.length} ${known.length === 1 ? 'country' : 'countries'}` };
 }
 
 /** A version the store shows that the timeline does not know yet becomes a release event. */

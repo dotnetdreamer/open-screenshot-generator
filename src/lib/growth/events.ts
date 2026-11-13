@@ -72,7 +72,7 @@ export async function recordListingChange(input: {
     appId: input.appId,
     date: today(),
     kind: 'listing',
-    title: 'Listing updated',
+    title: 'Store page updated',
     detail: `${input.fields.join(', ')} in ${input.locales.length} language${input.locales.length === 1 ? '' : 's'}`,
     version: input.versionString,
     origin: 'listing',

@@ -165,13 +165,13 @@ export function buildReport(input: {
     return line(label, now, comparable ? metricValue(prior, metric, currency) : null, format);
   };
   const lines = [
-    figure('Impressions', 'impressions', formatCount),
-    figure('Product page views', 'pageViews', formatCount),
-    figure('First-time downloads', 'downloads', formatCount),
-    figure('Conversion rate', 'conversion', formatRate),
+    figure('Times seen', 'impressions', formatCount),
+    figure('Page visits', 'pageViews', formatCount),
+    figure('New downloads', 'downloads', formatCount),
+    figure('Download rate', 'conversion', formatRate),
     figure('Redownloads', 'redownloads', formatCount),
     figure('In-app purchases', 'iapUnits', formatCount),
-    figure('Proceeds', 'proceeds', (value) => formatMoney(value, currency)),
+    figure('Earnings', 'proceeds', (value) => formatMoney(value, currency)),
   ].filter((entry): entry is ReportLine => entry !== null);
   const previousCovered = covers(starts, 'downloads', previous);
 
@@ -224,7 +224,7 @@ export function buildReport(input: {
 /** The reviews line every form of the report shares. */
 export function reviewsSentence(report: PeriodReport): string {
   if (report.reviews.count === 0) return 'No written reviews in this period.';
-  return `${plural(report.reviews.count, 'written review')}, averaging ${report.reviews.average} stars. ${plural(report.reviews.unanswered, 'low rating')} without a reply.`;
+  return `${plural(report.reviews.count, 'written review')}, ${report.reviews.average} stars on average. ${plural(report.reviews.unanswered, 'low rating')} without a reply.`;
 }
 
 function periodNoun(period: ReportPeriod): string {
@@ -236,9 +236,9 @@ export function comparisonNote(report: PeriodReport): string | null {
   if (report.uncompared.length === 0) return null;
   const which =
     report.uncompared.length === report.lines.length
-      ? 'No figure is compared'
+      ? 'Nothing is compared'
       : `${listOf(report.uncompared.map((label) => label.toLowerCase()), 'and')} ${report.uncompared.length === 1 ? 'is' : 'are'} not compared`;
-  return `${which.charAt(0).toUpperCase()}${which.slice(1)} with ${formatWindow(report.previous)}: the numbers do not reach back over all of it.`;
+  return `${which.charAt(0).toUpperCase()}${which.slice(1)} with ${formatWindow(report.previous)}, because your numbers do not cover the whole period.`;
 }
 
 function listOf(items: string[], joiner: string): string {
@@ -253,10 +253,10 @@ export function reportFacts(report: PeriodReport): string {
     ...report.lines.map((entry) => `${entry.label}: ${entry.value}${entry.change ? ` (${entry.change})` : ''}.`),
     comparisonNote(report) ?? '',
     report.territories.length
-      ? `Top storefronts by downloads: ${report.territories.map((row) => `${row.name} ${row.downloads} (${row.share}${row.change ? `, ${row.change}` : ''})`).join('; ')}.`
+      ? `Top countries by downloads: ${report.territories.map((row) => `${row.name} ${row.downloads} (${row.share}${row.change ? `, ${row.change}` : ''})`).join('; ')}.`
       : '',
     report.sources.length
-      ? `Sources: ${report.sources.map((row) => `${row.name} ${row.downloads} downloads at ${row.conversion}`).join('; ')}.`
+      ? `Where people found the app: ${report.sources.map((row) => `${row.name} ${row.downloads} downloads, download rate ${row.conversion}`).join('; ')}.`
       : '',
     `Reviews: ${report.reviews.count} written, averaging ${report.reviews.average} stars, ${report.reviews.unanswered} low ratings unanswered.${
       report.reviews.topics.length ? ` Topics: ${report.reviews.topics.join(', ')}.` : ''
@@ -281,7 +281,7 @@ export function reportMarkdown(report: PeriodReport, summary?: string | null): s
   out.push('');
   out.push('## Numbers');
   out.push('');
-  out.push('| Metric | Value | Change |');
+  out.push('| Number | Value | Change |');
   out.push('| --- | --- | --- |');
   for (const entry of report.lines) out.push(`| ${entry.label} | ${entry.value} | ${entry.change ?? ''} |`);
   const note = comparisonNote(report);
@@ -291,17 +291,17 @@ export function reportMarkdown(report: PeriodReport, summary?: string | null): s
   }
   if (report.territories.length) {
     out.push('');
-    out.push('## Storefronts');
+    out.push('## Countries');
     out.push('');
-    out.push('| Storefront | Downloads | Share | Change |');
+    out.push('| Country | Downloads | Share | Change |');
     out.push('| --- | --- | --- | --- |');
     for (const row of report.territories) out.push(`| ${row.name} | ${row.downloads} | ${row.share} | ${row.change ?? ''} |`);
   }
   if (report.sources.length) {
     out.push('');
-    out.push('## How people found the app');
+    out.push('## How people found your app');
     out.push('');
-    out.push('| Source | Impressions | Downloads | Conversion |');
+    out.push('| Source | Times seen | Downloads | Download rate |');
     out.push('| --- | --- | --- | --- |');
     for (const row of report.sources) out.push(`| ${row.name} | ${row.impressions} | ${row.downloads} | ${row.conversion} |`);
   }
@@ -318,7 +318,7 @@ export function reportMarkdown(report: PeriodReport, summary?: string | null): s
   }
   if (report.missingDays > 0) {
     out.push('');
-    out.push(`${plural(report.missingDays, 'day')} in this period have no data from App Store Connect yet.`);
+    out.push(`Apple has not sent the numbers for ${plural(report.missingDays, 'day')} of this period yet.`);
   }
   out.push('');
   out.push('Made with Open Screenshot Generator.');

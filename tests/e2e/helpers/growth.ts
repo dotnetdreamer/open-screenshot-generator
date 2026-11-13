@@ -16,7 +16,7 @@ import {
  * account whose numbers are written straight into the growth database.
  */
 
-export const GROWTH_BUTTON = 'Growth: downloads, conversion, reviews and the store listing';
+export const GROWTH_BUTTON = 'Growth: downloads, reviews and your store page';
 
 /** The activity bar. */
 export function views(page: Page): Locator {

@@ -26,7 +26,7 @@ export const REVIEW_TOPIC_LABELS: Record<ReviewTopic, string> = {
   bug: 'Bugs',
   ads: 'Ads',
   price: 'Price and subscriptions',
-  login: 'Sign in',
+  login: 'Signing in',
   data: 'Lost data and sync',
   speed: 'Speed and battery',
   design: 'Design',

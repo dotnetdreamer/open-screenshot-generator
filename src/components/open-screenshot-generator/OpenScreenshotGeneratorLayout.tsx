@@ -1609,12 +1609,12 @@ export function OpenScreenshotGeneratorLayout() {
       toast({
         title:
           findings.length === 1
-            ? `${first.app.name}: ${count === 1 ? 'a new insight' : `${count} new insights`}`
+            ? `${first.app.name}: ${count === 1 ? '1 new insight' : `${count} new insights`}`
             : `${count} new insights in Growth`,
         description: first.fresh[0].title,
         action: (
           <ToastAction
-            altText="Open the insights in Growth"
+            altText="Open the insights"
             onClick={() => {
               setGrowthSettings({ appId: first.app.id });
               showGrowth('insights');
@@ -12689,7 +12689,7 @@ const generateRandomProjectName = (): string => {
             }}
             // A tab window keeps out of the coding agents (isSecondaryWindow),
             // though Growth's own AI buttons work in every editor window.
-            agentUnavailable={isSecondaryWindow ? 'The agent runs in the main window only. Ask it there' : undefined}
+            agentUnavailable={isSecondaryWindow ? 'The agent only works in the main window' : undefined}
             onAskAgent={
               claudeAgentState.available && !isSecondaryWindow
                 ? (question) => {

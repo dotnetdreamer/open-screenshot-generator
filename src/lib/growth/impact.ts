@@ -243,7 +243,7 @@ export function eventImpact(
       appId: event.appId,
       date: spike.date,
       kind: 'featured',
-      title: 'a likely App Store feature',
+      title: 'Apple probably featured your app',
       origin: 'auto',
       createdAt: 0,
     }));

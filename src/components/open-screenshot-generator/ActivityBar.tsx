@@ -28,7 +28,7 @@ export interface Activity {
 
 export const ACTIVITIES: Activity[] = [
   { id: 'editor', label: 'Editor', icon: PenToolIcon },
-  { id: 'growth', label: 'Growth: downloads, conversion, reviews and the store listing', icon: TrendingUpIcon },
+  { id: 'growth', label: 'Growth: downloads, reviews and your store page', icon: TrendingUpIcon },
 ];
 
 /** A button on the bar that opens something rather than switching the view. */

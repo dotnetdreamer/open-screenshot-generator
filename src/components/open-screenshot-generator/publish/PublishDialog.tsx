@@ -1403,10 +1403,10 @@ export function PublishDialog({
                       onOpenChange(false);
                       onOpenGrowth();
                     }}
-                    title="Growth compares the conversion rate before and after this version goes live"
+                    title="Growth compares your downloads before and after the new screenshots go live"
                   >
                     <TrendingUpIcon className="mr-1 h-3 w-3" />
-                    See how they sell
+                    See results in Growth
                   </Button>
                 )}
               </div>

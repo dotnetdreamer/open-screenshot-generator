@@ -139,7 +139,7 @@ function discovery(ctx: Ctx): void {
   const mover = biggestMover(ctx, 'impressions');
   const because =
     mover && Math.abs(mover.delta) > Math.abs(current.impressions - previous.impressions) * 0.4
-      ? ` Most of the change came from ${SOURCE_LABELS[mover.source]}, ${mover.delta > 0 ? 'up' : 'down'} ${formatCount(Math.abs(mover.delta))}.`
+      ? ` Most of the change came from ${SOURCE_LABELS[mover.source]}, where your app was seen ${formatCount(Math.abs(mover.delta))} ${mover.delta > 0 ? 'more' : 'fewer'} times.`
       : '';
   ctx.out.push({
     id: `impressions:${ctx.week}`,
@@ -147,12 +147,12 @@ function discovery(ctx: Ctx): void {
     kind: 'impressions',
     category: 'discovery',
     tone: change > 0 ? 'good' : 'warning',
-    title: `Impressions ${change > 0 ? 'up' : 'down'} ${formatChange(Math.abs(change)).replace('+', '')} in two weeks`,
-    body: `${formatCount(current.impressions)} impressions in the last 14 days against ${formatCount(previous.impressions)} the 14 before.${because}`,
+    title: `Your app was seen ${formatChange(Math.abs(change)).replace('+', '')} ${change > 0 ? 'more' : 'less'} often in the last two weeks`,
+    body: `Your app was seen ${formatCount(current.impressions)} times, compared with ${formatCount(previous.impressions)} times in the two weeks before.${because}`,
     date: ctx.latest,
     weight: weightFor(change, previous.impressions),
-    metric: { label: 'Impressions', value: formatCount(current.impressions), delta: change },
-    action: { kind: 'ask', question: `Why did my impressions ${change > 0 ? 'rise' : 'fall'} in the last two weeks?` },
+    metric: { label: 'Times seen', value: formatCount(current.impressions), delta: change },
+    action: { kind: 'ask', question: `Why was my app seen ${change > 0 ? 'more' : 'less'} often in the last two weeks?` },
   });
 }
 
@@ -182,13 +182,13 @@ function featured(ctx: Ctx): void {
     kind: 'featured',
     category: 'discovery',
     tone: 'good',
-    title: 'It looks like the App Store featured the app',
-    body: `Impressions from browsing reached ${formatCount(spike.value)} on ${formatDay(spike.date)}, ${Math.round(
+    title: 'The App Store may have featured your app',
+    body: `On ${formatDay(spike.date)}, people browsing the App Store saw your app ${formatCount(spike.value)} times, ${Math.round(
       spike.value / Math.max(1, baseline)
-    )} times the usual day. Browsing covers the Today tab, the Games and Apps tabs and charts, which is where editors place apps.`,
+    )} times the usual number. Browsing the App Store means the Today, Games and Apps tabs and the charts, where Apple's editors feature apps.`,
     date: spike.date,
     weight: 80,
-    metric: { label: 'Browse impressions', value: formatCount(spike.value) },
+    metric: { label: 'Times seen while browsing', value: formatCount(spike.value) },
     action: { kind: 'timeline' },
   });
 }
@@ -211,14 +211,14 @@ function conversion(ctx: Ctx): void {
     kind: 'conversion',
     category: 'conversion',
     tone: up ? 'good' : 'problem',
-    title: `Conversion rate ${up ? 'rose' : 'fell'} from ${formatRate(previous.conversion)} to ${formatRate(current.conversion)}`,
+    title: `Download rate ${up ? 'up' : 'down'} from ${formatRate(previous.conversion)} to ${formatRate(current.conversion)}`,
     body: up
-      ? 'More of the people who see the app are getting it. If you changed the screenshots, icon or subtitle recently, that is a good sign it worked.'
-      : 'Fewer of the people who see the app are getting it. The first three screenshots show in search results, so they are the first thing to look at, along with the icon, the subtitle and recent ratings.',
+      ? 'More of the people who see your app now download your app. If you recently changed your screenshots, icon or subtitle, the change probably worked.'
+      : 'Fewer of the people who see your app now download your app. Check your first three screenshots, shown in search results, then your icon, subtitle and recent ratings.',
     date: ctx.latest,
     weight: up ? weightFor(change, current.conversionBase.uniqueImpressions) : Math.min(98, weightFor(change, current.conversionBase.uniqueImpressions) + 10),
-    metric: { label: 'Conversion rate', value: formatRate(current.conversion), delta: change },
-    action: up ? { kind: 'timeline' } : { kind: 'ask', question: 'My conversion rate dropped. What changed, and what should I try first?' },
+    metric: { label: 'Download rate', value: formatRate(current.conversion), delta: change },
+    action: up ? { kind: 'timeline' } : { kind: 'ask', question: 'My download rate went down. What changed, and what should I try first?' },
   });
 }
 
@@ -230,7 +230,7 @@ function downloads(ctx: Ctx): void {
   const mover = current.hasDownloads ? biggestMover(ctx, 'downloads') : null;
   const because =
     mover && Math.abs(mover.delta) > Math.abs(current.downloads - previous.downloads) * 0.4
-      ? ` ${SOURCE_LABELS[mover.source]} accounts for most of it.`
+      ? ` Most of the change came from ${SOURCE_LABELS[mover.source]}.`
       : '';
   ctx.out.push({
     id: `downloads:${ctx.week}`,
@@ -238,12 +238,12 @@ function downloads(ctx: Ctx): void {
     kind: 'downloads',
     category: 'downloads',
     tone: change > 0 ? 'good' : 'warning',
-    title: `First-time downloads ${change > 0 ? 'up' : 'down'} ${formatChange(Math.abs(change)).replace('+', '')}`,
-    body: `${formatCount(current.downloads)} in the last 14 days against ${formatCount(previous.downloads)} the 14 before.${because}`,
+    title: `New downloads ${change > 0 ? 'up' : 'down'} ${formatChange(Math.abs(change)).replace('+', '')} in the last two weeks`,
+    body: `You got ${formatCount(current.downloads)} new downloads, compared with ${formatCount(previous.downloads)} in the two weeks before.${because}`,
     date: ctx.latest,
     weight: weightFor(change, previous.downloads),
-    metric: { label: 'Downloads', value: formatCount(current.downloads), delta: change },
-    action: { kind: 'ask', question: `What drove the ${change > 0 ? 'rise' : 'drop'} in downloads over the last two weeks?` },
+    metric: { label: 'New downloads', value: formatCount(current.downloads), delta: change },
+    action: { kind: 'ask', question: `Why did my downloads go ${change > 0 ? 'up' : 'down'} in the last two weeks?` },
   });
 }
 
@@ -265,8 +265,8 @@ function milestones(ctx: Ctx): void {
       kind: 'milestone',
       category: 'milestones',
       tone: 'good',
-      title: `${formatCount(passed)} first-time downloads`,
-      body: `The app passed ${formatCount(passed)} first-time downloads in the period this app has data for, and is now at ${formatCount(running)}.`,
+      title: `Your app passed ${formatCount(passed)} new downloads`,
+      body: `Your app now has ${formatCount(running)} new downloads, counting from the first day Growth has numbers for.`,
       date: ctx.latest,
       weight: 60,
     });
@@ -287,7 +287,7 @@ function milestones(ctx: Ctx): void {
       category: 'milestones',
       tone: 'good',
       title: `Best day yet: ${formatCount(best.value)} downloads on ${formatDay(best.date)}`,
-      body: `No day in the ${series.length} days this app has data for did better.`,
+      body: `Of the ${series.length} days Growth has numbers for, no other day had more downloads.`,
       date: best.date,
       weight: 58,
     });
@@ -309,11 +309,11 @@ function revenue(ctx: Ctx): void {
     kind: 'proceeds',
     category: 'revenue',
     tone: change > 0 ? 'good' : 'warning',
-    title: `Proceeds ${change > 0 ? 'up' : 'down'} ${formatChange(Math.abs(change)).replace('+', '')}`,
-    body: `${formatMoney(now, currency)} in the last 14 days against ${formatMoney(then, currency)} the 14 before, in ${currency}. Other currencies are counted on their own.`,
+    title: `Earnings ${change > 0 ? 'up' : 'down'} ${formatChange(Math.abs(change)).replace('+', '')} in the last two weeks`,
+    body: `You earned ${formatMoney(now, currency)} in the last two weeks, compared with ${formatMoney(then, currency)} in the two weeks before. Only earnings in ${currency} are counted.`,
     date: ctx.latest,
     weight: weightFor(change, then),
-    metric: { label: 'Proceeds', value: formatMoney(now, currency), delta: change },
+    metric: { label: 'Earnings', value: formatMoney(now, currency), delta: change },
   });
 }
 
@@ -335,7 +335,7 @@ function markets(ctx: Ctx): void {
       category: 'markets',
       tone: 'good',
       title: `Downloads ${row.change >= 2 ? 'tripled' : 'doubled'} in ${territoryName(row.key)}`,
-      body: `${formatCount(row.totals.downloads)} first-time downloads there in the last 14 days, ${Math.round(row.share * 100)}% of all of them.`,
+      body: `${territoryName(row.key)} had ${formatCount(row.totals.downloads)} new downloads in the last two weeks, ${Math.round(row.share * 100)}% of all your new downloads.`,
       date: ctx.latest,
       weight: Math.min(75, 45 + Math.round(row.share * 100)),
       metric: { label: territoryName(row.key), value: formatCount(row.totals.downloads), delta: row.change },
@@ -354,8 +354,8 @@ function markets(ctx: Ctx): void {
       kind: 'market-new',
       category: 'markets',
       tone: 'good',
-      title: `People in ${territoryName(row.key)} started downloading the app`,
-      body: `${formatCount(row.totals.downloads)} first-time downloads in two weeks, after none in the eight weeks before.`,
+      title: `People in ${territoryName(row.key)} started downloading your app`,
+      body: `${territoryName(row.key)} had ${formatCount(row.totals.downloads)} new downloads in the last two weeks, after none in the eight weeks before.`,
       date: ctx.latest,
       weight: 50,
       action: { kind: 'markets', territory: row.key },
@@ -394,8 +394,8 @@ function markets(ctx: Ctx): void {
       kind: 'localize',
       category: 'markets',
       tone: 'warning',
-      title: `${Math.round(entry.share * 100)}% of your ${all.hasEngagement ? 'product page views' : 'downloads'} come from storefronts where ${listingLanguageName(language)} is the main language`,
-      body: `Most shoppers in ${where} see the listing in another language, because it has no ${listingLanguageName(language)} version. Translate the screenshots in the editor and upload them, then add the language on the Listing tab.`,
+      title: `${Math.round(entry.share * 100)}% of your ${all.hasEngagement ? 'page visits' : 'downloads'} come from countries where ${listingLanguageName(language)} is the main language`,
+      body: `Your store page has no ${listingLanguageName(language)} version, so most people in ${where} see your store page in another language. Translate and upload your screenshots in the editor, then add ${listingLanguageName(language)} on the Store page.`,
       date: ctx.latest,
       weight: Math.min(92, 55 + Math.round(entry.share * 150)),
       metric: { label: 'Share', value: `${Math.round(entry.share * 100)}%` },
@@ -423,13 +423,13 @@ function markets(ctx: Ctx): void {
         kind: 'market-conversion',
         category: 'conversion',
         tone: 'warning',
-        title: `${territoryName(row.key)} converts at ${formatRate(row.totals.conversion)}, against ${formatRate(all.conversion)} overall`,
+        title: `Download rate in ${territoryName(row.key)} is ${formatRate(row.totals.conversion)}, compared with ${formatRate(all.conversion)} overall`,
         body: localized
-          ? 'The listing there is in the local language, so look at what the screenshots show: what sells elsewhere may not be what people there are looking for.'
-          : `Most people there see the listing in another language. A ${listingLanguageName(language)} listing and screenshots are the first thing to try.`,
+          ? `Your store page is already in ${listingLanguageName(language)}. Check your screenshots: what works in other countries may not be what people in ${territoryName(row.key)} want.`
+          : `Most people in ${territoryName(row.key)} see your store page in another language. Try your store page and screenshots in ${listingLanguageName(language)} first.`,
         date: ctx.latest,
         weight: 62,
-        metric: { label: 'Conversion', value: formatRate(row.totals.conversion) },
+        metric: { label: 'Download rate', value: formatRate(row.totals.conversion) },
         action: localized ? { kind: 'markets', territory: row.key } : { kind: 'localize', locales: [language] },
       });
     }
@@ -444,7 +444,7 @@ function screenshots(ctx: Ctx): void {
   if (latestShot) {
     const impact = eventImpact(ctx.byDate, latestShot, { latest: ctx.latest, events: ctx.input.events });
     const what = latestShot.projectName ? `the screenshots from "${latestShot.projectName}"` : 'your new screenshots';
-    const measure = impact.measure === 'conversion' ? 'conversion rate' : 'downloads per day';
+    const measure = impact.measure === 'conversion' ? 'download rate' : 'downloads per day';
     let insight: Omit<Insight, 'id' | 'appId' | 'kind' | 'category' | 'date'> | null = null;
     if (impact.verdict === 'better' || impact.verdict === 'worse') {
       const better = impact.verdict === 'better';
@@ -453,12 +453,12 @@ function screenshots(ctx: Ctx): void {
       // the screenshots moved it, and name whatever else changed meanwhile.
       const others =
         impact.others.length > 0
-          ? `Other changes in these weeks may account for some of it: ${describeEvents(impact.others)}.`
-          : 'This compares the weeks before and after, so a feature, a sale or a season can move it too.';
+          ? `Other events in the weeks before and after may also have changed the ${measure}: ${describeEvents(impact.others)}.`
+          : `A sale or the time of year can also change the ${measure}.`;
       insight = {
         tone: better ? 'good' : 'problem',
         title: `The ${measure} is ${better ? 'up' : 'down'} ${size} since your new screenshots went live`,
-        body: `${impact.measure === 'conversion' ? `${formatRate(impact.beforeRate)} before and ${formatRate(impact.afterRate)} after` : `${formatCount(impact.beforeRate)} a day before and ${formatCount(impact.afterRate)} after`} ${what} went live on ${formatDay(impact.liveDate ?? latestShot.date)}, measured over ${impact.daysAfter} days. ${confidenceSentence(impact.confidence, confidenceBar(impact.daysAfter))} ${others}${better ? '' : ' The previous design is still in the project history if you want it back.'}`,
+        body: `${impact.measure === 'conversion' ? `The download rate was ${formatRate(impact.beforeRate)} before and ${formatRate(impact.afterRate)} after` : `Downloads were ${formatCount(impact.beforeRate)} a day before and ${formatCount(impact.afterRate)} a day after`} ${what} went live on ${formatDay(impact.liveDate ?? latestShot.date)}, measured over ${impact.daysAfter} days. ${confidenceSentence(impact.confidence, confidenceBar(impact.daysAfter))} ${others}${better ? '' : ' You can bring back your old design from the project history.'}`,
         weight: better ? 85 : 95,
         metric: { label: measure, value: impact.measure === 'conversion' ? formatRate(impact.afterRate) : formatCount(impact.afterRate), delta: impact.change ?? undefined },
         action: { kind: 'timeline', eventId: latestShot.id },
@@ -466,19 +466,19 @@ function screenshots(ctx: Ctx): void {
     } else if (impact.verdict === 'not-live') {
       insight = {
         tone: 'neutral',
-        title: `Your new screenshots go live with version ${latestShot.version ?? 'the next release'}`,
-        body: 'Screenshots uploaded to a version waiting for release are not on the store yet. Their effect is measured from the day that version comes out.',
+        title: `Your new screenshots go live with ${latestShot.version ? `version ${latestShot.version}` : 'the next release'}`,
+        body: 'Your new screenshots show in the App Store once the new version comes out. Growth measures your new screenshots from the release day.',
         weight: 40,
         action: { kind: 'timeline', eventId: latestShot.id },
       };
     } else if (impact.verdict === 'too-early' && impact.liveDate) {
       insight = {
         tone: 'neutral',
-        title: `Measuring your new screenshots: ${impact.daysAfter} of 14 days in`,
+        title: `Measuring your new screenshots: ${impact.daysAfter} of 14 days done`,
         body:
           impact.change !== null
-            ? `So far the ${measure} is ${formatChange(impact.change)}, not enough data to call yet. The full comparison is ready in ${plural(impact.daysToWait, 'day')}.`
-            : `The first numbers since ${formatDay(impact.liveDate)} arrive a day or two after each day ends.`,
+            ? `So far the change in ${measure} is ${formatChange(impact.change)}, too early to be sure. The full result is ready in ${plural(impact.daysToWait, 'day')}.`
+            : `Apple sends each day's numbers one or two days later. No numbers since ${formatDay(impact.liveDate)} have come in yet.`,
         weight: 45,
         action: { kind: 'timeline', eventId: latestShot.id },
       };
@@ -486,7 +486,7 @@ function screenshots(ctx: Ctx): void {
       insight = {
         tone: 'neutral',
         title: `The ${measure} is about the same since your new screenshots went live`,
-        body: `Over ${impact.daysAfter} days it moved ${formatChange(impact.change)}, which is within normal variation. A bolder change, such as a different first screenshot, is easier to measure, and product page optimization in App Store Connect can test two sets side by side.`,
+        body: `In ${impact.daysAfter} days the ${measure} changed by ${formatChange(impact.change)}, which could be luck. A bigger change, like a new first screenshot, is easier to measure. To test two sets of screenshots side by side, use product page optimization in App Store Connect.`,
         weight: 42,
         action: { kind: 'timeline', eventId: latestShot.id },
       };
@@ -513,8 +513,8 @@ function screenshots(ctx: Ctx): void {
       kind: 'screenshots-stale',
       category: 'screenshots',
       tone: 'neutral',
-      title: lastShot ? `The screenshots have not changed in ${daysBetween(lastShot, ctx.latest)} days` : 'No screenshot change on record yet',
-      body: 'Upload a new set from the editor and this page compares its conversion with the current one.',
+      title: lastShot ? `Your screenshots have not changed in ${daysBetween(lastShot, ctx.latest)} days` : 'No new screenshots on the timeline yet',
+      body: 'Upload new screenshots from the editor. Growth then compares your downloads before and after the new screenshots go live.',
       date: ctx.latest,
       weight: 30,
       action: { kind: 'publish' },
@@ -537,7 +537,7 @@ function reviewInsights(input: InsightInput, out: Insight[]): void {
       category: 'reviews',
       tone: 'warning',
       title: `${plural(waiting.length, 'low rating')} waiting for a reply`,
-      body: `One and two star reviews from the last 30 days with no answer, the oldest from ${formatDay(reviewDay(oldest))}. A reply shows under the review for everyone, and Apple tells the reviewer, who can then change the rating.`,
+      body: `Reviews with 1 or 2 stars from the last 30 days have no reply. The oldest review is from ${formatDay(reviewDay(oldest))}. Everyone sees your reply, and Apple tells the reviewer, who can then change the rating.`,
       date: input.today,
       weight: Math.min(88, 50 + waiting.length * 4),
       metric: { label: 'Waiting', value: String(waiting.length) },
@@ -557,7 +557,7 @@ function reviewInsights(input: InsightInput, out: Insight[]): void {
       category: 'reviews',
       tone: 'problem',
       title: `${lastThree.length} low ratings in three days`,
-      body: `That is ${usual > 0 ? `${Math.round(lastThree.length / usual)} times` : 'well above'} the usual pace. Bursts like this usually follow a release or an outage.`,
+      body: `Low ratings are coming in ${usual > 0 ? `${Math.round(lastThree.length / usual)} times faster` : 'much faster'} than usual. Bursts of low ratings often come after a new version, or when part of your app stops working.`,
       date: input.today,
       weight: 94,
       action: { kind: 'reviews', rating: 2 },
@@ -574,7 +574,7 @@ function reviewInsights(input: InsightInput, out: Insight[]): void {
       category: 'reviews',
       tone: entry.topic === 'request' ? 'neutral' : 'warning',
       title: `${entry.count} low ratings in two weeks mention ${REVIEW_TOPIC_LABELS[entry.topic].toLowerCase()}`,
-      body: 'Reading them side by side usually shows what broke. A reply saying a fix is on its way tells everyone else who reads them too.',
+      body: 'Read the reviews side by side to see what went wrong. A reply saying a fix is coming also tells everyone else who reads the reviews.',
       date: input.today,
       weight: Math.min(85, 45 + entry.count * 5),
       action: { kind: 'reviews', topic: entry.topic },
@@ -597,7 +597,7 @@ function ratingInsights(input: InsightInput, out: Insight[]): void {
       category: 'ratings',
       tone: 'problem',
       title: `Recent reviews average ${formatRating(now)} stars, down from ${formatRating(then)}`,
-      body: `${plural(recent.length, 'review')} in the last two weeks against an average of ${formatRating(then)} in the six weeks before. Ratings affect where the app ranks in search and how many people tap it.`,
+      body: `The new average comes from ${plural(recent.length, 'review')} in the last two weeks. The six weeks before averaged ${formatRating(then)} stars. Ratings help decide your place in search results and how many people tap your app.`,
       date: input.today,
       weight: 90,
       action: { kind: 'reviews', rating: 2 },
@@ -621,7 +621,7 @@ function ratingInsights(input: InsightInput, out: Insight[]): void {
         category: 'ratings',
         tone: 'problem',
         title: `Reviews since ${release.version ? `version ${release.version}` : release.title} average ${formatRating(a)} stars, down from ${formatRating(b)}`,
-        body: 'The reviews written since the release are the quickest way to see what people dislike about it.',
+        body: 'Read the reviews written since the release to see what people do not like about the new version.',
         date: release.date,
         weight: 92,
         action: { kind: 'reviews', rating: 2 },
@@ -640,8 +640,8 @@ function ratingInsights(input: InsightInput, out: Insight[]): void {
       kind: 'rating-below',
       category: 'ratings',
       tone: top.average < 4 ? 'problem' : 'warning',
-      title: `${formatRating(top.average)} stars in ${territoryName(top.territory)}, your biggest storefront`,
-      body: `Across every storefront the app averages ${formatRating(weighted)} from ${formatCount(all)} ratings. The stars show beside the name in search results, so they are part of the first impression.`,
+      title: `${formatRating(top.average)} stars in ${territoryName(top.territory)}, where you have the most ratings`,
+      body: `Across all countries, your app has ${formatRating(weighted)} stars from ${formatCount(all)} ratings. People see your stars next to your app's name in search results, before opening your page.`,
       date: input.today,
       weight: top.average < 4 ? 80 : 55,
       action: { kind: 'reviews' },
@@ -666,9 +666,9 @@ function listingInsights(input: InsightInput, out: Insight[]): void {
       kind: 'listing',
       category: 'listing',
       tone: problems.length > 0 ? 'problem' : 'warning',
-      title: `The listing for version ${input.listing.versionString} has ${parts.join(' and ')}`,
+      title: `Your store page for version ${input.listing.versionString} has ${parts.join(' and ')}`,
       body: `${(problems[0] ?? warnings[0]).title}.${
-        fixable === 1 ? ' One issue has a ready fix.' : fixable > 1 ? ` ${fixable} issues have a ready fix.` : ''
+        fixable === 1 ? ' One issue has a fix ready to apply.' : fixable > 1 ? ` ${fixable} issues have a fix ready to apply.` : ''
       }`,
       date: input.today,
       weight: problems.length > 0 ? 76 : 52,
@@ -698,11 +698,11 @@ function listingInsights(input: InsightInput, out: Insight[]): void {
 export function confidenceSentence(confidence: number | null, bar: number | null = CONFIDENT): string {
   if (confidence === null) return '';
   const percent = Math.min(99, Math.round(confidence * 100));
-  if (bar === null) return `Statistical confidence ${percent}% so far. A verdict waits for at least ${MIN_DAYS_AFTER} days.`;
-  if (confidence >= bar) return `Statistical confidence ${percent}%, so this is unlikely to be day to day noise.`;
+  if (bar === null) return `Growth needs at least ${MIN_DAYS_AFTER} days of numbers to tell if the change is real.`;
+  if (confidence >= bar) return `Growth is ${percent}% sure the change is real, not luck.`;
   // While the window fills it is read again every day, so the bar is higher.
-  if (bar > CONFIDENT) return `Statistical confidence ${percent}%. Until all 14 days are in, it takes ${Math.round(bar * 100)}% to call it.`;
-  return `Statistical confidence ${percent}%, not yet enough to rule out day to day noise.`;
+  if (bar > CONFIDENT) return 'Not sure yet if the change is real. Wait a few more days.';
+  return `Growth is only ${percent}% sure the change is real, not luck.`;
 }
 
 function median(values: number[]): number | null {

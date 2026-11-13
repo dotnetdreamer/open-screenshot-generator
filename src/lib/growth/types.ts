@@ -50,12 +50,12 @@ export const SOURCE_TYPES: SourceType[] = [
 
 export const SOURCE_LABELS: Record<SourceType, string> = {
   search: 'App Store search',
-  browse: 'App Store browse',
+  browse: 'App Store browsing',
   'app-referrer': 'Other apps',
   'web-referrer': 'Websites',
   'app-clip': 'App Clips',
   notification: 'Notifications',
-  institutional: 'Institutional',
+  institutional: 'Schools and businesses',
   unavailable: 'Other',
 };
 
@@ -171,7 +171,7 @@ export type TimelineEventKind =
 export const EVENT_KIND_LABELS: Record<TimelineEventKind, string> = {
   release: 'New version',
   screenshots: 'New screenshots',
-  listing: 'Listing change',
+  listing: 'Store page change',
   price: 'Price change',
   campaign: 'Ad campaign',
   featured: 'Featured',
@@ -306,14 +306,14 @@ export type InsightCategory =
   | 'milestones';
 
 export const INSIGHT_CATEGORY_LABELS: Record<InsightCategory, string> = {
-  discovery: 'Discovery',
-  conversion: 'Conversion',
+  discovery: 'Times seen',
+  conversion: 'Download rate',
   downloads: 'Downloads',
-  revenue: 'Revenue',
+  revenue: 'Earnings',
   ratings: 'Ratings',
   reviews: 'Reviews',
-  markets: 'Markets',
-  listing: 'Listing',
+  markets: 'Countries',
+  listing: 'Store page',
   screenshots: 'Screenshots',
   milestones: 'Milestones',
 };

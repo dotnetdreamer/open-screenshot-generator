@@ -20,7 +20,7 @@ const STARTERS = [
   'Why did downloads change over the last two weeks?',
   'Which language should I translate the screenshots into next?',
   'What are people complaining about in their reviews?',
-  'Where do most of my downloads come from, and how well does each source convert?',
+  'Where do most of my downloads come from?',
 ];
 
 export function GrowthAsk() {
@@ -88,7 +88,7 @@ export function GrowthAsk() {
 
   const agentReason =
     view.blocked.app ??
-    (view.onAskAgent ? null : view.agentUnavailable ?? 'Asking the agent needs Claude Code or Codex installed and signed in');
+    (view.onAskAgent ? null : view.agentUnavailable ?? 'To ask the agent, install Claude Code or Codex and sign in');
 
   return (
     <div className="flex h-full min-h-[480px] flex-col gap-3">
@@ -97,8 +97,9 @@ export function GrowthAsk() {
           <Panel>
             <p className="text-sm font-medium">{view.app.id ? `Ask about ${view.app.name}` : 'Ask about your app'}</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Answers come from this app&apos;s numbers, reviews, listing and timeline on this computer
-              {view.aiLabel ? `, written by ${view.aiLabel}` : ''}.
+              {view.aiLabel
+                ? `${view.aiLabel} answers using your numbers, reviews, store page and timeline.`
+                : 'The AI answers using your numbers, reviews, store page and timeline.'}
             </p>
             {view.blocked.ai && <p className="mt-1 text-xs text-muted-foreground">{view.blocked.ai}.</p>}
             <div className="mt-3 flex flex-wrap gap-2">
@@ -143,7 +144,7 @@ export function GrowthAsk() {
         <Textarea
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
-          placeholder="Ask about downloads, conversion, reviews or the listing"
+          placeholder="Ask about your downloads, reviews or store page"
           rows={2}
           className="resize-none border-0 text-sm shadow-none focus-visible:ring-0"
           onKeyDown={(event) => {
@@ -161,7 +162,7 @@ export function GrowthAsk() {
               size="sm"
               disabled={!draft.trim() && turns.length === 0}
               onClick={() => view.onAskAgent?.(draft.trim() || turns.filter((turn) => turn.role === 'user').pop()?.text || '')}
-              title="Hand the question to the coding agent, which can read these numbers and then change the screenshots"
+              title="Send the question to the agent. The agent can read your numbers and change your screenshots"
             >
               <BotIcon className="mr-1.5 h-4 w-4" />
               Ask the agent

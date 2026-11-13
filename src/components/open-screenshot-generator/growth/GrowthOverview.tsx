@@ -105,7 +105,7 @@ export function GrowthOverview() {
                 'rounded-lg border bg-card p-3 text-left transition-colors hover:bg-muted/50',
                 metric === id && 'border-[hsl(var(--growth-series))] ring-1 ring-[hsl(var(--growth-series))]'
               )}
-              title={`${spec.hint}. Show on the chart`}
+              title={`${spec.hint}. Show ${spec.label.toLowerCase()} on the chart`}
             >
               <p className="truncate text-xs text-muted-foreground">{spec.label}</p>
               <p className="mt-1 text-xl font-semibold leading-none">{formatMetricValue(now, spec, currency)}</p>
@@ -113,12 +113,12 @@ export function GrowthOverview() {
                 <Delta change={relativeChange(now, then)} />
                 <span className="text-[11px] text-muted-foreground">
                   {now === null
-                    ? 'not reported yet'
+                    ? 'no numbers yet'
                     : id === 'proceeds' && otherCurrencies > 0
                       ? `in ${currency}, plus ${otherCurrencies} other currenc${otherCurrencies === 1 ? 'y' : 'ies'}`
                       : comparable
                         ? 'vs period before'
-                        : 'no full period before'}
+                        : 'nothing to compare yet'}
                 </span>
               </div>
               <Sparkline values={points} className="mt-2" />
@@ -129,12 +129,14 @@ export function GrowthOverview() {
           type="button"
           onClick={() => view.goTo('reviews')}
           className="rounded-lg border bg-card p-3 text-left transition-colors hover:bg-muted/50"
-          title="Star rating across the storefronts checked. Open the reviews"
+          title="Star rating in the countries checked. Open the reviews"
         >
           <p className="truncate text-xs text-muted-foreground">Rating</p>
           <p className="mt-1 text-xl font-semibold leading-none">{ratingAverage === null ? 'n/a' : formatRating(ratingAverage)}</p>
           <p className="mt-1.5 text-[11px] text-muted-foreground">
-            {ratingCount > 0 ? `${formatCount(ratingCount)} ratings in ${view.data.ratings.length} storefronts` : 'No ratings checked yet'}
+            {ratingCount > 0
+              ? `${formatCount(ratingCount)} rating${ratingCount === 1 ? '' : 's'} in ${view.data.ratings.length} ${view.data.ratings.length === 1 ? 'country' : 'countries'}`
+              : 'No ratings loaded yet'}
           </p>
         </button>
       </div>
@@ -158,7 +160,7 @@ export function GrowthOverview() {
                 </Label>
               </div>
               <Select value={metric} onValueChange={(value) => setMetric(value as MetricId)}>
-                <SelectTrigger className="h-8 w-[200px] text-xs" aria-label="Metric on the chart">
+                <SelectTrigger className="h-8 w-[200px] text-xs" aria-label="What the chart shows">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -184,7 +186,7 @@ export function GrowthOverview() {
       <div className="grid gap-4 lg:grid-cols-3">
         <Panel className="lg:col-span-1">
           <SectionTitle
-            title="Worth your attention"
+            title="Top insights"
             actions={
               <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => view.goTo('insights')}>
                 All insights
@@ -193,7 +195,7 @@ export function GrowthOverview() {
             }
           />
           {view.insights.length === 0 ? (
-            <p className="text-xs text-muted-foreground">Nothing stands out in the numbers right now.</p>
+            <p className="text-xs text-muted-foreground">Nothing needs your attention right now.</p>
           ) : (
             <ul className="space-y-3">
               {view.insights.slice(0, 3).map((insight) => (
@@ -211,25 +213,25 @@ export function GrowthOverview() {
         </Panel>
 
         <Panel>
-          <SectionTitle title="How people find the app" hint="First-time downloads by where they started" />
+          <SectionTitle title="How people find your app" hint="New downloads by where people came from" />
           <BarList
             rows={sources.slice(0, 6).map((row) => ({
               key: row.key,
               label: SOURCE_LABELS[row.key as SourceType] ?? row.key,
               value: row.totals.downloads,
               display: formatCount(row.totals.downloads),
-              sub: row.totals.conversion !== null ? `${formatRate(row.totals.conversion)} conversion` : undefined,
+              sub: row.totals.conversion !== null ? `${formatRate(row.totals.conversion)} download rate` : undefined,
             }))}
-            emptyText="Sources need App Analytics, which this app has not reported yet"
+            emptyText="App Analytics has not sent numbers for your app yet"
           />
         </Panel>
 
         <Panel>
           <SectionTitle
-            title="Top storefronts"
+            title="Top countries"
             actions={
               <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => view.goTo('markets')}>
-                All storefronts
+                All countries
                 <ArrowRightIcon className="ml-1 h-3.5 w-3.5" />
               </Button>
             }
@@ -255,27 +257,27 @@ function NoNumbersYet() {
   return (
     <Panel className="flex flex-col items-center gap-3 py-10 text-center">
       <ImagesIcon className="h-8 w-8 text-muted-foreground" />
-      <p className="text-sm font-medium">No numbers for this app yet</p>
+      <p className="text-sm font-medium">No numbers for your app yet</p>
       <p className="max-w-md text-xs text-muted-foreground">
         {statuses.sales.state === 'needs-setup'
-          ? 'Add your vendor number on the Connection tab to load downloads and proceeds from Sales and Trends. They arrive in minutes, while App Analytics takes a day or two.'
+          ? 'Add your vendor number under Setup. Then downloads and earnings from Sales and Trends arrive in a few minutes. App Analytics (times seen and download rate) takes a day or two.'
           : view.data.lastSync && (statuses.sales.state === 'ok' || statuses.sales.state === 'empty')
             ? // Synced, and Sales and Trends answered: an app with no downloads in
               // the days read (not released yet, or off sale) has nothing to
               // show. How far back those days go is the history setting's
               // choice, so the sentence names the date rather than "a year".
-              `Sales and Trends has no downloads of this app${statuses.sales.since ? ` since ${formatDay(statuses.sales.since, { withYear: true })}` : ' yet'}. Its numbers start here with its first download.`
-            : 'Sync the app to load its numbers. Sales and Trends arrives in minutes; App Analytics, which has impressions and conversion, takes a day or two the first time.'}
+              `Sales and Trends has no downloads of your app${statuses.sales.since ? ` since ${formatDay(statuses.sales.since, { withYear: true })}` : ' yet'}. Growth shows your numbers after the first download.`
+            : 'Refresh to load your numbers. Sales and Trends (downloads and earnings) arrives in a few minutes. App Analytics (times seen and download rate) takes a day or two the first time.'}
       </p>
       <div className="flex flex-wrap justify-center gap-2">
         <Button size="sm" variant="outline" onClick={() => view.goTo('connect')}>
-          Connection
+          Setup
         </Button>
         <Button size="sm" variant="outline" onClick={() => view.goTo('reviews')}>
           Reviews
         </Button>
         <Button size="sm" variant="outline" onClick={() => view.goTo('listing')}>
-          Listing
+          Store page
         </Button>
       </div>
     </Panel>
@@ -288,9 +290,9 @@ const VERDICT_TEXT: Record<ImpactResult['verdict'], string> = {
   better: 'Up',
   worse: 'Down',
   flat: 'About the same',
-  'too-early': 'Measuring',
-  'not-live': 'Not live yet',
-  'no-data': 'No data',
+  'too-early': 'Not sure yet',
+  'not-live': 'Not in the App Store yet',
+  'no-data': 'No numbers',
 };
 
 function ImpactHero({ event, impact }: { event: TimelineEvent | null; impact: ImpactResult | null }) {
@@ -300,10 +302,9 @@ function ImpactHero({ event, impact }: { event: TimelineEvent | null; impact: Im
       <Panel className="flex flex-col gap-3 border-dashed sm:flex-row sm:items-center">
         <SparklesIcon className="h-6 w-6 shrink-0 text-[hsl(var(--growth-highlight))]" />
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium">See whether your next screenshots sell better</p>
+          <p className="text-sm font-medium">See if your next screenshots get more downloads</p>
           <p className="text-xs text-muted-foreground">
-            Upload a set from the editor and this page compares the conversion rate before and after it goes live, with a
-            significance test so day to day noise is not mistaken for a win.
+            Upload new screenshots from the editor. Growth then compares your downloads before and after the new screenshots go live.
           </p>
         </div>
         <Button size="sm" onClick={view.onPublish}>
@@ -344,11 +345,11 @@ function ImpactHero({ event, impact }: { event: TimelineEvent | null; impact: Im
         <p className="text-xs text-muted-foreground">
           {event.detail ?? event.title}. Uploaded {formatDay(event.date)}
           {event.version ? ` to version ${event.version}` : ''}
-          {impact.liveDate ? `, live since ${formatDay(impact.liveDate)}` : ''}.
+          {impact.liveDate ? `, in the App Store since ${formatDay(impact.liveDate)}` : ''}.
         </p>
         {impact.verdict === 'not-live' ? (
           <p className="text-xs">
-            Waiting for version {event.version} to be released. The comparison starts the day it is on the store.
+            Waiting for version {event.version} to be released. Growth then compares your numbers before and after the release day.
           </p>
         ) : (
           <>
@@ -364,7 +365,7 @@ function ImpactHero({ event, impact }: { event: TimelineEvent | null; impact: Im
               </div>
               <div className="pb-1">
                 <Delta change={impact.change} className="text-sm" />
-                <p className="text-[11px] text-muted-foreground">{measuredRate ? 'conversion rate' : 'downloads per day'}</p>
+                <p className="text-[11px] text-muted-foreground">{measuredRate ? 'download rate' : 'downloads per day'}</p>
               </div>
             </div>
             <div className="space-y-1">
@@ -376,8 +377,8 @@ function ImpactHero({ event, impact }: { event: TimelineEvent | null; impact: Im
               </p>
               <p className="text-[11px] text-muted-foreground" data-testid="growth-impact-others">
                 {impact.others.length > 0
-                  ? `Also in these weeks: ${describeEvents(impact.others)}. They can move the numbers too.`
-                  : 'A before and after comparison, so a feature, a sale or a season can move it too.'}
+                  ? `Events in the same weeks can change your numbers too: ${describeEvents(impact.others)}.`
+                  : 'A sale or the time of year can also change your numbers.'}
               </p>
             </div>
           </>
@@ -400,7 +401,7 @@ function ImpactHero({ event, impact }: { event: TimelineEvent | null; impact: Im
               variant="ghost"
               onClick={() =>
                 view.goTo('ask', {
-                  question: `My new screenshots went live on ${formatDay(impact.liveDate ?? event.date)}. Did they work, and what should I test next?`,
+                  question: `My new screenshots went live on ${formatDay(impact.liveDate ?? event.date)}. Did the new screenshots work, and what should I test next?`,
                 })
               }
             >
@@ -416,10 +417,10 @@ function ImpactHero({ event, impact }: { event: TimelineEvent | null; impact: Im
 
 /** For the timeline: the same before and after, as one line. */
 export function impactLine(impact: ImpactResult): string {
-  if (impact.verdict === 'not-live') return 'Not on the store yet';
-  if (impact.verdict === 'no-data') return 'No numbers around this date';
-  const measured = impact.measure === 'conversion' ? 'Conversion' : 'Downloads a day';
+  if (impact.verdict === 'not-live') return 'Not in the App Store yet';
+  if (impact.verdict === 'no-data') return 'No numbers around the event date';
+  const measured = impact.measure === 'conversion' ? 'Download rate' : 'Downloads a day';
   const format = (value: number | null) => (impact.measure === 'conversion' ? formatRate(value) : formatCount(value));
-  const days = impact.daysAfter > 0 ? `, ${Math.min(impact.daysAfter, 14)} days after` : '';
+  const days = impact.daysAfter > 0 ? `, ${Math.min(impact.daysAfter, 14)} days after the event` : '';
   return `${measured} ${format(impact.beforeRate)} to ${format(impact.afterRate)} (${formatChange(impact.change)})${days}`;
 }

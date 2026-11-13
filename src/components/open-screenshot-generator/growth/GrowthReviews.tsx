@@ -110,7 +110,7 @@ export function GrowthReviews() {
       <EmptyState icon={MessageSquareIcon} title="No written reviews yet">
         {view.data.status.reviews.state === 'forbidden'
           ? view.data.status.reviews.message
-          : 'Reviews appear here after a sync. Star ratings without a written review are counted on the overview.'}
+          : 'Refresh to load your written reviews. Ratings without text are counted on the Overview.'}
       </EmptyState>
     );
   }
@@ -126,8 +126,8 @@ export function GrowthReviews() {
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
             {ratingCount > 0
-              ? `${formatCount(ratingCount)} ratings in ${view.data.ratings.length} storefronts, and ${formatCount(reviews.length)} written reviews`
-              : `${formatCount(reviews.length)} written reviews`}
+              ? `${formatCount(ratingCount)} rating${ratingCount === 1 ? '' : 's'} in ${view.data.ratings.length} ${view.data.ratings.length === 1 ? 'country' : 'countries'}, and ${formatCount(reviews.length)} written review${reviews.length === 1 ? '' : 's'}`
+              : `${formatCount(reviews.length)} written review${reviews.length === 1 ? '' : 's'}`}
           </p>
           {unanswered > 0 && (
             <button
@@ -154,9 +154,9 @@ export function GrowthReviews() {
           />
         </Panel>
         <Panel>
-          <p className="mb-2 text-xs text-muted-foreground">What the last 90 days are about</p>
+          <p className="mb-2 text-xs text-muted-foreground">Topics in the last 90 days</p>
           {topics.length === 0 ? (
-            <p className="text-xs text-muted-foreground">No common topics yet.</p>
+            <p className="text-xs text-muted-foreground">No common topics yet</p>
           ) : (
             <div className="flex flex-wrap gap-1.5">
               {topics.slice(0, 8).map((entry) => (
@@ -168,7 +168,7 @@ export function GrowthReviews() {
                     'rounded-full border px-2.5 py-1 text-xs',
                     topic === entry.topic ? 'border-foreground bg-foreground text-background' : 'hover:bg-muted'
                   )}
-                  title={`${entry.count} reviews, ${entry.low} of them one or two stars`}
+                  title={`${entry.count} review${entry.count === 1 ? '' : 's'}, ${entry.low} with 1 or 2 stars`}
                 >
                   {REVIEW_TOPIC_LABELS[entry.topic]} <span className="tabular-nums opacity-70">{entry.count}</span>
                 </button>
@@ -210,11 +210,11 @@ export function GrowthReviews() {
           </SelectContent>
         </Select>
         <Select value={territory} onValueChange={setTerritory}>
-          <SelectTrigger className="h-9 w-[160px] text-xs" aria-label="Filter by storefront">
+          <SelectTrigger className="h-9 w-[160px] text-xs" aria-label="Filter by country">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all" className="text-xs">Every storefront</SelectItem>
+            <SelectItem value="all" className="text-xs">All countries</SelectItem>
             {territories.map((code) => (
               <SelectItem key={code} value={code} className="text-xs">
                 {territoryName(code)}
@@ -236,7 +236,9 @@ export function GrowthReviews() {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        {filtered.length === reviews.length ? `${formatCount(reviews.length)} reviews` : `${formatCount(filtered.length)} of ${formatCount(reviews.length)} reviews`}
+        {filtered.length === reviews.length
+          ? `${formatCount(reviews.length)} review${reviews.length === 1 ? '' : 's'}`
+          : `${formatCount(filtered.length)} of ${formatCount(reviews.length)} review${reviews.length === 1 ? '' : 's'}`}
         {topic !== 'all' && (
           <>
             {' '}about {REVIEW_TOPIC_LABELS[topic].toLowerCase()}.{' '}
@@ -284,7 +286,7 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
   };
   const topics = topicsOf(review);
   const reviewerLanguage = listingLanguageName(listingLanguageFor(review.territory));
-  const sendReason = view.canWrite ? null : view.blocked.app ?? 'Replying needs the desktop app and an App Store Connect key';
+  const sendReason = view.canWrite ? null : view.blocked.app ?? 'To reply, you need the desktop app and an App Store Connect API key';
 
   const pastReplies = useMemo(
     () =>
@@ -302,7 +304,7 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
       await task();
     } catch (failure) {
       console.error('Growth review action failed', failure);
-      setError(failure instanceof Error ? failure.message : 'That did not work. Try again');
+      setError(failure instanceof Error ? failure.message : 'Your last action did not work. Try again');
     } finally {
       setBusy(null);
     }
@@ -313,7 +315,7 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
       const text = draft.trim();
       if (!text) throw new Error('Write a reply first');
       onAnswered();
-      if (!view.credentials) throw new Error('Connect an App Store Connect key first');
+      if (!view.credentials) throw new Error('Add your App Store Connect API key under Setup first');
       const response = await replyToReview(view.credentials, review.id, text);
       await writeReview({ ...review, response });
       setComposing(false);
@@ -323,7 +325,7 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
   const remove = () =>
     run('delete', async () => {
       if (!review.response) return;
-      if (!view.credentials) throw new Error('Connect an App Store Connect key first');
+      if (!view.credentials) throw new Error('Add your App Store Connect API key under Setup first');
       await deleteReviewReply(view.credentials, review.response.id);
       await writeReview({ ...review, response: undefined });
     });
@@ -393,7 +395,7 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
             <p className="text-xs font-medium">
               Your reply
               <span className="ml-2 font-normal text-muted-foreground">
-                {review.response.state === 'PENDING_PUBLISH' ? 'Waiting for Apple to check it' : 'Published'}
+                {review.response.state === 'PENDING_PUBLISH' ? 'Waiting for Apple to check the reply' : 'Published'}
                 {review.response.lastModified ? `, ${formatDay(review.response.lastModified.slice(0, 10))}` : ''}
               </span>
             </p>
@@ -439,7 +441,7 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             rows={4}
-            placeholder={view.aiAvailable ? 'Write a reply, or notes for the AI to turn into one' : 'Write a reply'}
+            placeholder={view.aiAvailable ? 'Write a reply, or some notes for the AI to use' : 'Write a reply'}
             className="text-sm"
             onKeyDown={(event) => {
               if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
@@ -458,7 +460,7 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
               <Gated reason={view.blocked.ai}>
                 <Button variant="outline" size="sm" className="h-8 text-xs" disabled={busy !== null} onClick={() => void suggest()}>
                   {busy === 'suggest' ? <Loader2Icon className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <SparklesIcon className="mr-1.5 h-3.5 w-3.5" />}
-                  {draft.trim() ? 'Write it from my notes' : 'Suggest a reply'}
+                  {draft.trim() ? 'Write from notes' : 'Suggest a reply'}
                 </Button>
               </Gated>
               {draft.trim() && (
@@ -469,10 +471,10 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
                     className="h-8 text-xs"
                     disabled={busy !== null}
                     onClick={() => void run('translate-draft', async () => setDraft(await translateText(draft, reviewerLanguage, aiSignal())))}
-                    title={`Rewrite the reply in ${reviewerLanguage}, the main language of ${territoryName(review.territory)}`}
+                    title={`Translate the reply into ${reviewerLanguage}, the main language of ${territoryName(review.territory)}`}
                   >
                     {busy === 'translate-draft' ? <Loader2Icon className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <LanguagesIcon className="mr-1.5 h-3.5 w-3.5" />}
-                    In {reviewerLanguage}
+                    Translate reply to {reviewerLanguage}
                   </Button>
                 </Gated>
               )}
@@ -500,7 +502,7 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
             </div>
           </div>
           <p className="text-[11px] text-muted-foreground">
-            Replies are public. Apple checks each one before it shows under the review.
+            Replies are public. Apple checks each reply before the reply shows under the review.
           </p>
         </div>
       )}

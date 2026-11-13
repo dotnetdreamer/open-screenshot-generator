@@ -53,9 +53,8 @@ export function GrowthInsights() {
       </div>
 
       {shown.length === 0 ? (
-        <EmptyState icon={LightbulbIcon} title="No insights here">
-          Insights come from the numbers, the reviews and the listing, and appear after a sync. Nothing in this group stands
-          out right now.
+        <EmptyState icon={LightbulbIcon} title="No insights to show">
+          Insights come from your numbers, reviews and store page. New insights show up after you refresh.
         </EmptyState>
       ) : (
         <ul className="space-y-3">
@@ -69,9 +68,9 @@ export function GrowthInsights() {
 
       {view.dismissedInsights.length > 0 && (
         <p className="text-xs text-muted-foreground">
-          {view.dismissedInsights.length} dismissed.{' '}
+          {view.dismissedInsights.length} insight{view.dismissedInsights.length === 1 ? '' : 's'} hidden.{' '}
           <button type="button" className="underline underline-offset-2 hover:text-foreground" onClick={view.restoreInsights}>
-            Show them again
+            Show hidden insights
           </button>
         </p>
       )}
@@ -104,8 +103,8 @@ function InsightCard({ insight }: { insight: Insight }) {
               size="icon"
               className="h-7 w-7"
               onClick={() => view.dismissInsight(insight.id)}
-              title="Dismiss this insight"
-              aria-label="Dismiss this insight"
+              title="Hide this insight"
+              aria-label="Hide this insight"
             >
               <XIcon className="h-4 w-4" />
             </Button>
@@ -140,14 +139,14 @@ export function InsightActions({ insight, compact = false }: { insight: Insight;
       case 'listing':
         buttons.push(
           <Button key="main" variant="outline" size="sm" className={size} onClick={() => view.goTo('listing', { locale: action.locale })}>
-            Open the listing
+            Open the store page
           </Button>
         );
         break;
       case 'markets':
         buttons.push(
           <Button key="main" variant="outline" size="sm" className={size} onClick={() => view.goTo('markets', { territory: action.territory })}>
-            See the storefronts
+            See the countries
           </Button>
         );
         break;
@@ -168,7 +167,7 @@ export function InsightActions({ insight, compact = false }: { insight: Insight;
         if (!compact) {
           buttons.push(
             <Button key="listing" variant="outline" size="sm" className={size} onClick={() => view.goTo('listing')}>
-              Listing languages
+              Store page languages
             </Button>
           );
         }
@@ -200,7 +199,7 @@ export function InsightActions({ insight, compact = false }: { insight: Insight;
           variant="ghost"
           size="sm"
           className={size}
-          onClick={() => view.goTo('ask', { question: `${insight.title}. What is behind this, and what should I do about it?` })}
+          onClick={() => view.goTo('ask', { question: `${insight.title}. Why, and what should I do next?` })}
         >
           <SparklesIcon className="mr-1.5 h-3.5 w-3.5" />
           Ask AI

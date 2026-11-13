@@ -36,7 +36,7 @@ export async function resolveApp(appId?: unknown): Promise<GrowthApp> {
   const apps = await knownApps();
   if (apps.length === 0) {
     throw new Error(
-      'No App Store app is connected on this computer yet. The user connects one in Growth, under Connection, with an App Store Connect key.'
+      'No App Store app is connected on this computer yet. The user connects one in Growth, under Setup, with an App Store Connect API key.'
     );
   }
   if (typeof appId === 'string' && appId.trim()) {
@@ -281,4 +281,4 @@ export function mayReadStoreData(agent: boolean): boolean {
 }
 
 export const STORE_DATA_REFUSAL =
-  "Store numbers are shared only with the app's own Claude Code and Codex agents. The user can allow other MCP clients in the app under Growth, Connection: Let other MCP clients read these numbers.";
+  "Store numbers are shared only with the app's own Claude Code and Codex agents. The user can allow other MCP clients in the app under Growth, Setup: Let external AI tools see your App Store numbers.";

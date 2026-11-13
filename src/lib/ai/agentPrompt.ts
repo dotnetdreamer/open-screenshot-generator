@@ -26,7 +26,7 @@ export interface AgentWriterStatus {
 export type AgentWriters = Record<AgentWriter, AgentWriterStatus>;
 
 async function invoke<T>(command: string, args?: Record<string, unknown>): Promise<T> {
-  if (!isTauri()) throw new Error('Claude Code and Codex answer in the desktop app only');
+  if (!isTauri()) throw new Error('Claude Code and Codex work in the desktop app only');
   const { invoke: tauriInvoke } = await import('@tauri-apps/api/core');
   try {
     return await tauriInvoke<T>(command, args);
@@ -172,9 +172,9 @@ export function claudeWriterStatus(detection: ClaudeDetection): AgentWriterStatu
   const plan = detection.subscriptionType ? CLAUDE_PLANS[detection.subscriptionType] ?? detection.subscriptionType : null;
   const label = plan ? `Claude Code (${plan} plan)` : 'Claude Code';
   if (detection.unavailable === 'sandboxed') {
-    return { ready: false, label, detail: 'Claude Code cannot run from the Mac App Store version of the app' };
+    return { ready: false, label, detail: 'Claude Code cannot run in the Mac App Store version of Open Screenshot Generator' };
   }
-  if (!detection.found) return { ready: false, label, detail: 'Claude Code is not installed on this computer' };
+  if (!detection.found) return { ready: false, label, detail: 'Claude Code is not installed on your computer' };
   if (detection.error) return { ready: false, label, detail: `Claude Code did not start: ${detection.error}` };
   if (detection.loggedIn === false) {
     return { ready: false, label, detail: 'Claude Code is not signed in. Run claude in a terminal to sign in' };
@@ -187,9 +187,9 @@ export function codexWriterStatus(detection: CodexDetection): AgentWriterStatus 
   const plan = detection.planType ? CODEX_PLANS[detection.planType] ?? detection.planType : null;
   const label = plan ? `Codex (ChatGPT ${plan} plan)` : 'Codex';
   if (detection.unavailable === 'sandboxed') {
-    return { ready: false, label, detail: 'Codex cannot run from the Mac App Store version of the app' };
+    return { ready: false, label, detail: 'Codex cannot run in the Mac App Store version of Open Screenshot Generator' };
   }
-  if (!detection.found) return { ready: false, label, detail: 'Codex is not installed on this computer' };
+  if (!detection.found) return { ready: false, label, detail: 'Codex is not installed on your computer' };
   if (detection.loginStore === 'keyring') {
     return {
       ready: false,

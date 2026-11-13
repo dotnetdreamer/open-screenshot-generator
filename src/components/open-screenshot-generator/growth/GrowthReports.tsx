@@ -114,9 +114,9 @@ export function GrowthReports() {
 
   if (!report || !span) {
     return (
-      <EmptyState icon={FileTextIcon} title="No complete period yet">
-        A weekly report appears once the numbers cover a whole week, Monday to Sunday, a monthly one once they cover a whole
-        month, and a yearly one with the first numbers of the year.
+      <EmptyState icon={FileTextIcon} title="No report yet">
+        A weekly report appears once you have numbers for a whole week, Monday to Sunday. A monthly report needs numbers for a
+        whole month. A yearly report appears with the first numbers of the year.
       </EmptyState>
     );
   }
@@ -140,7 +140,7 @@ export function GrowthReports() {
       await saveBlobToDisk(blob, `${fileStem}.${format}`);
     } catch (failure) {
       console.error('Saving the report failed', failure);
-      setError('The report could not be saved there. Try another folder');
+      setError('The report could not be saved in the folder you chose. Try another folder');
     }
   };
 
@@ -150,7 +150,7 @@ export function GrowthReports() {
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
     } catch {
-      setError('Copying is blocked here. Save the report as a file instead');
+      setError('The report could not be copied. Save the report as a file instead');
     }
   };
 
@@ -217,11 +217,13 @@ export function GrowthReports() {
             <p className="whitespace-pre-line text-sm">{summary}</p>
           ) : (
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs text-muted-foreground">A few sentences on what changed and what to do next, written from these figures.</p>
+              <p className="text-xs text-muted-foreground">
+                The AI can write a short summary from the numbers in the report. The summary says what changed and what to do next.
+              </p>
               <Gated reason={view.blocked.ai}>
                 <Button size="sm" disabled={busy} onClick={writeSummary}>
                   {busy ? <Loader2Icon className="mr-1.5 h-4 w-4 animate-spin" /> : <SparklesIcon className="mr-1.5 h-4 w-4" />}
-                  Write the summary
+                  Write summary
                 </Button>
               </Gated>
             </div>
@@ -233,7 +235,7 @@ export function GrowthReports() {
           <table className="w-full min-w-[420px] text-sm">
             <thead className="bg-transparent text-xs text-muted-foreground">
               <tr className="border-b">
-                <th className="py-2 text-left font-medium">Metric</th>
+                <th className="py-2 text-left font-medium">Number</th>
                 <th className="py-2 text-right font-medium">{periodSpec.column}</th>
                 <th className="py-2 text-right font-medium">Change</th>
               </tr>
@@ -251,7 +253,7 @@ export function GrowthReports() {
                       line.good === null && 'text-muted-foreground'
                     )}
                   >
-                    {line.change ?? 'n/a'}
+                    {line.change ?? 'Not compared'}
                   </td>
                 </tr>
               ))}
@@ -267,7 +269,7 @@ export function GrowthReports() {
         <div className="grid gap-4 md:grid-cols-2">
           {report.territories.length > 0 && (
             <div>
-              <SectionTitle title="Storefronts" />
+              <SectionTitle title="Countries" />
               <ul className="space-y-1 text-xs">
                 {report.territories.map((row) => (
                   <li key={row.name} className="flex justify-between gap-2">
@@ -283,7 +285,7 @@ export function GrowthReports() {
           )}
           {report.sources.length > 0 && (
             <div>
-              <SectionTitle title="How people found the app" />
+              <SectionTitle title="How people found your app" />
               <ul className="space-y-1 text-xs">
                 {report.sources.map((row) => (
                   <li key={row.name} className="flex justify-between gap-2">
@@ -307,7 +309,7 @@ export function GrowthReports() {
           <div>
             <SectionTitle title="Timeline" />
             {report.events.length === 0 ? (
-              <p className="text-xs text-muted-foreground">Nothing recorded in this period.</p>
+              <p className="text-xs text-muted-foreground">Nothing on the timeline in this period.</p>
             ) : (
               <ul className="space-y-1 text-xs">
                 {report.events.map((event) => (
@@ -321,7 +323,7 @@ export function GrowthReports() {
         </div>
         {report.missingDays > 0 && (
           <p className="text-xs text-muted-foreground">
-            {report.missingDays} day{report.missingDays === 1 ? '' : 's'} in this period have no numbers from App Store Connect yet.
+            Apple has not sent the numbers for {report.missingDays} day{report.missingDays === 1 ? '' : 's'} of this period yet.
           </p>
         )}
       </Panel>
@@ -419,7 +421,7 @@ const ReportSheet = React.forwardRef<HTMLDivElement, { report: PeriodReport; sum
         )}
 
         {heading('Numbers')}
-        {row('head', [<span key="m">Metric</span>, <span key="v" style={{ textAlign: 'right' }}>{column}</span>, <span key="c" style={{ textAlign: 'right' }}>Change</span>], '1fr 160px 90px', true)}
+        {row('head', [<span key="m">Number</span>, <span key="v" style={{ textAlign: 'right' }}>{column}</span>, <span key="c" style={{ textAlign: 'right' }}>Change</span>], '1fr 160px 90px', true)}
         {report.lines.map((line) =>
           row(line.label, [
             <span key="m">{line.label}</span>,
@@ -428,7 +430,7 @@ const ReportSheet = React.forwardRef<HTMLDivElement, { report: PeriodReport; sum
               key="c"
               style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums', color: line.good === true ? GOOD : line.good === false ? BAD : MUTED }}
             >
-              {line.change ?? 'n/a'}
+              {line.change ?? 'Not compared'}
             </span>,
           ], '1fr 160px 90px')
         )}
@@ -440,8 +442,8 @@ const ReportSheet = React.forwardRef<HTMLDivElement, { report: PeriodReport; sum
 
         {report.territories.length > 0 && (
           <>
-            {heading('Storefronts')}
-            {row('head', [<span key="n">Storefront</span>, <span key="d" style={{ textAlign: 'right' }}>Downloads</span>, <span key="s" style={{ textAlign: 'right' }}>Share</span>, <span key="c" style={{ textAlign: 'right' }}>Change</span>], '1fr 110px 70px 90px', true)}
+            {heading('Countries')}
+            {row('head', [<span key="n">Country</span>, <span key="d" style={{ textAlign: 'right' }}>Downloads</span>, <span key="s" style={{ textAlign: 'right' }}>Share</span>, <span key="c" style={{ textAlign: 'right' }}>Change</span>], '1fr 110px 70px 90px', true)}
             {report.territories.map((territory) =>
               row(territory.name, [
                 <span key="n">{territory.name}</span>,
@@ -455,8 +457,8 @@ const ReportSheet = React.forwardRef<HTMLDivElement, { report: PeriodReport; sum
 
         {report.sources.length > 0 && (
           <>
-            {heading('How people found the app')}
-            {row('head', [<span key="n">Source</span>, <span key="i" style={{ textAlign: 'right' }}>Impressions</span>, <span key="d" style={{ textAlign: 'right' }}>Downloads</span>, <span key="c" style={{ textAlign: 'right' }}>Conversion</span>], '1fr 110px 100px 90px', true)}
+            {heading('How people found your app')}
+            {row('head', [<span key="n">Source</span>, <span key="i" style={{ textAlign: 'right' }}>Times seen</span>, <span key="d" style={{ textAlign: 'right' }}>Downloads</span>, <span key="c" style={{ textAlign: 'right' }}>Download rate</span>], '1fr 110px 100px 90px', true)}
             {report.sources.map((source) =>
               row(source.name, [
                 <span key="n">{source.name}</span>,
@@ -487,7 +489,7 @@ const ReportSheet = React.forwardRef<HTMLDivElement, { report: PeriodReport; sum
 
         {report.missingDays > 0 && (
           <p data-pdf-block style={{ margin: '18px 0 0', fontSize: 11, color: MUTED }}>
-            {report.missingDays} day{report.missingDays === 1 ? '' : 's'} in this period have no numbers from App Store Connect yet.
+            Apple has not sent the numbers for {report.missingDays} day{report.missingDays === 1 ? '' : 's'} of this period yet.
           </p>
         )}
         <p data-pdf-block style={{ margin: '22px 0 0', fontSize: 10, color: MUTED }}>

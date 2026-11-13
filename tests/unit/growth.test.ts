@@ -443,7 +443,7 @@ test('the digest and the reports read the same figures', () => {
   const report = buildReport({ appName: 'Juniper', records, reviews: sampleReviews(), events: sampleEvents(), period: 'week', window: week });
   assert.equal(report.missingDays, 0);
   const markdown = reportMarkdown(report, 'A good week.');
-  assert.ok(markdown.includes('| First-time downloads |'));
+  assert.ok(markdown.includes('| New downloads |'));
   assert.ok(markdown.includes('A good week.'));
   assert.ok(!/[–—]/.test(markdown));
   const month = latestCompletePeriod(records, 'month')!;
@@ -519,7 +519,7 @@ test('the before and after names what else changed in its weeks, but not the rel
   assert.ok(impact.others.some((event) => event.id === 'campaign'));
   assert.ok(!impact.others.some((event) => event.id === release.id), 'the release is the change itself');
   // Nobody logged the sample's feature, but its browse impressions show it.
-  assert.equal(impact.others.filter((event) => event.title === 'a likely App Store feature').length, 1);
+  assert.equal(impact.others.filter((event) => event.title === 'Apple probably featured your app').length, 1);
   assert.match(describeEvents(impact.others), /Spring sale \(/);
   const insight = buildInsights({
     appId: SAMPLE_APP_ID,
@@ -580,7 +580,7 @@ test('a yearly report is the year so far beside the same days a year before, the
   const report = buildReport({ appName: 'Juniper', records, reviews: sampleReviews(), events: sampleEvents(), period: 'year', window: year });
   assert.ok(report.lines.length > 3);
   assert.ok(report.lines.every((line) => line.change === null));
-  assert.match(comparisonNote(report) ?? '', /^No figure is compared with /);
+  assert.match(comparisonNote(report) ?? '', /^Nothing is compared with /);
   assert.ok(reportMarkdown(report).includes(comparisonNote(report)!));
   assert.match(reportFacts(report), /year of/);
   // A week the sample fully covers is compared as before.

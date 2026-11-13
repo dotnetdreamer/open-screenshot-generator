@@ -69,8 +69,8 @@ export function GrowthMarkets() {
 
   if (rows.length === 0) {
     return (
-      <EmptyState icon={GlobeIcon} title="No storefront numbers yet">
-        Storefronts fill in after a sync with Sales and Trends or App Analytics.
+      <EmptyState icon={GlobeIcon} title="No numbers by country yet">
+        Refresh to see your numbers by country.
       </EmptyState>
     );
   }
@@ -100,8 +100,8 @@ export function GrowthMarkets() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel>
           <SectionTitle
-            title="Shoppers by their store's main language"
-            hint={`Share of ${all.hasEngagement ? 'product page views' : 'downloads'}, by each storefront's main language`}
+            title="Visitors by language"
+            hint={`Share of ${all.hasEngagement ? 'page visits' : 'downloads'}, by each country's main language`}
           />
           <ul className="space-y-2">
             {byLanguage.slice(0, 8).map(([name, entry]) => (
@@ -120,11 +120,11 @@ export function GrowthMarkets() {
                   </p>
                 </div>
                 {entry.covered ? (
-                  <span className="shrink-0 rounded-full bg-[hsl(var(--growth-good))]/10 px-2 py-0.5 text-[11px] text-[hsl(var(--growth-good))]">Listed</span>
+                  <span className="shrink-0 rounded-full bg-[hsl(var(--growth-good))]/10 px-2 py-0.5 text-[11px] text-[hsl(var(--growth-good))]">On your store page</span>
                 ) : (
                   <Button size="sm" variant="outline" className="h-7 shrink-0 text-[11px]" onClick={() => view.onLocalize([entry.language])}>
                     <LanguagesIcon className="mr-1 h-3 w-3" />
-                    Translate
+                    Translate screenshots
                   </Button>
                 )}
               </li>
@@ -132,7 +132,7 @@ export function GrowthMarkets() {
           </ul>
         </Panel>
         <Panel>
-          <SectionTitle title="First-time downloads by storefront" />
+          <SectionTitle title="New downloads by country" />
           <BarList
             rows={rows.slice(0, 10).map((row) => ({
               key: row.key,
@@ -151,14 +151,14 @@ export function GrowthMarkets() {
             {/* bg-muted overrides the global teal table header (globals.css), which is for document tables. */}
             <thead className="border-b bg-muted/40 text-muted-foreground">
               <tr>
-                <th className="px-3 py-2 text-left font-medium">Storefront</th>
-                {header('impressions', 'Impressions')}
-                {header('pageViews', 'Page views')}
-                {header('conversion', 'Conversion')}
+                <th className="px-3 py-2 text-left font-medium">Country</th>
+                {header('impressions', 'Times seen')}
+                {header('pageViews', 'Page visits')}
+                {header('conversion', 'Download rate')}
                 {header('downloads', 'Downloads')}
                 {header('change', 'Change')}
-                <th className="px-3 py-2 text-right font-medium" title="In the currency each storefront pays in">
-                  Proceeds
+                <th className="px-3 py-2 text-right font-medium" title="In the currency Apple uses for each country">
+                  Earnings
                 </th>
                 <th className="px-3 py-2 text-left font-medium">Main language</th>
               </tr>
@@ -192,7 +192,7 @@ export function GrowthMarkets() {
                         : 'n/a'}
                     </td>
                     <td className={cn('px-3 py-2', !covered && 'text-amber-700 dark:text-amber-300')}>
-                      {covered ? listingLanguageName(language) : `No ${listingLanguageName(language)} listing`}
+                      {covered ? listingLanguageName(language) : `No ${listingLanguageName(language)} store page`}
                     </td>
                   </tr>
                 );
@@ -203,7 +203,7 @@ export function GrowthMarkets() {
       </Panel>
       {Object.keys(all.proceeds).length > 1 && (
         <p className="text-[11px] text-muted-foreground">
-          Proceeds are in the currency each storefront pays in. Across the period:{' '}
+          Earnings are in the currency Apple uses for each country. For the whole period:{' '}
           {Object.entries(all.proceeds)
             .sort((a, b) => b[1] - a[1])
             .map(([code, amount]) => formatMoney(amount, code))

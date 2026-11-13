@@ -213,8 +213,8 @@ async function connect(page: Page) {
 /** Open Growth and wait for the first sync, whose last feed is the ratings sweep. */
 async function syncOnce(page: Page) {
   const view = await openGrowth(page);
-  await section(view, 'Connection').click();
-  await expect(view.getByText('1,234 ratings in 1 storefront')).toBeVisible({ timeout: 90_000 });
+  await section(view, 'Setup').click();
+  await expect(view.getByText('1,234 ratings in 1 country')).toBeVisible({ timeout: 90_000 });
   return view;
 }
 
@@ -247,23 +247,23 @@ test.describe('growth sync', () => {
 
     // Opening on an app that has never synced starts a sync. The ratings sweep
     // runs last, so its line is the one that says the sync is over.
-    await section(view, 'Connection').click();
-    await expect(view.getByText('1,234 ratings in 1 storefront')).toBeVisible({ timeout: 90_000 });
-    await expect(view.getByRole('button', { name: 'Sync', exact: true })).toBeVisible();
+    await section(view, 'Setup').click();
+    await expect(view.getByText('1,234 ratings in 1 country')).toBeVisible({ timeout: 90_000 });
+    await expect(view.getByRole('button', { name: 'Refresh', exact: true })).toBeVisible();
     await expect(view.getByText('Version 3.1, 1 language')).toBeVisible();
     await expect(view.getByText('2 written reviews')).toBeVisible();
     await expect(view.getByText('30 days of sales')).toBeVisible();
-    await expect(view.getByText(`Reports processed through ${DAY}`)).toBeVisible();
+    await expect(view.getByText(`Loaded up to ${DAY}`)).toBeVisible();
 
     await section(view, 'Overview').click();
     // Engagement and downloads come from the analytics files; downloads win over Sales and Trends on a day both report.
-    await expect(view.getByRole('button', { name: /^Impressions 1,500/ })).toBeVisible();
-    await expect(view.getByRole('button', { name: /^First-time downloads 40/ })).toBeVisible();
-    await expect(view.getByRole('button', { name: /^Conversion rate 3\.75%/ })).toBeVisible();
-    await expect(view.getByRole('button', { name: /^Proceeds \$19\.98/ })).toBeVisible();
+    await expect(view.getByRole('button', { name: /^Times seen 1,500/ })).toBeVisible();
+    await expect(view.getByRole('button', { name: /^New downloads 40/ })).toBeVisible();
+    await expect(view.getByRole('button', { name: /^Download rate 3\.75%/ })).toBeVisible();
+    await expect(view.getByRole('button', { name: /^Earnings \$19\.98/ })).toBeVisible();
 
     // The listing came from the version being prepared, joined with its name and subtitle.
-    await section(view, 'Listing').click();
+    await section(view, 'Store page').click();
     await expect(view.locator('#growth-field-name')).toHaveValue('Pebble Notes');
     await expect(view.getByText('"notes" appears twice in the keywords')).toBeVisible();
 
@@ -293,9 +293,9 @@ test.describe('growth sync', () => {
     const review = view.locator('[data-review-id="review-1"]');
     await review.getByRole('button', { name: 'Reply' }).click();
     await review.getByRole('textbox', { name: 'Reply' }).fill('Sorry about that. Version 3.1 fixes the sync.');
-    await expect(review.getByText(/Apple checks each one/)).toBeVisible();
+    await expect(review.getByText(/Apple checks each reply/)).toBeVisible();
     await review.getByRole('button', { name: 'Send reply' }).click();
-    await expect(review.getByText('Waiting for Apple to check it')).toBeVisible();
+    await expect(review.getByText('Waiting for Apple to check the reply')).toBeVisible();
 
     const posted = await page.evaluate(() =>
       ((window as any).__E2E_TAURI__.httpRequests as Array<{ method: string; url: string; body: string | null }>).find(
@@ -422,7 +422,7 @@ test.describe('growth sync', () => {
           { timeout: 60_000 }
         )
         .toBe(33);
-      await expect(view.getByRole('button', { name: 'Sync', exact: true })).toBeVisible({ timeout: 60_000 });
+      await expect(view.getByRole('button', { name: 'Refresh', exact: true })).toBeVisible({ timeout: 60_000 });
       await page.evaluate(() => (window as any).__E2E_TAURI__.releaseHttp());
       expect(await salesCount()).toBe(33);
     });
@@ -448,7 +448,7 @@ test.describe('growth sync', () => {
       await app.goto();
       await app.dismissStartDialog();
       const view = await syncOnce(page);
-      await section(view, 'Listing').click();
+      await section(view, 'Store page').click();
 
       await view.locator('#growth-field-keywords').fill('notes,journal,memo');
       await view.getByRole('button', { name: 'Apply in App Store Connect' }).click();
@@ -513,7 +513,7 @@ test.describe('growth sync', () => {
     // waits an hour before it is tried again.
     await page.clock.fastForward('01:01:30');
     await expect(badge).toBeVisible({ timeout: 60_000 });
-    await expect(page.getByText(/^Pebble Notes: (a new insight|\d+ new insights)$/)).toBeVisible();
+    await expect(page.getByText(/^Pebble Notes: \d+ new insights?$/)).toBeVisible();
     const requestsNow = await page.evaluate(() => ((window as any).__E2E_TAURI__.httpRequests as Array<{ url: string }>));
     expect(requestsNow.length, 'the background pass synced the app').toBeGreaterThan(requestsSoFar);
     expect(requestsNow.slice(requestsSoFar).some((request) => request.url.includes('/customerReviews'))).toBe(true);

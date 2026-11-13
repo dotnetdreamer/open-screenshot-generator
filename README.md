@@ -17,7 +17,11 @@ https://github.com/user-attachments/assets/92348435-668f-4a58-b0be-0b939841150d
 
 ### 12 November 2026: Growth, your App Store numbers beside your screenshots
 
-Open **Growth** from the toolbar to see your app's downloads, conversion, reviews and listing, read from App Store Connect with the same key the upload uses. Every screenshot upload is recorded, and Growth compares the conversion rate before and after the new set goes live, with a statistical test that tells a real change from day to day noise and a list of whatever else changed in those weeks. It also finds wasted keyword characters and untranslated text in your listing, storefronts whose main language your listing doesn't have, and complaints that keep coming up in reviews. It drafts review replies and weekly, monthly and yearly reports with the AI you already use, saved as PDF, Markdown or text. While the desktop app is open it keeps checking in the background and tells you when something new turns up, and the Claude Code and Codex agents can read the same numbers. Read the [Growth guide](docs/GROWTH.md).
+Click **Growth** on the bar at the left to see how your app is doing in the App Store: downloads, ratings, reviews and your store page. Growth uses the same App Store Connect API key as the screenshot upload.
+
+After you upload new screenshots, Growth compares what share of visitors downloaded your app before and after the new screenshots went live. Growth also tells you if the difference is a real change or just luck. Growth finds problems on your store page, such as wasted keyword space or text that is not translated. Growth lists the countries where your store page is not in the local language, and the complaints that come up again and again in reviews.
+
+AI can write replies to reviews, and weekly, monthly and yearly reports. The AI runs on your Claude Code or Codex plan, or on the AI you set up in the app. Save a report as PDF, Markdown or text. While the desktop app is open, Growth keeps checking your App Store numbers and tells you about a drop in your download rate, a falling rating or a new record. The Claude Code and Codex agents can read your App Store numbers too. Read the [Growth guide](docs/GROWTH.md).
 
 ### 14 October 2026: Codex joins Claude Code in the desktop app
 
@@ -77,7 +81,7 @@ Both versions use the same editor. The desktop app adds features that need acces
 | Coding agent design tools | With the [web relay](infra/vps/mcp-relay/README.md) or CLI | Built in MCP server |
 | Save to your own Google Drive or GitHub account | Yes | Yes |
 | Upload screenshots directly to App Store Connect or Google Play | No | Yes |
-| Growth: App Store numbers, reviews, listing checks, screenshot before and after | Empty screens only | Yes |
+| Growth: App Store numbers, reviews, store page checks, results of new screenshots | Empty screens only | Yes |
 
 ## Command line and coding agents
 

@@ -43,11 +43,11 @@ const DESKTOP_URL = 'https://openscrgen.app';
 const VENDOR_URL = 'https://appstoreconnect.apple.com/itc/payments_and_financial_reports';
 
 const FEEDS: Array<{ feed: GrowthFeed; label: string; needs: string }> = [
-  { feed: 'listing', label: 'Listing', needs: 'Admin, App Manager or Marketing' },
-  { feed: 'reviews', label: 'Reviews and replies', needs: 'Admin, App Manager or Customer Support' },
-  { feed: 'sales', label: 'Sales and Trends', needs: 'Admin, Finance or Sales, plus the vendor number' },
-  { feed: 'analytics', label: 'App Analytics', needs: 'An Admin key once, to switch the reports on' },
-  { feed: 'ratings', label: 'Ratings per storefront', needs: 'Nothing: these are public' },
+  { feed: 'listing', label: 'Store page', needs: 'Needs a key with the Admin, App Manager or Marketing role' },
+  { feed: 'reviews', label: 'Reviews and replies', needs: 'Needs a key with the Admin, App Manager or Customer Support role' },
+  { feed: 'sales', label: 'Sales and Trends (downloads and earnings)', needs: 'Needs a key with the Admin, Finance or Sales role, and your vendor number' },
+  { feed: 'analytics', label: 'App Analytics (times seen and download rate)', needs: 'Needs an Admin key the first time, to turn on App Analytics' },
+  { feed: 'ratings', label: 'Ratings per country', needs: 'Needs no key, because ratings are public' },
 ];
 
 const STATE_ICON: Record<FeedState, React.ComponentType<{ className?: string }>> = {
@@ -62,14 +62,14 @@ const STATE_ICON: Record<FeedState, React.ComponentType<{ className?: string }>>
 };
 
 const STATE_LABEL: Record<FeedState, string> = {
-  idle: 'Not synced yet',
-  syncing: 'Syncing',
+  idle: 'Not loaded yet',
+  syncing: 'Refreshing',
   ok: 'Up to date',
   empty: 'Nothing yet',
-  'needs-setup': 'Needs setting up',
+  'needs-setup': 'Not set up yet',
   pending: 'Waiting for Apple',
-  forbidden: 'The key cannot read this',
-  error: 'Failed',
+  forbidden: 'Your key has no access',
+  error: 'Could not load',
 };
 
 export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: () => void }) {
@@ -91,8 +91,8 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
           <MonitorDownIcon className="h-6 w-6 text-muted-foreground" />
           <p className="text-sm font-medium">Your own numbers need the desktop app</p>
           <p className="max-w-xl text-xs text-muted-foreground">
-            App Store Connect does not answer requests from a browser tab, so Growth stays empty in the web version. The desktop
-            app talks to Apple directly with your own key, which stays on your computer.
+            Growth works in the desktop app only. The desktop app gets your numbers from Apple with your own App Store Connect
+            API key. The key stays on your computer.
           </p>
           <Button size="sm" onClick={() => void openExternal(DESKTOP_URL)}>
             Get the desktop app
@@ -104,8 +104,8 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
         <div className="space-y-4">
           <Panel>
             <SectionTitle
-              title="App Store Connect key"
-              hint="The same key the upload dialog uses. It is stored on this computer and sent to Apple only."
+              title="App Store Connect API key"
+              hint="Growth and the screenshot upload use the same key. The API key stays on your computer and goes only to Apple."
             />
             {webOnly ? (
               <Gated reason={webOnly}>
@@ -137,13 +137,12 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
               />
             )}
             <p className="mt-3 text-xs text-muted-foreground">
-              One key with the Admin role reads everything here. A key with a smaller role works for the parts it may read, as
-              listed under each feed.
+              A key with the Admin role loads all the data from Apple. A key with another role loads only part of the data.
             </p>
           </Panel>
 
           <Panel>
-            <SectionTitle title="Vendor number" hint="Sales and Trends needs it on every request. It is all digits, at the top left of Payments and Financial Reports." />
+            <SectionTitle title="Vendor number" hint="Find the vendor number in App Store Connect, at the top of Payments and Financial Reports" />
             <div className="flex flex-wrap items-center gap-2">
               <Input
                 value={vendor}
@@ -166,20 +165,20 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
                 </Button>
               </Gated>
               <Button variant="link" size="sm" className="h-auto px-0 text-xs" onClick={() => void openExternal(VENDOR_URL)}>
-                Find it
+                Open App Store Connect
                 <ExternalLinkIcon className="ml-1 h-3 w-3" />
               </Button>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              With it, a year of downloads, purchases and proceeds arrives in a few minutes. If Apple refuses it, an agreement may be
-              waiting for the Account Holder under Business in App Store Connect.
+              With the vendor number, a year of downloads, purchases and earnings loads in a few minutes. If Apple does not accept the
+              vendor number, the Account Holder may need to accept an agreement. Look under Business in App Store Connect.
             </p>
           </Panel>
         </div>
 
         <div className="space-y-4">
           <Panel>
-            <SectionTitle title="What is connected" hint={view.data.lastSync ? `Last sync ${formatAgo(view.data.lastSync)}` : 'Not synced yet'} />
+            <SectionTitle title="Data from Apple" hint={view.data.lastSync ? `Updated ${formatAgo(view.data.lastSync)}` : 'Not loaded yet'} />
             <ul className="space-y-3">
               {FEEDS.map(({ feed, label, needs }) => {
                 const status = view.data.status[feed];
@@ -202,7 +201,7 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
                         <span className="ml-2 text-xs font-normal text-muted-foreground">{STATE_LABEL[status.state]}</span>
                       </p>
                       {status.message && <p className="text-xs">{status.message}</p>}
-                      <p className="text-[11px] text-muted-foreground">Needs: {needs}</p>
+                      <p className="text-[11px] text-muted-foreground">{needs}</p>
                     </div>
                   </li>
                 );
@@ -210,8 +209,8 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
             </ul>
             {view.data.status.analytics.state === 'needs-setup' && (
               <p className="mt-3 rounded-md bg-muted p-2 text-xs">
-                Apple makes App Analytics reports for an app only after an Admin key asks for them once. Change to an Admin key,
-                sync once, and you can switch back to a smaller key afterwards. The first reports take a day or two.
+                To turn on App Analytics, change to an Admin key and refresh once. Then you can go back to your other key. The first
+                numbers take a day or two.
               </p>
             )}
           </Panel>
@@ -221,14 +220,13 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
             <div className="flex items-start justify-between gap-3">
               <div>
                 <Label htmlFor="growth-ai-writer" className="text-xs font-normal">
-                  AI that writes
+                  AI to use
                 </Label>
                 <p className="text-[11px] text-muted-foreground">
-                  Replies, listing text, report summaries and answers. Automatic uses your Claude Code plan first, then Codex, then
-                  the AI panel.
+                  The AI writes replies, store page text, report summaries and answers. Automatic uses the first AI that is ready: Claude Code on your plan, then Codex, then the AI panel.
                 </p>
                 <p className="text-[11px] text-muted-foreground" data-testid="growth-ai-writer-status">
-                  {view.aiLabel ? `Writing with ${view.aiLabel}` : growthAiUnavailableReason()}
+                  {view.aiLabel ? `Using ${view.aiLabel}` : growthAiUnavailableReason()}
                 </p>
               </div>
               <Select
@@ -248,7 +246,7 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
             </div>
             <div className="flex items-center justify-between gap-3">
               <Label htmlFor="growth-refresh" className="text-xs font-normal">
-                Sync when the last sync is older than
+                Refresh when the numbers are older than
               </Label>
               <Select value={String(settings.refreshHours)} onValueChange={(value) => setSettings({ refreshHours: Number(value) })}>
                 <SelectTrigger id="growth-refresh" className="h-8 w-[150px] text-xs">
@@ -258,18 +256,18 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
                   <SelectItem value="1" className="text-xs">An hour</SelectItem>
                   <SelectItem value="6" className="text-xs">6 hours</SelectItem>
                   <SelectItem value="24" className="text-xs">A day</SelectItem>
-                  <SelectItem value="0" className="text-xs">Never, I sync myself</SelectItem>
+                  <SelectItem value="0" className="text-xs">Never, I refresh myself</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <Label htmlFor="growth-monitor" className="text-xs font-normal">
-                  Keep checking while the app is open
+                  Keep refreshing while you edit
                 </Label>
                 <p className="text-[11px] text-muted-foreground">
-                  Syncs every app you have synced here on that schedule while the editor is in front, and counts new insights on the
-                  Growth button.
+                  While you work in the editor, Growth refreshes every app you refreshed before, as often as set above. The Growth
+                  button shows the number of new insights.
                 </p>
               </div>
               <Switch
@@ -281,7 +279,7 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
             </div>
             <div className="flex items-center justify-between gap-3">
               <Label htmlFor="growth-history" className="text-xs font-normal">
-                Sales and Trends history to load
+                How far back to load downloads and earnings
               </Label>
               <Select value={String(settings.historyDays)} onValueChange={(value) => setSettings({ historyDays: Number(value) })}>
                 <SelectTrigger id="growth-history" className="h-8 w-[150px] text-xs">
@@ -297,11 +295,10 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
             <div className="flex items-start justify-between gap-3">
               <div>
                 <Label htmlFor="growth-share" className="text-xs font-normal">
-                  Let other MCP clients read these numbers
+                  Let external AI tools see your App Store numbers
                 </Label>
                 <p className="text-[11px] text-muted-foreground">
-                  The app&apos;s own Claude Code and Codex agents can always read them. This adds any other program you connected to
-                  the design server, and the numbers include sales.
+                  The agent can always see your App Store numbers. With the switch on, other AI tools you connected to Open Screenshot Generator can see the numbers too. The numbers include your sales.
                 </p>
               </div>
               <Switch id="growth-share" checked={settings.shareWithClients} onCheckedChange={(checked) => setSettings({ shareWithClients: checked })} />
@@ -310,12 +307,12 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
 
           <Panel>
             <SectionTitle
-              title={view.app.id ? `Data for ${view.app.name} on this computer` : 'Data on this computer'}
-              hint="Removing it keeps the key, the screenshot uploads and the events you added. The next sync loads the rest again."
+              title={view.app.id ? `Data for ${view.app.name} on your computer` : 'Data on your computer'}
+              hint="Removing the data keeps your API key, your screenshot uploads and the events you added. The next refresh loads the rest of the data again."
             />
             {confirmClear ? (
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs">Remove the numbers, reviews and listing for this app?</span>
+                <span className="text-xs">Remove the numbers, reviews and store page of {view.app.name}?</span>
                 <Button
                   size="sm"
                   variant="destructive"
@@ -336,7 +333,7 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
               <Gated reason={view.app.id ? null : view.blocked.app}>
                 <Button size="sm" variant="outline" onClick={() => setConfirmClear(true)}>
                   <Trash2Icon className="mr-1.5 h-4 w-4" />
-                  Remove this app&apos;s data
+                  Remove the data
                 </Button>
               </Gated>
             )}

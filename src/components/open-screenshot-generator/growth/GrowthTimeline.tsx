@@ -48,7 +48,7 @@ const KIND_ICON: Record<TimelineEventKind, React.ComponentType<{ className?: str
 const ORIGIN_LABEL: Record<TimelineEvent['origin'], string> = {
   auto: 'From the App Store',
   publish: 'From the editor',
-  listing: 'From this window',
+  listing: 'From Growth',
   manual: 'Added by you',
 };
 
@@ -74,11 +74,11 @@ export function GrowthTimeline() {
     <div className="space-y-4">
       <Panel>
         <SectionTitle
-          title="Everything that happened"
-          hint="Orange marks new screenshots. Hover a day to see what happened on it."
+          title="Your numbers and events"
+          hint="The orange lines show when you uploaded new screenshots. Point at a day to see what happened."
           actions={
             <Select value={metric} onValueChange={(value) => setMetric(value as MetricId)}>
-              <SelectTrigger className="h-8 w-[200px] text-xs" aria-label="Metric on the chart">
+              <SelectTrigger className="h-8 w-[200px] text-xs" aria-label="What the chart shows">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -94,7 +94,7 @@ export function GrowthTimeline() {
         {view.data.records.length > 0 ? (
           <TrendChart points={points} metric={METRICS[metric]} currency={currency} events={view.data.events} showPrevious={false} highlightEventId={view.tabOptions.eventId} />
         ) : (
-          <p className="text-xs text-muted-foreground">The chart fills in once the app has numbers.</p>
+          <p className="text-xs text-muted-foreground">The chart appears when your app has numbers.</p>
         )}
       </Panel>
 
@@ -102,7 +102,7 @@ export function GrowthTimeline() {
         <div className="space-y-3">
           {events.length === 0 ? (
             <EmptyState icon={CalendarPlusIcon} title="Nothing on the timeline yet">
-              Releases are added on their own after a sync, and screenshot uploads from the editor are recorded here.
+              New versions of your app appear on the timeline after you refresh. Screenshots you upload from the editor also appear on the timeline.
             </EmptyState>
           ) : (
             events.map((event) => <EventRow key={event.id} event={event} />)
@@ -147,7 +147,7 @@ function EventRow({ event }: { event: TimelineEvent }) {
             <span className="text-muted-foreground">{impactLine(impact)}</span>
             {(impact.verdict === 'better' || impact.verdict === 'worse') && <Delta change={impact.change} />}
             {impact.verdict === 'too-early' && impact.liveDate && (
-              <span className="text-muted-foreground">Still measuring, {impact.daysToWait} more day{impact.daysToWait === 1 ? '' : 's'}</span>
+              <span className="text-muted-foreground">Not sure yet. Wait {impact.daysToWait} more day{impact.daysToWait === 1 ? '' : 's'}</span>
             )}
           </p>
         )}
@@ -196,7 +196,7 @@ function AddEventForm() {
       setDetail('');
     } catch (failure) {
       console.error('Adding a timeline event failed', failure);
-      setError('The event could not be saved on this computer');
+      setError('The event could not be saved on your computer');
     } finally {
       setSaving(false);
     }
@@ -204,7 +204,7 @@ function AddEventForm() {
 
   return (
     <Panel className="h-fit space-y-3">
-      <SectionTitle title="Add an event" hint="Campaigns, price changes and features explain jumps in the numbers, and the AI uses them too." />
+      <SectionTitle title="Add an event" hint="Ad campaigns, price changes and App Store features help explain jumps in your numbers. The AI reads your events too." />
       <Select value={kind} onValueChange={(value) => setKind(value as TimelineEventKind)}>
         <SelectTrigger className="h-9 text-xs" aria-label="Kind of event">
           <SelectValue />

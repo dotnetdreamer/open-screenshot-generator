@@ -74,11 +74,11 @@ function fieldEditable(listing: ListingSnapshot, field: ListingField): { ok: boo
   if (field === 'name' || field === 'subtitle') {
     return listing.appInfoEditable
       ? { ok: true }
-      : { ok: false, why: 'Name and subtitle change with a new version. Create one in App Store Connect first' };
+      : { ok: false, why: 'To change the name or subtitle, create a new version in App Store Connect first' };
   }
   return listing.editable
     ? { ok: true }
-    : { ok: false, why: `Version ${listing.versionString} is ${listing.state.toLowerCase().replace(/_/g, ' ')}, so only promotional text can change` };
+    : { ok: false, why: `Version ${listing.versionString} is ${listing.state.toLowerCase().replace(/_/g, ' ')}, so you can only change the promotional text` };
 }
 
 export function GrowthListing() {
@@ -116,8 +116,8 @@ export function GrowthListing() {
 
   if (!listing) {
     return (
-      <EmptyState icon={InfoIcon} title="No listing loaded">
-        {view.blocked.app ? `${view.blocked.app}.` : view.data.status.listing.message ?? 'Sync the app to load its listing from App Store Connect.'}
+      <EmptyState icon={InfoIcon} title="Store page not loaded yet">
+        {view.blocked.app ? `${view.blocked.app}.` : view.data.status.listing.message ?? 'Refresh to load your store page.'}
       </EmptyState>
     );
   }
@@ -149,7 +149,7 @@ export function GrowthListing() {
       await task();
     } catch (error) {
       console.error('Growth listing action failed', error);
-      setMessage({ tone: 'error', text: error instanceof Error ? error.message : 'That did not work. Try again' });
+      setMessage({ tone: 'error', text: error instanceof Error ? error.message : 'Your last action did not work. Try again' });
     } finally {
       setListingJob(appId, null);
     }
@@ -170,13 +170,13 @@ export function GrowthListing() {
       if (toApply.length === 0) return;
       for (const change of toApply) {
         if (!fieldEditable(listing, change.field).ok) {
-          throw new Error(`${LISTING_FIELD_LABELS[change.field]} cannot change right now. Remove it from the list first`);
+          throw new Error(`${LISTING_FIELD_LABELS[change.field]} cannot be changed right now. Remove the ${LISTING_FIELD_LABELS[change.field].toLowerCase()} change first`);
         }
         if (fieldLength(change.after) > LISTING_LIMITS[change.field]) {
-          throw new Error(`${listingLanguageName(change.locale)} ${LISTING_FIELD_LABELS[change.field].toLowerCase()} is over its ${LISTING_LIMITS[change.field]} character limit`);
+          throw new Error(`The ${listingLanguageName(change.locale)} ${LISTING_FIELD_LABELS[change.field].toLowerCase()} is over the ${LISTING_LIMITS[change.field]} character limit`);
         }
       }
-      if (!view.credentials) throw new Error('Connect an App Store Connect key first');
+      if (!view.credentials) throw new Error('Add your App Store Connect API key under Setup first');
       const result = await applyListingChanges(view.credentials, listing, toApply);
       const took = new Set(result.applied);
       const applied = toApply.filter((change) => took.has(`${change.locale}:${change.field}`));
@@ -197,12 +197,12 @@ export function GrowthListing() {
       if (applied.length > 0) setAiIssues([]);
       setMessage(
         result.warnings.length > 0
-          ? { tone: 'error', text: `Applied ${applied.length} of ${toApply.length}. ${result.warnings.join(' ')}` }
+          ? { tone: 'error', text: `Applied ${applied.length} of ${toApply.length} changes. ${result.warnings.join(' ')}` }
           : { tone: 'ok', text: `Applied ${applied.length} change${applied.length === 1 ? '' : 's'} in App Store Connect` }
       );
     });
 
-  const applyReason = view.canWrite ? null : view.blocked.app ?? 'Applying needs the desktop app and an App Store Connect key';
+  const applyReason = view.canWrite ? null : view.blocked.app ?? 'To apply changes, you need the desktop app and an App Store Connect API key';
   const addable = LISTING_LANGUAGES.filter((code) => !listing.locales.some((entry) => entry.locale === code));
 
   return (
@@ -220,8 +220,8 @@ export function GrowthListing() {
               </p>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 {listing.editable
-                  ? `Every field can change until the version is submitted. Shoppers see the changes once version ${listing.versionString} is out.`
-                  : 'Live or in review: only promotional text can change.'}
+                  ? `You can change every field until you submit version ${listing.versionString} for review. People see the changes when version ${listing.versionString} is in the App Store.`
+                  : `Version ${listing.versionString} is live or in review, so you can only change the promotional text.`}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -229,7 +229,7 @@ export function GrowthListing() {
                 <p className={cn('text-2xl font-semibold leading-none', score >= 80 ? 'text-[hsl(var(--growth-good))]' : score < 55 ? 'text-[hsl(var(--growth-bad))]' : '')}>
                   {score}
                 </p>
-                <p className="text-[11px] text-muted-foreground">listing score</p>
+                <p className="text-[11px] text-muted-foreground">store page score</p>
               </div>
               <Gated reason={view.blocked.ai}>
                 <Button
@@ -240,17 +240,17 @@ export function GrowthListing() {
                     void run('ai-review', async () => {
                       const found = await reviewListingWithAi(listing);
                       setAiIssues(found);
-                      setMessage({ tone: 'ok', text: found.length > 0 ? `The AI found ${found.length} wording issue${found.length === 1 ? '' : 's'}` : 'The AI found no spelling or wording mistakes' });
+                      setMessage({ tone: 'ok', text: found.length > 0 ? `The AI found ${found.length} spelling or wording mistake${found.length === 1 ? '' : 's'}` : 'The AI found no spelling or wording mistakes' });
                     })
                   }
                 >
                   {busy === 'ai-review' ? <Loader2Icon className="mr-1.5 h-4 w-4 animate-spin" /> : <SparklesIcon className="mr-1.5 h-4 w-4" />}
-                  Proofread with AI
+                  Check spelling
                 </Button>
               </Gated>
             </div>
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-1.5" role="tablist" aria-label="Listing languages">
+          <div className="mt-3 flex flex-wrap items-center gap-1.5" role="tablist" aria-label="Store page languages">
             {listing.locales.map((entry) => {
               const count = issues.filter((issue) => issue.locale === entry.locale && issue.severity !== 'tip').length;
               return (
@@ -266,7 +266,7 @@ export function GrowthListing() {
                   )}
                 >
                   {listingLanguageName(entry.locale)}
-                  {entry.locale === listing.primaryLocale && <span className="ml-1 opacity-70">(primary)</span>}
+                  {entry.locale === listing.primaryLocale && <span className="ml-1 opacity-70">(main)</span>}
                   {count > 0 && <span className="ml-1.5 rounded-full bg-amber-500/20 px-1.5 text-[10px] tabular-nums text-amber-700 dark:text-amber-300">{count}</span>}
                 </button>
               );
@@ -292,14 +292,14 @@ export function GrowthListing() {
                     disabled={busy !== null}
                     onClick={() =>
                       void run('add-language', async () => {
-                        if (!view.credentials) throw new Error('Connect an App Store Connect key first');
+                        if (!view.credentials) throw new Error('Add your App Store Connect API key under Setup first');
                         const primary = listing.locales.find((entry) => entry.locale === listing.primaryLocale);
                         const infoId = await editableAppInfoId(view.credentials, view.app.id);
                         await addListingLanguage(view.credentials, listing, newLanguage, infoId, primary?.name ?? view.app.name);
                         await refreshListing();
                         setLocale(newLanguage);
                         setNewLanguage('');
-                        setMessage({ tone: 'ok', text: `${listingLanguageName(newLanguage)} added. Translate its fields below, then apply` });
+                        setMessage({ tone: 'ok', text: `${listingLanguageName(newLanguage)} added. Fill in the ${listingLanguageName(newLanguage)} text below, then apply the changes` });
                       })
                     }
                   >
@@ -314,8 +314,8 @@ export function GrowthListing() {
 
         <Panel className="space-y-4">
           <SectionTitle
-            title={`${listingLanguageName(current.locale)} listing`}
-            hint="Edits collect on the right as suggested changes. Nothing reaches the store until you apply them."
+            title={`${listingLanguageName(current.locale)} store page`}
+            hint="Nothing changes in the App Store until you apply your edits"
           />
           {LISTING_FIELDS.map((field) => {
             const value = valueOf(field);
@@ -351,9 +351,9 @@ export function GrowthListing() {
                             setMessage({ tone: 'ok', text: 'The keywords are already clean' });
                             return;
                           }
-                          upsert([{ locale: current.locale, field, before: current[field], after: cleanup.keywords, reason: `Freed ${cleanup.saved} characters` }]);
+                          upsert([{ locale: current.locale, field, before: current[field], after: cleanup.keywords, reason: `Made the keywords ${cleanup.saved} character${cleanup.saved === 1 ? '' : 's'} shorter` }]);
                         }}
-                        title="Remove spaces after commas, repeats, and words the name and subtitle already have"
+                        title="Remove spaces after commas, repeated keywords and words already in the name or subtitle"
                       >
                         <WandSparklesIcon className="mr-1 h-3 w-3" />
                         Clean up
@@ -372,7 +372,7 @@ export function GrowthListing() {
                               // The text on the store, or the edit waiting: as a change it
                               // would be dropped, or would undo the edit, without a word.
                               if (after === current[field] || after === valueOf(field)) {
-                                setMessage({ tone: 'ok', text: `The AI would keep the ${LISTING_FIELD_LABELS[field].toLowerCase()} as it is` });
+                                setMessage({ tone: 'ok', text: `The AI would not change the ${LISTING_FIELD_LABELS[field].toLowerCase()}` });
                                 return;
                               }
                               upsert([{ locale: current.locale, field, before: current[field], after, reason: 'Written by AI' }]);
@@ -401,7 +401,9 @@ export function GrowthListing() {
 
           {current.locale === listing.primaryLocale && listing.locales.length > 1 && (
             <div className="space-y-2 rounded-md border border-dashed p-3">
-              <p className="text-xs font-medium">Translate into the other {listing.locales.length - 1} languages</p>
+              <p className="text-xs font-medium">
+                Translate into your other {listing.locales.length - 1} language{listing.locales.length === 2 ? '' : 's'}
+              </p>
               <div className="flex flex-wrap gap-3">
                 {LISTING_FIELDS.filter((field) => field !== 'name').map((field) => (
                   <label key={field} className="flex items-center gap-1.5 text-xs">
@@ -434,8 +436,8 @@ export function GrowthListing() {
                       upsert(result.changes.filter((change) => fieldEditable(listing, change.field).ok));
                       setMessage({
                         tone: result.failed.length > 0 ? 'error' : 'ok',
-                        text: `${result.changes.length} translated field${result.changes.length === 1 ? '' : 's'} added to the suggested changes${
-                          result.failed.length > 0 ? `. No answer for ${result.failed.map(listingLanguageName).join(', ')}` : ''
+                        text: `${result.changes.length} translation${result.changes.length === 1 ? '' : 's'} added to your changes${
+                          result.failed.length > 0 ? `. No translation came back for ${result.failed.map(listingLanguageName).join(', ')}` : ''
                         }`,
                       });
                     })
@@ -460,8 +462,8 @@ export function GrowthListing() {
       <div className="space-y-4">
         <Panel>
           <SectionTitle
-            title="Suggested changes"
-            hint={pending.length === 0 ? 'Fixes, AI suggestions and your edits wait here until you apply them.' : undefined}
+            title="Changes to apply"
+            hint={pending.length === 0 ? 'No changes yet. Edit a field, or add a fix or an AI suggestion.' : undefined}
           />
           {pending.length > 0 && (
             <ul className="mb-3 max-h-[360px] space-y-2 overflow-y-auto pr-1">
@@ -525,7 +527,7 @@ export function GrowthListing() {
           {localeIssues.length === 0 ? (
             <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <CheckCircle2Icon className="h-4 w-4 text-[hsl(var(--growth-good))]" />
-              Nothing to fix in this language.
+              Nothing to fix
             </p>
           ) : (
             <ul className="space-y-2">
@@ -578,8 +580,7 @@ function LiveScreenshots() {
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium">Screenshots</p>
           <p className="text-xs text-muted-foreground">
-            The screenshots are the part of the listing most people look at. Upload a new set from the editor and the overview
-            measures it against this one.
+            Most people look at the screenshots on your store page. Upload new screenshots from the editor. The Overview then compares your downloads before and after the new screenshots go live.
           </p>
         </div>
         <Button size="sm" variant="outline" onClick={view.onPublish}>
@@ -592,8 +593,8 @@ function LiveScreenshots() {
   return (
     <Panel>
       <SectionTitle
-        title={`On the store now, version ${live.version}`}
-        hint="What shoppers in the storefront checked first see. The first three also show in search results."
+        title={`In the App Store now, version ${live.version}`}
+        hint="The first three screenshots also show in search results"
         actions={
           <Button size="sm" variant="outline" onClick={view.onPublish}>
             <UploadCloudIcon className="mr-1.5 h-4 w-4" />

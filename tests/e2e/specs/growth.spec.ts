@@ -22,13 +22,13 @@ import {
 // tests/fixtures/growthSample.ts; growth-sync.spec.ts covers the sync itself.
 
 const EMPTY_SECTIONS: Array<[string, string]> = [
-  ['Overview', 'No numbers for this app yet'],
-  ['Insights', 'No insights here'],
+  ['Overview', 'No numbers for your app yet'],
+  ['Insights', 'No insights to show'],
   ['Reviews', 'No written reviews yet'],
-  ['Listing', 'No listing loaded'],
-  ['Storefronts', 'No storefront numbers yet'],
+  ['Store page', 'Store page not loaded yet'],
+  ['Countries', 'No numbers by country yet'],
   ['Timeline', 'Nothing on the timeline yet'],
-  ['Reports', 'No complete period yet'],
+  ['Reports', 'No report yet'],
   ['Ask AI', 'Ask about your app'],
 ];
 
@@ -85,10 +85,10 @@ test.describe('growth', () => {
     expect(pressLands, 'the spot where Export was belongs to Growth').toBe(true);
 
     const reason = isDesktop
-      ? 'Connect your App Store Connect key under Connection first'
-      : 'Growth needs the desktop app, because App Store Connect does not answer browsers';
+      ? 'Add your App Store Connect API key under Setup first'
+      : 'Growth works in the desktop app only';
     await expect(view.getByTestId('growth-no-app')).toContainText(reason);
-    const sync = view.getByRole('button', { name: 'Sync', exact: true });
+    const sync = view.getByRole('button', { name: 'Refresh', exact: true });
     await expect(sync).toBeDisabled();
     await expect(gateOf(sync)).toHaveAttribute('data-gated-reason', reason);
 
@@ -107,7 +107,7 @@ test.describe('growth', () => {
     await expect(add).toBeDisabled();
     await expect(gateOf(add)).toHaveAttribute('data-gated-reason', reason);
 
-    await section(view, 'Connection').click();
+    await section(view, 'Setup').click();
     if (isDesktop) {
       // The desktop app takes the key here.
       await expect(view.locator('#asc-issuer')).toBeVisible();
@@ -178,7 +178,7 @@ test.describe('growth', () => {
       const view = await openGrowth(page);
       await expect(view.getByRole('combobox', { name: 'App' })).toContainText(TEST_APP.name);
       await expect(view.getByTestId('growth-no-app')).toHaveCount(0);
-      await expect(view.getByRole('button', { name: 'Sync', exact: true })).toBeEnabled();
+      await expect(view.getByRole('button', { name: 'Refresh', exact: true })).toBeEnabled();
 
       const impact = view.getByTestId('growth-impact');
       await expect(impact).toContainText('Did the new screenshots work?');
@@ -188,12 +188,12 @@ test.describe('growth', () => {
       // A before and after comparison names what else changed in its weeks.
       await expect(impact.getByTestId('growth-impact-others')).toBeVisible();
 
-      for (const tile of ['Impressions', 'Product page views', 'Conversion rate', 'First-time downloads', 'Proceeds']) {
+      for (const tile of ['Times seen', 'Page visits', 'Download rate', 'New downloads', 'Earnings']) {
         await expect(view.getByRole('button', { name: new RegExp(`^${tile}`) })).toBeVisible();
       }
       // The chart follows the tile that was clicked.
-      await view.getByRole('button', { name: /^Conversion rate/ }).click();
-      await expect(view.getByText('Conversion rate by day')).toBeVisible();
+      await view.getByRole('button', { name: /^Download rate/ }).click();
+      await expect(view.getByText('Download rate by day')).toBeVisible();
     });
 
     test('a storefront reading another language leads to the language manager, with that language ticked', async ({ page }) => {
@@ -225,7 +225,7 @@ test.describe('growth', () => {
       await section(view, 'Reports').click();
       const report = view.getByTestId('growth-report');
       await expect(report).toContainText('Week of');
-      await expect(report.getByRole('cell', { name: 'First-time downloads' })).toBeVisible();
+      await expect(report.getByRole('cell', { name: 'New downloads' })).toBeVisible();
     });
 
     test('a yearly report says what it cannot compare, and saves as a PDF', async ({ page, tauri }) => {
@@ -236,7 +236,7 @@ test.describe('growth', () => {
       const report = view.getByTestId('growth-report');
       await expect(report).toContainText(/\d{4} so far/);
       // The numbers go back half a year, so the year before has nothing to stand beside.
-      await expect(report.getByTestId('growth-report-note')).toContainText('No figure is compared with');
+      await expect(report.getByTestId('growth-report-note')).toContainText('Nothing is compared with');
 
       await view.getByRole('button', { name: 'Save as PDF' }).click();
       await expect.poll(async () => (await tauri.files()).length, { timeout: 30_000 }).toBe(1);
@@ -251,7 +251,7 @@ test.describe('growth', () => {
 
     test('listing edits outlast a section change, a visit to the editor and a reload', async ({ app, page }) => {
       let view = await openGrowth(page);
-      await section(view, 'Listing').click();
+      await section(view, 'Store page').click();
       await view.getByRole('button', { name: 'Clean up' }).click();
       const keywords = () => page.getByTestId('growth-view').locator('#growth-field-keywords');
       const cleaned = await keywords().inputValue();
@@ -259,21 +259,21 @@ test.describe('growth', () => {
 
       // Each section is a fresh screen, so the edit lives outside it.
       await section(view, 'Reviews').click();
-      await section(view, 'Listing').click();
+      await section(view, 'Store page').click();
       await expect(keywords()).toHaveValue(cleaned);
       await expect(view.getByRole('button', { name: 'Apply in App Store Connect' })).toBeEnabled();
 
       // To the editor and back: Growth is where it was left.
       await backToEditor(page);
       view = await openGrowth(page);
-      await expect(section(view, 'Listing')).toHaveAttribute('aria-current', 'page');
+      await expect(section(view, 'Store page')).toHaveAttribute('aria-current', 'page');
       await expect(keywords()).toHaveValue(cleaned);
 
       // A reload starts Growth afresh, and the edit comes back from the growth database.
       await app.goto();
       await app.dismissStartDialog();
       view = await openGrowth(page);
-      await section(view, 'Listing').click();
+      await section(view, 'Store page').click();
       await expect(keywords()).toHaveValue(cleaned);
 
       await view.getByRole('button', { name: 'Discard all' }).click();
@@ -305,8 +305,8 @@ test.describe('growth', () => {
 
       test('a suggested reply comes from Claude Code on the plan, and nothing goes to Apple', async ({ page, tauri }) => {
         const view = await openGrowth(page);
-        await section(view, 'Connection').click();
-        await expect(view.getByTestId('growth-ai-writer-status')).toHaveText('Writing with Claude Code (Max plan)');
+        await section(view, 'Setup').click();
+        await expect(view.getByTestId('growth-ai-writer-status')).toHaveText('Using Claude Code (Max plan)');
 
         await section(view, 'Reviews').click();
         await view.getByRole('combobox', { name: 'Filter by reply' }).click();
@@ -336,9 +336,9 @@ test.describe('growth', () => {
       test('Translate writes each other language through Claude Code into the suggested changes, and nothing goes to Apple', async ({ page, tauri }) => {
         await tauri.setResponse('abs_claude_prompt', JSON.stringify({ subtitle: TRANSLATED_SUBTITLE }));
         const view = await openGrowth(page);
-        await section(view, 'Listing').click();
+        await section(view, 'Store page').click();
         await view.getByRole('button', { name: 'Translate with AI' }).click();
-        await expect(view.getByText('3 translated fields added to the suggested changes')).toBeVisible();
+        await expect(view.getByText('3 translations added to your changes')).toBeVisible();
         await expect(view.getByRole('button', { name: 'Apply in App Store Connect' })).toBeEnabled();
 
         // One prompt per language, the English fields fenced as data.
@@ -371,7 +371,7 @@ test.describe('growth', () => {
         await periods.getByRole('button', { name: 'Monthly' }).click();
         const title = report.locator('h3').first();
         const month = await title.innerText();
-        await report.getByRole('button', { name: 'Write the summary' }).click();
+        await report.getByRole('button', { name: 'Write summary' }).click();
         await tauri.waitForCall('abs_claude_prompt');
 
         // On to the week while the month's summary is still being written.
@@ -381,7 +381,7 @@ test.describe('growth', () => {
         await expect.poll(() => growthMetaKeys(page, 'report:summary:')).toHaveLength(1);
 
         // The week shows its own figures with no summary, free to write one.
-        await expect(report.getByRole('button', { name: 'Write the summary' })).toBeEnabled();
+        await expect(report.getByRole('button', { name: 'Write summary' })).toBeEnabled();
         await expect(report).not.toContainText(HELD_ANSWER);
 
         // The month has its summary.
@@ -394,13 +394,13 @@ test.describe('growth', () => {
         const view = await openGrowth(page);
         await section(view, 'Reports').click();
         const report = view.getByTestId('growth-report');
-        await report.getByRole('button', { name: 'Write the summary' }).click();
+        await report.getByRole('button', { name: 'Write summary' }).click();
         await tauri.waitForCall('abs_claude_prompt');
 
         // Away and back while it is being written: the same request, still on its way.
         await section(view, 'Reviews').click();
         await section(view, 'Reports').click();
-        await expect(report.getByRole('button', { name: 'Write the summary' })).toBeDisabled();
+        await expect(report.getByRole('button', { name: 'Write summary' })).toBeDisabled();
         expect(await releaseHeldCommands(page)).toBe(1);
         await expect(report).toContainText(HELD_ANSWER);
         expect(await tauri.callsTo('abs_claude_prompt')).toHaveLength(1);
@@ -409,12 +409,12 @@ test.describe('growth', () => {
       test('a translation still running when the user looks at another section shows on the way back, and is not started twice', async ({ page, tauri }) => {
         await tauri.setResponse('abs_claude_prompt', JSON.stringify({ subtitle: TRANSLATED_SUBTITLE }));
         const view = await openGrowth(page);
-        await section(view, 'Listing').click();
+        await section(view, 'Store page').click();
         await view.getByRole('button', { name: 'Translate with AI' }).click();
         await tauri.waitForCall('abs_claude_prompt');
 
         await section(view, 'Reviews').click();
-        await section(view, 'Listing').click();
+        await section(view, 'Store page').click();
         await expect(view.getByRole('status').filter({ hasText: 'Translating into German, 1 of 3' })).toBeVisible();
         await expect(view.getByRole('button', { name: 'Translate with AI' })).toBeDisabled();
 
@@ -423,7 +423,7 @@ test.describe('growth', () => {
           await expect.poll(async () => (await tauri.callsTo('abs_claude_prompt')).length).toBe(asked);
           expect(await releaseHeldCommands(page)).toBe(1);
         }
-        await expect(view.getByText('3 translated fields added to the suggested changes')).toBeVisible();
+        await expect(view.getByText('3 translations added to your changes')).toBeVisible();
         await expect(view.getByRole('button', { name: 'Translate with AI' })).toBeEnabled();
         expect(await tauri.callsTo('abs_claude_prompt')).toHaveLength(3);
       });

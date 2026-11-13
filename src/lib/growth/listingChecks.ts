@@ -155,8 +155,8 @@ function checkLimits(locale: ListingLocale, out: ListingIssue[]): void {
           field,
           'too-long',
           'problem',
-          `${LISTING_FIELD_LABELS[field]} is ${length - LISTING_LIMITS[field]} characters over the limit`,
-          `App Store Connect takes at most ${LISTING_LIMITS[field]} characters here and will refuse the listing as it is.`
+          `${LISTING_FIELD_LABELS[field]} is ${length - LISTING_LIMITS[field]} character${length - LISTING_LIMITS[field] === 1 ? '' : 's'} too long`,
+          `The limit is ${LISTING_LIMITS[field]} characters. App Store Connect will not accept longer text.`
         )
       );
     }
@@ -165,7 +165,7 @@ function checkLimits(locale: ListingLocale, out: ListingIssue[]): void {
 
 function checkName(locale: ListingLocale, out: ListingIssue[]): void {
   if (!locale.name.trim()) {
-    out.push(issue(locale.locale, 'name', 'empty', 'problem', 'The name is empty', 'Every language needs a name before the version can be submitted.'));
+    out.push(issue(locale.locale, 'name', 'empty', 'problem', 'The name is empty', 'Every language needs a name before you can submit your app for review.'));
   }
 }
 
@@ -179,7 +179,7 @@ function checkSubtitle(locale: ListingLocale, out: ListingIssue[]): void {
         'empty',
         'warning',
         'No subtitle',
-        'The subtitle shows under the name in search results and its words are searchable. Thirty characters that sell the app are worth writing.'
+        'The subtitle shows under the name in search results and helps people find your app. Use up to 30 characters to make people want your app.'
       )
     );
     return;
@@ -194,7 +194,7 @@ function checkSubtitle(locale: ListingLocale, out: ListingIssue[]): void {
         'repeats-name',
         'warning',
         `The subtitle repeats ${quoteList(unique(repeated))} from the name`,
-        'The store already searches the name, so a word in both is one search term paid for twice. Use the subtitle for words the name does not have.'
+        'The App Store already searches the name, so a repeated word wastes space. Use the subtitle for words the name does not have.'
       )
     );
   }
@@ -207,7 +207,7 @@ function checkSubtitle(locale: ListingLocale, out: ListingIssue[]): void {
         'room',
         'tip',
         `${free} characters left in the subtitle`,
-        'Those characters can carry another word people search for.'
+        'Add another word people search for.'
       )
     );
   }
@@ -223,7 +223,7 @@ function checkKeywords(locale: ListingLocale, out: ListingIssue[]): void {
         'empty',
         'problem',
         'No keywords',
-        'The keyword field is the main way search finds an app beyond its name. Add up to 100 characters of terms, separated by commas.'
+        'Apart from the name, keywords are the main way people find your app in search. Add up to 100 characters of search words, separated by commas.'
       )
     );
     return;
@@ -240,8 +240,8 @@ function checkKeywords(locale: ListingLocale, out: ListingIssue[]): void {
         'keywords',
         'spaces',
         'warning',
-        `Spaces after commas use ${spaces} character${spaces === 1 ? '' : 's'}`,
-        'The store splits keywords at commas on its own, so the spaces buy nothing.',
+        `Spaces after commas waste ${spaces} character${spaces === 1 ? '' : 's'}`,
+        'The App Store splits keywords at the commas, so you do not need the spaces.',
         change(locale, 'keywords', fixed, 'Removed the spaces after commas')
       )
     );
@@ -255,7 +255,7 @@ function checkKeywords(locale: ListingLocale, out: ListingIssue[]): void {
         'duplicates',
         'warning',
         `${quoteList(repeated)} ${repeated.length === 1 ? 'appears' : 'appear'} twice in the keywords`,
-        'A keyword counts once however often it is listed.',
+        'Adding a keyword twice does not help. The App Store counts each keyword only once.',
         change(locale, 'keywords', cleanup.keywords, 'Removed repeated keywords')
       )
     );
@@ -269,8 +269,8 @@ function checkKeywords(locale: ListingLocale, out: ListingIssue[]): void {
         'indexed',
         'warning',
         `${quoteList(indexed)} ${indexed.length === 1 ? 'is' : 'are'} already in the name or subtitle`,
-        'The store searches the name, subtitle and keywords together, so these characters can go to new words.',
-        change(locale, 'keywords', cleanup.keywords, 'Removed words the name and subtitle already carry')
+        'The App Store searches the name, subtitle and keywords together. Use the keywords for new words.',
+        change(locale, 'keywords', cleanup.keywords, 'Removed words already in the name or subtitle')
       )
     );
   }
@@ -294,8 +294,8 @@ function checkKeywords(locale: ListingLocale, out: ListingIssue[]): void {
           'keywords',
           'plurals',
           'tip',
-          `${forms.map((list) => list.join(' and ')).join(', ')} are one search term`,
-          'The store matches singular and plural forms of most words, so one form is usually enough.'
+          `${forms.map((list) => list.join(' and ')).join(', ')} are the same in search`,
+          'For most words, the App Store matches both the singular and the plural, so one form is enough.'
         )
       );
     }
@@ -310,8 +310,8 @@ function checkKeywords(locale: ListingLocale, out: ListingIssue[]): void {
         'keywords',
         'room',
         'tip',
-        `${free} characters free in the keyword field${cleanup.saved > 0 ? ' after the fixes above' : ''}`,
-        'Each one can hold part of another search term.'
+        `${free} characters left in the keywords${cleanup.saved > 0 ? ' after the fixes above' : ''}`,
+        'Add more words people search for.'
       )
     );
   }
@@ -320,7 +320,7 @@ function checkKeywords(locale: ListingLocale, out: ListingIssue[]): void {
 function checkCopy(locale: ListingLocale, out: ListingIssue[], editable: boolean): void {
   const description = locale.description.trim();
   if (!description) {
-    out.push(issue(locale.locale, 'description', 'empty', 'problem', 'The description is empty', 'Every language needs a description before the version can be submitted.'));
+    out.push(issue(locale.locale, 'description', 'empty', 'problem', 'The description is empty', 'Every language needs a description before you can submit your app for review.'));
   } else if (fieldLength(description) < 300) {
     out.push(
       issue(
@@ -329,7 +329,7 @@ function checkCopy(locale: ListingLocale, out: ListingIssue[], editable: boolean
         'short',
         'warning',
         'The description is short',
-        'People who open the full description are deciding. A few lines on what the app does for them, and why it is better than the alternative, helps them decide.'
+        'People who open the full description are deciding whether to get your app. Add a few lines on what your app does and why people should choose your app.'
       )
     );
   }
@@ -341,8 +341,8 @@ function checkCopy(locale: ListingLocale, out: ListingIssue[], editable: boolean
         'description',
         'long-opening',
         'tip',
-        'The first line runs past what the product page shows',
-        'Only the opening lines show before "more". A short first sentence that sells the app is read by everyone; the rest is read by a few.'
+        'The first line is cut off on the store page',
+        'Only the first lines show before "more", and few people tap "more". Start with a short sentence to make people want your app.'
       )
     );
   }
@@ -354,7 +354,7 @@ function checkCopy(locale: ListingLocale, out: ListingIssue[], editable: boolean
         'empty',
         'tip',
         'No promotional text',
-        'It sits above the description and can be changed at any time without a new version, which makes it the place for a launch, a sale or a seasonal message.'
+        'Promotional text shows above the description, and you can change the text without a new version. Write about a launch, a sale or a holiday.'
       )
     );
   }
@@ -368,7 +368,7 @@ function checkCopy(locale: ListingLocale, out: ListingIssue[], editable: boolean
           'generic',
           'tip',
           "What's new says nothing specific",
-          'People reading release notes are deciding whether the update is worth it. Name one thing that changed for them.'
+          'People read "What\'s new" to decide if the update is worth getting. Name one change people will notice.'
         )
       );
     }
@@ -387,10 +387,10 @@ function checkTranslation(locale: ListingLocale, primary: ListingLocale, out: Li
         copied[0],
         'untranslated',
         'warning',
-        `The ${listingLanguageName(locale.locale)} listing repeats the ${listingLanguageName(primary.locale)} ${andList(
+        `The ${listingLanguageName(locale.locale)} store page uses the ${listingLanguageName(primary.locale)} ${andList(
           copied.map((field) => LISTING_FIELD_LABELS[field].toLowerCase())
         )}`,
-        'Shoppers who read this language see text they may not understand, and search in their language does not find it.'
+        `People who read ${listingLanguageName(locale.locale)} may not understand the ${listingLanguageName(primary.locale)} text. Searches in ${listingLanguageName(locale.locale)} will not match the ${listingLanguageName(primary.locale)} words.`
       )
     );
   }
@@ -407,8 +407,8 @@ function checkScreenshots(locale: ListingLocale, primary: ListingLocale, out: Li
         undefined,
         'screenshots-borrowed',
         'warning',
-        `${listingLanguageName(locale.locale)} shoppers see the ${listingLanguageName(primary.locale)} screenshots`,
-        'This language has no screenshots of its own, so the store falls back to the primary language. Screenshots in the shopper\'s language convert better, and the editor can translate a whole set.'
+        `Your ${listingLanguageName(locale.locale)} store page shows the ${listingLanguageName(primary.locale)} screenshots`,
+        `Screenshots in people's own language get more downloads. The editor can translate your screenshots into ${listingLanguageName(locale.locale)}.`
       )
     );
     return;
@@ -421,8 +421,8 @@ function checkScreenshots(locale: ListingLocale, primary: ListingLocale, out: Li
         undefined,
         'few-screenshots',
         'tip',
-        `Only ${largest} screenshot${largest === 1 ? '' : 's'} in this language`,
-        'Search results show the first three, and the product page shows up to ten. Three or more gives people a reason to tap.'
+        `Only ${largest} screenshot${largest === 1 ? '' : 's'} in ${listingLanguageName(locale.locale)}`,
+        'Search results show the first three screenshots, and the store page shows up to ten. Add at least three screenshots to give people a reason to tap.'
       )
     );
   }

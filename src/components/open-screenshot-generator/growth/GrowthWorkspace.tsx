@@ -96,12 +96,12 @@ const NAV: Array<{ tab: GrowthTab; label: string; icon: React.ComponentType<{ cl
   { tab: 'overview', label: 'Overview', icon: LayoutDashboardIcon },
   { tab: 'insights', label: 'Insights', icon: LightbulbIcon },
   { tab: 'reviews', label: 'Reviews', icon: MessageSquareIcon },
-  { tab: 'listing', label: 'Listing', icon: TypeIcon },
-  { tab: 'markets', label: 'Storefronts', icon: GlobeIcon },
+  { tab: 'listing', label: 'Store page', icon: TypeIcon },
+  { tab: 'markets', label: 'Countries', icon: GlobeIcon },
   { tab: 'timeline', label: 'Timeline', icon: CalendarClockIcon },
   { tab: 'reports', label: 'Reports', icon: FileTextIcon },
   { tab: 'ask', label: 'Ask AI', icon: BotIcon },
-  { tab: 'connect', label: 'Connection', icon: PlugIcon },
+  { tab: 'connect', label: 'Setup', icon: PlugIcon },
 ];
 
 /** A section to show, from whoever switched to Growth. A new nonce navigates again. */
@@ -201,7 +201,7 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
       })
       .catch((error) => {
         console.error('Listing the App Store Connect apps failed', error);
-        if (!cancelled) setAppsError(error instanceof Error ? error.message : 'The apps could not be listed');
+        if (!cancelled) setAppsError(error instanceof Error ? error.message : 'Your apps could not be loaded');
       })
       .finally(() => {
         if (!cancelled) setAppsListed(keyId);
@@ -233,25 +233,25 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
   const appReason: string | null = !mounted
     ? 'Loading'
     : !desktop
-      ? 'Growth needs the desktop app, because App Store Connect does not answer browsers'
+      ? 'Growth works in the desktop app only'
       : !key
-        ? 'Connect your App Store Connect key under Connection first'
+        ? 'Add your App Store Connect API key under Setup first'
         : picked
           ? null
           : appsError
-            ? 'App Store Connect did not list your apps. Check the key under Connection'
+            ? 'App Store Connect did not send your apps. Check your API key under Setup'
             : appsListed !== keyId
               ? 'Loading your apps from App Store Connect'
-              : 'This App Store Connect account has no apps yet';
+              : 'Your App Store Connect account has no apps yet';
 
   const runSync = useCallback(() => {
     // Read at call time rather than from the render: a key saved a moment ago
-    // on the Connection tab is in the store before this component re-renders.
+    // under Setup is in the store before this component re-renders.
     const latestKey = getStoreCredentials().appstore;
     if (!desktop || !latestKey || !ascApp) return;
     const id = ascApp.id;
     // A sync the background monitor started is joined (syncApp hands back the
-    // one running), so the header shows it rather than a Sync that does nothing.
+    // one running), so the header shows it rather than a Refresh that does nothing.
     if (controllers.current.has(id)) return;
     const stop = new AbortController();
     controllers.current.set(id, stop);
@@ -445,15 +445,15 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
             </SelectContent>
           </Select>
           {syncing ? (
-            <Button variant="outline" size="sm" className="h-8" onClick={() => controllers.current.get(app.id)?.abort()} title="Stop syncing. What arrived so far is kept">
+            <Button variant="outline" size="sm" className="h-8" onClick={() => controllers.current.get(app.id)?.abort()} title="Stop refreshing and keep everything loaded so far">
               <SquareIcon className="mr-1.5 h-3.5 w-3.5" />
               Stop
             </Button>
           ) : (
             <Gated reason={appReason}>
-              <Button variant="outline" size="sm" className="h-8" onClick={runSync} title={data.lastSync ? `Last sync ${formatAgo(data.lastSync)}` : 'Load this app from App Store Connect'}>
+              <Button variant="outline" size="sm" className="h-8" onClick={runSync} title={data.lastSync ? `Updated ${formatAgo(data.lastSync)}` : 'Get the latest numbers from Apple'}>
                 <RefreshCwIcon className="mr-1.5 h-3.5 w-3.5" />
-                Sync
+                Refresh
               </Button>
             </Gated>
           )}
@@ -461,7 +461,7 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
         {progress && (
           <div className="flex w-full items-center gap-2 text-xs text-muted-foreground" role="status">
             <Loader2Icon className="h-3.5 w-3.5 animate-spin" />
-            <span className="truncate">Syncing {progress.label}</span>
+            <span className="truncate">Refreshing {progress.label}</span>
             <div className="h-1 w-40 overflow-hidden rounded-full bg-muted">
               <div
                 className="h-full rounded-full bg-[hsl(var(--growth-series))] transition-[width]"
@@ -486,7 +486,7 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
           ) : (
             tab !== 'connect' && (
               <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => goTo('connect')}>
-                Open Connection
+                Open Setup
               </Button>
             )
           )}

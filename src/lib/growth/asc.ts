@@ -162,7 +162,7 @@ async function fail(response: Response): Promise<never> {
   const text = await response.text().catch(() => '');
   const message = describeApiError(response.status, text);
   if (response.status === 401) {
-    throw new AscAuthError(`${message}. Check the issuer id, the key id and the .p8 file in Settings.`);
+    throw new AscAuthError(`${message}. Check the Issuer ID, Key ID and private key under Setup`);
   }
   if (response.status === 403) throw new AscForbiddenError(message);
   if (response.status === 404) throw new AscNotFoundError(message);
@@ -307,7 +307,7 @@ export async function replyToReview(
   const text = body.trim();
   if (!text) throw new Error('Write a reply first');
   if (Array.from(text).length > MAX_REPLY_LENGTH) {
-    throw new Error(`Apple takes replies of up to ${MAX_REPLY_LENGTH} characters`);
+    throw new Error(`A reply can have up to ${MAX_REPLY_LENGTH} characters`);
   }
   const created = await ascJson<{ data: Resource<Record<string, unknown>> }>(credentials, '/v1/customerReviewResponses', {
     method: 'POST',
@@ -488,7 +488,7 @@ export async function listSegments(
 export async function downloadSegment(url: string, signal?: AbortSignal): Promise<Uint8Array> {
   const response = await fetchWithStop(url, { method: 'GET' }, signal);
   if (!response.ok) {
-    throw new Error(`An analytics report file could not be downloaded (HTTP ${response.status})`);
+    throw new Error(`Part of App Analytics could not be downloaded (HTTP ${response.status}). Refresh to try again`);
   }
   return new Uint8Array(await response.arrayBuffer());
 }
@@ -700,14 +700,14 @@ export async function applyListingChanges(
   for (const [locale, fields] of byLocale) {
     const target = listing.locales.find((entry) => entry.locale === locale);
     if (!target) {
-      warnings.push(`${locale} is not a language of this version, so its changes were skipped.`);
+      warnings.push(`${locale} is not a language of version ${listing.versionString}, so the changes were skipped.`);
       continue;
     }
     const infoFields = Object.fromEntries(Object.entries(fields).filter(([field]) => field === 'name' || field === 'subtitle'));
     const versionFields = Object.fromEntries(Object.entries(fields).filter(([field]) => field !== 'name' && field !== 'subtitle'));
     if (Object.keys(infoFields).length > 0) {
       if (!target.appInfoLocalizationId) {
-        warnings.push(`${locale}: the name and subtitle could not be found, so they were not changed.`);
+        warnings.push(`${locale}: the name and subtitle were not found and were not changed.`);
       } else {
         try {
           await ascJson(credentials, `/v1/appInfoLocalizations/${target.appInfoLocalizationId}`, {
@@ -717,13 +717,13 @@ export async function applyListingChanges(
           took(locale, infoFields);
         } catch (error) {
           if (error instanceof AscAuthError) throw error;
-          warnings.push(`${locale}, name and subtitle: ${error instanceof Error ? error.message : 'refused'}`);
+          warnings.push(`${locale}, name and subtitle: ${error instanceof Error ? error.message : 'Apple did not accept the changes'}`);
         }
       }
     }
     if (Object.keys(versionFields).length > 0) {
       if (!target.versionLocalizationId) {
-        warnings.push(`${locale}: this language has no version record to change.`);
+        warnings.push(`${locale}: the language was not found in version ${listing.versionString}, so the changes were skipped.`);
       } else {
         try {
           await ascJson(credentials, `/v1/appStoreVersionLocalizations/${target.versionLocalizationId}`, {
@@ -733,7 +733,7 @@ export async function applyListingChanges(
           took(locale, versionFields);
         } catch (error) {
           if (error instanceof AscAuthError) throw error;
-          warnings.push(`${locale}: ${error instanceof Error ? error.message : 'refused'}`);
+          warnings.push(`${locale}: ${error instanceof Error ? error.message : 'Apple did not accept the changes'}`);
         }
       }
     }
