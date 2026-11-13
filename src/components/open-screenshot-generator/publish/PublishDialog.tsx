@@ -31,8 +31,11 @@ import {
   Loader2Icon,
   MonitorDownIcon,
   RefreshCwIcon,
+  TrendingUpIcon,
   UploadCloudIcon,
 } from 'lucide-react';
+import { recordScreenshotUpload } from '@/lib/growth/events';
+import { setGrowthSettings } from '@/lib/growth/settings';
 import {
   Dialog,
   DialogContent,
@@ -196,6 +199,15 @@ export interface PublishDialogProps {
       signal?: AbortSignal;
     }
   ) => Promise<{ videos: PublishVideo[]; warnings: string[] }>;
+  /**
+   * The project being uploaded, for the Growth timeline: an App Store upload
+   * is recorded there with the version it went to, so the conversion before
+   * and after that version can be compared and the project opened again.
+   */
+  projectId?: string | null;
+  projectName?: string;
+  /** Open Growth on the timeline, from the success panel. */
+  onOpenGrowth?: () => void;
 }
 
 /** What the dialog needs to know about one App Preview board before uploading. */
@@ -213,6 +225,9 @@ export function PublishDialog({
   activeLocale = null,
   onCapture,
   onCaptureVideos,
+  projectId,
+  projectName,
+  onOpenGrowth,
 }: PublishDialogProps) {
   const { credentials, saveAppStore, savePlay } = useStoreCredentials();
   const [mounted, setMounted] = useState(false);
@@ -805,6 +820,26 @@ export function PublishDialog({
           ? { ...outcome, warnings: [...encodeWarnings, ...outcome.warnings] }
           : outcome
       );
+      if (store === 'appstore' && outcome.uploaded > 0 && appId) {
+        // On the Growth timeline, so the overview can say whether this set
+        // sells better than the last one once its version is out. A failure
+        // here costs the timeline entry, never the upload.
+        const version = versions?.find((entry) => entry.id === versionId);
+        const uploadedLocales = uploadAllLanguages
+          ? matchedLocales.map((row) => row.storeCode).filter((code): code is string => !!code)
+          : [localizations?.find((entry) => entry.id === localizationId)?.locale].filter((code): code is string => !!code);
+        void recordScreenshotUpload({
+          appId,
+          versionString: version?.versionString,
+          locales: uploadedLocales,
+          screenshotCount: outcome.uploaded - (outcome.uploadedVideos ?? 0),
+          previewCount: outcome.uploadedVideos ?? 0,
+          projectId: projectId ?? undefined,
+          projectName,
+        })
+          .then(() => setGrowthSettings({ appId }))
+          .catch((recordError) => console.error('The Growth timeline entry could not be written', recordError));
+      }
     } catch (uploadError) {
       // Stopping an encode is a choice, not a failure, so it leaves no error.
       const stopped = uploadError instanceof DOMException && uploadError.name === 'AbortError';
@@ -1347,17 +1382,34 @@ export function PublishDialog({
                   {warning}
                 </p>
               ))}
-              {result.reviewUrl && (
-                <Button
-                  variant="link"
-                  size="sm"
-                  className="h-auto p-0 text-xs"
-                  onClick={() => void openExternal(result.reviewUrl!)}
-                >
-                  Open {STORE_LABELS[store]}
-                  <ExternalLinkIcon className="ml-1 h-3 w-3" />
-                </Button>
-              )}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                {result.reviewUrl && (
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="h-auto p-0 text-xs"
+                    onClick={() => void openExternal(result.reviewUrl!)}
+                  >
+                    Open {STORE_LABELS[store]}
+                    <ExternalLinkIcon className="ml-1 h-3 w-3" />
+                  </Button>
+                )}
+                {store === 'appstore' && onOpenGrowth && (
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="h-auto p-0 text-xs"
+                    onClick={() => {
+                      onOpenChange(false);
+                      onOpenGrowth();
+                    }}
+                    title="Growth compares the conversion rate before and after this version goes live"
+                  >
+                    <TrendingUpIcon className="mr-1 h-3 w-3" />
+                    See how they sell
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </div>

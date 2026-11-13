@@ -87,15 +87,20 @@ export async function createAppStoreConnectJwt(params: {
   keyId: string;
   privateKeyPem: string;
   lifetimeSeconds?: number;
+  /** Apple's time in milliseconds, when known. This computer's clock otherwise. */
+  now?: number;
 }): Promise<string> {
   const key = await importKey(params.privateKeyPem, { name: 'ECDSA', namedCurve: 'P-256' });
-  const issuedAt = Math.floor(Date.now() / 1000);
+  const now = Math.floor((params.now ?? Date.now()) / 1000);
   return sign(
     { alg: 'ES256', kid: params.keyId, typ: 'JWT' },
     {
       iss: params.issuerId,
-      iat: issuedAt,
-      exp: issuedAt + Math.min(params.lifetimeSeconds ?? 900, 1200),
+      // Dated a minute back. Apple refuses a token dated more than about two
+      // minutes ahead of its own clock, and the clock used here can be off.
+      // An older date does no harm (exp is what Apple holds to 20 minutes).
+      iat: now - 60,
+      exp: now + Math.min(params.lifetimeSeconds ?? 900, 1200),
       aud: 'appstoreconnect-v1',
     },
     key,

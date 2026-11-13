@@ -65,6 +65,30 @@ export interface TauriMockConfig {
   responses: Record<string, unknown>;
   /** Commands that must reject, mapped to the rejection message. */
   errors: Record<string, string>;
+  /**
+   * Canned answers for tauri-plugin-http, the app's way out to App Store
+   * Connect, Google Play and the AI providers. The first rule whose `match`
+   * (a regular expression source) finds "METHOD url" answers; anything else
+   * gets a 404 with a JSON error list, which is how those APIs say they have
+   * nothing. Nothing leaves the browser, so the offline guard never sees it.
+   * Every request is kept in `window.__E2E_TAURI__.httpRequests`.
+   */
+  http: TauriHttpRule[];
+}
+
+export interface TauriHttpRule {
+  match: string;
+  status?: number;
+  headers?: Record<string, string>;
+  /** Text body. */
+  body?: string;
+  /** Binary body, such as a gzip report. Wins over `body`. */
+  bodyBase64?: string;
+  /**
+   * Keep the answer until the test calls `window.__E2E_TAURI__.releaseHttp()`,
+   * to do something while the request is still in flight.
+   */
+  hold?: boolean;
 }
 
 export const DEFAULT_TAURI_CONFIG: TauriMockConfig = {
@@ -75,6 +99,7 @@ export const DEFAULT_TAURI_CONFIG: TauriMockConfig = {
   codeFolder: { name: 'marbly', path: '/Users/e2e/code/marbly' },
   responses: {},
   errors: {},
+  http: [],
 };
 
 /**
@@ -108,8 +133,62 @@ export function tauriInitScript(config: TauriMockConfig): string {
     claudeProcesses: loadClaudeProcesses(),
     /** The Codex processes started and not stopped, by spawn id, with their thread. Kept like claudeProcesses. */
     codexProcesses: loadCodexProcesses(),
+    /** tauri-plugin-http traffic: every request, and the ones in flight by resource id. */
+    httpRequests: [],
+    httpNext: 1,
+    httpPending: {},
+    httpBodies: {},
+    /** Answers of rules with \`hold\`, waiting for releaseHttp(). */
+    httpHeld: [],
+    /** Send every held answer. Returns how many there were. */
+    releaseHttp() {
+      const held = state.httpHeld.splice(0);
+      held.forEach((release) => release());
+      return held.length;
+    },
   };
   window.__E2E_TAURI__ = state;
+
+  function httpSend(rid) {
+    const request = state.httpPending[rid];
+    delete state.httpPending[rid];
+    const key = (request.method || 'GET') + ' ' + request.url;
+    const rule = (state.config.http || []).find((candidate) => new RegExp(candidate.match).test(key));
+    const answer = () => {
+      const status = rule ? (rule.status ?? 200) : 404;
+      let bytes;
+      if (rule && rule.bodyBase64) {
+        bytes = Uint8Array.from(atob(rule.bodyBase64), (char) => char.charCodeAt(0));
+      } else {
+        bytes = new TextEncoder().encode(
+          rule
+            ? rule.body ?? ''
+            : JSON.stringify({ errors: [{ status: '404', code: 'NOT_FOUND', title: 'Not found', detail: 'No canned response for ' + key }] })
+        );
+      }
+      const responseRid = state.httpNext++;
+      state.httpBodies[responseRid] = { bytes, sent: false };
+      const headers = rule && rule.headers ? rule.headers : { 'content-type': 'application/json' };
+      return { status, statusText: String(status), url: request.url, headers: Object.entries(headers), rid: responseRid };
+    };
+    if (rule && rule.hold) return new Promise((resolve) => state.httpHeld.push(() => resolve(answer())));
+    return answer();
+  }
+
+  // The plugin reads a body in chunks whose last byte says what the chunk is:
+  // 0 for data, 1 for the end of the body.
+  function httpReadBody(rid) {
+    const body = state.httpBodies[rid];
+    if (!body || body.sent) {
+      delete state.httpBodies[rid];
+      return [1];
+    }
+    body.sent = true;
+    const chunk = new Uint8Array(body.bytes.length + 1);
+    chunk.set(body.bytes);
+    chunk[body.bytes.length] = 0;
+    return Array.from(chunk);
+  }
 
   function loadClaudeProcesses() {
     try {
@@ -576,6 +655,28 @@ export function tauriInitScript(config: TauriMockConfig): string {
       // which is where the URL, the label and the geometry are decided. It
       // falls through to the plugin:webview default below, and is recorded.
 
+
+      // -- tauri-plugin-http, answered from config.http ---------------------
+      case 'plugin:http|fetch': {
+        const clientConfig = args.clientConfig || {};
+        const rid = state.httpNext++;
+        const request = {
+          method: clientConfig.method || 'GET',
+          url: clientConfig.url,
+          headers: Object.fromEntries((clientConfig.headers || []).map(([name, value]) => [String(name).toLowerCase(), value])),
+          body: clientConfig.data ? new TextDecoder().decode(new Uint8Array(clientConfig.data)) : null,
+        };
+        state.httpRequests.push(request);
+        state.httpPending[rid] = request;
+        return rid;
+      }
+      case 'plugin:http|fetch_send':
+        return httpSend(args.rid);
+      case 'plugin:http|fetch_read_body':
+        return httpReadBody(args.rid);
+      case 'plugin:http|fetch_cancel':
+      case 'plugin:http|fetch_cancel_body':
+        return null;
 
       default:
         if (cmd.startsWith('plugin:window|') || cmd.startsWith('plugin:webview|')) return null;

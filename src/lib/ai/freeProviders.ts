@@ -34,6 +34,8 @@ export interface FreeProviderInfo {
   description: string;
   setupUrl?: string;
   setupUrlLabel?: string;
+  /** Fields that ask this provider's model to think less, for a request that asks for low effort. */
+  lowEffort?: Record<string, unknown>;
 }
 
 export const FREE_PROVIDERS: Record<FreeProviderId, FreeProviderInfo> = {
@@ -45,6 +47,13 @@ export const FREE_PROVIDERS: Record<FreeProviderId, FreeProviderInfo> = {
     modelsUrl: 'https://text.pollinations.ai/models',
     description:
       'A free public AI service. No account and no key; requests go straight from this machine to text.pollinations.ai.',
+    // The keyless model is a reasoning model (GPT-OSS 20B). On a long job,
+    // such as proofreading or translating a whole store listing, it spent its
+    // output allowance thinking and Pollinations answered 400
+    // output_token_limit_exceeded (seen November 2026); at low effort it
+    // answered. Not for everything: a report summary written at low effort
+    // made up figures that the default effort got right.
+    lowEffort: { reasoning_effort: 'low' },
   },
   ollama: {
     id: 'ollama',
@@ -88,10 +97,13 @@ export type FreeProviderErrorCode = 'not-running' | 'network' | 'http' | 'empty'
 
 export class FreeProviderError extends Error {
   readonly code: FreeProviderErrorCode;
-  constructor(code: FreeProviderErrorCode, message: string) {
+  /** Set when the service said how long to wait before asking again. */
+  readonly retryAfterMs?: number;
+  constructor(code: FreeProviderErrorCode, message: string, retryAfterMs?: number) {
     super(message);
     this.name = 'FreeProviderError';
     this.code = code;
+    this.retryAfterMs = retryAfterMs;
   }
 }
 
@@ -219,6 +231,8 @@ export interface FreeGenerateArgs {
   images: string[];
   signal?: AbortSignal;
   timeoutMs?: number;
+  /** 'low' for a long answer that needs little working out (see FreeProviderInfo.lowEffort). */
+  effort?: 'low';
 }
 
 /** Send one prompt (plus screenshots) and resolve with the raw reply text. */
@@ -245,6 +259,7 @@ export async function runFreeProvider(args: FreeGenerateArgs): Promise<string> {
         model: args.model,
         messages: [{ role: 'user', content }],
         stream: false,
+        ...(args.effort === 'low' ? info.lowEffort : undefined),
       }),
     });
   } catch (error) {
@@ -261,13 +276,20 @@ export async function runFreeProvider(args: FreeGenerateArgs): Promise<string> {
 
   try {
     if (!response.ok) {
-      const detail = (await response.text().catch(() => '')).slice(0, 300);
-      throw new FreeProviderError(
-        'http',
-        response.status === 429
-          ? 'The free service is rate limiting right now. Wait a moment and try again, or switch provider.'
-          : `${info.label} returned an error (${response.status}). ${detail}`.trim()
-      );
+      const detail = await response.text().catch(() => '');
+      // Pollinations answers a keyless caller once every 45 seconds, and says
+      // so with a 402 FREE_LIMIT and "Retry after 36s" (seen November 2026).
+      const limited = response.status === 429 || (response.status === 402 && /FREE_LIMIT|free limit/i.test(detail));
+      if (limited) {
+        const seconds = Number(/retry after (\d+)\s*s/i.exec(detail)?.[1] ?? response.headers.get('retry-after') ?? NaN);
+        const known = Number.isFinite(seconds) && seconds > 0;
+        throw new FreeProviderError(
+          'http',
+          `The free service is rate limiting right now. ${known ? `Try again in ${seconds} seconds` : 'Wait a moment and try again'}, or switch provider.`,
+          known ? seconds * 1000 : undefined
+        );
+      }
+      throw new FreeProviderError('http', `${info.label} returned an error (${response.status}). ${readableError(detail)}`.trim());
     }
 
     const reply = extractReplyText(await response.json().catch(() => null));
@@ -281,6 +303,21 @@ export async function runFreeProvider(args: FreeGenerateArgs): Promise<string> {
   } finally {
     dispose();
   }
+}
+
+/**
+ * The message out of an OpenAI style error body ({"error":{"message":...}}),
+ * which is what a person can read. Anything else is shown as it came.
+ */
+function readableError(body: string): string {
+  try {
+    const parsed = JSON.parse(body) as { error?: { message?: unknown } | string; message?: unknown };
+    const message = typeof parsed.error === 'string' ? parsed.error : parsed.error?.message ?? parsed.message;
+    if (typeof message === 'string' && message.trim()) return message.trim().slice(0, 300);
+  } catch {
+    // Not JSON.
+  }
+  return body.slice(0, 300);
 }
 
 /** choices[0].message.content, tolerating servers that return content parts. */

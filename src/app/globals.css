@@ -61,6 +61,15 @@ body {
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+
+    /* Growth charts. The series blue and the highlight orange are slots 1 and
+       2 of the validated categorical palette (dataviz reference), stepped per
+       theme; good and bad are its success text and critical status. */
+    --growth-series: 213 68% 50%;
+    --growth-compare: 45 3% 52%;
+    --growth-highlight: 17 82% 56%;
+    --growth-good: 120 100% 19%;
+    --growth-bad: 0 61% 52%;
   }
 
   /* Dark editor chrome. Same roles as the light palette above, same slate blue
@@ -118,6 +127,12 @@ body {
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+
+    --growth-series: 213 77% 56%;
+    --growth-compare: 45 3% 52%;
+    --growth-highlight: 17 70% 50%;
+    --growth-good: 120 86% 34%;
+    --growth-bad: 0 61% 52%;
   }
 
   /* The tokens alone are not enough: an artboard also has to opt out of the

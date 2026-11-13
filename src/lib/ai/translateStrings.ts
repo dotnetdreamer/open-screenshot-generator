@@ -272,6 +272,44 @@ async function runChunk(
   );
 }
 
+/**
+ * One prompt through the same transport a translation would take, answered as
+ * raw text. For the growth feature's writing jobs (review replies, listing
+ * suggestions, report summaries, questions about the numbers), which need the
+ * user's provider and none of the chunking above.
+ */
+export async function runAiPrompt(request: {
+  system: string;
+  user: string;
+  signal?: AbortSignal;
+  /** Passed to a free provider whose model can be asked to think less; the others ignore it. */
+  effort?: 'low';
+}): Promise<string> {
+  const transport = resolveTransport();
+  if (!transport) {
+    throw new Error('No AI provider is set up. Add an API key in the AI panel, or a local model in Settings');
+  }
+  if (transport.kind === 'api') {
+    const result = await generateText({
+      model: createModel({
+        provider: transport.provider,
+        model: transport.model,
+        apiKey: transport.apiKey,
+        baseUrl: transport.baseUrl,
+      }),
+      instructions: request.system,
+      prompt: request.user,
+      abortSignal: request.signal,
+    });
+    return result.text;
+  }
+  const prompt = `${request.system}\n\n${request.user}`;
+  if (transport.kind === 'free') {
+    return runFreeProvider({ provider: transport.provider, model: transport.model, prompt, images: [], signal: request.signal, effort: request.effort });
+  }
+  return runViaEmbeddedWebview({ provider: transport.provider, prompt, images: [] }, { signal: request.signal });
+}
+
 function chunkItems(items: Array<{ id: string; text: string }>): Array<Array<{ id: string; text: string }>> {
   const chunks: Array<Array<{ id: string; text: string }>> = [];
   let current: Array<{ id: string; text: string }> = [];

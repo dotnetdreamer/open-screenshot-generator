@@ -196,6 +196,11 @@ import { loadProjectTemplates } from '@/services/projectService';
 import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
 import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, scaleElementsToCanvas, DEVICE_FORMAT_PRESETS, type DeviceFormat, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 import { PublishDialog } from './publish/PublishDialog';
+import { GrowthDialog } from './growth/GrowthDialog';
+import { getGrowthSettings, setGrowthSettings } from '@/lib/growth/settings';
+import { useGrowthMonitor } from '@/lib/growth/useGrowthMonitor';
+import type { GrowthTab } from './growth/GrowthShared';
+import { localeForAppleLocale } from '@/lib/publish/storeTargets';
 import { ProjectNameField } from './ProjectNameField';
 import {
   decodeDataUrl,
@@ -1569,6 +1574,41 @@ export function OpenScreenshotGeneratorLayout() {
   // Direct-to-store upload (App Store Connect / Google Play). Desktop only,
   // see src/lib/publish; the dialog explains itself on the web build.
   const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
+  // Growth: the app's App Store numbers, reviews and listing (src/lib/growth).
+  // Its tab is chosen by whoever opens it: the toolbar opens the overview, the
+  // upload dialog's "see how they do" opens the timeline.
+  const [growthOpen, setGrowthOpen] = useState<GrowthTab | null>(null);
+  // While the desktop app runs, Growth keeps the apps synced there fresh and
+  // says when something new turns up (src/lib/growth/monitor.ts). The main
+  // window only: a tab window would sync the same apps a second time.
+  const growthMonitor = useGrowthMonitor({
+    enabled: isTauri() && !isSecondaryWindow,
+    paused: growthOpen !== null,
+    onFound: (findings) => {
+      const [first] = findings;
+      const count = findings.reduce((sum, finding) => sum + finding.fresh.length, 0);
+      toast({
+        title:
+          findings.length === 1
+            ? `${first.app.name}: ${count === 1 ? 'a new insight' : `${count} new insights`}`
+            : `${count} new insights in Growth`,
+        description: first.fresh[0].title,
+        action: (
+          <ToastAction
+            altText="Open the insights in Growth"
+            onClick={() => {
+              setGrowthSettings({ appId: first.app.id });
+              setGrowthOpen('insights');
+            }}
+          >
+            Open
+          </ToastAction>
+        ),
+      });
+    },
+  });
+  // Languages the Growth window asked for, ticked when the language manager opens.
+  const [languagePreselect, setLanguagePreselect] = useState<string[] | undefined>(undefined);
   // The App Store header and search dialog. Opened from the store preview, it
   // closes the preview (a Radix dialog cannot sit above that overlay) and puts
   // it back once the art is on the canvas.
@@ -11533,6 +11573,18 @@ const generateRandomProjectName = (): string => {
             onPreviewCompare={() => openPreview('compare')}
             canCompareLanguages={previewLocaleOptions.length > 1}
             onPublishToStore={() => setIsPublishDialogOpen(true)}
+            onOpenGrowth={() => {
+              // With new insights waiting, open on them, in an app that has some.
+              if (growthMonitor.appIds.length > 0) {
+                if (!growthMonitor.appIds.includes(getGrowthSettings().appId ?? '')) {
+                  setGrowthSettings({ appId: growthMonitor.appIds[0] });
+                }
+                setGrowthOpen('insights');
+              } else {
+                setGrowthOpen('overview');
+              }
+            }}
+            growthBadge={growthMonitor.unseen}
             onShareToDiscover={HAS_DISCOVER ? () => openDiscover('share') : undefined}
             // Undefined with no backend, which is what leaves the Share menu
             // holding only the community entry rather than growing three items
@@ -12300,14 +12352,81 @@ const generateRandomProjectName = (): string => {
             activeLocale={activeLocale}
             onCapture={handlePublishCapture}
             onCaptureVideos={handlePublishCaptureVideos}
+            projectId={activeProjectId}
+            projectName={currentProjectName}
+            onOpenGrowth={() => setGrowthOpen('overview')}
           />
 
           <LanguageManagerDialog
             open={isLanguageManagerOpen}
-            onOpenChange={setIsLanguageManagerOpen}
+            onOpenChange={(open) => {
+              setIsLanguageManagerOpen(open);
+              if (!open) setLanguagePreselect(undefined);
+            }}
             artboards={artboards}
             translationAvailable={translationAvailable}
             onApply={(next, opts) => void handleApplyLanguages(next, opts)}
+            preselect={languagePreselect}
+          />
+
+          <GrowthDialog
+            open={growthOpen !== null}
+            initialTab={growthOpen ?? undefined}
+            onOpenChange={(open) => {
+              if (!open) setGrowthOpen(null);
+            }}
+            onPublish={() => setIsPublishDialogOpen(true)}
+            onLocalize={(storeLocales) => {
+              const codes = storeLocales
+                .map((storeLocale) => localeForAppleLocale(storeLocale))
+                .filter((code): code is string => !!code);
+              if (artboards.length === 0) {
+                toast({ title: 'Open a project first', description: 'The screenshots to translate live in a project.' });
+                return;
+              }
+              setLanguagePreselect(codes);
+              setIsLanguageManagerOpen(true);
+            }}
+            onAskAgent={
+              claudeAgentState.available && !isSecondaryWindow
+                ? (question) => {
+                    const { session, chat } = claudeAgentState;
+                    if (session.status === 'working' || session.status === 'starting') {
+                      claudeAgent.setPanelEnabled(true);
+                      revealDockTab('agent');
+                      toast({ title: 'The agent is busy', description: 'Wait for it to finish, or stop it in the Agent tab, then ask again.' });
+                      return;
+                    }
+                    track('growth_ask_agent');
+                    void (async () => {
+                      // A question about the numbers starts a chat of its own
+                      // rather than landing in the middle of a design chat.
+                      if (session.items.length > 0) await claudeAgent.newChat(undefined, { agent: chat.agent });
+                      claudeAgent.setPanelEnabled(true);
+                      revealDockTab('agent');
+                      if (isMobileViewport) setIsMobileDockOpen(true);
+                      await claudeAgent.send({
+                        text: `${question}\n\nRead my App Store numbers with the store tools first (get_store_overview, then the others as needed).`,
+                      });
+                    })().catch((error) =>
+                      toast({
+                        title: 'The agent could not take the question',
+                        description: error instanceof Error ? error.message : 'Try again in the Agent tab.',
+                      })
+                    );
+                  }
+                : undefined
+            }
+            onOpenProject={(projectId) => {
+              void db.projects.get(projectId).then((project) => {
+                if (!project) {
+                  toast({ title: 'That project is no longer on this device', description: 'It may have been deleted since the upload.' });
+                  return;
+                }
+                // The way a tab click opens it, live session question included.
+                handleActivateTab(projectId);
+              });
+            }}
           />
 
           <TranslationTableDialog

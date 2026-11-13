@@ -15,6 +15,10 @@ https://github.com/user-attachments/assets/92348435-668f-4a58-b0be-0b939841150d
 
 ## What's new
 
+### 12 November 2026: Growth, your App Store numbers beside your screenshots
+
+Open **Growth** from the toolbar to see your app's downloads, conversion, reviews and listing, read from App Store Connect with the same key the upload uses. Every screenshot upload is recorded, and Growth compares the conversion rate before and after the new set goes live, with a statistical test that tells a real change from day to day noise and a list of whatever else changed in those weeks. It also finds wasted keyword characters and untranslated text in your listing, storefronts whose main language your listing doesn't have, and complaints that keep coming up in reviews. It drafts review replies and weekly, monthly and yearly reports with the AI you already use, saved as PDF, Markdown or text. While the desktop app is open it keeps checking in the background and tells you when something new turns up, and the Claude Code and Codex agents can read the same numbers. Read the [Growth guide](docs/GROWTH.md).
+
 ### 14 October 2026: Codex joins Claude Code in the desktop app
 
 The desktop app's AI agent can now run in Codex as well as Claude Code. Claude Code uses your Claude plan and Codex uses your ChatGPT plan, so you don't need an API key. Pick one on the agent screen or in the **Agent** tab, and watch it build your design. Read the [Claude Code](docs/AI-AGENT.md#4-claude-code-mode-the-agent-edits-the-live-project) and [Codex](docs/AI-AGENT.md#5-codex-mode-the-same-live-editing-on-a-chatgpt-plan) guides.
@@ -40,6 +44,7 @@ You can also:
 - Ask the AI agent to pick a template, place screenshots, and draft text.
 - Save versions of your project, share a copy, or invite others to edit with you.
 - Upload finished screenshots to App Store Connect or Google Play from the desktop app.
+- See your app's App Store downloads, conversion, reviews and listing problems, and whether your new screenshots sold better, in the desktop app.
 
 ## A closer look
 
@@ -72,6 +77,7 @@ Both versions use the same editor. The desktop app adds features that need acces
 | Coding agent design tools | With the [web relay](infra/vps/mcp-relay/README.md) or CLI | Built in MCP server |
 | Save to your own Google Drive or GitHub account | Yes | Yes |
 | Upload screenshots directly to App Store Connect or Google Play | No | Yes |
+| Growth: App Store numbers, reviews, listing checks, screenshot before and after | Sample app only | Yes |
 
 ## Command line and coding agents
 
