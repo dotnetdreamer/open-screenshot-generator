@@ -94,6 +94,8 @@ pub fn run() {
             claude_code::abs_claude_pick_folder,
             claude_code::abs_claude_forget_folder,
             claude_code::abs_claude_read_project_image,
+            claude_code::abs_claude_prompt,
+            claude_code::abs_claude_prompt_stop,
             codex::abs_codex_detect,
             codex::abs_codex_start,
             codex::abs_codex_send,
@@ -101,6 +103,8 @@ pub fn run() {
             codex::abs_codex_stop,
             codex::abs_codex_list,
             codex::abs_codex_page_epoch,
+            codex::abs_codex_prompt,
+            codex::abs_codex_prompt_stop,
             oauth::abs_oauth_start,
             oauth::abs_oauth_await,
             oauth::abs_oauth_cancel,
@@ -144,12 +148,19 @@ pub fn run() {
         })
         .build(context)
         .expect("error while running tauri application")
-        .run(|app, event| {
+        .run(|app, event| match event {
+            // A window that closes takes the one-shot prompts it asked for with
+            // it. A tab window can close before the editor, or outlive it.
+            tauri::RunEvent::WindowEvent { label, event: tauri::WindowEvent::Destroyed, .. } => {
+                claude_code::stop_window_prompts(app, &label);
+                codex::stop_window_prompts(app, &label);
+            }
             // The editor window's own Destroyed hook usually gets there first;
             // this covers quitting the app outright (Cmd+Q on macOS).
-            if let tauri::RunEvent::Exit = event {
+            tauri::RunEvent::Exit => {
                 claude_code::kill_all(app);
                 codex::kill_all(app);
             }
+            _ => {}
         });
 }

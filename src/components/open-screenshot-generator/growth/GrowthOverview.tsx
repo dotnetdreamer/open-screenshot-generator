@@ -38,7 +38,7 @@ import { territoryName } from '@/lib/growth/territories';
 import { SOURCE_LABELS, type SourceType, type TimelineEvent } from '@/lib/growth/types';
 import { cn } from '@/lib/utils';
 import { BarList, Sparkline, TrendChart, formatMetricValue } from './GrowthCharts';
-import { Delta, Panel, SectionTitle, ToneIcon, useGrowthView } from './GrowthShared';
+import { Delta, Gated, Panel, SectionTitle, ToneIcon, useGrowthView } from './GrowthShared';
 import { InsightActions } from './GrowthInsights';
 
 const TILE_METRICS: MetricId[] = ['impressions', 'pageViews', 'conversion', 'downloads', 'proceeds'];
@@ -393,19 +393,21 @@ function ImpactHero({ event, impact }: { event: TimelineEvent | null; impact: Im
         <Button size="sm" variant="outline" onClick={() => view.goTo('timeline', { eventId: event.id })}>
           Timeline
         </Button>
-        {view.aiAvailable && impact.verdict !== 'not-live' && (
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() =>
-              view.goTo('ask', {
-                question: `My new screenshots went live on ${formatDay(impact.liveDate ?? event.date)}. Did they work, and what should I test next?`,
-              })
-            }
-          >
-            <SparklesIcon className="mr-1.5 h-4 w-4" />
-            Ask AI
-          </Button>
+        {impact.verdict !== 'not-live' && (
+          <Gated reason={view.aiAvailable || view.onAskAgent ? null : view.blocked.ai}>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() =>
+                view.goTo('ask', {
+                  question: `My new screenshots went live on ${formatDay(impact.liveDate ?? event.date)}. Did they work, and what should I test next?`,
+                })
+              }
+            >
+              <SparklesIcon className="mr-1.5 h-4 w-4" />
+              Ask AI
+            </Button>
+          </Gated>
         )}
       </div>
     </Panel>

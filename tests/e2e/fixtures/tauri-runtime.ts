@@ -63,6 +63,13 @@ export interface TauriMockConfig {
   codeFolder: TauriCodeFolder | null;
   /** Canned results per command. Overrides every default below. */
   responses: Record<string, unknown>;
+  /**
+   * Commands whose answer from `responses` waits until the test calls
+   * `window.__E2E_TAURI__.releaseCommands()`, to do something while one is in
+   * flight. A held abs_claude_prompt or abs_codex_prompt is ended by its stop
+   * command with the same id, as Rust ends it.
+   */
+  held: string[];
   /** Commands that must reject, mapped to the rejection message. */
   errors: Record<string, string>;
   /**
@@ -98,6 +105,7 @@ export const DEFAULT_TAURI_CONFIG: TauriMockConfig = {
   openPath: '/tmp/osg-e2e',
   codeFolder: { name: 'marbly', path: '/Users/e2e/code/marbly' },
   responses: {},
+  held: [],
   errors: {},
   http: [],
 };
@@ -144,6 +152,14 @@ export function tauriInitScript(config: TauriMockConfig): string {
     releaseHttp() {
       const held = state.httpHeld.splice(0);
       held.forEach((release) => release());
+      return held.length;
+    },
+    /** Answers of commands in config.held, waiting for releaseCommands(). */
+    commandsHeld: [],
+    /** Send every held command answer. Returns how many there were. */
+    releaseCommands() {
+      const held = state.commandsHeld.splice(0);
+      held.forEach((entry) => entry.release());
       return held.length;
     },
   };
@@ -417,7 +433,13 @@ export function tauriInitScript(config: TauriMockConfig): string {
       throw new Error(state.config.errors[cmd]);
     }
     if (Object.prototype.hasOwnProperty.call(state.config.responses, cmd)) {
-      return state.config.responses[cmd];
+      const answer = state.config.responses[cmd];
+      if ((state.config.held || []).includes(cmd)) {
+        return new Promise((resolve, reject) => {
+          state.commandsHeld.push({ cmd, id: args.id, release: () => resolve(answer), stop: (message) => reject(new Error(message)) });
+        });
+      }
+      return answer;
     }
 
     switch (cmd) {
@@ -510,6 +532,24 @@ export function tauriInitScript(config: TauriMockConfig): string {
       // emitFromBackend('abs-codex-event', ...).
       case 'abs_codex_detect':
         return { found: false, models: [] };
+      // One prompt through either CLI (abs_claude_prompt, abs_codex_prompt),
+      // for Growth's writing jobs. The app sends one only after a detect says
+      // the CLI is ready, so a spec answers both through config.responses.
+      case 'abs_claude_prompt':
+      case 'abs_codex_prompt':
+        throw new Error('Not installed in the test harness');
+      // Stop for one of those: a prompt held under the same id ends the way
+      // Rust ends it, and a stop for anything else does nothing, as in Rust.
+      case 'abs_claude_prompt_stop':
+      case 'abs_codex_prompt_stop': {
+        const prompt = cmd === 'abs_claude_prompt_stop' ? 'abs_claude_prompt' : 'abs_codex_prompt';
+        const stopped = state.commandsHeld.filter((entry) => entry.cmd === prompt && entry.id === args.id);
+        for (const entry of stopped) {
+          state.commandsHeld.splice(state.commandsHeld.indexOf(entry), 1);
+          entry.stop((prompt === 'abs_claude_prompt' ? 'Claude Code' : 'Codex') + ' was stopped');
+        }
+        return null;
+      }
       case 'abs_codex_start': {
         const start = args.args || {};
         const threadId = typeof start.resume === 'string' ? start.resume : '01a13963-abeb-7f92-b6ea-64f6cb531353';

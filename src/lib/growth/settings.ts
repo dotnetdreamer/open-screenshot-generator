@@ -9,7 +9,7 @@ import { useCallback, useEffect, useState } from 'react';
 const STORAGE_KEY = 'open-screenshot-generator.growth';
 
 export interface GrowthSettings {
-  /** The app the Growth window opens on. The sample app when unset. */
+  /** The app Growth shows. The account's first app when unset. */
   appId?: string;
   /**
    * Sales and Trends needs it on every request. It is in App Store Connect
@@ -26,12 +26,17 @@ export interface GrowthSettings {
   refreshHours?: number;
   /**
    * While the desktop app is open, sync the apps synced here before on the
-   * same schedule with the Growth window closed, and say when new insights
+   * same schedule with the editor in front, and say when new insights
    * turn up (monitor.ts).
    */
   monitor?: boolean;
   /** How far back Sales and Trends is filled in, in days. Apple keeps a year of daily reports. */
   historyDays?: number;
+  /**
+   * Which AI writes replies, listing text, summaries and answers (ai.ts):
+   * automatic takes Claude Code, then Codex, then the AI panel's provider.
+   */
+  aiWriter?: 'auto' | 'claude' | 'codex' | 'panel';
 }
 
 const DEFAULTS: Required<Pick<GrowthSettings, 'shareWithClients' | 'refreshHours' | 'historyDays' | 'monitor'>> = {

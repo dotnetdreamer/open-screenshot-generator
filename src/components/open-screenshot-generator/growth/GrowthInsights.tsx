@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { formatDay } from '@/lib/growth/dates';
 import { INSIGHT_CATEGORY_LABELS, type Insight, type InsightCategory } from '@/lib/growth/types';
 import { cn } from '@/lib/utils';
-import { Delta, EmptyState, Panel, ToneIcon, useGrowthView } from './GrowthShared';
+import { Delta, EmptyState, Gated, Panel, ToneIcon, useGrowthView } from './GrowthShared';
 
 type Filter = 'all' | 'attention' | InsightCategory;
 
@@ -124,6 +124,8 @@ export function InsightActions({ insight, compact = false }: { insight: Insight;
   const action = insight.action;
   const buttons: React.ReactNode[] = [];
   const size = compact ? 'h-7 px-2 text-xs' : 'h-8 text-xs';
+  // Asking takes an AI that writes, or the coding agent.
+  const askReason = view.aiAvailable || view.onAskAgent ? null : view.blocked.ai;
 
   if (action) {
     switch (action.kind) {
@@ -180,29 +182,30 @@ export function InsightActions({ insight, compact = false }: { insight: Insight;
         );
         break;
       case 'ask':
-        if (view.aiAvailable || view.onAskAgent) {
-          buttons.push(
-            <Button key="main" variant="outline" size="sm" className={size} onClick={() => view.goTo('ask', { question: action.question })}>
+        buttons.push(
+          <Gated key="main" reason={askReason}>
+            <Button variant="outline" size="sm" className={size} onClick={() => view.goTo('ask', { question: action.question })}>
               <SparklesIcon className="mr-1.5 h-3.5 w-3.5" />
               Ask why
             </Button>
-          );
-        }
+          </Gated>
+        );
         break;
     }
   }
-  if (!compact && action?.kind !== 'ask' && (view.aiAvailable || view.onAskAgent)) {
+  if (!compact && action?.kind !== 'ask') {
     buttons.push(
-      <Button
-        key="ask"
-        variant="ghost"
-        size="sm"
-        className={size}
-        onClick={() => view.goTo('ask', { question: `${insight.title}. What is behind this, and what should I do about it?` })}
-      >
-        <SparklesIcon className="mr-1.5 h-3.5 w-3.5" />
-        Ask AI
-      </Button>
+      <Gated key="ask" reason={askReason}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className={size}
+          onClick={() => view.goTo('ask', { question: `${insight.title}. What is behind this, and what should I do about it?` })}
+        >
+          <SparklesIcon className="mr-1.5 h-3.5 w-3.5" />
+          Ask AI
+        </Button>
+      </Gated>
     );
   }
   if (buttons.length === 0) return null;

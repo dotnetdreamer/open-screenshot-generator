@@ -45,8 +45,9 @@ use tauri::webview::{PageLoadEvent, PageLoadPayload};
 use tauri::{AppHandle, Emitter, Manager, Runtime, WindowEvent};
 
 use crate::claude_code::{
-    first_line, hide_console, home_dir, kill_tree, login_shell_path, merged_path, pump_lines, run_capture_with,
-    sandboxed, valid_spawn_id, valid_uuid, write_if_changed, StartingGuard, SKILLS,
+    claim_prompt_slot, first_line, hide_console, home_dir, kill_tree, login_shell_path, merged_path, pump_lines,
+    require_editor_window, run_capture_with, run_once, sandboxed, valid_spawn_id, valid_uuid, write_if_changed,
+    Captured, OnceDir, OnceOutcome, PromptRuns, StartingGuard, MAX_PROMPT_TEXT, PROMPT_BAD_ID, PROMPT_TIMEOUT, SKILLS,
 };
 
 /// Event the editor window listens on. Must match `CODEX_EVENT` in
@@ -364,6 +365,10 @@ pub struct CodexState {
     page_epoch: AtomicU64,
     /// The spawn ids starts have claimed, newest last, so each is used once.
     claimed: Mutex<VecDeque<String>>,
+    /// One-shot prompts running or about to start (abs_codex_prompt).
+    prompting: AtomicUsize,
+    /// Their processes, for abs_codex_prompt_stop and kill_all.
+    prompt_runs: PromptRuns,
 }
 
 const CLAIMED_KEEP: usize = 256;
@@ -381,9 +386,14 @@ impl CodexState {
 /// The app's page-load hook (lib.rs), as for Claude Code: a start still in
 /// flight when a new page commits in the editor belongs to a page that is gone.
 pub fn on_page_load<R: Runtime>(webview: &tauri::Webview<R>, payload: &PageLoadPayload<'_>) {
-    if webview.label() == "main" && payload.event() == PageLoadEvent::Started {
+    if payload.event() != PageLoadEvent::Started {
+        return;
+    }
+    if webview.label() == "main" {
         webview.state::<CodexState>().page_epoch.fetch_add(1, Ordering::SeqCst);
     }
+    // The page that asked is going, and its answers with it.
+    stop_window_prompts(webview.app_handle(), webview.window().label());
 }
 
 /// Whether the agent has a Codex process running or starting. The MCP server
@@ -1747,8 +1757,219 @@ pub fn abs_codex_list(state: tauri::State<'_, CodexState>) -> Vec<ListedSession>
         .collect()
 }
 
-/// End every Codex process, as claude_code::kill_all does for Claude Code.
+// ---------------------------------------------------------------------------
+// One prompt, one answer
+// ---------------------------------------------------------------------------
+//
+// claude_code.rs says what these are for. Codex has no flag for instructions
+// of its own, so they go ahead of the prompt on stdin, and Codex's own base
+// instructions stay.
+
+const PROMPT_NOT_FOUND: &str = "Codex was not found on this computer. Install it, then try again";
+const PROMPT_BUSY: &str = "Codex is still answering. Try again when it has finished";
+const PROMPT_TOO_LONG: &str = "That is too much text to send to Codex";
+const PROMPT_TIMED_OUT: &str = "Codex took longer than 3 minutes to answer. Try again";
+const PROMPT_SIGNED_OUT: &str = "Codex is not signed in. Run codex login in a terminal, then try again";
+const PROMPT_STOPPED: &str = "Codex was stopped";
+
+/// The command line of a one-shot prompt: `codex exec` in the agent's own
+/// Codex home, whose config.toml turns off the shell, web search, plugins,
+/// hooks and skills, with no MCP server, the read-only sandbox, no session file
+/// (`--ephemeral`) and the last message written to `output`. Codex still keeps
+/// its caches, logs and state database in that home. `-` reads the
+/// text from stdin. The effort override is unquoted, like mcp_overrides, so a
+/// Windows npm shim passes it on as it is.
+fn prompt_command(
+    binary: &Path,
+    workspace: &Workspace,
+    cwd: &Path,
+    output: &Path,
+    model: Option<&str>,
+    effort: Option<&str>,
+    path: &str,
+) -> Command {
+    let mut command = Command::new(binary);
+    command
+        .current_dir(cwd)
+        .arg("exec")
+        .arg("--skip-git-repo-check")
+        .args(["--sandbox", "read-only"])
+        .args(["--color", "never"])
+        .arg("--ephemeral")
+        .arg("--output-last-message")
+        .arg(output);
+    if let Some(model) = model {
+        command.args(["--model", model]);
+    }
+    if let Some(effort) = effort {
+        command.arg("-c").arg(format!("model_reasoning_effort={effort}"));
+    }
+    command.arg("-");
+    scrub_env(&mut command);
+    command
+        .env("CODEX_HOME", &workspace.home)
+        .env("PATH", path)
+        .env("NO_COLOR", "1");
+    #[cfg(unix)]
+    {
+        command.env("HOME", &workspace.user);
+    }
+    command.stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
+    hide_console(&mut command);
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        command.process_group(0);
+    }
+    command
+}
+
+/// The line of Codex's stderr that says what went wrong: the last one marked
+/// as an error, else the last line it printed.
+fn codex_error_line(stderr: &str) -> String {
+    let lines: Vec<&str> = stderr.lines().map(str::trim).filter(|line| !line.is_empty()).collect();
+    let marked = lines.iter().rev().find_map(|line| {
+        line.strip_prefix("ERROR:").or_else(|| line.strip_prefix("Error:")).map(str::trim)
+    });
+    marked.or_else(|| lines.last().copied()).unwrap_or_default().chars().take(300).collect()
+}
+
+/// The answer Codex wrote to `output`, or why there is none, worded for the
+/// person who asked.
+fn codex_answer(captured: &Captured, output: &Path) -> Result<String, String> {
+    let answer = std::fs::read_to_string(output).unwrap_or_default();
+    let answer = answer.trim();
+    if !answer.is_empty() {
+        return Ok(answer.to_string());
+    }
+    if captured.success {
+        return Err("Codex sent back an empty answer. Try again".into());
+    }
+    let reason = codex_error_line(&captured.stderr);
+    let lower = reason.to_ascii_lowercase();
+    if lower.contains("401") || lower.contains("unauthorized") || lower.contains("not logged in") || lower.contains("codex login") {
+        return Err(PROMPT_SIGNED_OUT.into());
+    }
+    if reason.is_empty() {
+        return Err("Codex stopped without an answer. Try again".into());
+    }
+    Err(format!("Codex could not answer: {reason}"))
+}
+
+fn prompt_blocking<R: Runtime>(
+    app: &AppHandle<R>,
+    id: &str,
+    window: &str,
+    system: &str,
+    prompt: &str,
+    model: Option<&str>,
+    effort: Option<&str>,
+) -> Result<String, String> {
+    if sandboxed() {
+        return Err(SANDBOXED.into());
+    }
+    let state = app.state::<CodexState>();
+    let ticket = state.prompt_runs.begin(id, window).ok_or(PROMPT_STOPPED)?;
+    // A prompt can come before any detect has asked the login shell for its
+    // PATH, which an npm-installed `codex` needs to find node.
+    if state.shell_path.lock().unwrap().is_none() {
+        let shell = login_shell_path().unwrap_or_default();
+        *state.shell_path.lock().unwrap() = Some(shell);
+    }
+    let binary = find_binary(&state).ok_or(PROMPT_NOT_FOUND)?;
+    let _slot = claim_prompt_slot(&state.prompting).ok_or(PROMPT_BUSY)?;
+    let workspace = workspace_dir(app).and_then(|dir| prepare_workspace(&dir))?;
+    match link_login(&workspace.home, user_codex_home().as_deref()) {
+        Ok(Login::Linked) => {}
+        Ok(Login::Missing) => return Err(PROMPT_SIGNED_OUT.into()),
+        Err(error) => {
+            eprintln!("codex: could not link the login: {error}");
+            return Err("The app could not use your Codex login".into());
+        }
+    }
+    let dir = OnceDir::create("osg-codex-prompt")?;
+    let output = dir.root.join("answer.md");
+    let command = prompt_command(&binary, &workspace, &dir.cwd, &output, model, effort, &state.path());
+    let instructions = system.trim();
+    let input = if instructions.is_empty() { prompt.to_string() } else { format!("{instructions}\n\n{prompt}") };
+    match run_once(command, input, PROMPT_TIMEOUT, &ticket)? {
+        OnceOutcome::Exited(captured) => codex_answer(&captured, &output),
+        OnceOutcome::TimedOut => Err(PROMPT_TIMED_OUT.into()),
+        OnceOutcome::Stopped => Err(PROMPT_STOPPED.into()),
+    }
+}
+
+/// Send one prompt to Codex and return its answer. `id` is the page's own for
+/// this call (a UUID), which abs_codex_prompt_stop takes; `system` goes ahead
+/// of the prompt; `model` and `effort` are Codex's own names, or none for the
+/// CLI's defaults.
+#[tauri::command]
+pub async fn abs_codex_prompt<R: Runtime>(
+    app: AppHandle<R>,
+    window: tauri::Window<R>,
+    id: String,
+    system: String,
+    prompt: String,
+    model: Option<String>,
+    effort: Option<String>,
+) -> Result<String, String> {
+    require_editor_window(&window)?;
+    if !valid_uuid(&id) {
+        return Err(PROMPT_BAD_ID.into());
+    }
+    if system.len() + prompt.len() > MAX_PROMPT_TEXT {
+        return Err(PROMPT_TOO_LONG.into());
+    }
+    let model = model.filter(|model| !model.is_empty());
+    if model.as_deref().is_some_and(|model| !valid_model(model)) {
+        return Err("Codex does not take that model name".into());
+    }
+    let effort = effort.filter(|effort| !effort.is_empty());
+    if effort.as_deref().is_some_and(|effort| !valid_effort(effort)) {
+        return Err("Codex does not take that effort level".into());
+    }
+    let label = window.label().to_string();
+    tauri::async_runtime::spawn_blocking(move || {
+        prompt_blocking(&app, &id, &label, &system, &prompt, model.as_deref(), effort.as_deref())
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+/// Stop the one-shot prompt this window asked for under `id`, as
+/// claude_code::abs_claude_prompt_stop does for Claude Code.
+#[tauri::command]
+pub async fn abs_codex_prompt_stop<R: Runtime>(app: AppHandle<R>, window: tauri::Window<R>, id: String) -> Result<(), String> {
+    require_editor_window(&window)?;
+    if !valid_uuid(&id) {
+        return Err(PROMPT_BAD_ID.into());
+    }
+    let pids = app.state::<CodexState>().prompt_runs.stop(&id, window.label());
+    tauri::async_runtime::spawn_blocking(move || pids.into_iter().for_each(kill_tree))
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// End the one-shot prompts one window asked for, as
+/// claude_code::stop_window_prompts does for Claude Code.
+pub fn stop_window_prompts<R: Runtime>(app: &AppHandle<R>, window: &str) {
+    let pids = app.state::<CodexState>().prompt_runs.stop_window(window);
+    if !pids.is_empty() {
+        std::thread::spawn(move || pids.into_iter().for_each(kill_tree));
+    }
+}
+
+/// End every Codex process, for quitting, as claude_code::kill_all does for
+/// Claude Code.
 pub fn kill_all<R: Runtime>(app: &AppHandle<R>) {
+    for pid in app.state::<CodexState>().prompt_runs.stop_all() {
+        kill_tree(pid);
+    }
+    kill_sessions(app);
+}
+
+/// End the agent's Codex processes, which belong to the editor window.
+fn kill_sessions<R: Runtime>(app: &AppHandle<R>) {
     let running: Vec<Arc<Running>> = app.state::<CodexState>().sessions.lock().unwrap().values().cloned().collect();
     for session in running {
         kill_tree(session.pid);
@@ -1756,13 +1977,14 @@ pub fn kill_all<R: Runtime>(app: &AppHandle<R>) {
     }
 }
 
-/// No process outlives the editor window. lib.rs's exit hook covers quitting.
+/// No agent process outlives the editor window. lib.rs's exit hook covers
+/// quitting, and one-shot prompts go with their own window.
 pub fn register<R: Runtime>(app: &AppHandle<R>) {
     if let Some(main) = app.get_webview_window("main") {
         let handle = app.clone();
         main.on_window_event(move |event| {
             if matches!(event, WindowEvent::Destroyed) {
-                kill_all(&handle);
+                kill_sessions(&handle);
             }
         });
     }
@@ -2113,5 +2335,87 @@ mod tests {
         assert!(!valid_effort("ultra") && !valid_effort("MAX"));
         assert!(valid_base64("iVBORw0KGgo="));
         assert!(!valid_base64("data:image/png;base64,iVBOR"));
+    }
+
+    fn prompt_args(command: &Command) -> Vec<String> {
+        command.get_args().map(|arg| arg.to_string_lossy().into_owned()).collect()
+    }
+
+    #[test]
+    fn a_one_shot_prompt_runs_exec_read_only_and_saves_no_session() {
+        let workspace = Workspace { home: "/ws/home".into(), user: "/ws/user".into(), cwd: "/ws/session".into() };
+        let command = prompt_command(
+            Path::new("codex"),
+            &workspace,
+            Path::new("/once/work"),
+            Path::new("/once/answer.md"),
+            Some("gpt-6.1-sol"),
+            Some("low"),
+            "/usr/bin",
+        );
+        let expected: Vec<&str> = vec![
+            "exec",
+            "--skip-git-repo-check",
+            "--sandbox",
+            "read-only",
+            "--color",
+            "never",
+            "--ephemeral",
+            "--output-last-message",
+            "/once/answer.md",
+            "--model",
+            "gpt-6.1-sol",
+            "-c",
+            "model_reasoning_effort=low",
+            "-",
+        ];
+        assert_eq!(prompt_args(&command), expected);
+        assert!(!prompt_args(&command).iter().any(|arg| arg.starts_with("mcp_servers.")));
+        assert_eq!(command.get_current_dir(), Some(Path::new("/once/work")));
+        let env: HashMap<String, Option<String>> = command
+            .get_envs()
+            .map(|(key, value)| (key.to_string_lossy().into_owned(), value.map(|value| value.to_string_lossy().into_owned())))
+            .collect();
+        assert_eq!(env.get("CODEX_HOME"), Some(&Some("/ws/home".to_string())));
+        assert_eq!(env.get("PATH"), Some(&Some("/usr/bin".to_string())));
+        #[cfg(unix)]
+        assert_eq!(env.get("HOME"), Some(&Some("/ws/user".to_string())));
+        assert!(!env.contains_key(TOKEN_VAR));
+
+        let defaults = prompt_command(Path::new("codex"), &workspace, Path::new("/w"), Path::new("/a"), None, None, "/usr/bin");
+        let args = prompt_args(&defaults);
+        assert!(!args.iter().any(|arg| arg == "--model" || arg == "-c"));
+        assert_eq!(args.last().map(String::as_str), Some("-"));
+    }
+
+    #[test]
+    fn a_one_shot_answer_is_the_last_message_and_a_failure_says_what_to_do() {
+        let dir = temp_dir("prompt-answer");
+        std::fs::create_dir_all(&dir).unwrap();
+        let output = dir.join("answer.md");
+        let captured = |success: bool, stderr: &str| Captured { success, stdout: String::new(), stderr: stderr.into() };
+
+        std::fs::write(&output, "  Danke für die Bewertung.\n").unwrap();
+        assert_eq!(codex_answer(&captured(true, ""), &output), Ok("Danke für die Bewertung.".to_string()));
+
+        std::fs::write(&output, "").unwrap();
+        assert!(codex_answer(&captured(true, ""), &output).is_err());
+        let banner = "OpenAI Codex v0.169.0\n--------\nmodel: gpt-6.1-sol\n";
+        assert_eq!(
+            codex_answer(&captured(false, &format!("{banner}ERROR: You've hit your usage limit. Try again in 2 hours.\n")), &output),
+            Err("Codex could not answer: You've hit your usage limit. Try again in 2 hours.".to_string())
+        );
+        assert_eq!(
+            codex_answer(&captured(false, &format!("{banner}ERROR: unexpected status 401 Unauthorized\n")), &output),
+            Err(PROMPT_SIGNED_OUT.to_string())
+        );
+        std::fs::remove_file(&output).unwrap();
+        assert_eq!(codex_answer(&captured(false, ""), &output), Err("Codex stopped without an answer. Try again".to_string()));
+        assert_eq!(codex_error_line("first\nlast line\n"), "last line");
+        let _ = std::fs::remove_dir_all(&dir);
+
+        for message in [PROMPT_NOT_FOUND, PROMPT_BUSY, PROMPT_TOO_LONG, PROMPT_TIMED_OUT, PROMPT_SIGNED_OUT, PROMPT_STOPPED] {
+            assert!(!message.contains(['\u{2013}', '\u{2014}']) && !message.ends_with('.'), "{message}");
+        }
     }
 }

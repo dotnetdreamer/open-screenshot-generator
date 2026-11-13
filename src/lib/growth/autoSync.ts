@@ -3,9 +3,9 @@
 // An app is due once its newest sync is older than the user's setting
 // (refreshHours). Each automatic attempt is noted, so a sync that keeps
 // failing (an expired key, no network) is tried again an hour later rather
-// than on every render, and so the Growth window and the background monitor
+// than on every render, and so the Growth view and the background monitor
 // (monitor.ts) never both start the same app. An attempt that was stopped
-// before it finished is forgotten, so reopening the window tries again.
+// before it finished is forgotten, so showing Growth again tries again.
 //
 // The note lives for the editor session only. An attempt from an earlier
 // session is no reason to wait: the stored last sync time decides then.

@@ -53,7 +53,7 @@ import {
   sampleRatings,
   sampleRecords,
   sampleReviews,
-} from '@/lib/growth/sample';
+} from '../fixtures/growthSample';
 import { buildDigest } from '@/lib/growth/digest';
 import {
   buildReport,

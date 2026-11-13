@@ -47,6 +47,75 @@ export function pemToDer(pem: string): Uint8Array {
   return bytes;
 }
 
+/** One DER element at `at`: its tag, where its body starts and ends. */
+function derElement(der: Uint8Array, at: number): { tag: number; start: number; end: number } {
+  let length = der[at + 1];
+  let header = 2;
+  if (length & 0x80) {
+    const bytes = length & 0x7f;
+    length = 0;
+    for (let index = 0; index < bytes; index += 1) length = length * 256 + der[at + 2 + index];
+    header += bytes;
+  }
+  if (at + header + length > der.length) throw new Error('truncated');
+  return { tag: der[at], start: at + header, end: at + header + length };
+}
+
+function derEncode(tag: number, body: Uint8Array): Uint8Array {
+  const length = body.length;
+  const header = length < 0x80 ? [tag, length] : length < 0x100 ? [tag, 0x81, length] : [tag, 0x82, length >> 8, length & 0xff];
+  const out = new Uint8Array(header.length + length);
+  out.set(header);
+  out.set(body, header.length);
+  return out;
+}
+
+function derChildren(der: Uint8Array, start: number, end: number): Uint8Array[] {
+  const children: Uint8Array[] = [];
+  for (let at = start; at < end; ) {
+    const element = derElement(der, at);
+    children.push(der.subarray(at, element.end));
+    at = element.end;
+  }
+  return children;
+}
+
+/**
+ * An EC PKCS#8 key without the curve inside its ECPrivateKey, or null when it
+ * has none there. Apple's .p8 files repeat the curve as the optional
+ * `[0] parameters` field (RFC 5915), and WebKit's WebCrypto refuses a key
+ * carrying it with a DataError, so the macOS app could not read any App Store
+ * Connect key. The curve is also in the key's algorithm identifier, which is
+ * where WebCrypto reads it, so leaving the field out changes nothing else.
+ * Exported for tests.
+ */
+export function withoutEcParameters(der: Uint8Array): Uint8Array | null {
+  try {
+    const outer = derElement(der, 0);
+    const [version, algorithm, octets, ...rest] = derChildren(der, outer.start, outer.end);
+    if (!octets || octets[0] !== 0x04) return null;
+    const wrapped = derElement(octets, 0);
+    const ecKey = derElement(octets, wrapped.start);
+    if (ecKey.tag !== 0x30) return null;
+    const fields = derChildren(octets, ecKey.start, ecKey.end);
+    const kept = fields.filter((field) => field[0] !== 0xa0);
+    if (kept.length === fields.length) return null;
+    const join = (parts: Uint8Array[]) => {
+      const out = new Uint8Array(parts.reduce((sum, part) => sum + part.length, 0));
+      let at = 0;
+      for (const part of parts) {
+        out.set(part, at);
+        at += part.length;
+      }
+      return out;
+    };
+    const inner = derEncode(0x04, derEncode(0x30, join(kept)));
+    return derEncode(0x30, join([version, algorithm, inner, ...rest]));
+  } catch {
+    return null;
+  }
+}
+
 async function importKey(
   pem: string,
   algorithm: EcKeyImportParams | RsaHashedImportParams
@@ -54,7 +123,16 @@ async function importKey(
   const der = pemToDer(pem);
   try {
     return await crypto.subtle.importKey('pkcs8', der as BufferSource, algorithm, false, ['sign']);
-  } catch {
+  } catch (error) {
+    const plain = algorithm.name === 'ECDSA' ? withoutEcParameters(der) : null;
+    if (plain) {
+      try {
+        return await crypto.subtle.importKey('pkcs8', plain as BufferSource, algorithm, false, ['sign']);
+      } catch {
+        // Not the curve field, then: reported below.
+      }
+    }
+    console.error('Importing the private key failed', error);
     throw new Error(
       'That private key could not be read. It has to be the unmodified key file in PKCS#8 PEM form.'
     );

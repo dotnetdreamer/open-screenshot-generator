@@ -3,11 +3,9 @@
 // Written reviews, and the replies to them.
 //
 // A reply is public and Apple checks it before it shows, so nothing here sends
-// one without a click on Send: the AI fills the box, the person edits it. On
-// the sample app replies are kept on this computer only, which the composer
-// says, so the demo can be tried end to end without an account.
+// one without a click on Send: the AI fills the box, the person edits it.
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Loader2Icon,
   MessageSquareIcon,
@@ -41,7 +39,7 @@ import { listingLanguageFor, listingLanguageName, territoryName } from '@/lib/gr
 import type { StoreReview } from '@/lib/growth/types';
 import { cn } from '@/lib/utils';
 import { BarList } from './GrowthCharts';
-import { EmptyState, Panel, Stars, useGrowthView } from './GrowthShared';
+import { EmptyState, Gated, Panel, Stars, useGrowthView } from './GrowthShared';
 
 type StarFilter = 'all' | 'low' | 'mid' | 'high' | '1' | '2' | '3' | '4' | '5';
 type ReplyFilter = 'all' | 'unanswered' | 'answered';
@@ -275,9 +273,18 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
   const [error, setError] = useState<string | null>(null);
   const [translation, setTranslation] = useState<string | null>(null);
   const [showTranslation, setShowTranslation] = useState(false);
+  // What the AI is writing for this card has nowhere to go once the card is
+  // gone (another section, another filter), so leaving stops its CLI. A reply
+  // or a delete already sent to Apple is let finish.
+  const aiJob = useRef<AbortController | null>(null);
+  useEffect(() => () => aiJob.current?.abort(), []);
+  const aiSignal = () => {
+    aiJob.current = new AbortController();
+    return aiJob.current.signal;
+  };
   const topics = topicsOf(review);
   const reviewerLanguage = listingLanguageName(listingLanguageFor(review.territory));
-  const canSend = view.canWrite || view.sample;
+  const sendReason = view.canWrite ? null : view.blocked.app ?? 'Replying needs the desktop app and an App Store Connect key';
 
   const pastReplies = useMemo(
     () =>
@@ -306,16 +313,9 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
       const text = draft.trim();
       if (!text) throw new Error('Write a reply first');
       onAnswered();
-      if (view.sample) {
-        await writeReview({
-          ...review,
-          response: { id: `local-${Date.now()}`, body: text, lastModified: new Date().toISOString(), state: 'PENDING_PUBLISH' },
-        });
-      } else {
-        if (!view.credentials) throw new Error('Connect an App Store Connect key first');
-        const response = await replyToReview(view.credentials, review.id, text);
-        await writeReview({ ...review, response });
-      }
+      if (!view.credentials) throw new Error('Connect an App Store Connect key first');
+      const response = await replyToReview(view.credentials, review.id, text);
+      await writeReview({ ...review, response });
       setComposing(false);
       setDraft('');
     });
@@ -323,10 +323,8 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
   const remove = () =>
     run('delete', async () => {
       if (!review.response) return;
-      if (!view.sample) {
-        if (!view.credentials) throw new Error('Connect an App Store Connect key first');
-        await deleteReviewReply(view.credentials, review.response.id);
-      }
+      if (!view.credentials) throw new Error('Connect an App Store Connect key first');
+      await deleteReviewReply(view.credentials, review.response.id);
       await writeReview({ ...review, response: undefined });
     });
 
@@ -336,6 +334,7 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
       const notes = view.data.listing?.locales.find((locale) => locale.locale === view.data.listing?.primaryLocale)?.whatsNew;
       setDraft(
         await suggestReply({
+          signal: aiSignal(),
           review,
           appName: view.app.name,
           appDescription: description,
@@ -365,27 +364,27 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
             {REVIEW_TOPIC_LABELS[topic]}
           </span>
         ))}
-        {view.aiAvailable && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-6 px-2 text-[11px]"
-            disabled={busy === 'translate-review'}
-            onClick={() => {
-              if (translation) {
-                setShowTranslation((value) => !value);
-                return;
-              }
-              void run('translate-review', async () => {
-                setTranslation(await translateText(`${review.title}\n${review.body}`, readerLanguage()));
-                setShowTranslation(true);
-              });
-            }}
-          >
-            {busy === 'translate-review' ? <Loader2Icon className="mr-1 h-3 w-3 animate-spin" /> : <LanguagesIcon className="mr-1 h-3 w-3" />}
-            {translation ? (showTranslation ? 'Show original' : 'Show translation') : `Translate to ${readerLanguage()}`}
-          </Button>
-        )}
+        <Gated reason={view.blocked.ai}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 text-[11px]"
+              disabled={busy === 'translate-review'}
+              onClick={() => {
+                if (translation) {
+                  setShowTranslation((value) => !value);
+                  return;
+                }
+                void run('translate-review', async () => {
+                  setTranslation(await translateText(`${review.title}\n${review.body}`, readerLanguage(), aiSignal()));
+                  setShowTranslation(true);
+                });
+              }}
+            >
+              {busy === 'translate-review' ? <Loader2Icon className="mr-1 h-3 w-3 animate-spin" /> : <LanguagesIcon className="mr-1 h-3 w-3" />}
+              {translation ? (showTranslation ? 'Show original' : 'Show translation') : `Translate to ${readerLanguage()}`}
+            </Button>
+        </Gated>
       </div>
 
       {review.response && !composing && (
@@ -398,8 +397,8 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
                 {review.response.lastModified ? `, ${formatDay(review.response.lastModified.slice(0, 10))}` : ''}
               </span>
             </p>
-            {canSend && (
-              <div className="flex gap-1">
+            <div className="flex gap-1">
+              <Gated reason={sendReason}>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -412,22 +411,26 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
                   <PencilIcon className="mr-1 h-3.5 w-3.5" />
                   Edit
                 </Button>
+              </Gated>
+              <Gated reason={sendReason}>
                 <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" disabled={busy === 'delete'} onClick={() => void remove()}>
                   {busy === 'delete' ? <Loader2Icon className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Trash2Icon className="mr-1 h-3.5 w-3.5" />}
                   Delete
                 </Button>
-              </div>
-            )}
+              </Gated>
+            </div>
           </div>
           <p className="mt-1 whitespace-pre-line text-sm">{review.response.body}</p>
         </div>
       )}
 
       {!review.response && !composing && (
-        <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setComposing(true)} disabled={!canSend} title={canSend ? undefined : 'Replying needs the desktop app and an App Store Connect key'}>
-          <MessageSquareReplyIcon className="mr-1.5 h-3.5 w-3.5" />
-          Reply
-        </Button>
+        <Gated reason={sendReason}>
+          <Button variant="outline" size="sm" className="h-8 text-xs" onClick={() => setComposing(true)}>
+            <MessageSquareReplyIcon className="mr-1.5 h-3.5 w-3.5" />
+            Reply
+          </Button>
+        </Gated>
       )}
 
       {composing && (
@@ -452,24 +455,26 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
           />
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-wrap gap-2">
-              {view.aiAvailable && (
+              <Gated reason={view.blocked.ai}>
                 <Button variant="outline" size="sm" className="h-8 text-xs" disabled={busy !== null} onClick={() => void suggest()}>
                   {busy === 'suggest' ? <Loader2Icon className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <SparklesIcon className="mr-1.5 h-3.5 w-3.5" />}
                   {draft.trim() ? 'Write it from my notes' : 'Suggest a reply'}
                 </Button>
-              )}
-              {view.aiAvailable && draft.trim() && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 text-xs"
-                  disabled={busy !== null}
-                  onClick={() => void run('translate-draft', async () => setDraft(await translateText(draft, reviewerLanguage)))}
-                  title={`Rewrite the reply in ${reviewerLanguage}, the main language of ${territoryName(review.territory)}`}
-                >
-                  {busy === 'translate-draft' ? <Loader2Icon className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <LanguagesIcon className="mr-1.5 h-3.5 w-3.5" />}
-                  In {reviewerLanguage}
-                </Button>
+              </Gated>
+              {draft.trim() && (
+                <Gated reason={view.blocked.ai}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-xs"
+                    disabled={busy !== null}
+                    onClick={() => void run('translate-draft', async () => setDraft(await translateText(draft, reviewerLanguage, aiSignal())))}
+                    title={`Rewrite the reply in ${reviewerLanguage}, the main language of ${territoryName(review.territory)}`}
+                  >
+                    {busy === 'translate-draft' ? <Loader2Icon className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <LanguagesIcon className="mr-1.5 h-3.5 w-3.5" />}
+                    In {reviewerLanguage}
+                  </Button>
+                </Gated>
               )}
             </div>
             <div className="flex items-center gap-2">
@@ -495,9 +500,7 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
             </div>
           </div>
           <p className="text-[11px] text-muted-foreground">
-            {view.sample
-              ? 'Sample app: the reply stays on this computer and goes nowhere.'
-              : 'Replies are public. Apple checks each one before it shows under the review.'}
+            Replies are public. Apple checks each one before it shows under the review.
           </p>
         </div>
       )}

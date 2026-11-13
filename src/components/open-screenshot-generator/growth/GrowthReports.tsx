@@ -2,8 +2,8 @@
 
 // Weekly, monthly and yearly reports. The figures are computed here and are
 // always there; the summary paragraph is written by the AI on request and kept
-// on this computer with the report, so it is written once per period rather
-// than every time the tab opens.
+// on this computer with the report (reportSummaries.ts), so it is written once
+// per period rather than every time the tab opens.
 //
 // Save as PDF draws ReportSheet, a print layout in fixed light colours and
 // system fonts, off screen and hands it to reportPdf.ts. The sheet goes into
@@ -15,9 +15,7 @@ import { createPortal } from 'react-dom';
 import { CheckIcon, CopyIcon, FileDownIcon, FileTextIcon, Loader2Icon, SparklesIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { writeReportSummary } from '@/lib/growth/ai';
 import { formatWindow, type DayWindow } from '@/lib/growth/dates';
-import { readMeta, writeMeta } from '@/lib/growth/db';
 import {
   buildReport,
   comparisonNote,
@@ -32,9 +30,10 @@ import {
   type ReportPeriod,
 } from '@/lib/growth/report';
 import { reportPdf } from '@/lib/growth/reportPdf';
+import { useReportSummary, writeKeptReportSummary } from '@/lib/growth/reportSummaries';
 import { saveBlobToDisk } from '@/lib/desktop';
 import { cn } from '@/lib/utils';
-import { EmptyState, Panel, SectionTitle, useGrowthView } from './GrowthShared';
+import { EmptyState, Gated, Panel, SectionTitle, useGrowthView } from './GrowthShared';
 
 const PERIODS: Array<{ id: ReportPeriod; label: string; column: string; noun: string }> = [
   { id: 'week', label: 'Weekly', column: 'This week', noun: 'week' },
@@ -73,17 +72,22 @@ export function GrowthReports() {
   const summaryKey = report
     ? `report:summary:${view.app.id}:${period}:${report.window.from}${period === 'year' ? `:${report.window.to}` : ''}`
     : '';
-  const [summary, setSummary] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  // Kept by the period it was written for, outside this screen: one that
+  // arrives after the user moved to another period or section waits under its
+  // own period, and never shows beside other figures.
+  const kept = useReportSummary(summaryKey);
+  const summary = kept.text;
+  const busy = kept.writing;
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [printing, setPrinting] = useState(false);
+  const [printing, setPrinting] = useState<PrintJob | null>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
 
   // Save as PDF mounts the print layout, lets it lay out, draws it and takes
-  // it away again. Once per click: the report on screen is the one printed.
+  // it away again. Once per click, from the report and summary on screen at
+  // the click, whatever the user picks while it is being made.
   useEffect(() => {
-    if (!printing || !report) return;
+    if (!printing) return;
     let cancelled = false;
     void (async () => {
       setError(null);
@@ -91,34 +95,22 @@ export function GrowthReports() {
         await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
         const sheet = sheetRef.current;
         if (!sheet || cancelled) return;
-        const blob = await reportPdf(sheet, `${view.app.name}: ${report.title}`);
+        const blob = await reportPdf(sheet, `${printing.report.appName}: ${printing.report.title}`);
         if (cancelled) return;
-        await saveBlobToDisk(blob, `${fileStemFor(view.app.name, periodSpec.noun, report)}.pdf`);
+        await saveBlobToDisk(blob, `${printing.fileStem}.pdf`);
       } catch (failure) {
         console.error('Saving the report as PDF failed', failure);
         if (!cancelled) setError('The PDF could not be made. Save the report as Markdown instead');
       } finally {
-        if (!cancelled) setPrinting(false);
+        if (!cancelled) setPrinting(null);
       }
     })();
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [printing]);
 
-  useEffect(() => {
-    let cancelled = false;
-    setSummary(null);
-    setError(null);
-    if (!summaryKey) return;
-    void readMeta<string>(summaryKey).then((value) => {
-      if (!cancelled) setSummary(value ?? null);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [summaryKey]);
+  useEffect(() => setError(null), [summaryKey]);
 
   if (!report || !span) {
     return (
@@ -131,7 +123,15 @@ export function GrowthReports() {
 
   const fileStem = fileStemFor(view.app.name, periodSpec.noun, report);
   const note = comparisonNote(report);
-  const savePdf = () => setPrinting(true);
+  const savePdf = () => setPrinting({ report, summary, column: periodSpec.column, fileStem });
+
+  const writeSummary = () => {
+    setError(null);
+    // A failure is kept with the period and shown from there.
+    writeKeptReportSummary(summaryKey, reportFacts(report), view.app.name).catch((failure) =>
+      console.error('The report summary failed', failure)
+    );
+  };
 
   const save = async (format: 'md' | 'txt') => {
     const text = format === 'md' ? reportMarkdown(report, summary) : reportPlainText(report, summary);
@@ -187,7 +187,7 @@ export function GrowthReports() {
             {copied ? <CheckIcon className="mr-1.5 h-4 w-4" /> : <CopyIcon className="mr-1.5 h-4 w-4" />}
             {copied ? 'Copied' : 'Copy'}
           </Button>
-          <Button variant="outline" size="sm" disabled={printing} onClick={savePdf}>
+          <Button variant="outline" size="sm" disabled={printing !== null} onClick={savePdf}>
             {printing ? <Loader2Icon className="mr-1.5 h-4 w-4 animate-spin" /> : <FileDownIcon className="mr-1.5 h-4 w-4" />}
             Save as PDF
           </Button>
@@ -215,35 +215,18 @@ export function GrowthReports() {
         <div className="rounded-md bg-muted/50 p-3">
           {summary ? (
             <p className="whitespace-pre-line text-sm">{summary}</p>
-          ) : view.aiAvailable ? (
+          ) : (
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-xs text-muted-foreground">A few sentences on what changed and what to do next, written from these figures.</p>
-              <Button
-                size="sm"
-                disabled={busy}
-                onClick={async () => {
-                  setBusy(true);
-                  setError(null);
-                  try {
-                    const text = await writeReportSummary(reportFacts(report), view.app.name);
-                    setSummary(text);
-                    await writeMeta(summaryKey, text);
-                  } catch (failure) {
-                    console.error('The report summary failed', failure);
-                    setError(failure instanceof Error ? failure.message : 'The summary could not be written');
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
-              >
-                {busy ? <Loader2Icon className="mr-1.5 h-4 w-4 animate-spin" /> : <SparklesIcon className="mr-1.5 h-4 w-4" />}
-                Write the summary
-              </Button>
+              <Gated reason={view.blocked.ai}>
+                <Button size="sm" disabled={busy} onClick={writeSummary}>
+                  {busy ? <Loader2Icon className="mr-1.5 h-4 w-4 animate-spin" /> : <SparklesIcon className="mr-1.5 h-4 w-4" />}
+                  Write the summary
+                </Button>
+              </Gated>
             </div>
-          ) : (
-            <p className="text-xs text-muted-foreground">Set up an AI provider in the AI panel to have a summary written for each report.</p>
           )}
-          {error && <p className="mt-2 text-xs text-destructive">{error}</p>}
+          {(error ?? kept.failure) && <p className="mt-2 text-xs text-destructive">{error ?? kept.failure}</p>}
         </div>
 
         <div className="overflow-x-auto">
@@ -349,12 +332,20 @@ export function GrowthReports() {
           // capture copies the sheet's own styles, and a sheet placed off
           // screen would be drawn off screen too.
           <div aria-hidden style={{ position: 'fixed', left: -100_000, top: 0, pointerEvents: 'none' }}>
-            <ReportSheet ref={sheetRef} report={report} summary={summary} column={periodSpec.column} />
+            <ReportSheet ref={sheetRef} report={printing.report} summary={printing.summary} column={printing.column} />
           </div>,
           document.body
         )}
     </div>
   );
+}
+
+/** What Save as PDF prints: the report as it was on screen at the click. */
+interface PrintJob {
+  report: PeriodReport;
+  summary: string | null;
+  column: string;
+  fileStem: string;
 }
 
 function fileStemFor(appName: string, noun: string, report: PeriodReport): string {

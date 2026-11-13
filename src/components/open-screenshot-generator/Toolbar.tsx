@@ -28,8 +28,7 @@ import {
   StoreIcon,
   UsersIcon,
   LanguagesIcon,
-  PanelTopIcon,
-  TrendingUpIcon
+  PanelTopIcon
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -79,10 +78,6 @@ interface ToolbarProps {
   isAppPreviewProject?: boolean;
   /** Open the direct-to-store upload dialog (App Store Connect, Google Play). */
   onPublishToStore?: () => void;
-  /** Open Growth: the app's App Store numbers, reviews and listing. */
-  onOpenGrowth?: () => void;
-  /** Insights the background monitor found that the user has not seen. */
-  growthBadge?: number;
   /** Post the open project to the community feed (Discover). */
   onShareToDiscover?: () => void;
   onExportJSON: () => void;
@@ -159,8 +154,6 @@ export function Toolbar({
   canCompareLanguages = false,
   onExport,
   onPublishToStore,
-  onOpenGrowth,
-  growthBadge = 0,
   onShareToDiscover,
   onExportJSON,
   isAppPreviewProject = false,
@@ -613,32 +606,6 @@ export function Toolbar({
           meaning, and the language switcher shares this space at laptop widths
           where one stray label is the difference between a clean run and a
           squashed one. */}
-      {/* After the upload menu because it is where an upload is measured:
-          the numbers, the reviews and the listing of the app the screenshots
-          are for. A plain button, since it opens one window with its own
-          navigation rather than a choice of destinations. */}
-      {onOpenGrowth && (
-        <Button
-          variant="outline"
-          className="relative h-8 shrink-0"
-          onClick={onOpenGrowth}
-          title="Growth: downloads, conversion, reviews and the store listing"
-        >
-          <TrendingUpIcon className="h-4 w-4" />
-          {/* New insights found in the background (monitor.ts). Hidden from
-              the accessible name, which stays the title the tests find. */}
-          {growthBadge > 0 && (
-            <span
-              aria-hidden
-              data-testid="growth-badge"
-              className="absolute -right-1.5 -top-1.5 min-w-[1.1rem] rounded-full bg-amber-500 px-1 text-center text-[10px] font-semibold leading-[1.1rem] text-white"
-            >
-              {growthBadge > 9 ? '9+' : growthBadge}
-            </span>
-          )}
-        </Button>
-      )}
-
       {/* Who is in the room. Renders nothing outside a session. */}
       {collab}
 

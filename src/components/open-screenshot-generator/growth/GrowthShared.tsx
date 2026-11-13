@@ -2,7 +2,7 @@
 
 // Small pieces every Growth screen uses: the delta chip, the stat tile, the
 // tone icon, the empty state, and the context that hands each screen the
-// app, its data and the ways out of the window.
+// app, its data and the ways back to the editor.
 
 import React, { createContext, useContext } from 'react';
 import {
@@ -60,9 +60,18 @@ export interface GrowthView {
   dismissedInsights: Insight[];
   listingIssues: ListingIssue[];
   credentials?: AppStoreCredentials;
-  /** Writes reach Apple: desktop, a key, and not the sample. */
+  /** Writes reach Apple: desktop, a key and an app of the account. */
   canWrite: boolean;
-  sample: boolean;
+  /**
+   * Why each kind of action cannot run now, null when it can. The buttons
+   * stay on screen, disabled, with this as the reason (`Gated`).
+   */
+  blocked: {
+    /** Anything that needs an app of the account: a sync, a reply, an apply, an event. */
+    app: string | null;
+    /** Anything the AI writes. */
+    ai: string | null;
+  };
   aiAvailable: boolean;
   aiLabel: string | null;
   tabOptions: GrowthTabOptions;
@@ -72,6 +81,8 @@ export interface GrowthView {
   onPublish: () => void;
   onLocalize: (storeLocales: string[]) => void;
   onAskAgent?: (question: string) => void;
+  /** Why the agent cannot take a question here, when onAskAgent is unset. */
+  agentUnavailable?: string;
   onOpenProject?: (projectId: string) => void;
 }
 
@@ -81,7 +92,7 @@ export const GrowthProvider = GrowthContext.Provider;
 
 export function useGrowthView(): GrowthView {
   const view = useContext(GrowthContext);
-  if (!view) throw new Error('useGrowthView needs the Growth window around it');
+  if (!view) throw new Error('useGrowthView needs the Growth view around it');
   return view;
 }
 
@@ -194,6 +205,25 @@ export function EmptyState({ icon: Icon, title, children }: { icon: React.Compon
       {children && <div className="max-w-md text-xs text-muted-foreground">{children}</div>}
     </div>
   );
+}
+
+/**
+ * A button for an action that cannot run now: it stays where it is, disabled,
+ * and the reason shows on hover. The reason sits on a wrapper because a
+ * disabled Button takes no pointer events, so its own title never shows.
+ */
+export function Gated({ reason, children }: { reason: string | null | undefined; children: React.ReactElement<{ disabled?: boolean }> }) {
+  if (!reason) return children;
+  return (
+    <span className="inline-flex cursor-not-allowed" title={reason} data-gated-reason={reason}>
+      {React.cloneElement(children, { disabled: true })}
+    </span>
+  );
+}
+
+/** The first reason that applies, for an action that needs more than one thing. */
+export function firstReason(...reasons: Array<string | null | undefined>): string | null {
+  return reasons.find((reason) => !!reason) ?? null;
 }
 
 export function Panel({ className, children, ...rest }: React.HTMLAttributes<HTMLDivElement>) {

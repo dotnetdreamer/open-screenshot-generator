@@ -1,6 +1,6 @@
 "use client";
 
-// The charts in the Growth window.
+// The charts in the Growth view.
 //
 // One measure per chart and one axis, always: a metric over time, the same
 // days of the period before as a dashed grey line for comparison, and the

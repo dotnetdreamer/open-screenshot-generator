@@ -195,6 +195,10 @@ pub struct ClaudeState {
     book: Mutex<()>,
     /// This run of the app has cleared out SPAWN_DIR once.
     swept_spawn_files: AtomicBool,
+    /// One-shot prompts running or about to start (abs_claude_prompt).
+    prompting: AtomicUsize,
+    /// Their processes, for abs_claude_prompt_stop and kill_all.
+    prompt_runs: PromptRuns,
 }
 
 /// How many claimed spawn ids are remembered. The page makes a new one for
@@ -221,9 +225,14 @@ impl ClaudeState {
 /// for processes to adopt, so start_blocking kills such a process rather than
 /// leave it holding a session slot until the app quits.
 pub fn on_page_load<R: Runtime>(webview: &tauri::Webview<R>, payload: &PageLoadPayload<'_>) {
-    if webview.label() == "main" && payload.event() == PageLoadEvent::Started {
+    if payload.event() != PageLoadEvent::Started {
+        return;
+    }
+    if webview.label() == "main" {
         webview.state::<ClaudeState>().page_epoch.fetch_add(1, Ordering::SeqCst);
     }
+    // The page that asked is going, and its answers with it.
+    stop_window_prompts(webview.app_handle(), webview.window().label());
 }
 
 /// Whether the agent has a process running or starting. The MCP server stays
@@ -261,6 +270,17 @@ fn require_editor<R: Runtime>(window: &tauri::Window<R>) -> Result<(), String> {
         Ok(())
     } else {
         Err("only the editor window can run the agent".into())
+    }
+}
+
+/// The guard on the one-shot prompts, which need no agent session: any editor
+/// window, `main` or one a tab was torn off into. Never a panel window, and
+/// never an assistant window, which shows a third-party site.
+pub(crate) fn require_editor_window<R: Runtime>(window: &tauri::Window<R>) -> Result<(), String> {
+    if crate::settings::is_editor_window(window.label()) {
+        Ok(())
+    } else {
+        Err("only an editor window can ask Claude Code or Codex".into())
     }
 }
 
@@ -1946,10 +1966,471 @@ pub fn abs_claude_list(state: tauri::State<'_, ClaudeState>) -> Vec<ListedSessio
         .collect()
 }
 
-/// End every agent process. Closing stdin alone would also end them, but only
-/// after whatever turn they are on, still calling tools on a server that is
-/// about to go away.
+// ---------------------------------------------------------------------------
+// One prompt, one answer
+// ---------------------------------------------------------------------------
+//
+// The Growth window's writing jobs (a review reply, a listing field, a report
+// summary, a question about the numbers) need a model and nothing else: no
+// tools, no MCP server, no chat. abs_claude_prompt and codex.rs's
+// abs_codex_prompt start the CLI for one prompt, read its answer and let it
+// exit, on the user's own plan. No conversation is kept. Any editor window may
+// ask, a torn-off tab too, and Stop (abs_claude_prompt_stop) kills the process
+// of the prompt it was pressed for.
+
+/// How long a one-shot prompt may take before its process is stopped.
+pub(crate) const PROMPT_TIMEOUT: Duration = Duration::from_secs(180);
+
+/// One-shot prompts one CLI runs at once. Each is a click in the Growth window,
+/// so more than this is a page asking again and again.
+pub(crate) const MAX_PROMPTS: usize = 3;
+
+/// The most text, instructions and prompt together, a one-shot prompt takes.
+/// The longest the Growth window sends, a question with the numbers it is
+/// about, comes to tens of kilobytes.
+pub(crate) const MAX_PROMPT_TEXT: usize = 1024 * 1024;
+
+const PROMPT_NOT_FOUND: &str = "Claude Code was not found on this computer. Install it, then try again";
+const PROMPT_BUSY: &str = "Claude Code is still answering. Try again when it has finished";
+const PROMPT_TOO_LONG: &str = "That is too much text to send to Claude Code";
+const PROMPT_TIMED_OUT: &str = "Claude Code took longer than 3 minutes to answer. Try again";
+const PROMPT_SIGNED_OUT: &str = "Claude Code is not signed in. Run claude in a terminal to sign in, then try again";
+const PROMPT_STOPPED: &str = "Claude Code was stopped";
+pub(crate) const PROMPT_BAD_ID: &str = "That prompt id is not valid";
+
+/// How many stopped prompt ids are remembered, so a prompt that arrives after
+/// its own Stop never starts.
+const STOPS_KEEP: usize = 64;
+
+/// The one-shot prompts in flight, by the id the page gave each, so Stop ends
+/// the process of the one it was pressed for and kill_all ends them all.
+#[derive(Default)]
+pub(crate) struct PromptRuns(Mutex<RunBook>);
+
+#[derive(Default)]
+struct RunBook {
+    runs: Vec<PromptRun>,
+    /// Stopped ids, newest last, with the window each came from. The prompt
+    /// and its Stop are separate calls and can arrive in either order, and
+    /// Tauri can deliver a call twice.
+    stopped: VecDeque<(String, String)>,
+    next: u64,
+}
+
+impl RunBook {
+    fn remember_stop(&mut self, id: &str, window: &str) {
+        if self.stopped.len() >= STOPS_KEEP {
+            self.stopped.pop_front();
+        }
+        self.stopped.push_back((id.to_string(), window.to_string()));
+    }
+}
+
+struct PromptRun {
+    /// Tells two arrivals of the same call apart.
+    serial: u64,
+    id: String,
+    /// The window that asked, the only one whose Stop reaches it.
+    window: String,
+    /// Set once the process has started.
+    pid: Option<u32>,
+    stopped: bool,
+}
+
+impl PromptRuns {
+    /// Note a prompt the page asked for, or None when it was stopped already.
+    pub(crate) fn begin(&self, id: &str, window: &str) -> Option<PromptTicket<'_>> {
+        let mut book = self.0.lock().unwrap();
+        if book.stopped.iter().any(|(stopped, from)| stopped == id && from == window) {
+            return None;
+        }
+        book.next += 1;
+        let serial = book.next;
+        book.runs.push(PromptRun { serial, id: id.to_string(), window: window.to_string(), pid: None, stopped: false });
+        Some(PromptTicket { runs: self, serial })
+    }
+
+    /// Stop the prompt `window` asked for under `id`, and hand back the
+    /// processes to kill: none when it has not started, or has finished.
+    pub(crate) fn stop(&self, id: &str, window: &str) -> Vec<u32> {
+        let mut book = self.0.lock().unwrap();
+        book.remember_stop(id, window);
+        let mut pids = Vec::new();
+        for run in book.runs.iter_mut().filter(|run| run.id == id && run.window == window) {
+            run.stopped = true;
+            pids.extend(run.pid);
+        }
+        pids
+    }
+
+    /// Stop every prompt `window` asked for, as it closes or loads another
+    /// page, and hand back their processes. Their ids are remembered, so a
+    /// call Tauri delivers again afterwards does not start one anew.
+    pub(crate) fn stop_window(&self, window: &str) -> Vec<u32> {
+        let mut book = self.0.lock().unwrap();
+        let mut pids = Vec::new();
+        let mut ids = Vec::new();
+        for run in book.runs.iter_mut().filter(|run| run.window == window) {
+            run.stopped = true;
+            pids.extend(run.pid);
+            ids.push(run.id.clone());
+        }
+        for id in ids {
+            book.remember_stop(&id, window);
+        }
+        pids
+    }
+
+    /// Stop every prompt, for kill_all, and hand back their processes.
+    pub(crate) fn stop_all(&self) -> Vec<u32> {
+        let mut book = self.0.lock().unwrap();
+        let mut pids = Vec::new();
+        for run in book.runs.iter_mut() {
+            run.stopped = true;
+            pids.extend(run.pid);
+        }
+        pids
+    }
+
+    #[cfg(test)]
+    fn is_empty(&self) -> bool {
+        self.0.lock().unwrap().runs.is_empty()
+    }
+}
+
+/// One prompt's place in PromptRuns, given up when dropped.
+pub(crate) struct PromptTicket<'a> {
+    runs: &'a PromptRuns,
+    serial: u64,
+}
+
+impl PromptTicket<'_> {
+    /// Start `command`, unless the prompt was stopped first, and note its pid.
+    /// Both under the lock, so a Stop either finds the pid or keeps the
+    /// process from starting.
+    fn spawn(&self, command: &mut Command) -> Result<Option<std::process::Child>, String> {
+        let mut book = self.runs.0.lock().unwrap();
+        let Some(run) = book.runs.iter_mut().find(|run| run.serial == self.serial) else {
+            return Ok(None);
+        };
+        if run.stopped {
+            return Ok(None);
+        }
+        let child = command.spawn().map_err(|e| e.to_string())?;
+        run.pid = Some(child.id());
+        Ok(Some(child))
+    }
+
+    fn stopped(&self) -> bool {
+        self.runs.0.lock().unwrap().runs.iter().any(|run| run.serial == self.serial && run.stopped)
+    }
+}
+
+impl Drop for PromptTicket<'_> {
+    fn drop(&mut self) {
+        self.runs.0.lock().unwrap().runs.retain(|run| run.serial != self.serial);
+    }
+}
+
+/// A folder of its own for one one-shot run, removed when dropped: an empty
+/// working directory, so the CLI finds no project instructions, and room for
+/// the files its command line points at.
+pub(crate) struct OnceDir {
+    pub(crate) root: PathBuf,
+    pub(crate) cwd: PathBuf,
+}
+
+impl OnceDir {
+    pub(crate) fn create(prefix: &str) -> Result<OnceDir, String> {
+        static NEXT: AtomicU64 = AtomicU64::new(0);
+        let stamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|elapsed| elapsed.as_nanos())
+            .unwrap_or_default();
+        let name = format!("{prefix}-{}-{stamp}-{}", std::process::id(), NEXT.fetch_add(1, Ordering::SeqCst));
+        let root = std::env::temp_dir().join(name);
+        let cwd = root.join("work");
+        std::fs::create_dir_all(&cwd).map_err(|e| e.to_string())?;
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            // The instructions written here can quote the user's listing.
+            let _ = std::fs::set_permissions(&root, std::fs::Permissions::from_mode(0o700));
+        }
+        Ok(OnceDir { root, cwd })
+    }
+}
+
+impl Drop for OnceDir {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.root);
+    }
+}
+
+/// How a one-shot run ended.
+pub(crate) enum OnceOutcome {
+    /// It exited, with whatever status.
+    Exited(Captured),
+    /// It ran past the timeout, and it and everything it started were killed.
+    TimedOut,
+    /// Stop was pressed for it: it never started, or it was killed.
+    Stopped,
+}
+
+/// Start `command`, write `input` to its stdin and close it, and collect its
+/// output until it exits or `timeout` passes. Its pid is with `ticket` while
+/// it runs, so Stop and kill_all can end it.
+pub(crate) fn run_once(
+    mut command: Command,
+    input: String,
+    timeout: Duration,
+    ticket: &PromptTicket,
+) -> Result<OnceOutcome, String> {
+    let Some(mut child) = ticket.spawn(&mut command)? else {
+        return Ok(OnceOutcome::Stopped);
+    };
+    let outcome = wait_once(&mut child, input, timeout)?;
+    Ok(if ticket.stopped() { OnceOutcome::Stopped } else { outcome })
+}
+
+fn wait_once(child: &mut std::process::Child, input: String, timeout: Duration) -> Result<OnceOutcome, String> {
+    let stdout = spawn_reader(child.stdout.take().ok_or("no stdout")?);
+    let stderr = spawn_reader(child.stderr.take().ok_or("no stderr")?);
+    if let Some(mut stdin) = child.stdin.take() {
+        // On a thread of its own: a child that prints before it has read all
+        // of its input would fill the pipe while this thread waits on stdin.
+        // Dropping stdin at the end closes it, and the CLI reads to EOF.
+        std::thread::spawn(move || {
+            let _ = stdin.write_all(input.as_bytes());
+        });
+    }
+    let deadline = Instant::now() + timeout;
+    loop {
+        match child.try_wait() {
+            Ok(Some(status)) => {
+                let until = Instant::now() + Duration::from_millis(500);
+                return Ok(OnceOutcome::Exited(Captured {
+                    success: status.success(),
+                    stdout: drain(&stdout, until),
+                    stderr: drain(&stderr, until),
+                }));
+            }
+            Ok(None) if Instant::now() >= deadline => {
+                kill_tree(child.id());
+                let _ = child.kill();
+                let _ = child.wait();
+                return Ok(OnceOutcome::TimedOut);
+            }
+            Ok(None) => std::thread::sleep(Duration::from_millis(50)),
+            Err(e) => return Err(e.to_string()),
+        }
+    }
+}
+
+/// Reserve one of a CLI's MAX_PROMPTS slots, released when the guard drops.
+pub(crate) fn claim_prompt_slot(counter: &AtomicUsize) -> Option<StartingGuard<'_>> {
+    if counter.fetch_add(1, Ordering::SeqCst) >= MAX_PROMPTS {
+        counter.fetch_sub(1, Ordering::SeqCst);
+        return None;
+    }
+    Some(StartingGuard(counter))
+}
+
+/// The prompt as it goes in on stdin: every `@` that could open a mention
+/// defused, since a review is written by a stranger and `@~/.ssh/id_ed25519`
+/// in one would have Claude Code read that file into the prompt, and a word
+/// joiner in front of a leading `/`, which Claude Code would otherwise run as
+/// a command.
+fn once_input(prompt: &str) -> String {
+    let defused = defuse_mentions(prompt);
+    if defused.trim_start_matches(|c: char| c.is_whitespace() || c == '\u{feff}').starts_with('/') {
+        format!("{MENTION_BREAK}{defused}")
+    } else {
+        defused
+    }
+}
+
+/// The command line of a one-shot prompt: print mode with one JSON result, no
+/// tools, no MCP server, none of the user's settings, hooks, plugins or
+/// CLAUDE.md files, no skills or slash commands, and no conversation saved.
+/// The instructions replace Claude Code's own and come from a file, since an
+/// npm shim on Windows passes arguments through cmd.exe, which mangles a long
+/// text with quotes and line breaks in it. The prompt goes in on stdin.
+fn prompt_command(binary: &Path, cwd: &Path, system_prompt: &Path, settings: &Path, model: Option<&str>, path: &str) -> Command {
+    let mut command = Command::new(binary);
+    command
+        .current_dir(cwd)
+        .arg("-p")
+        .args(["--output-format", "json"])
+        .args(["--setting-sources", ""])
+        .arg("--settings")
+        .arg(settings)
+        .args(["--tools", ""])
+        .arg("--strict-mcp-config")
+        .arg("--disable-slash-commands")
+        .arg("--no-session-persistence")
+        .args(["--permission-mode", "dontAsk"])
+        .arg("--system-prompt-file")
+        .arg(system_prompt);
+    if let Some(model) = model {
+        command.args(["--model", model]);
+    }
+    scrub_env(&mut command);
+    command
+        .env("PATH", path)
+        .env("NO_COLOR", "1")
+        .env("CLAUDE_CODE_DISABLE_CLAUDE_MDS", "1");
+    command.stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
+    hide_console(&mut command);
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        command.process_group(0);
+    }
+    command
+}
+
+/// The answer in what `claude -p --output-format json` printed, or why there
+/// is none, worded for the person who asked.
+fn claude_answer(captured: &Captured) -> Result<String, String> {
+    let text = captured.stdout.trim();
+    let result = text
+        .find('{')
+        .and_then(|start| serde_json::Deserializer::from_str(&text[start..]).into_iter::<Value>().next())
+        .and_then(Result::ok);
+    let Some(result) = result else {
+        let reason = first_line(&captured.stderr);
+        return Err(claude_failure(if reason.is_empty() { first_line(text) } else { reason }));
+    };
+    let answer = result.get("result").and_then(Value::as_str).unwrap_or_default().trim();
+    let failed = result.get("is_error").and_then(Value::as_bool) == Some(true)
+        || result.get("subtype").and_then(Value::as_str).is_some_and(|subtype| subtype != "success");
+    if failed {
+        let reason = if answer.is_empty() { first_line(&captured.stderr) } else { first_line(answer) };
+        return Err(claude_failure(reason));
+    }
+    if answer.is_empty() {
+        return Err("Claude Code sent back an empty answer. Try again".into());
+    }
+    Ok(answer.to_string())
+}
+
+fn claude_failure(reason: String) -> String {
+    let lower = reason.to_ascii_lowercase();
+    if lower.contains("not logged in") || lower.contains("/login") || lower.contains("invalid api key") {
+        return PROMPT_SIGNED_OUT.into();
+    }
+    if reason.is_empty() {
+        return "Claude Code stopped without an answer. Try again".into();
+    }
+    format!("Claude Code could not answer: {reason}")
+}
+
+fn prompt_blocking(
+    state: &ClaudeState,
+    id: &str,
+    window: &str,
+    system: &str,
+    prompt: &str,
+    model: Option<&str>,
+) -> Result<String, String> {
+    if sandboxed() {
+        return Err(SANDBOXED.into());
+    }
+    let ticket = state.prompt_runs.begin(id, window).ok_or(PROMPT_STOPPED)?;
+    // A prompt can come before any detect has asked the login shell for its
+    // PATH, which an npm-installed `claude` needs to find node.
+    if state.shell_path.lock().unwrap().is_none() {
+        let shell = login_shell_path().unwrap_or_default();
+        *state.shell_path.lock().unwrap() = Some(shell);
+    }
+    let binary = find_binary(state).ok_or(PROMPT_NOT_FOUND)?;
+    let _slot = claim_prompt_slot(&state.prompting).ok_or(PROMPT_BUSY)?;
+    let dir = OnceDir::create("osg-claude-prompt")?;
+    let system_prompt = dir.root.join("system-prompt.md");
+    let settings = dir.root.join("settings.json");
+    let instructions = if system.trim().is_empty() { "Answer the request." } else { system };
+    std::fs::write(&system_prompt, instructions).map_err(|e| e.to_string())?;
+    // Hooks off, as for the agent (prepare_workspace).
+    std::fs::write(&settings, br#"{"disableAllHooks":true}"#).map_err(|e| e.to_string())?;
+    let command = prompt_command(&binary, &dir.cwd, &system_prompt, &settings, model, &effective_path(state));
+    match run_once(command, once_input(prompt), PROMPT_TIMEOUT, &ticket)? {
+        OnceOutcome::Exited(captured) => claude_answer(&captured),
+        OnceOutcome::TimedOut => Err(PROMPT_TIMED_OUT.into()),
+        OnceOutcome::Stopped => Err(PROMPT_STOPPED.into()),
+    }
+}
+
+/// Send one prompt to Claude Code and return its answer. `id` is the page's
+/// own for this call (a UUID), which abs_claude_prompt_stop takes; `system`
+/// replaces Claude Code's own instructions; `model` is an alias such as
+/// "sonnet", or none for the CLI's default.
+#[tauri::command]
+pub async fn abs_claude_prompt<R: Runtime>(
+    app: AppHandle<R>,
+    window: tauri::Window<R>,
+    id: String,
+    system: String,
+    prompt: String,
+    model: Option<String>,
+) -> Result<String, String> {
+    require_editor_window(&window)?;
+    if !valid_uuid(&id) {
+        return Err(PROMPT_BAD_ID.into());
+    }
+    if system.len() + prompt.len() > MAX_PROMPT_TEXT {
+        return Err(PROMPT_TOO_LONG.into());
+    }
+    let model = model.filter(|model| !model.is_empty());
+    if model.as_deref().is_some_and(|model| !valid_model(model)) {
+        return Err("Claude Code does not take that model name".into());
+    }
+    let label = window.label().to_string();
+    tauri::async_runtime::spawn_blocking(move || {
+        prompt_blocking(&app.state::<ClaudeState>(), &id, &label, &system, &prompt, model.as_deref())
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+/// Stop the one-shot prompt this window asked for under `id`: its process is
+/// killed and abs_claude_prompt answers PROMPT_STOPPED. A Stop that arrives
+/// first keeps the prompt from starting.
+#[tauri::command]
+pub async fn abs_claude_prompt_stop<R: Runtime>(app: AppHandle<R>, window: tauri::Window<R>, id: String) -> Result<(), String> {
+    require_editor_window(&window)?;
+    if !valid_uuid(&id) {
+        return Err(PROMPT_BAD_ID.into());
+    }
+    let pids = app.state::<ClaudeState>().prompt_runs.stop(&id, window.label());
+    tauri::async_runtime::spawn_blocking(move || pids.into_iter().for_each(kill_tree))
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// End the one-shot prompts one window asked for: it closed, or its page is
+/// being replaced, and nothing is left to show the answers. lib.rs calls this
+/// for every window that closes, on_page_load for every page that starts.
+pub fn stop_window_prompts<R: Runtime>(app: &AppHandle<R>, window: &str) {
+    let pids = app.state::<ClaudeState>().prompt_runs.stop_window(window);
+    if !pids.is_empty() {
+        std::thread::spawn(move || pids.into_iter().for_each(kill_tree));
+    }
+}
+
+/// End every process, for quitting: each window's one-shot prompts and the
+/// agent's chats.
 pub fn kill_all<R: Runtime>(app: &AppHandle<R>) {
+    for pid in app.state::<ClaudeState>().prompt_runs.stop_all() {
+        kill_tree(pid);
+    }
+    kill_sessions(app);
+}
+
+/// End the agent's processes, which belong to the editor window. Closing stdin
+/// alone would also end them, but only after whatever turn they are on, still
+/// calling tools on a server that is about to go away.
+fn kill_sessions<R: Runtime>(app: &AppHandle<R>) {
     let running: Vec<Arc<Running>> = app.state::<ClaudeState>().sessions.lock().unwrap().values().cloned().collect();
     for session in running {
         kill_tree(session.pid);
@@ -1963,15 +2444,16 @@ pub fn kill_all<R: Runtime>(app: &AppHandle<R>) {
     }
 }
 
-/// No process outlives the editor window. The app's exit hook in lib.rs covers
-/// the rest: the editor can close while hidden assistant windows keep the app
-/// itself alive a moment longer.
+/// No agent process outlives the editor window. The app's exit hook in lib.rs
+/// covers the rest: the editor can close while hidden assistant windows keep
+/// the app itself alive a moment longer. A tab window can outlive it too, so
+/// one-shot prompts go with their own window (stop_window_prompts).
 pub fn register<R: Runtime>(app: &AppHandle<R>) {
     if let Some(main) = app.get_webview_window("main") {
         let handle = app.clone();
         main.on_window_event(move |event| {
             if matches!(event, WindowEvent::Destroyed) {
-                kill_all(&handle);
+                kill_sessions(&handle);
             }
         });
     }
@@ -2661,5 +3143,219 @@ mod tests {
         for message in [PICKER_TITLE, PICKER_OPEN] {
             assert!(!message.contains(['\u{2013}', '\u{2014}']) && !message.ends_with('.'), "{message}");
         }
+    }
+
+    #[test]
+    fn a_one_shot_prompt_gets_no_tools_no_servers_and_saves_no_conversation() {
+        let command = prompt_command(
+            Path::new("claude"),
+            Path::new("/once/work"),
+            Path::new("/once/system-prompt.md"),
+            Path::new("/once/settings.json"),
+            Some("sonnet"),
+            "/usr/bin",
+        );
+        let expected: Vec<&str> = vec![
+            "-p",
+            "--output-format",
+            "json",
+            "--setting-sources",
+            "",
+            "--settings",
+            "/once/settings.json",
+            "--tools",
+            "",
+            "--strict-mcp-config",
+            "--disable-slash-commands",
+            "--no-session-persistence",
+            "--permission-mode",
+            "dontAsk",
+            "--system-prompt-file",
+            "/once/system-prompt.md",
+            "--model",
+            "sonnet",
+        ];
+        assert_eq!(args_of(&command), expected);
+        assert!(!args_of(&command).iter().any(|arg| arg == "--mcp-config" || arg == "--plugin-dir" || arg == "--resume"));
+        assert_eq!(command.get_current_dir(), Some(Path::new("/once/work")));
+        let env = envs_of(&command);
+        assert_eq!(env.get("PATH"), Some(&Some("/usr/bin".to_string())));
+        assert_eq!(env.get("CLAUDE_CODE_DISABLE_CLAUDE_MDS"), Some(&Some("1".to_string())));
+        for removed in ["ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL", "CLAUDECODE", "CLAUDE_CODE_SESSION_ID", "CLAUDE_CODE_EFFORT_LEVEL"] {
+            assert_eq!(env.get(removed), Some(&None), "{removed} is removed");
+        }
+
+        let default_model = prompt_command(Path::new("claude"), Path::new("/w"), Path::new("/s"), Path::new("/t"), None, "/usr/bin");
+        assert!(!args_of(&default_model).iter().any(|arg| arg == "--model"));
+    }
+
+    #[test]
+    fn a_one_shot_prompt_cannot_open_a_file_or_run_a_command() {
+        assert_eq!(once_input("Reply to this"), "Reply to this");
+        assert_eq!(once_input("Mail me at a@b.co"), "Mail me at a@b.co");
+        assert_eq!(once_input("Great app @~/.ssh/id_ed25519"), "Great app \u{2060}@~/.ssh/id_ed25519");
+        assert_eq!(once_input("/compact now"), "\u{2060}/compact now");
+        assert_eq!(once_input("  \n/cost"), "\u{2060}  \n/cost");
+        assert_eq!(once_input("Paths like a/b stay"), "Paths like a/b stay");
+    }
+
+    #[test]
+    fn a_one_shot_answer_is_the_result_and_a_failure_says_what_to_do() {
+        let captured = |stdout: &str, stderr: &str| Captured { success: true, stdout: stdout.into(), stderr: stderr.into() };
+        let ok = r#"{"type":"result","subtype":"success","is_error":false,"result":"  Thanks for the review.\n","session_id":"x"}"#;
+        assert_eq!(claude_answer(&captured(ok, "")), Ok("Thanks for the review.".to_string()));
+        // A warning printed ahead of the JSON is skipped.
+        assert_eq!(claude_answer(&captured(&format!("note\n{ok}\n"), "")), Ok("Thanks for the review.".to_string()));
+
+        let signed_out = r#"{"type":"result","subtype":"success","is_error":true,"result":"Not logged in · Please run /login"}"#;
+        assert_eq!(claude_answer(&captured(signed_out, "")), Err(PROMPT_SIGNED_OUT.to_string()));
+        let limit = r#"{"type":"result","subtype":"success","is_error":true,"result":"You've hit your limit · resets 7pm"}"#;
+        assert_eq!(claude_answer(&captured(limit, "")), Err("Claude Code could not answer: You've hit your limit · resets 7pm".to_string()));
+        let empty = r#"{"type":"result","subtype":"success","is_error":false,"result":""}"#;
+        assert!(claude_answer(&captured(empty, "")).is_err());
+        let turns = r#"{"type":"result","subtype":"error_max_turns","is_error":false,"result":""}"#;
+        assert!(claude_answer(&captured(turns, "")).is_err());
+        assert_eq!(
+            claude_answer(&captured("", "error: unknown option '--frob'\n")),
+            Err("Claude Code could not answer: error: unknown option '--frob'".to_string())
+        );
+        assert_eq!(claude_answer(&captured("", "")), Err("Claude Code stopped without an answer. Try again".to_string()));
+
+        for message in [PROMPT_NOT_FOUND, PROMPT_BUSY, PROMPT_TOO_LONG, PROMPT_TIMED_OUT, PROMPT_SIGNED_OUT, PROMPT_STOPPED, PROMPT_BAD_ID] {
+            assert!(!message.contains(['\u{2013}', '\u{2014}']) && !message.ends_with('.'), "{message}");
+        }
+    }
+
+    #[test]
+    fn a_one_shot_run_answers_through_stdin_and_stops_at_its_deadline() {
+        let runs = PromptRuns::default();
+        #[cfg(unix)]
+        {
+            let mut cat = Command::new("cat");
+            cat.stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
+            let ticket = runs.begin("cat", "main").unwrap();
+            match run_once(cat, "echoed".into(), Duration::from_secs(10), &ticket).unwrap() {
+                OnceOutcome::Exited(captured) => assert_eq!(captured.stdout, "echoed"),
+                _ => panic!("cat did not answer"),
+            }
+            drop(ticket);
+            let ticket = runs.begin("sleep", "main").unwrap();
+            let started = Instant::now();
+            assert!(matches!(run_once(sleeper(), String::new(), Duration::from_millis(300), &ticket).unwrap(), OnceOutcome::TimedOut));
+            assert!(started.elapsed() < Duration::from_secs(5));
+        }
+        assert!(runs.is_empty(), "a finished run leaves nothing behind");
+
+        let counter = AtomicUsize::new(0);
+        let slots: Vec<_> = (0..MAX_PROMPTS).map(|_| claim_prompt_slot(&counter)).collect();
+        assert!(slots.iter().all(Option::is_some));
+        assert!(claim_prompt_slot(&counter).is_none());
+        drop(slots);
+        assert!(claim_prompt_slot(&counter).is_some());
+    }
+
+    /// A process that runs until it is killed, leading its own group as the
+    /// prompt commands do.
+    #[cfg(unix)]
+    fn sleeper() -> Command {
+        use std::os::unix::process::CommandExt;
+        let mut sleeper = Command::new("sleep");
+        sleeper.arg("30").stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
+        sleeper.process_group(0);
+        sleeper
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn stop_kills_the_prompt_it_was_pressed_for_and_no_other() {
+        let runs = PromptRuns::default();
+        std::thread::scope(|scope| {
+            let stopped = scope.spawn(|| {
+                let ticket = runs.begin("ask", "main").unwrap();
+                let started = Instant::now();
+                let outcome = run_once(sleeper(), String::new(), Duration::from_secs(20), &ticket).unwrap();
+                (outcome, started.elapsed())
+            });
+            let other = scope.spawn(|| {
+                let ticket = runs.begin("summary", "main").unwrap();
+                run_once(sleeper(), String::new(), Duration::from_millis(1500), &ticket).unwrap()
+            });
+            // Both processes up, then Stop for one of them, first from a
+            // window that did not ask, which reaches nothing.
+            let deadline = Instant::now() + Duration::from_secs(5);
+            while runs.0.lock().unwrap().runs.iter().filter(|run| run.pid.is_some()).count() < 2 {
+                assert!(Instant::now() < deadline, "the processes did not start");
+                std::thread::sleep(Duration::from_millis(20));
+            }
+            assert!(runs.stop("ask", "editor-other").is_empty());
+            let pids = runs.stop("ask", "main");
+            assert_eq!(pids.len(), 1);
+            pids.into_iter().for_each(kill_tree);
+            let (outcome, took) = stopped.join().unwrap();
+            assert!(matches!(outcome, OnceOutcome::Stopped));
+            assert!(took < Duration::from_secs(5), "Stop took {took:?}");
+            // The other prompt ran on to its own deadline.
+            assert!(matches!(other.join().unwrap(), OnceOutcome::TimedOut));
+        });
+        assert!(runs.is_empty());
+
+        // A Stop that arrives before its prompt keeps the prompt from starting,
+        // twice over when Tauri delivers the call again.
+        assert!(runs.stop("early", "main").is_empty());
+        assert!(runs.begin("early", "main").is_none());
+        assert!(runs.begin("early", "main").is_none());
+        assert!(runs.begin("early", "editor-other").is_some());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_window_that_goes_takes_its_own_prompts_and_no_other() {
+        let runs = PromptRuns::default();
+        std::thread::scope(|scope| {
+            let tab = |id: &'static str| {
+                let runs = &runs;
+                scope.spawn(move || {
+                    let ticket = runs.begin(id, "editor-tab").unwrap();
+                    let started = Instant::now();
+                    (run_once(sleeper(), String::new(), Duration::from_secs(20), &ticket).unwrap(), started.elapsed())
+                })
+            };
+            let (reply, summary) = (tab("reply"), tab("summary"));
+            let main = scope.spawn(|| {
+                let ticket = runs.begin("ask", "main").unwrap();
+                run_once(sleeper(), String::new(), Duration::from_millis(1500), &ticket).unwrap()
+            });
+            let deadline = Instant::now() + Duration::from_secs(5);
+            while runs.0.lock().unwrap().runs.iter().filter(|run| run.pid.is_some()).count() < 3 {
+                assert!(Instant::now() < deadline, "the processes did not start");
+                std::thread::sleep(Duration::from_millis(20));
+            }
+            // The tab window closes, or reloads.
+            let pids = runs.stop_window("editor-tab");
+            assert_eq!(pids.len(), 2);
+            pids.into_iter().for_each(kill_tree);
+            for handle in [reply, summary] {
+                let (outcome, took) = handle.join().unwrap();
+                assert!(matches!(outcome, OnceOutcome::Stopped));
+                assert!(took < Duration::from_secs(5), "took {took:?}");
+            }
+            // The main window's prompt ran on to its own deadline.
+            assert!(matches!(main.join().unwrap(), OnceOutcome::TimedOut));
+        });
+        assert!(runs.is_empty());
+        // A call Tauri delivers again after the page went does not start anew.
+        assert!(runs.begin("reply", "editor-tab").is_none());
+        assert!(runs.stop_window("editor-tab").is_empty());
+    }
+
+    #[test]
+    fn a_one_shot_folder_is_gone_once_dropped() {
+        let dir = OnceDir::create("osg-claude-prompt-test").unwrap();
+        let root = dir.root.clone();
+        assert!(dir.cwd.is_dir());
+        assert_eq!(std::fs::read_dir(&dir.cwd).unwrap().count(), 0);
+        std::fs::write(root.join("system-prompt.md"), "x").unwrap();
+        drop(dir);
+        assert!(!root.exists());
     }
 }

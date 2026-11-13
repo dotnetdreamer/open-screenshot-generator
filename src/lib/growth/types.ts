@@ -388,6 +388,4 @@ export interface GrowthApp {
   name: string;
   bundleId: string;
   iconUrl?: string;
-  /** The sample app, which exists on every machine and in the web build. */
-  sample?: boolean;
 }

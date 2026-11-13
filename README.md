@@ -77,7 +77,7 @@ Both versions use the same editor. The desktop app adds features that need acces
 | Coding agent design tools | With the [web relay](infra/vps/mcp-relay/README.md) or CLI | Built in MCP server |
 | Save to your own Google Drive or GitHub account | Yes | Yes |
 | Upload screenshots directly to App Store Connect or Google Play | No | Yes |
-| Growth: App Store numbers, reviews, listing checks, screenshot before and after | Sample app only | Yes |
+| Growth: App Store numbers, reviews, listing checks, screenshot before and after | Empty screens only | Yes |
 
 ## Command line and coding agents
 

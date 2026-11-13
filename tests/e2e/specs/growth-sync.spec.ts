@@ -1,8 +1,8 @@
-import { generateKeyPairSync } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
 import { test, expect, type Page } from '../fixtures/test';
 import type { TauriHttpRule } from '../fixtures/tauri-runtime';
 import type { TauriHarness } from '../fixtures/tauri';
+import { appleShapedKey, backToEditor, openGrowth, section, viewButton, views, GROWTH_BUTTON } from '../helpers/growth';
 
 // A whole Growth sync on the desktop build, against App Store Connect answers
 // shaped like Apple's documentation: the apps, the listing, reviews and their
@@ -25,7 +25,9 @@ const DAY = utcDay(-3);
 const [Y, M, D] = DAY.split('-');
 const US_DAY = `${M}/${D}/${Y}`;
 
-const PRIVATE_KEY = generateKeyPairSync('ec', { namedCurve: 'P-256' }).privateKey.export({ type: 'pkcs8', format: 'pem' }).toString();
+// Shaped like Apple's .p8, curve parameters and all: WebKit refuses to
+// import that shape as it stands, and a key Node wrote would hide it.
+const PRIVATE_KEY = appleShapedKey();
 
 function gzipBase64(text: string): string {
   return gzipSync(Buffer.from(text, 'utf8')).toString('base64');
@@ -210,11 +212,10 @@ async function connect(page: Page) {
 
 /** Open Growth and wait for the first sync, whose last feed is the ratings sweep. */
 async function syncOnce(page: Page) {
-  await page.getByTitle('Growth: downloads, conversion, reviews and the store listing').click();
-  const dialog = page.getByTestId('growth-dialog');
-  await dialog.getByRole('navigation', { name: 'Growth sections' }).getByRole('button', { name: /^Connection/ }).click();
-  await expect(dialog.getByText('1,234 ratings in 1 storefront')).toBeVisible({ timeout: 90_000 });
-  return dialog;
+  const view = await openGrowth(page);
+  await section(view, 'Connection').click();
+  await expect(view.getByText('1,234 ratings in 1 storefront')).toBeVisible({ timeout: 90_000 });
+  return view;
 }
 
 let mcpCalls = 0;
@@ -241,31 +242,30 @@ test.describe('growth sync', () => {
     await app.goto();
     await app.dismissStartDialog();
 
-    await page.getByTitle('Growth: downloads, conversion, reviews and the store listing').click();
-    const dialog = page.getByTestId('growth-dialog');
-    await expect(dialog.getByRole('combobox', { name: 'App' })).toContainText('Pebble Notes');
+    const view = await openGrowth(page);
+    await expect(view.getByRole('combobox', { name: 'App' })).toContainText('Pebble Notes');
 
     // Opening on an app that has never synced starts a sync. The ratings sweep
     // runs last, so its line is the one that says the sync is over.
-    await dialog.getByRole('navigation', { name: 'Growth sections' }).getByRole('button', { name: /^Connection/ }).click();
-    await expect(dialog.getByText('1,234 ratings in 1 storefront')).toBeVisible({ timeout: 90_000 });
-    await expect(dialog.getByRole('button', { name: 'Sync', exact: true })).toBeVisible();
-    await expect(dialog.getByText('Version 3.1, 1 language')).toBeVisible();
-    await expect(dialog.getByText('2 written reviews')).toBeVisible();
-    await expect(dialog.getByText('30 days of sales')).toBeVisible();
-    await expect(dialog.getByText(`Reports processed through ${DAY}`)).toBeVisible();
+    await section(view, 'Connection').click();
+    await expect(view.getByText('1,234 ratings in 1 storefront')).toBeVisible({ timeout: 90_000 });
+    await expect(view.getByRole('button', { name: 'Sync', exact: true })).toBeVisible();
+    await expect(view.getByText('Version 3.1, 1 language')).toBeVisible();
+    await expect(view.getByText('2 written reviews')).toBeVisible();
+    await expect(view.getByText('30 days of sales')).toBeVisible();
+    await expect(view.getByText(`Reports processed through ${DAY}`)).toBeVisible();
 
-    await dialog.getByRole('navigation', { name: 'Growth sections' }).getByRole('button', { name: /^Overview/ }).click();
+    await section(view, 'Overview').click();
     // Engagement and downloads come from the analytics files; downloads win over Sales and Trends on a day both report.
-    await expect(dialog.getByRole('button', { name: /^Impressions 1,500/ })).toBeVisible();
-    await expect(dialog.getByRole('button', { name: /^First-time downloads 40/ })).toBeVisible();
-    await expect(dialog.getByRole('button', { name: /^Conversion rate 3\.75%/ })).toBeVisible();
-    await expect(dialog.getByRole('button', { name: /^Proceeds \$19\.98/ })).toBeVisible();
+    await expect(view.getByRole('button', { name: /^Impressions 1,500/ })).toBeVisible();
+    await expect(view.getByRole('button', { name: /^First-time downloads 40/ })).toBeVisible();
+    await expect(view.getByRole('button', { name: /^Conversion rate 3\.75%/ })).toBeVisible();
+    await expect(view.getByRole('button', { name: /^Proceeds \$19\.98/ })).toBeVisible();
 
     // The listing came from the version being prepared, joined with its name and subtitle.
-    await dialog.getByRole('navigation', { name: 'Growth sections' }).getByRole('button', { name: /^Listing/ }).click();
-    await expect(dialog.locator('#growth-field-name')).toHaveValue('Pebble Notes');
-    await expect(dialog.getByText('"notes" appears twice in the keywords')).toBeVisible();
+    await section(view, 'Listing').click();
+    await expect(view.locator('#growth-field-name')).toHaveValue('Pebble Notes');
+    await expect(view.getByText('"notes" appears twice in the keywords')).toBeVisible();
 
     const requests = await page.evaluate(() => (window as any).__E2E_TAURI__.httpRequests as Array<{ method: string; url: string; headers: Record<string, string> }>);
     const toApple = requests.filter((request) => request.url.startsWith('https://api.appstoreconnect.apple.com/'));
@@ -284,17 +284,13 @@ test.describe('growth sync', () => {
     await connect(page);
     await app.goto();
     await app.dismissStartDialog();
-    await page.getByTitle('Growth: downloads, conversion, reviews and the store listing').click();
-    const dialog = page.getByTestId('growth-dialog');
-    await dialog.getByRole('navigation', { name: 'Growth sections' }).getByRole('button', { name: /^Connection/ }).click();
-    await expect(dialog.getByText('1,234 ratings in 1 storefront')).toBeVisible({ timeout: 90_000 });
-
-    await dialog.getByRole('navigation', { name: 'Growth sections' }).getByRole('button', { name: /^Reviews/ }).click();
-    const answered = dialog.locator('[data-review-id="review-2"]');
+    const view = await syncOnce(page);
+    await section(view, 'Reviews').click();
+    const answered = view.locator('[data-review-id="review-2"]');
     await expect(answered).toContainText('Thank you, Mia.');
     await expect(answered).toContainText('Published');
 
-    const review = dialog.locator('[data-review-id="review-1"]');
+    const review = view.locator('[data-review-id="review-1"]');
     await review.getByRole('button', { name: 'Reply' }).click();
     await review.getByRole('textbox', { name: 'Reply' }).fill('Sorry about that. Version 3.1 fixes the sync.');
     await expect(review.getByText(/Apple checks each one/)).toBeVisible();
@@ -320,7 +316,7 @@ test.describe('growth sync', () => {
     await app.goto();
     await app.dismissStartDialog();
     await syncOnce(page);
-    await page.keyboard.press('Escape');
+    await backToEditor(page);
 
     const overview = await mcpCall(tauri, 'get_store_overview', {}, true);
     expect(overview.isError, overview.text).toBe(false);
@@ -365,8 +361,8 @@ test.describe('growth sync', () => {
       await app.goto();
       await app.dismissStartDialog();
       // Ratings come from the public lookup: a refused key must not stop them.
-      const dialog = await syncOnce(page);
-      await expect(dialog.getByText('Authentication credentials are missing or invalid.').first()).toBeVisible();
+      const view = await syncOnce(page);
+      await expect(view.getByText('Authentication credentials are missing or invalid.').first()).toBeVisible();
       const salesTries = await page.evaluate(
         () => ((window as any).__E2E_TAURI__.httpRequests as Array<{ url: string }>).filter((request) => request.url.includes('/v1/salesReports')).length
       );
@@ -401,16 +397,15 @@ test.describe('growth sync', () => {
       await connect(page);
       await app.goto();
       await app.dismissStartDialog();
-      await page.getByTitle('Growth: downloads, conversion, reviews and the store listing').click();
-      const dialog = page.getByTestId('growth-dialog');
-      await expect(dialog.getByRole('combobox', { name: 'App' })).toContainText('Pebble Notes');
+      const view = await openGrowth(page);
+      await expect(view.getByRole('combobox', { name: 'App' })).toContainText('Pebble Notes');
 
       const requests = () => page.evaluate(() => (window as any).__E2E_TAURI__.httpRequests as Array<{ url: string }>);
       const salesCount = async () => (await requests()).filter((request) => request.url.includes('/v1/salesReports')).length;
       // The first app's run has asked for all 30 days and is waiting on one.
       await expect.poll(salesCount).toBe(30);
 
-      await dialog.getByRole('combobox', { name: 'App' }).click();
+      await view.getByRole('combobox', { name: 'App' }).click();
       await page.getByRole('option', { name: 'Pebble Sketch' }).click();
       await expect.poll(async () => (await requests()).some((request) => request.url.includes('/v1/apps/3333333333/appStoreVersions'))).toBe(true);
       await page.waitForTimeout(1500);
@@ -427,7 +422,7 @@ test.describe('growth sync', () => {
           { timeout: 60_000 }
         )
         .toBe(33);
-      await expect(dialog.getByRole('button', { name: 'Sync', exact: true })).toBeVisible({ timeout: 60_000 });
+      await expect(view.getByRole('button', { name: 'Sync', exact: true })).toBeVisible({ timeout: 60_000 });
       await page.evaluate(() => (window as any).__E2E_TAURI__.releaseHttp());
       expect(await salesCount()).toBe(33);
     });
@@ -452,21 +447,21 @@ test.describe('growth sync', () => {
       await connect(page);
       await app.goto();
       await app.dismissStartDialog();
-      const dialog = await syncOnce(page);
-      await dialog.getByRole('navigation', { name: 'Growth sections' }).getByRole('button', { name: /^Listing/ }).click();
+      const view = await syncOnce(page);
+      await section(view, 'Listing').click();
 
-      await dialog.locator('#growth-field-keywords').fill('notes,journal,memo');
-      await dialog.getByRole('button', { name: 'Apply in App Store Connect' }).click();
+      await view.locator('#growth-field-keywords').fill('notes,journal,memo');
+      await view.getByRole('button', { name: 'Apply in App Store Connect' }).click();
       const patches = () =>
         page.evaluate(() => ((window as any).__E2E_TAURI__.httpRequests as Array<{ method: string; body: string | null }>).filter((request) => request.method === 'PATCH'));
       await expect.poll(async () => (await patches()).length).toBe(1);
 
       // The fields stay editable while Apple answers.
-      await dialog.locator('#growth-field-promotionalText').fill('Now with folders');
+      await view.locator('#growth-field-promotionalText').fill('Now with folders');
       expect(await page.evaluate(() => (window as any).__E2E_TAURI__.releaseHttp())).toBe(1);
 
-      await expect(dialog.getByText('Applied 1 change in App Store Connect')).toBeVisible();
-      await expect(dialog.locator('#growth-field-promotionalText')).toHaveValue('Now with folders');
+      await expect(view.getByText('Applied 1 change in App Store Connect')).toBeVisible();
+      await expect(view.locator('#growth-field-promotionalText')).toHaveValue('Now with folders');
       expect(JSON.parse((await patches())[0].body!).data.attributes).toEqual({ keywords: 'notes,journal,memo' });
       // What waits for the next apply is the new edit alone: the applied
       // keywords left the list, the promotional text did not.
@@ -486,16 +481,17 @@ test.describe('growth sync', () => {
     });
   });
 
-  test('with Growth closed, an app whose numbers got old syncs in the background and its new insights reach the toolbar', async ({ app, page }) => {
+  test('with the editor in front, an app whose numbers got old syncs in the background and its new insights reach the activity bar', async ({ app, page }) => {
     // The monitor's first pass waits a minute and a half; the clock skips it.
     await page.clock.install();
     await connect(page);
     await app.goto();
     await app.dismissStartDialog();
-    const dialog = await syncOnce(page);
-    await page.keyboard.press('Escape');
-    await expect(dialog).toBeHidden();
-    await expect(page.getByTestId('growth-badge')).toBeHidden();
+    const view = await syncOnce(page);
+    await backToEditor(page);
+    await expect(view).toBeHidden();
+    const badge = views(page).getByTestId('growth-badge');
+    await expect(badge).toBeHidden();
 
     // Seven hours on, with the insights it has now never seen.
     await page.evaluate(async (appId) => {
@@ -516,17 +512,16 @@ test.describe('growth sync', () => {
     // automatic attempt, and a sync whose numbers are still old after one
     // waits an hour before it is tried again.
     await page.clock.fastForward('01:01:30');
-    await expect(page.getByTestId('growth-badge')).toBeVisible({ timeout: 60_000 });
+    await expect(badge).toBeVisible({ timeout: 60_000 });
     await expect(page.getByText(/^Pebble Notes: (a new insight|\d+ new insights)$/)).toBeVisible();
     const requestsNow = await page.evaluate(() => ((window as any).__E2E_TAURI__.httpRequests as Array<{ url: string }>));
     expect(requestsNow.length, 'the background pass synced the app').toBeGreaterThan(requestsSoFar);
     expect(requestsNow.slice(requestsSoFar).some((request) => request.url.includes('/customerReviews'))).toBe(true);
 
-    // The button opens on the insights, and what the window shows counts as seen.
-    await page.getByTitle('Growth: downloads, conversion, reviews and the store listing').click();
-    await expect(
-      dialog.getByRole('navigation', { name: 'Growth sections' }).getByRole('button', { name: /^Insights/ })
-    ).toHaveAttribute('aria-current', 'page');
-    await expect(page.getByTestId('growth-badge')).toBeHidden();
+    // The bar's button opens on the insights, and what Growth shows counts as seen.
+    await viewButton(page, GROWTH_BUTTON).click();
+    await expect(view).toBeVisible();
+    await expect(section(view, 'Insights')).toHaveAttribute('aria-current', 'page');
+    await expect(badge).toBeHidden();
   });
 });

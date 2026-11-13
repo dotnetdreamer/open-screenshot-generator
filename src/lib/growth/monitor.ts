@@ -1,11 +1,11 @@
 // Growth's background monitor: keeps each watched app's numbers fresh while
 // the desktop app is open, and finds the insights that turned up since the
-// user last looked, so the toolbar can say so without the Growth window open.
+// user last looked, so the activity bar can say so with the editor in front.
 //
 // What it watches: apps the user has synced in Growth before (a last sync
 // time is stored for them). An account with thirty apps is not read thirty
 // times over because two of them are looked at. An app is synced when
-// autoSync.ts says it is due, which is the same rule the Growth window uses
+// autoSync.ts says it is due, which is the same rule the Growth view uses
 // and the same record of attempts, so the two never start one app twice.
 //
 // Seen insights are a list of ids per app (`insights:seen:<appId>`). The
@@ -35,7 +35,7 @@ export function isNotable(insight: Insight): boolean {
   return insight.tone !== 'neutral' && insight.weight >= 50;
 }
 
-/** The insights the Growth window would show for this data, dismissed ones left out. */
+/** The insights the Growth view would show for this data, dismissed ones left out. */
 export function appInsights(appId: string, data: GrowthData): Insight[] {
   const dismissed = new Set(data.dismissed);
   return buildInsights({
@@ -59,7 +59,7 @@ export function onInsightsSeen(listener: (appId: string) => void): () => void {
 }
 
 /**
- * Mark everything the user can now see for an app as seen. The Growth window
+ * Mark everything the user can now see for an app as seen. The Growth view
  * calls it for the app it shows.
  */
 export async function markInsightsSeen(appId: string, insights: Insight[]): Promise<void> {
@@ -94,7 +94,7 @@ export interface MonitorPassOptions {
   signal?: AbortSignal;
   /**
    * Also look for unseen insights in apps that are not due a sync. The first
-   * pass after the editor opens does, so the toolbar shows what is waiting
+   * pass after the editor opens does, so the activity bar shows what is waiting
    * from before a restart.
    */
   checkAll?: boolean;

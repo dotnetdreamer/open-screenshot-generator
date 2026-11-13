@@ -13,7 +13,7 @@ import { askAboutGrowth, type AskTurn } from '@/lib/growth/ai';
 import { today } from '@/lib/growth/dates';
 import { buildDigest } from '@/lib/growth/digest';
 import { cn } from '@/lib/utils';
-import { EmptyState, Panel, useGrowthView } from './GrowthShared';
+import { Gated, Panel, useGrowthView } from './GrowthShared';
 
 const STARTERS = [
   'Did my new screenshots work?',
@@ -86,25 +86,21 @@ export function GrowthAsk() {
 
   useEffect(() => () => controller.current?.abort(), []);
 
-  if (!view.aiAvailable && !view.onAskAgent) {
-    return (
-      <EmptyState icon={SparklesIcon} title="Set up an AI to ask questions">
-        Add an API key in the AI panel, or on the desktop app run a local model or sign in to an assistant. Answers use only the
-        numbers on this computer and go to the provider you pick, nowhere else.
-      </EmptyState>
-    );
-  }
+  const agentReason =
+    view.blocked.app ??
+    (view.onAskAgent ? null : view.agentUnavailable ?? 'Asking the agent needs Claude Code or Codex installed and signed in');
 
   return (
     <div className="flex h-full min-h-[480px] flex-col gap-3">
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto">
         {turns.length === 0 && (
           <Panel>
-            <p className="text-sm font-medium">Ask about {view.app.name}</p>
+            <p className="text-sm font-medium">{view.app.id ? `Ask about ${view.app.name}` : 'Ask about your app'}</p>
             <p className="mt-1 text-xs text-muted-foreground">
               Answers come from this app&apos;s numbers, reviews, listing and timeline on this computer
               {view.aiLabel ? `, written by ${view.aiLabel}` : ''}.
             </p>
+            {view.blocked.ai && <p className="mt-1 text-xs text-muted-foreground">{view.blocked.ai}.</p>}
             <div className="mt-3 flex flex-wrap gap-2">
               {STARTERS.map((starter) => (
                 <button
@@ -159,7 +155,7 @@ export function GrowthAsk() {
           aria-label="Your question"
         />
         <div className="flex flex-wrap items-center justify-end gap-2">
-          {view.onAskAgent && (
+          <Gated reason={agentReason}>
             <Button
               variant="outline"
               size="sm"
@@ -170,16 +166,18 @@ export function GrowthAsk() {
               <BotIcon className="mr-1.5 h-4 w-4" />
               Ask the agent
             </Button>
-          )}
+          </Gated>
           {busy ? (
             <Button size="sm" variant="ghost" onClick={() => controller.current?.abort()}>
               Stop
             </Button>
           ) : (
-            <Button size="sm" disabled={!view.aiAvailable || !draft.trim()} onClick={() => void ask(draft)}>
-              <SendIcon className="mr-1.5 h-4 w-4" />
-              Ask
-            </Button>
+            <Gated reason={view.blocked.ai}>
+              <Button size="sm" disabled={!draft.trim()} onClick={() => void ask(draft)}>
+                <SendIcon className="mr-1.5 h-4 w-4" />
+                Ask
+              </Button>
+            </Gated>
           )}
         </div>
       </div>

@@ -2,9 +2,9 @@
 
 Growth shows how your app is doing on the App Store, in the same app where you make its screenshots. It answers the questions that come after an upload: did the new screenshots sell better, which countries are looking, what are people saying, and what in the listing is costing you downloads.
 
-Open it with the chart button (an arrow going up) in the toolbar, or with **See how they sell** after an upload to App Store Connect.
+Open it with the Growth button (an arrow going up) on the bar down the left edge of the window, or with **See how they sell** after an upload to App Store Connect. The pen above it takes you back to the editor, which is as you left it.
 
-Growth needs the desktop app, because App Store Connect does not answer requests from a browser. In the web version, and in the desktop app before you connect, it shows **Juniper**, a made-up app with made-up numbers, so you can try every screen. Nothing you do to Juniper leaves your computer.
+Growth needs the desktop app, because App Store Connect does not answer requests from a browser. In the web version, and in the desktop app before you connect, every screen is there but empty, and a button that needs your app is turned off and says why when you point at it.
 
 ## Connect your app
 
@@ -23,11 +23,15 @@ What arrives, and when:
 
 Apple turns a key away when the computer's clock is more than about two minutes ahead of its own. Growth and the screenshot upload take the time from Apple's answers instead, so a clock that has drifted does not stop them.
 
-Your key and your numbers are stored on this computer, and Growth talks to Apple directly. The one exception is AI. When you ask the AI you set up to write a reply, a listing field or a report summary, or to answer a question, the reviews, listing text or numbers it needs go to that AI's provider. When you ask the Claude Code or Codex agent, it reads them with its store tools, and they go to Anthropic or OpenAI with the rest of the chat.
+Your key and your numbers are stored on this computer, and Growth talks to Apple directly. The one exception is AI. When you ask for a reply, a listing field or a report summary, or ask a question, the reviews, listing text or numbers it needs go to the AI that writes: Claude Code or Codex on your own plan, through the CLI on this computer, or the provider you set up in the AI panel. When you ask the Claude Code or Codex agent, it reads them with its store tools, and they go to Anthropic or OpenAI with the rest of the chat.
+
+## Which AI writes
+
+Under **Connection**, **AI that writes** picks it. **Automatic** picks the first of these that is ready on this computer: your Claude Code plan, then Codex, then the provider in the AI panel. If a request to the one it picked fails, it says why and does not try the next. Claude Code and Codex have to be installed and signed in; each request runs once on your plan, with no tools, and the conversation is not saved, though Codex still updates its own caches and databases in the app's Codex folder. They work in every editor window, a tab moved into a window of its own too. **Stop** ends the request, and so does closing or reloading the window that asked. A report summary or a listing translation keeps going while you look at another section, and is there when you come back. Every AI button is turned off, with the reason, until one of them can answer.
 
 ## Checking in the background
 
-While the desktop app is open, Growth keeps checking even with its window closed. Every app you have synced in Growth is synced again once its numbers are older than the setting, one app at a time. When that turns up something new, such as a drop in conversion, a rating falling or a milestone, a message says so and the Growth button shows how many new insights are waiting. Turn this off under **Connection** with **Keep checking while the app is open**. Growth cannot check while the app is closed.
+While the desktop app is open, Growth keeps checking while you work in the editor. Every app you have synced in Growth is synced again once its numbers are older than the setting, one app at a time. When that turns up something new, such as a drop in conversion, a rating falling or a milestone, a message says so and the Growth button shows how many new insights are waiting. Turn this off under **Connection** with **Keep checking while the app is open**. Growth cannot check while the app is closed.
 
 ## The screens
 
@@ -45,7 +49,7 @@ While the desktop app is open, Growth keeps checking even with its window closed
 
 **Reports.** A weekly, monthly or yearly report with the figures against the period before, the top countries, how people found the app, reviews and events. The newest yearly report is the year so far, beside the same days of the year before; the whole years before it follow. A figure is only compared when Growth has its numbers for all of the period before, and the report names the figures it could not compare. With an AI set up, **Write the summary** adds a few sentences on what changed and what to do next. Save it as PDF, Markdown or text, or copy it.
 
-**Ask AI.** Questions about your numbers, answered by the AI you set up, from the data on this computer. If you use the Claude Code or Codex agent, **Ask the agent** hands the question to it instead, and the agent can then change your screenshots in the same chat.
+**Ask AI.** Questions about your numbers, answered by the AI that writes, from the data on this computer. If you use the Claude Code or Codex agent, **Ask the agent** hands the question to it instead, and the agent can then change your screenshots in the same chat.
 
 ## How "did the new screenshots work" is measured
 

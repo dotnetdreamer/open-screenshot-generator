@@ -1,6 +1,6 @@
 "use client";
 
-// Everything the Growth window shows for one app (loadData.ts), re-read
+// Everything the Growth view shows for one app (loadData.ts), re-read
 // whenever a sync or an edit announces a change.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -14,7 +14,6 @@ export function useGrowthData(app: GrowthApp | null): GrowthData & { reload: () 
   const [data, setData] = useState<GrowthData>(EMPTY_GROWTH_DATA);
   const [epoch, setEpoch] = useState(0);
   const appId = app?.id ?? null;
-  const sample = !!app?.sample;
   const shownFor = useRef<string | null>(null);
 
   useEffect(() => {
@@ -53,9 +52,9 @@ export function useGrowthData(app: GrowthApp | null): GrowthData & { reload: () 
       cancelled = true;
       unsubscribe();
     };
-    // The app object is rebuilt by its parent; its id and kind are what matter.
+    // The app object is rebuilt by its parent; its id is what matters.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [appId, sample, epoch]);
+  }, [appId, epoch]);
 
   const reload = useCallback(() => setEpoch((value) => value + 1), []);
   return useMemo(() => ({ ...data, reload }), [data, reload]);

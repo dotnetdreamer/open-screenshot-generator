@@ -32,7 +32,7 @@ import { EVENT_KIND_LABELS, type TimelineEvent, type TimelineEventKind } from '@
 import { cn } from '@/lib/utils';
 import { TrendChart } from './GrowthCharts';
 import { impactLine } from './GrowthOverview';
-import { Delta, EmptyState, Panel, SectionTitle, useGrowthView } from './GrowthShared';
+import { Delta, EmptyState, Gated, Panel, SectionTitle, useGrowthView } from './GrowthShared';
 
 const KIND_ICON: Record<TimelineEventKind, React.ComponentType<{ className?: string }>> = {
   release: PackageIcon,
@@ -158,8 +158,7 @@ function EventRow({ event }: { event: TimelineEvent }) {
               Open {event.projectName ? `"${event.projectName}"` : 'the project'}
             </Button>
           )}
-          {/* The sample's own events are generated, so only what a person added can go. */}
-          {event.origin === 'manual' && !event.id.startsWith('sample-') && (
+          {event.origin === 'manual' && (
             <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => void deleteEvent(event)}>
               <Trash2Icon className="mr-1.5 h-3.5 w-3.5" />
               Remove
@@ -222,10 +221,12 @@ function AddEventForm() {
       <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="What happened" className="h-9 text-sm" aria-label="What happened" />
       <Input value={detail} onChange={(event) => setDetail(event.target.value)} placeholder="Details, if any" className="h-9 text-sm" aria-label="Details" />
       {error && <p className="text-xs text-destructive">{error}</p>}
-      <Button size="sm" className="w-full" onClick={() => void save()} disabled={saving}>
-        <PencilLineIcon className="mr-1.5 h-4 w-4" />
-        Add to the timeline
-      </Button>
+      <Gated reason={view.blocked.app}>
+        <Button size="sm" className="w-full" onClick={() => void save()} disabled={saving}>
+          <PencilLineIcon className="mr-1.5 h-4 w-4" />
+          Add to the timeline
+        </Button>
+      </Gated>
     </Panel>
   );
 }

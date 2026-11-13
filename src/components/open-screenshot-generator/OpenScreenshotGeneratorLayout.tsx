@@ -196,7 +196,8 @@ import { loadProjectTemplates } from '@/services/projectService';
 import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
 import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, scaleElementsToCanvas, DEVICE_FORMAT_PRESETS, type DeviceFormat, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 import { PublishDialog } from './publish/PublishDialog';
-import { GrowthDialog } from './growth/GrowthDialog';
+import { GrowthWorkspace, type GrowthRequest } from './growth/GrowthWorkspace';
+import { ActivityBar, type ActivityId } from './ActivityBar';
 import { getGrowthSettings, setGrowthSettings } from '@/lib/growth/settings';
 import { useGrowthMonitor } from '@/lib/growth/useGrowthMonitor';
 import type { GrowthTab } from './growth/GrowthShared';
@@ -1574,16 +1575,34 @@ export function OpenScreenshotGeneratorLayout() {
   // Direct-to-store upload (App Store Connect / Google Play). Desktop only,
   // see src/lib/publish; the dialog explains itself on the web build.
   const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
+  // The view on screen, switched by the activity bar (ActivityBar.tsx). The
+  // editor is the default and stays mounted under the others.
+  const [activity, setActivity] = useState<ActivityId>('editor');
+  const activityRef = useRef(activity);
+  activityRef.current = activity;
+  // The editor under another view takes no focus and no clicks. Set on the
+  // element, because React 18 renders inert only from a string, which its
+  // types refuse.
+  const editorViewRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    editorViewRef.current?.toggleAttribute('inert', activity !== 'editor');
+  }, [activity]);
   // Growth: the app's App Store numbers, reviews and listing (src/lib/growth).
-  // Its tab is chosen by whoever opens it: the toolbar opens the overview, the
-  // upload dialog's "see how they do" opens the timeline.
-  const [growthOpen, setGrowthOpen] = useState<GrowthTab | null>(null);
+  // Mounted on its first visit and kept, so it is as it was left. A request
+  // picks the section, as the upload dialog's "see how they sell" does.
+  const [growthMounted, setGrowthMounted] = useState(false);
+  const [growthRequest, setGrowthRequest] = useState<GrowthRequest | null>(null);
+  const showGrowth = useCallback((tab?: GrowthTab) => {
+    setGrowthMounted(true);
+    if (tab) setGrowthRequest((current) => ({ tab, nonce: (current?.nonce ?? 0) + 1 }));
+    setActivity('growth');
+  }, []);
   // While the desktop app runs, Growth keeps the apps synced there fresh and
   // says when something new turns up (src/lib/growth/monitor.ts). The main
   // window only: a tab window would sync the same apps a second time.
   const growthMonitor = useGrowthMonitor({
     enabled: isTauri() && !isSecondaryWindow,
-    paused: growthOpen !== null,
+    paused: activity === 'growth',
     onFound: (findings) => {
       const [first] = findings;
       const count = findings.reduce((sum, finding) => sum + finding.fresh.length, 0);
@@ -1598,7 +1617,7 @@ export function OpenScreenshotGeneratorLayout() {
             altText="Open the insights in Growth"
             onClick={() => {
               setGrowthSettings({ appId: first.app.id });
-              setGrowthOpen('insights');
+              showGrowth('insights');
             }}
           >
             Open
@@ -1607,6 +1626,24 @@ export function OpenScreenshotGeneratorLayout() {
       });
     },
   });
+  const selectActivity = useCallback(
+    (next: ActivityId) => {
+      if (next !== 'growth') {
+        setActivity(next);
+        return;
+      }
+      // With new insights waiting, Growth opens on them, in an app that has some.
+      if (growthMonitor.appIds.length > 0) {
+        if (!growthMonitor.appIds.includes(getGrowthSettings().appId ?? '')) {
+          setGrowthSettings({ appId: growthMonitor.appIds[0] });
+        }
+        showGrowth('insights');
+      } else {
+        showGrowth();
+      }
+    },
+    [growthMonitor.appIds, showGrowth]
+  );
   // Languages the Growth window asked for, ticked when the language manager opens.
   const [languagePreselect, setLanguagePreselect] = useState<string[] | undefined>(undefined);
   // The App Store header and search dialog. Opened from the store preview, it
@@ -7859,6 +7896,18 @@ export function OpenScreenshotGeneratorLayout() {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Preview mode has its own keyboard handling
       if (isPreviewOpen) return;
+      // Another view (Growth) is in front of the editor: Delete or Cmd+Z there
+      // must not change the canvas nobody can see. Backspace on anything but
+      // a text field still loses its default, as below: WebKit can take it as
+      // "go back a page", which reloads the editor.
+      if (activityRef.current !== 'editor') {
+        const typing =
+          e.target instanceof HTMLInputElement ||
+          e.target instanceof HTMLTextAreaElement ||
+          (e.target instanceof HTMLElement && e.target.isContentEditable);
+        if (e.key === 'Backspace' && !typing) e.preventDefault();
+        return;
+      }
       // The start dialog owns the keyboard while it is up. Read through a ref so
       // neither of these effects gains a dependency and re-subscribes. Without
       // this the editor shortcuts fire underneath the dialog: Cmd+V is
@@ -8045,6 +8094,8 @@ export function OpenScreenshotGeneratorLayout() {
       if (e.code !== 'Space') return;
       // Preview mode has its own keyboard handling
       if (isPreviewOpen) return;
+      // Space presses a button in Growth; it pans only the editor's canvas.
+      if (activityRef.current !== 'editor') return;
       const target = e.target;
       // Skip if we're typing in an input, textarea, etc.
       if (
@@ -11415,8 +11466,55 @@ const generateRandomProjectName = (): string => {
   return (
     <>
       {templateSelectorDialog}
+      {/* The activity bar, then the editor, then any other view drawn over
+          it. The editor stays mounted, inert while another view is in
+          front. Phones get no bar: the editor is all a phone can use. */}
+      <div className="flex min-h-svh w-full">
+      <ActivityBar
+        active={activity}
+        onSelect={selectActivity}
+        badges={{ growth: growthMonitor.unseen }}
+        actions={
+          HAS_DISCOVER
+            ? [
+                {
+                  id: 'discover',
+                  label: 'Discover',
+                  title: 'Discover, designs the community shared',
+                  icon: <CompassIcon className="h-5 w-5" />,
+                  onClick: () => openDiscover('feed'),
+                },
+              ]
+            : []
+        }
+        bottomActions={[
+          {
+            id: 'account',
+            label: accountSession ? `Account, ${accountSession.account.name}` : 'Account',
+            icon: accountSession ? (
+              <Avatar className="h-6 w-6">
+                {accountSession.account.avatarUrl && <AvatarImage src={accountSession.account.avatarUrl} alt="" />}
+                <AvatarFallback className="text-[10px]">{accountSession.account.name.slice(0, 1).toUpperCase()}</AvatarFallback>
+              </Avatar>
+            ) : (
+              <UserIcon className="h-5 w-5" />
+            ),
+            onClick: () => openAccountDialog(),
+          },
+          { id: 'settings', label: 'Settings', icon: <SettingsIcon className="h-5 w-5" />, onClick: () => setIsSettingsOpen(true) },
+          { id: 'about', label: 'About', icon: <InfoIcon className="h-5 w-5" />, onClick: () => setIsAboutOpen(true) },
+        ]}
+        className="fixed inset-y-0 left-0 hidden md:flex"
+      />
+      {/* Hidden rather than taken out of the layout: the canvas keeps its size,
+          and nothing of the editor (its toolbar sits above the view's layer)
+          shows through another view. A flex column, so the sidebar wrapper
+          inside shrinks to the window's height as it did as the page's own
+          flex item; as a block it grew to its content, and the canvas lost
+          its scroll area to the page. */}
+      <div ref={editorViewRef} className={cn('flex min-w-0 flex-1 flex-col md:pl-12', activity !== 'editor' && 'invisible')}>
       <SidebarProvider defaultOpen>
-        <Sidebar side="left" collapsible="icon" variant="sidebar" className="border-r">
+        <Sidebar side="left" collapsible="icon" variant="sidebar" className="border-r md:left-12">
           <SidebarHeader className="border-b">
             <div className="flex items-center gap-3 px-2 py-2.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
               <Logo withBackground className="h-10 w-10 shrink-0 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8" />
@@ -11432,8 +11530,10 @@ const generateRandomProjectName = (): string => {
                 Account and Settings: it is a place you go, like the canvas and
                 the palette, rather than a preference you set. The rail keeps
                 only the compass when the sidebar is collapsed to icons. */}
+            {/* On the activity bar from tablet width up; here for phones, which
+                have no bar. The same goes for Account, Settings and About. */}
             {HAS_DISCOVER && (
-            <SidebarGroup className="px-2 pb-0 pt-2 group-data-[collapsible=icon]:px-1">
+            <SidebarGroup className="px-2 pb-0 pt-2 group-data-[collapsible=icon]:px-1 md:hidden">
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton
@@ -11462,7 +11562,7 @@ const generateRandomProjectName = (): string => {
               <SidebarMenu>
                 {/* Desktop: there only while an update is ready, out, or going in. */}
                 <UpdateSidebarItem />
-                <SidebarMenuItem>
+                <SidebarMenuItem className="md:hidden">
                   <SidebarMenuButton
                     tooltip={accountSession ? `Account, ${accountSession.account.name}` : 'Account'}
                     className="w-full"
@@ -11485,7 +11585,7 @@ const generateRandomProjectName = (): string => {
                     </span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-                <SidebarMenuItem>
+                <SidebarMenuItem className="md:hidden">
                   {/* Theme, and the way back into the tips once the startup
                       checkbox is unticked. */}
                   <SidebarMenuButton tooltip="Settings" className="w-full" onClick={() => setIsSettingsOpen(true)}>
@@ -11493,7 +11593,7 @@ const generateRandomProjectName = (): string => {
                     <span className="group-data-[collapsible=icon]:hidden">Settings</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-                <SidebarMenuItem>
+                <SidebarMenuItem className="md:hidden">
                   <SidebarMenuButton tooltip="About" className="w-full" onClick={() => setIsAboutOpen(true)}>
                     <InfoIcon />
                     <span className="group-data-[collapsible=icon]:hidden">About</span>
@@ -11555,7 +11655,7 @@ const generateRandomProjectName = (): string => {
                   }
                 : undefined
             }
-            shortcutsBlocked={isTemplateSelectorOpen || isPreviewOpen}
+            shortcutsBlocked={isTemplateSelectorOpen || isPreviewOpen || activity !== 'editor'}
             desktopShortcuts={isDesktopApp}
           />
           <LoadStatusBar
@@ -11573,18 +11673,6 @@ const generateRandomProjectName = (): string => {
             onPreviewCompare={() => openPreview('compare')}
             canCompareLanguages={previewLocaleOptions.length > 1}
             onPublishToStore={() => setIsPublishDialogOpen(true)}
-            onOpenGrowth={() => {
-              // With new insights waiting, open on them, in an app that has some.
-              if (growthMonitor.appIds.length > 0) {
-                if (!growthMonitor.appIds.includes(getGrowthSettings().appId ?? '')) {
-                  setGrowthSettings({ appId: growthMonitor.appIds[0] });
-                }
-                setGrowthOpen('insights');
-              } else {
-                setGrowthOpen('overview');
-              }
-            }}
-            growthBadge={growthMonitor.unseen}
             onShareToDiscover={HAS_DISCOVER ? () => openDiscover('share') : undefined}
             // Undefined with no backend, which is what leaves the Share menu
             // holding only the community entry rather than growing three items
@@ -12354,7 +12442,10 @@ const generateRandomProjectName = (): string => {
             onCaptureVideos={handlePublishCaptureVideos}
             projectId={activeProjectId}
             projectName={currentProjectName}
-            onOpenGrowth={() => setGrowthOpen('overview')}
+            onOpenGrowth={() => {
+              setIsPublishDialogOpen(false);
+              showGrowth('overview');
+            }}
           />
 
           <LanguageManagerDialog
@@ -12367,66 +12458,6 @@ const generateRandomProjectName = (): string => {
             translationAvailable={translationAvailable}
             onApply={(next, opts) => void handleApplyLanguages(next, opts)}
             preselect={languagePreselect}
-          />
-
-          <GrowthDialog
-            open={growthOpen !== null}
-            initialTab={growthOpen ?? undefined}
-            onOpenChange={(open) => {
-              if (!open) setGrowthOpen(null);
-            }}
-            onPublish={() => setIsPublishDialogOpen(true)}
-            onLocalize={(storeLocales) => {
-              const codes = storeLocales
-                .map((storeLocale) => localeForAppleLocale(storeLocale))
-                .filter((code): code is string => !!code);
-              if (artboards.length === 0) {
-                toast({ title: 'Open a project first', description: 'The screenshots to translate live in a project.' });
-                return;
-              }
-              setLanguagePreselect(codes);
-              setIsLanguageManagerOpen(true);
-            }}
-            onAskAgent={
-              claudeAgentState.available && !isSecondaryWindow
-                ? (question) => {
-                    const { session, chat } = claudeAgentState;
-                    if (session.status === 'working' || session.status === 'starting') {
-                      claudeAgent.setPanelEnabled(true);
-                      revealDockTab('agent');
-                      toast({ title: 'The agent is busy', description: 'Wait for it to finish, or stop it in the Agent tab, then ask again.' });
-                      return;
-                    }
-                    track('growth_ask_agent');
-                    void (async () => {
-                      // A question about the numbers starts a chat of its own
-                      // rather than landing in the middle of a design chat.
-                      if (session.items.length > 0) await claudeAgent.newChat(undefined, { agent: chat.agent });
-                      claudeAgent.setPanelEnabled(true);
-                      revealDockTab('agent');
-                      if (isMobileViewport) setIsMobileDockOpen(true);
-                      await claudeAgent.send({
-                        text: `${question}\n\nRead my App Store numbers with the store tools first (get_store_overview, then the others as needed).`,
-                      });
-                    })().catch((error) =>
-                      toast({
-                        title: 'The agent could not take the question',
-                        description: error instanceof Error ? error.message : 'Try again in the Agent tab.',
-                      })
-                    );
-                  }
-                : undefined
-            }
-            onOpenProject={(projectId) => {
-              void db.projects.get(projectId).then((project) => {
-                if (!project) {
-                  toast({ title: 'That project is no longer on this device', description: 'It may have been deleted since the upload.' });
-                  return;
-                }
-                // The way a tab click opens it, live session question included.
-                handleActivateTab(projectId);
-              });
-            }}
           />
 
           <TranslationTableDialog
@@ -12634,6 +12665,77 @@ const generateRandomProjectName = (): string => {
           </Dialog>
         </SidebarInset>
       </SidebarProvider>
+      </div>
+      {growthMounted && (
+        <div className={cn('fixed inset-0 z-30 md:left-12', activity !== 'growth' && 'hidden')}>
+          <GrowthWorkspace
+            active={activity === 'growth'}
+            request={growthRequest}
+            onPublish={() => {
+              setActivity('editor');
+              setIsPublishDialogOpen(true);
+            }}
+            onLocalize={(storeLocales) => {
+              const codes = storeLocales
+                .map((storeLocale) => localeForAppleLocale(storeLocale))
+                .filter((code): code is string => !!code);
+              if (artboards.length === 0) {
+                toast({ title: 'Open a project first', description: 'The screenshots to translate live in a project.' });
+                return;
+              }
+              setActivity('editor');
+              setLanguagePreselect(codes);
+              setIsLanguageManagerOpen(true);
+            }}
+            // A tab window keeps out of the coding agents (isSecondaryWindow),
+            // though Growth's own AI buttons work in every editor window.
+            agentUnavailable={isSecondaryWindow ? 'The agent runs in the main window only. Ask it there' : undefined}
+            onAskAgent={
+              claudeAgentState.available && !isSecondaryWindow
+                ? (question) => {
+                    setActivity('editor');
+                    const { session, chat } = claudeAgentState;
+                    if (session.status === 'working' || session.status === 'starting') {
+                      claudeAgent.setPanelEnabled(true);
+                      revealDockTab('agent');
+                      toast({ title: 'The agent is busy', description: 'Wait for it to finish, or stop it in the Agent tab, then ask again.' });
+                      return;
+                    }
+                    track('growth_ask_agent');
+                    void (async () => {
+                      // A question about the numbers starts a chat of its own
+                      // rather than landing in the middle of a design chat.
+                      if (session.items.length > 0) await claudeAgent.newChat(undefined, { agent: chat.agent });
+                      claudeAgent.setPanelEnabled(true);
+                      revealDockTab('agent');
+                      if (isMobileViewport) setIsMobileDockOpen(true);
+                      await claudeAgent.send({
+                        text: `${question}\n\nRead my App Store numbers with the store tools first (get_store_overview, then the others as needed).`,
+                      });
+                    })().catch((error) =>
+                      toast({
+                        title: 'The agent could not take the question',
+                        description: error instanceof Error ? error.message : 'Try again in the Agent tab.',
+                      })
+                    );
+                  }
+                : undefined
+            }
+            onOpenProject={(projectId) => {
+              void db.projects.get(projectId).then((project) => {
+                if (!project) {
+                  toast({ title: 'That project is no longer on this device', description: 'It may have been deleted since the upload.' });
+                  return;
+                }
+                // The way a tab click opens it, live session question included.
+                setActivity('editor');
+                handleActivateTab(projectId);
+              });
+            }}
+          />
+        </div>
+      )}
+      </div>
     </>
   );
 }

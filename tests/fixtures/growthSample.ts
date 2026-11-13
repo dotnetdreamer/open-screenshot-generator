@@ -1,7 +1,8 @@
-// A made-up app with half a year of plausible numbers, for three readers:
-// people on the web build (which cannot reach App Store Connect, see
-// isStorePublishingAvailable), people on the desktop before they connect a key,
-// and the tests, which need every screen filled the same way on every run.
+// A made-up app with half a year of plausible numbers, for the tests: the
+// unit tests run the metrics and insight rules on it, and the Growth specs
+// write it into the growth database of a connected test account
+// (tests/e2e/specs/growth.spec.ts), so every screen is filled the same way on
+// every run. The app itself only ever shows what App Store Connect sent.
 //
 // The story it tells is the one the feature exists for: a new screenshot set
 // uploaded to version 2.4 goes live with that release and lifts conversion by
@@ -13,8 +14,8 @@
 // yesterday, so the numbers are identical on every machine and the dates always
 // look current.
 
-import { addDays, today } from './dates';
-import { emptyFeedDay, feedDayFor, mergeFeed, type FeedBatch } from './records';
+import { addDays, today } from '@/lib/growth/dates';
+import { emptyFeedDay, feedDayFor, mergeFeed, type FeedBatch } from '@/lib/growth/records';
 import type {
   DayRecord,
   GrowthApp,
@@ -23,7 +24,7 @@ import type {
   StoreReview,
   TerritoryRating,
   TimelineEvent,
-} from './types';
+} from '@/lib/growth/types';
 
 export const SAMPLE_APP_ID = 'sample-app';
 
@@ -31,7 +32,6 @@ export const SAMPLE_APP: GrowthApp = {
   id: SAMPLE_APP_ID,
   name: 'Juniper: Habit Tracker',
   bundleId: 'com.example.juniper',
-  sample: true,
 };
 
 /** Days of history. */

@@ -4,14 +4,14 @@
 //
 // The first pass waits a minute and a half after the editor opens, so it does
 // not compete with a project loading, and also looks at apps that are not due
-// a sync so the toolbar shows what was waiting from before a restart. After
-// that a pass every 15 minutes, each syncing only what is due. Passes stop
-// while the Growth window is open, since the window syncs its app itself, and
+// a sync so the activity bar shows what was waiting from before a restart.
+// After that a pass every 15 minutes, each syncing only what is due. Passes
+// stop while Growth is the view on screen, since it syncs its app itself, and
 // never overlap.
 //
 // What a pass finds is announced once (onFound), and the count of notable
-// insights not yet seen is kept for the toolbar's Growth button. An app drops
-// out of the count when the Growth window shows it (onInsightsSeen).
+// insights not yet seen is kept for Growth's button on the activity bar. An
+// app drops out of the count when the Growth view shows it (onInsightsSeen).
 
 import { useEffect, useRef, useState } from 'react';
 import { getStoreCredentials, isStorePublishingAvailable } from '@/lib/publish';
@@ -24,7 +24,7 @@ const PASS_EVERY_MS = 15 * 60_000;
 export interface GrowthMonitorOptions {
   /** Desktop main window only: a tab window would sync the same apps again. */
   enabled: boolean;
-  /** True while the Growth window is open. */
+  /** True while Growth is the view on screen. */
   paused: boolean;
   /** Insights no earlier pass reported, at most once each. */
   onFound: (findings: MonitorFinding[]) => void;

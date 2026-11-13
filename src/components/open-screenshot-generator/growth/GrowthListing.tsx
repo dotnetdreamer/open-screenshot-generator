@@ -35,7 +35,16 @@ import { addListingLanguage, applyListingChanges, editableAppInfoId, fetchListin
 import { announceGrowthChange, writeListing } from '@/lib/growth/db';
 import { recordListingChange } from '@/lib/growth/events';
 import { cleanKeywords, collapseChanges, fieldLength, listingScore } from '@/lib/growth/listingChecks';
-import { rebaseChanges, setListingAiIssues, setListingChanges, useListingDrafts, withoutApplied } from '@/lib/growth/listingDrafts';
+import {
+  rebaseChanges,
+  setListingAiIssues,
+  setListingChanges,
+  setListingJob,
+  setListingNote,
+  useListingDrafts,
+  withoutApplied,
+  type ListingNote,
+} from '@/lib/growth/listingDrafts';
 import { LISTING_LANGUAGES, listingLanguageName } from '@/lib/growth/territories';
 import {
   LISTING_FIELDS,
@@ -47,7 +56,7 @@ import {
   type ListingSnapshot,
 } from '@/lib/growth/types';
 import { cn } from '@/lib/utils';
-import { EmptyState, Panel, SectionTitle, useGrowthView } from './GrowthShared';
+import { EmptyState, Gated, Panel, SectionTitle, useGrowthView } from './GrowthShared';
 
 const MULTILINE: ListingField[] = ['description', 'whatsNew', 'promotionalText'];
 
@@ -76,8 +85,9 @@ export function GrowthListing() {
   const view = useGrowthView();
   const listing = view.data.listing;
   const [locale, setLocale] = useState<string>(() => view.tabOptions.locale ?? listing?.primaryLocale ?? 'en-US');
-  // Edits and AI findings live outside this screen (listingDrafts.ts): the
-  // window mounts a new one for every section, and they must survive that.
+  // Edits, AI findings and the action under way live outside this screen
+  // (listingDrafts.ts): the window mounts a new one for every section, and an
+  // action still running when the user comes back must show, not start again.
   const appId = view.app.id;
   const drafts = useListingDrafts(appId);
   const changes = useMemo(() => (listing ? rebaseChanges(drafts.changes, listing) : drafts.changes), [drafts.changes, listing]);
@@ -87,11 +97,12 @@ export function GrowthListing() {
     [appId]
   );
   const setAiIssues = useCallback((issues: ListingIssue[]) => setListingAiIssues(appId, issues), [appId]);
-  const [busy, setBusy] = useState<string | null>(null);
-  const [message, setMessage] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null);
+  const busy = drafts.job?.label ?? null;
+  const message = drafts.note;
+  const setMessage = useCallback((note: ListingNote | null) => setListingNote(appId, note), [appId]);
   const [translateFields, setTranslateFields] = useState<ListingField[]>(['subtitle', 'keywords', 'promotionalText', 'description', 'whatsNew']);
   // Which language the AI is translating into, while it does (each can take a minute).
-  const [translating, setTranslating] = useState<string | null>(null);
+  const translating = drafts.job?.label === 'translate' ? drafts.job.progress ?? null : null;
   const [newLanguage, setNewLanguage] = useState('');
 
   useEffect(() => {
@@ -106,7 +117,7 @@ export function GrowthListing() {
   if (!listing) {
     return (
       <EmptyState icon={InfoIcon} title="No listing loaded">
-        {view.data.status.listing.message ?? 'Sync the app to load its listing from App Store Connect.'}
+        {view.blocked.app ? `${view.blocked.app}.` : view.data.status.listing.message ?? 'Sync the app to load its listing from App Store Connect.'}
       </EmptyState>
     );
   }
@@ -132,7 +143,7 @@ export function GrowthListing() {
     });
 
   const run = async (label: string, task: () => Promise<void>) => {
-    setBusy(label);
+    setListingJob(appId, { label });
     setMessage(null);
     try {
       await task();
@@ -140,7 +151,7 @@ export function GrowthListing() {
       console.error('Growth listing action failed', error);
       setMessage({ tone: 'error', text: error instanceof Error ? error.message : 'That did not work. Try again' });
     } finally {
-      setBusy(null);
+      setListingJob(appId, null);
     }
   };
 
@@ -165,50 +176,33 @@ export function GrowthListing() {
           throw new Error(`${listingLanguageName(change.locale)} ${LISTING_FIELD_LABELS[change.field].toLowerCase()} is over its ${LISTING_LIMITS[change.field]} character limit`);
         }
       }
-      if (view.sample) {
-        const next: ListingSnapshot = {
-          ...listing,
-          locales: listing.locales.map((entry) => {
-            const updated = { ...entry };
-            for (const change of toApply.filter((item) => item.locale === entry.locale)) updated[change.field] = change.after;
-            return updated;
-          }),
-          fetchedAt: Date.now(),
-        };
-        await writeListing(next);
-        announceGrowthChange(view.app.id);
-        setMessage({ tone: 'ok', text: `Applied ${toApply.length} change${toApply.length === 1 ? '' : 's'} to the sample listing on this computer` });
-        setChanges((latest) => withoutApplied(latest, toApply));
-        setAiIssues([]);
-      } else {
-        if (!view.credentials) throw new Error('Connect an App Store Connect key first');
-        const result = await applyListingChanges(view.credentials, listing, toApply);
-        const took = new Set(result.applied);
-        const applied = toApply.filter((change) => took.has(`${change.locale}:${change.field}`));
-        if (applied.length > 0) {
-          // A change shows on the store when the version it was written to
-          // does, so only an edit to the live version counts from today.
-          await recordListingChange({
-            appId: view.app.id,
-            fields: Array.from(new Set(applied.map((change) => LISTING_FIELD_LABELS[change.field].toLowerCase()))),
-            locales: Array.from(new Set(applied.map((change) => change.locale))),
-            versionString: isLiveState(listing.state) ? undefined : listing.versionString,
-          });
-          await refreshListing();
-        }
-        // What Apple refused stays in the list, to fix and apply again, and so
-        // does anything typed while Apple was answering.
-        setChanges((latest) => withoutApplied(latest, applied));
-        if (applied.length > 0) setAiIssues([]);
-        setMessage(
-          result.warnings.length > 0
-            ? { tone: 'error', text: `Applied ${applied.length} of ${toApply.length}. ${result.warnings.join(' ')}` }
-            : { tone: 'ok', text: `Applied ${applied.length} change${applied.length === 1 ? '' : 's'} in App Store Connect` }
-        );
+      if (!view.credentials) throw new Error('Connect an App Store Connect key first');
+      const result = await applyListingChanges(view.credentials, listing, toApply);
+      const took = new Set(result.applied);
+      const applied = toApply.filter((change) => took.has(`${change.locale}:${change.field}`));
+      if (applied.length > 0) {
+        // A change shows on the store when the version it was written to
+        // does, so only an edit to the live version counts from today.
+        await recordListingChange({
+          appId: view.app.id,
+          fields: Array.from(new Set(applied.map((change) => LISTING_FIELD_LABELS[change.field].toLowerCase()))),
+          locales: Array.from(new Set(applied.map((change) => change.locale))),
+          versionString: isLiveState(listing.state) ? undefined : listing.versionString,
+        });
+        await refreshListing();
       }
+      // What Apple refused stays in the list, to fix and apply again, and so
+      // does anything typed while Apple was answering.
+      setChanges((latest) => withoutApplied(latest, applied));
+      if (applied.length > 0) setAiIssues([]);
+      setMessage(
+        result.warnings.length > 0
+          ? { tone: 'error', text: `Applied ${applied.length} of ${toApply.length}. ${result.warnings.join(' ')}` }
+          : { tone: 'ok', text: `Applied ${applied.length} change${applied.length === 1 ? '' : 's'} in App Store Connect` }
+      );
     });
 
-  const canApply = view.canWrite || view.sample;
+  const applyReason = view.canWrite ? null : view.blocked.app ?? 'Applying needs the desktop app and an App Store Connect key';
   const addable = LISTING_LANGUAGES.filter((code) => !listing.locales.some((entry) => entry.locale === code));
 
   return (
@@ -237,7 +231,7 @@ export function GrowthListing() {
                 </p>
                 <p className="text-[11px] text-muted-foreground">listing score</p>
               </div>
-              {view.aiAvailable && (
+              <Gated reason={view.blocked.ai}>
                 <Button
                   variant="outline"
                   size="sm"
@@ -253,7 +247,7 @@ export function GrowthListing() {
                   {busy === 'ai-review' ? <Loader2Icon className="mr-1.5 h-4 w-4 animate-spin" /> : <SparklesIcon className="mr-1.5 h-4 w-4" />}
                   Proofread with AI
                 </Button>
-              )}
+              </Gated>
             </div>
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-1.5" role="tablist" aria-label="Listing languages">
@@ -365,22 +359,30 @@ export function GrowthListing() {
                         Clean up
                       </Button>
                     )}
-                    {view.aiAvailable && editable.ok && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 px-2 text-[11px]"
-                        disabled={busy !== null}
-                        onClick={() =>
-                          void run(`suggest:${field}`, async () => {
-                            const after = await suggestListingField({ listing, locale: current.locale, field });
-                            upsert([{ locale: current.locale, field, before: current[field], after, reason: 'Written by AI' }]);
-                          })
-                        }
-                      >
-                        {busy === `suggest:${field}` ? <Loader2Icon className="mr-1 h-3 w-3 animate-spin" /> : <SparklesIcon className="mr-1 h-3 w-3" />}
-                        Suggest
-                      </Button>
+                    {editable.ok && (
+                      <Gated reason={view.blocked.ai}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-[11px]"
+                          disabled={busy !== null}
+                          onClick={() =>
+                            void run(`suggest:${field}`, async () => {
+                              const after = await suggestListingField({ listing, locale: current.locale, field });
+                              // The text on the store, or the edit waiting: as a change it
+                              // would be dropped, or would undo the edit, without a word.
+                              if (after === current[field] || after === valueOf(field)) {
+                                setMessage({ tone: 'ok', text: `The AI would keep the ${LISTING_FIELD_LABELS[field].toLowerCase()} as it is` });
+                                return;
+                              }
+                              upsert([{ locale: current.locale, field, before: current[field], after, reason: 'Written by AI' }]);
+                            })
+                          }
+                        >
+                          {busy === `suggest:${field}` ? <Loader2Icon className="mr-1 h-3 w-3 animate-spin" /> : <SparklesIcon className="mr-1 h-3 w-3" />}
+                          Suggest
+                        </Button>
+                      </Gated>
                     )}
                     <span className={cn('text-[11px] tabular-nums', length > limit ? 'text-destructive' : 'text-muted-foreground')}>
                       {length} / {limit}
@@ -397,7 +399,7 @@ export function GrowthListing() {
             );
           })}
 
-          {view.aiAvailable && current.locale === listing.primaryLocale && listing.locales.length > 1 && (
+          {current.locale === listing.primaryLocale && listing.locales.length > 1 && (
             <div className="space-y-2 rounded-md border border-dashed p-3">
               <p className="text-xs font-medium">Translate into the other {listing.locales.length - 1} languages</p>
               <div className="flex flex-wrap gap-3">
@@ -413,33 +415,36 @@ export function GrowthListing() {
                   </label>
                 ))}
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={busy !== null || translateFields.length === 0}
-                onClick={() =>
-                  void run('translate', async () => {
-                    const others = listing.locales.map((entry) => entry.locale).filter((code) => code !== listing.primaryLocale);
-                    const result = await translateListingFields({
-                      listing,
-                      from: listing.primaryLocale,
-                      to: others,
-                      fields: translateFields,
-                      onProgress: (code, index, total) => setTranslating(`${listingLanguageName(code)}, ${index + 1} of ${total}`),
-                    }).finally(() => setTranslating(null));
-                    upsert(result.changes.filter((change) => fieldEditable(listing, change.field).ok));
-                    setMessage({
-                      tone: result.failed.length > 0 ? 'error' : 'ok',
-                      text: `${result.changes.length} translated field${result.changes.length === 1 ? '' : 's'} added to the suggested changes${
-                        result.failed.length > 0 ? `. No answer for ${result.failed.map(listingLanguageName).join(', ')}` : ''
-                      }`,
-                    });
-                  })
-                }
-              >
-                {busy === 'translate' ? <Loader2Icon className="mr-1.5 h-4 w-4 animate-spin" /> : <LanguagesIcon className="mr-1.5 h-4 w-4" />}
-                Translate with AI
-              </Button>
+              <Gated reason={view.blocked.ai}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={busy !== null || translateFields.length === 0}
+                  onClick={() =>
+                    void run('translate', async () => {
+                      const others = listing.locales.map((entry) => entry.locale).filter((code) => code !== listing.primaryLocale);
+                      const result = await translateListingFields({
+                        listing,
+                        from: listing.primaryLocale,
+                        to: others,
+                        fields: translateFields,
+                        onProgress: (code, index, total) =>
+                          setListingJob(appId, { label: 'translate', progress: `${listingLanguageName(code)}, ${index + 1} of ${total}` }),
+                      });
+                      upsert(result.changes.filter((change) => fieldEditable(listing, change.field).ok));
+                      setMessage({
+                        tone: result.failed.length > 0 ? 'error' : 'ok',
+                        text: `${result.changes.length} translated field${result.changes.length === 1 ? '' : 's'} added to the suggested changes${
+                          result.failed.length > 0 ? `. No answer for ${result.failed.map(listingLanguageName).join(', ')}` : ''
+                        }`,
+                      });
+                    })
+                  }
+                >
+                  {busy === 'translate' ? <Loader2Icon className="mr-1.5 h-4 w-4 animate-spin" /> : <LanguagesIcon className="mr-1.5 h-4 w-4" />}
+                  Translate with AI
+                </Button>
+              </Gated>
               {translating && (
                 <p className="text-[11px] text-muted-foreground" role="status">
                   Translating into {translating}
@@ -484,10 +489,12 @@ export function GrowthListing() {
             </ul>
           )}
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" disabled={pending.length === 0 || busy !== null || !canApply} onClick={() => void apply()} title={canApply ? undefined : 'Applying needs the desktop app and an App Store Connect key'}>
-              {busy === 'apply' ? <Loader2Icon className="mr-1.5 h-4 w-4 animate-spin" /> : <UploadCloudIcon className="mr-1.5 h-4 w-4" />}
-              {view.sample ? 'Apply to the sample' : 'Apply in App Store Connect'}
-            </Button>
+            <Gated reason={applyReason}>
+              <Button size="sm" disabled={pending.length === 0 || busy !== null} onClick={() => void apply()}>
+                {busy === 'apply' ? <Loader2Icon className="mr-1.5 h-4 w-4 animate-spin" /> : <UploadCloudIcon className="mr-1.5 h-4 w-4" />}
+                Apply in App Store Connect
+              </Button>
+            </Gated>
             {pending.length > 0 && (
               <Button size="sm" variant="ghost" onClick={() => setChanges([])}>
                 Discard all
@@ -565,7 +572,7 @@ export function GrowthListing() {
 function LiveScreenshots() {
   const view = useGrowthView();
   const live = view.data.live;
-  if (view.sample || !live || live.screenshotUrls.length === 0) {
+  if (!live || live.screenshotUrls.length === 0) {
     return (
       <Panel className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="min-w-0 flex-1">
