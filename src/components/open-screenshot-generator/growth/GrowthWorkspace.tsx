@@ -1,21 +1,24 @@
 "use client";
 
-// Growth: how the app is doing on the App Store, in the same window as the
-// screenshots that sell it. It is one of the views the activity bar switches
-// between (ActivityBar.tsx), beside the editor.
+// Growth: how the app is doing on the App Store or Google Play, in the same
+// window as the screenshots that sell it. It is one of the views the activity
+// bar switches between (ActivityBar.tsx), beside the editor.
 //
-// It reads App Store Connect with the key the upload dialog already has, keeps
-// everything in a database on this computer (src/lib/growth/db.ts), and works
-// out the insights here without any AI. AI is used where it writes something:
-// a review reply, a listing field, a report summary, an answer.
+// It reads App Store Connect and Google Play with the keys the upload dialog
+// already has, keeps everything in a database on this computer
+// (src/lib/growth/db.ts), and works out the insights here without any AI. AI is
+// used where it writes something: a review reply, a listing field, a report
+// summary, an answer. The picker lists the App Store Connect account's apps and
+// the Google Play app of the service account key (Play has no list of apps to
+// ask for, so the upload dialog's package name names it).
 //
 // What no store dashboard can do, and this one does, is tie the numbers back
 // to the designs: every screenshot upload from the editor lands on the
 // timeline, and the overview measures the conversion rate before and after the
 // version carrying it went live.
 //
-// Only real apps are shown. Without one (the web build, which cannot reach App
-// Store Connect, or the desktop app before a key is connected) every screen is
+// Only real apps are shown. Without one (the web build, which cannot reach the
+// stores, or the desktop app before a key is connected) every screen is
 // there and empty, and each action is disabled with the reason (`blocked`).
 //
 // The view stays mounted once opened, so the section, its filters and a sync
@@ -55,7 +58,7 @@ import { track } from '@/lib/analytics';
 import { growthAiLabel, growthAiUnavailableReason, isGrowthAiAvailable, onGrowthAiChange } from '@/lib/growth/ai';
 import { listApps, type AscApp } from '@/lib/growth/asc';
 import { addDays, formatWindow, today } from '@/lib/growth/dates';
-import { readMeta, writeMeta } from '@/lib/growth/db';
+import { onGrowthChange, readMeta, writeMeta } from '@/lib/growth/db';
 import { formatAgo } from '@/lib/growth/format';
 import { buildInsights } from '@/lib/growth/insights';
 import { checkListing } from '@/lib/growth/listingChecks';
@@ -63,6 +66,9 @@ import { EMPTY_GROWTH_DATA } from '@/lib/growth/loadData';
 import { completeThrough, defaultWindow, indexRecords } from '@/lib/growth/metrics';
 import { getGrowthSettings, useGrowthSettings } from '@/lib/growth/settings';
 import { metaKeys, syncApp } from '@/lib/growth/sync';
+import { bucketFromUri } from '@/lib/growth/play';
+import { syncPlayApp } from '@/lib/growth/playSync';
+import { STORE_WORDS, isPlayApp, playAppId, storeOf } from '@/lib/growth/stores';
 import { dueForAutoSync, forgetAutoSync, noteAutoSync } from '@/lib/growth/autoSync';
 import { appsListKey, markInsightsSeen } from '@/lib/growth/monitor';
 import type { GrowthApp, SyncProgress, SyncStatus } from '@/lib/growth/types';
@@ -77,7 +83,7 @@ import { GrowthMarkets } from './GrowthMarkets';
 import { GrowthOverview } from './GrowthOverview';
 import { GrowthReports } from './GrowthReports';
 import { GrowthReviews } from './GrowthReviews';
-import { Gated, GrowthProvider, type GrowthTab, type GrowthTabOptions, type GrowthView } from './GrowthShared';
+import { Gated, GrowthProvider, StoreImage, type GrowthTab, type GrowthTabOptions, type GrowthView } from './GrowthShared';
 import { GrowthTimeline } from './GrowthTimeline';
 
 const DESKTOP_URL = 'https://openscrgen.app';
@@ -133,6 +139,7 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
   const desktop = mounted && isStorePublishingAvailable();
   const { credentials } = useStoreCredentials();
   const key = credentials.appstore;
+  const playKey = credentials.playstore;
   const [settings, setSettings] = useGrowthSettings();
 
   const [apps, setApps] = useState<AscApp[]>([]);
@@ -174,9 +181,39 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
 
   useEffect(() => {
     if (!active) return;
-    track('growth_open', { connected: !!key && desktop });
+    track('growth_open', { connected: (!!key || !!playKey) && desktop });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
+
+  // The Google Play app of the service account key, named after its store
+  // page once a refresh has read it (playSync.ts keeps the name and icon).
+  const playPackage = desktop ? playKey?.packageName.trim() || null : null;
+  const playId = playPackage ? playAppId(playPackage) : null;
+  const [playMeta, setPlayMeta] = useState<{ name?: string; iconUrl?: string | null } | null>(null);
+  useEffect(() => {
+    setPlayMeta(null);
+    if (!playId) return;
+    let cancelled = false;
+    const read = () =>
+      void readMeta<{ name?: string; iconUrl?: string | null }>(metaKeys.playApp(playId)).then((value) => {
+        if (!cancelled) setPlayMeta(value ?? null);
+      });
+    read();
+    const unsubscribe = onGrowthChange((changed) => {
+      if (changed === null || changed === playId) read();
+    });
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, [playId]);
+  const playApp: GrowthApp | null = useMemo(
+    () =>
+      playId && playPackage
+        ? { id: playId, name: playMeta?.name || playPackage, bundleId: playPackage, iconUrl: playMeta?.iconUrl ?? undefined }
+        : null,
+    [playId, playPackage, playMeta]
+  );
 
   // The apps on the account: the last list at once, then a fresh one.
   const keyId = key ? `${key.issuerId}:${key.keyId}` : null;
@@ -214,11 +251,19 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
   }, [desktop, keyId]);
 
   const picked: GrowthApp | null = useMemo(
-    () => apps.find((choice) => choice.id === settings.appId) ?? apps[0] ?? null,
-    [apps, settings.appId]
+    () =>
+      apps.find((choice) => choice.id === settings.appId) ??
+      (playApp && playApp.id === settings.appId ? playApp : null) ??
+      apps[0] ??
+      playApp ??
+      null,
+    [apps, playApp, settings.appId]
   );
   const app = picked ?? NO_APP;
   const ascApp = picked ? apps.find((entry) => entry.id === picked.id) : undefined;
+  const store = picked ? storeOf(picked.id) : 'appstore';
+  const words = STORE_WORDS[store];
+  const anyApps = apps.length > 0 || !!playApp;
 
   const loadedData = useGrowthData(picked);
   // With no app there is nothing to wait for: the screens draw empty at once.
@@ -234,10 +279,10 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
     ? 'Loading'
     : !desktop
       ? 'Growth works in the desktop app only'
-      : !key
-        ? 'Add your App Store Connect API key under Setup first'
-        : picked
-          ? null
+      : picked
+        ? null
+        : !key
+          ? 'Add your App Store Connect API key or Google Play service account key under Setup first'
           : appsError
             ? 'App Store Connect did not send your apps. Check your API key under Setup'
             : appsListed !== keyId
@@ -247,9 +292,12 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
   const runSync = useCallback(() => {
     // Read at call time rather than from the render: a key saved a moment ago
     // under Setup is in the store before this component re-renders.
-    const latestKey = getStoreCredentials().appstore;
-    if (!desktop || !latestKey || !ascApp) return;
-    const id = ascApp.id;
+    const latest = getStoreCredentials();
+    if (!desktop || !picked) return;
+    const id = picked.id;
+    const play = isPlayApp(id);
+    const playCredentials = play && latest.playstore && playAppId(latest.playstore.packageName) === id ? latest.playstore : null;
+    if (play ? !playCredentials : !latest.appstore || !ascApp) return;
     // A sync the background monitor started is joined (syncApp hands back the
     // one running), so the header shows it rather than a Refresh that does nothing.
     if (controllers.current.has(id)) return;
@@ -259,16 +307,16 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
       setSyncs((all) => (all[id] ? { ...all, [id]: { ...all[id], ...value } } : all));
     setSyncs((all) => ({ ...all, [id]: { progress: null, status: null } }));
     const current = getGrowthSettings();
-    void syncApp({
-      credentials: latestKey,
-      app: ascApp,
-      allApps: apps,
-      vendorNumber: current.vendorNumber,
+    const callbacks = {
       historyDays: current.historyDays,
       signal: stop.signal,
-      onStatus: (next) => patch({ status: next }),
-      onProgress: (next) => patch({ progress: next }),
-    })
+      onStatus: (next: SyncStatus) => patch({ status: next }),
+      onProgress: (next: SyncProgress | null) => patch({ progress: next }),
+    };
+    const work = playCredentials
+      ? syncPlayApp({ ...callbacks, credentials: playCredentials, app: picked, bucket: bucketFromUri(current.playReportsUri) })
+      : syncApp({ ...callbacks, credentials: latest.appstore!, app: ascApp!, allApps: apps, vendorNumber: current.vendorNumber });
+    void work
       .catch((error) => console.error('Growth sync failed', error))
       .finally(() => {
         // Stopped before it finished: the next look may try again at once.
@@ -281,18 +329,18 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
         });
         reload();
       });
-  }, [desktop, ascApp, apps, reload]);
+  }, [desktop, picked, ascApp, apps, reload]);
 
   // Sync when the last one is older than the setting says: on showing, and
   // again whenever the numbers age past it with the view on screen. The
   // attempt is shared with the background monitor (autoSync.ts), so a sync
   // that fails is retried an hour later, not on every render.
   useEffect(() => {
-    if (!active || !data.loaded || !ascApp) return;
-    if (!dueForAutoSync(ascApp.id, data.lastSync, settings.refreshHours)) return;
-    noteAutoSync(ascApp.id);
+    if (!active || !data.loaded || !picked || (!ascApp && !isPlayApp(picked.id))) return;
+    if (!dueForAutoSync(picked.id, data.lastSync, settings.refreshHours)) return;
+    noteAutoSync(picked.id);
     runSync();
-  }, [active, data.loaded, data.lastSync, ascApp, settings.refreshHours, runSync, staleCheck]);
+  }, [active, data.loaded, data.lastSync, picked, ascApp, settings.refreshHours, runSync, staleCheck]);
 
   // Syncs carry on with the editor in front, and stop when the view goes
   // with its window.
@@ -350,6 +398,8 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
 
   const view: GrowthView = {
     app,
+    store,
+    words,
     data: { ...data, status },
     byDate,
     window: span,
@@ -359,7 +409,8 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
     dismissedInsights,
     listingIssues,
     credentials: key,
-    canWrite: desktop && !!key && !!picked,
+    playCredentials: playKey,
+    canWrite: desktop && !!picked && (store === 'playstore' ? !!playKey : !!key),
     blocked: {
       app: appReason,
       ai: appReason ?? (aiAvailable ? null : aiReason ?? 'Set up an AI first'),
@@ -401,14 +452,13 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
       <header className="flex flex-wrap items-center gap-2 border-b px-4 py-3">
         <div className="flex min-w-0 items-center gap-2">
           {iconUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={iconUrl} alt="" className="h-8 w-8 shrink-0 rounded-lg border" />
+            <StoreImage src={iconUrl} alt="" className="h-8 w-8 shrink-0 rounded-lg border" />
           ) : (
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--growth-series))]/15 text-[hsl(var(--growth-series))]">
               <BarChart3Icon className="h-4 w-4" />
             </div>
           )}
-          <Gated reason={apps.length === 0 ? appReason : null}>
+          <Gated reason={anyApps ? null : appReason}>
             <Select value={picked?.id ?? ''} onValueChange={(value) => setSettings({ appId: value })}>
               <SelectTrigger className="h-9 max-w-[280px] border-0 px-2 text-sm font-semibold shadow-none" aria-label="App">
                 <SelectValue placeholder="No app yet" />
@@ -416,7 +466,7 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
               <SelectContent>
                 {apps.length > 0 && (
                   <SelectGroup>
-                    <SelectLabel className="text-xs">Your apps</SelectLabel>
+                    <SelectLabel className="text-xs">{playApp ? 'App Store' : 'Your apps'}</SelectLabel>
                     {apps.map((choice) => (
                       <SelectItem key={choice.id} value={choice.id} className="text-sm">
                         {choice.name}
@@ -424,9 +474,20 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
                     ))}
                   </SelectGroup>
                 )}
+                {playApp && (
+                  <SelectGroup>
+                    <SelectLabel className="text-xs">Google Play</SelectLabel>
+                    <SelectItem value={playApp.id} className="text-sm">
+                      {playApp.name}
+                    </SelectItem>
+                  </SelectGroup>
+                )}
               </SelectContent>
             </Select>
           </Gated>
+          {picked && playApp && apps.length > 0 && (
+            <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">{words.store}</span>
+          )}
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <span className="hidden text-xs text-muted-foreground lg:inline">
@@ -451,7 +512,7 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
             </Button>
           ) : (
             <Gated reason={appReason}>
-              <Button variant="outline" size="sm" className="h-8" onClick={runSync} title={data.lastSync ? `Updated ${formatAgo(data.lastSync)}` : 'Get the latest numbers from Apple'}>
+              <Button variant="outline" size="sm" className="h-8" onClick={runSync} title={data.lastSync ? `Updated ${formatAgo(data.lastSync)}` : `Get the latest numbers from ${words.owner}`}>
                 <RefreshCwIcon className="mr-1.5 h-3.5 w-3.5" />
                 Refresh
               </Button>

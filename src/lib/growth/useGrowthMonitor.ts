@@ -70,11 +70,11 @@ export function useGrowthMonitor({ enabled, paused, onFound }: GrowthMonitorOpti
     const pass = async () => {
       if (running || pausedRef.current || stop.signal.aborted) return;
       if (!isStorePublishingAvailable()) return;
-      const credentials = getStoreCredentials().appstore;
-      if (!credentials) return;
+      const { appstore, playstore } = getStoreCredentials();
+      if (!appstore && !playstore) return;
       running = true;
       try {
-        const findings = await runMonitorPass({ credentials, signal: stop.signal, checkAll: first });
+        const findings = await runMonitorPass({ credentials: appstore, playCredentials: playstore, signal: stop.signal, checkAll: first });
         first = false;
         if (stop.signal.aborted) return;
         setUnseen((current) => {

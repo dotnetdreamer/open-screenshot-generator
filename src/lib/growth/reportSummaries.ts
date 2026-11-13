@@ -11,6 +11,7 @@
 
 import { useEffect, useSyncExternalStore } from 'react';
 import { writeReportSummary } from './ai';
+import type { GrowthStore } from './stores';
 import { readMeta, writeMeta } from './db';
 
 interface KeptSummary {
@@ -60,13 +61,13 @@ export function useReportSummary(key: string): { text: string | null; writing: b
  * Write the summary of one period and keep it under `key`. While one is on
  * its way for that key, a second call joins it rather than asking again.
  */
-export function writeKeptReportSummary(key: string, facts: string, appName: string): Promise<string> {
+export function writeKeptReportSummary(key: string, facts: string, appName: string, store: GrowthStore = 'appstore'): Promise<string> {
   const running = get(key).writing;
   if (running) return running;
   // Still this key's request, and not discarded with the app's data meanwhile.
   const current = () => get(key).writing === writing;
   const writing: Promise<string> = (async () => {
-    const text = await writeReportSummary(facts, appName);
+    const text = await writeReportSummary(facts, appName, undefined, store);
     // Shown even if it cannot be kept: it was written for this period.
     if (current()) await writeMeta(key, text).catch((error) => console.error('Keeping the report summary failed', error));
     return text;

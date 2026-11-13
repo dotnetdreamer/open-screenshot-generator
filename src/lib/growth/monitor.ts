@@ -4,7 +4,8 @@
 //
 // What it watches: apps the user has synced in Growth before (a last sync
 // time is stored for them). An account with thirty apps is not read thirty
-// times over because two of them are looked at. An app is synced when
+// times over because two of them are looked at. A Google Play app is watched
+// the same way, with the Play key, while that key still names its package. An app is synced when
 // autoSync.ts says it is due, which is the same rule the Growth view uses
 // and the same record of attempts, so the two never start one app twice.
 //
@@ -14,6 +15,9 @@
 
 import { listApps, type AscApp } from './asc';
 import { dueForAutoSync, noteAutoSync } from './autoSync';
+import { bucketFromUri } from './play';
+import { syncPlayApp } from './playSync';
+import { isPlayApp, playAppId } from './stores';
 import { today } from './dates';
 import { readMeta, readMetaWithPrefix, writeMeta } from './db';
 import { buildInsights } from './insights';
@@ -21,8 +25,8 @@ import { checkListing } from './listingChecks';
 import { loadGrowthData, type GrowthData } from './loadData';
 import { getGrowthSettings } from './settings';
 import { metaKeys, syncApp } from './sync';
-import type { Insight } from './types';
-import type { AppStoreCredentials } from '@/lib/publish/types';
+import type { GrowthApp, Insight } from './types';
+import type { AppStoreCredentials, PlayCredentials } from '@/lib/publish/types';
 
 export const insightsSeenKey = (appId: string) => `insights:seen:${appId}`;
 
@@ -84,13 +88,16 @@ export async function unseenInsights(appId: string, insights: Insight[]): Promis
 }
 
 export interface MonitorFinding {
-  app: AscApp;
+  app: GrowthApp;
   /** Notable insights not seen yet, most important first. */
   fresh: Insight[];
 }
 
 export interface MonitorPassOptions {
-  credentials: AppStoreCredentials;
+  /** The App Store Connect key, for the App Store apps. */
+  credentials?: AppStoreCredentials | null;
+  /** The Google Play key, for the Google Play app of its package. */
+  playCredentials?: PlayCredentials | null;
   signal?: AbortSignal;
   /**
    * Also look for unseen insights in apps that are not due a sync. The first
@@ -139,25 +146,42 @@ export async function runMonitorPass(options: MonitorPassOptions): Promise<Monit
     .filter((entry) => entry.due || options.checkAll);
   if (work.length === 0) return [];
 
-  const apps = await accountApps(options.credentials, options.signal);
+  const needsApple = work.some((entry) => !isPlayApp(entry.appId));
+  const apps: AscApp[] = needsApple && options.credentials ? await accountApps(options.credentials, options.signal) : [];
+  const play = options.playCredentials;
+  const playId = play?.packageName.trim() ? playAppId(play.packageName) : null;
   const findings: MonitorFinding[] = [];
   for (const entry of work) {
     if (options.signal?.aborted) break;
-    const app = apps.find((candidate) => candidate.id === entry.appId);
     // An app gone from the account (removed, or a different key) is left alone.
+    const playApp: GrowthApp | null =
+      play && entry.appId === playId
+        ? { id: playId, name: (await readMeta<{ name?: string }>(metaKeys.playApp(playId)))?.name || play.packageName, bundleId: play.packageName }
+        : null;
+    const app: GrowthApp | undefined = playApp ?? apps.find((candidate) => candidate.id === entry.appId);
     if (!app) continue;
     if (entry.due) {
       noteAutoSync(app.id);
       const current = getGrowthSettings();
       try {
-        await syncApp({
-          credentials: options.credentials,
-          app,
-          allApps: apps,
-          vendorNumber: current.vendorNumber,
-          historyDays: current.historyDays,
-          signal: options.signal,
-        });
+        if (playApp && play) {
+          await syncPlayApp({
+            credentials: play,
+            app: playApp,
+            bucket: bucketFromUri(current.playReportsUri),
+            historyDays: current.historyDays,
+            signal: options.signal,
+          });
+        } else if (options.credentials) {
+          await syncApp({
+            credentials: options.credentials,
+            app: app as AscApp,
+            allApps: apps,
+            vendorNumber: current.vendorNumber,
+            historyDays: current.historyDays,
+            signal: options.signal,
+          });
+        }
       } catch (error) {
         if (options.signal?.aborted) break;
         console.error(`Growth background sync of ${app.name} failed`, error);

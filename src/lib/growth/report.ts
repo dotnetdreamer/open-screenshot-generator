@@ -4,7 +4,8 @@
 //
 // A week runs Monday to Sunday and a month is a calendar month, the same
 // periods App Store Connect uses, so a figure here can be checked against
-// Apple's own screen. A week or month report is only offered for a period
+// Apple's own screen. A Google Play report has Google's numbers: page visits,
+// new downloads, the download rate from page visits, and updates. A week or month report is only offered for a period
 // whose last day the data has reached: a half-reported week would read as a
 // bad week. A year is too long to wait for, so the newest yearly report is
 // the year so far, compared with the same days of the year before; the full
@@ -46,8 +47,9 @@ import {
   type Totals,
 } from './metrics';
 import { REVIEW_TOPIC_LABELS, averageRating, reviewsIn, topicCounts, unansweredLow } from './reviewTopics';
+import { STORE_WORDS, type GrowthStore } from './stores';
 import { territoryName } from './territories';
-import { EVENT_KIND_LABELS, SOURCE_LABELS, type DayRecord, type SourceType, type StoreReview, type TimelineEvent } from './types';
+import { EVENT_KIND_LABELS, sourceLabel, type DayRecord, type StoreReview, type TimelineEvent } from './types';
 
 export type ReportPeriod = 'week' | 'month' | 'year';
 
@@ -61,13 +63,18 @@ export interface ReportLine {
 
 export interface PeriodReport {
   appName: string;
+  /** The app's store, and who sends its numbers ("Apple", "Google"). */
+  store: GrowthStore;
+  owner: string;
   period: ReportPeriod;
   window: DayWindow;
   previous: DayWindow;
   title: string;
   lines: ReportLine[];
   territories: Array<{ name: string; downloads: string; share: string; change: string | null }>;
-  sources: Array<{ name: string; impressions: string; downloads: string; conversion: string }>;
+  /** `seen` is times seen on the App Store and page visits on Google Play, as `seenLabel` says. */
+  sources: Array<{ name: string; seen: string; downloads: string; conversion: string }>;
+  seenLabel: string;
   reviews: { count: number; average: string; unanswered: number; topics: string[] };
   events: Array<{ date: string; label: string }>;
   /** Days in the period with no data from any feed. */
@@ -146,7 +153,10 @@ export function buildReport(input: {
   events: TimelineEvent[];
   period: ReportPeriod;
   window: DayWindow;
+  store?: GrowthStore;
 }): PeriodReport {
+  const store = input.store ?? 'appstore';
+  const play = store === 'playstore';
   const byDate = indexRecords(input.records);
   const previous = periodBefore(input.window, input.period);
   const current = totalsFor(byDate, input.window);
@@ -164,15 +174,24 @@ export function buildReport(input: {
     if (!comparable) uncompared.push(label);
     return line(label, now, comparable ? metricValue(prior, metric, currency) : null, format);
   };
-  const lines = [
-    figure('Times seen', 'impressions', formatCount),
-    figure('Page visits', 'pageViews', formatCount),
-    figure('New downloads', 'downloads', formatCount),
-    figure('Download rate', 'conversion', formatRate),
-    figure('Redownloads', 'redownloads', formatCount),
-    figure('In-app purchases', 'iapUnits', formatCount),
-    figure('Earnings', 'proceeds', (value) => formatMoney(value, currency)),
-  ].filter((entry): entry is ReportLine => entry !== null);
+  const lines = (
+    play
+      ? [
+          figure('Page visits', 'pageViews', formatCount),
+          figure('New downloads', 'downloads', formatCount),
+          figure('Download rate', 'pageConversion', formatRate),
+          figure('Updates', 'updates', formatCount),
+        ]
+      : [
+          figure('Times seen', 'impressions', formatCount),
+          figure('Page visits', 'pageViews', formatCount),
+          figure('New downloads', 'downloads', formatCount),
+          figure('Download rate', 'conversion', formatRate),
+          figure('Redownloads', 'redownloads', formatCount),
+          figure('In-app purchases', 'iapUnits', formatCount),
+          figure('Earnings', 'proceeds', (value) => formatMoney(value, currency)),
+        ]
+  ).filter((entry): entry is ReportLine => entry !== null);
   const previousCovered = covers(starts, 'downloads', previous);
 
   const reviews = reviewsIn(input.reviews, input.window);
@@ -181,6 +200,8 @@ export function buildReport(input: {
 
   return {
     appName: input.appName,
+    store,
+    owner: STORE_WORDS[store].owner,
     period: input.period,
     window: input.window,
     previous,
@@ -194,12 +215,14 @@ export function buildReport(input: {
         share: `${Math.round(row.share * 100)}%`,
         change: row.change === null || !previousCovered ? null : formatChange(row.change),
       })),
+    // Google Play splits only page visits and the downloads from them by source.
     sources: bySource(byDate, input.window).map((row) => ({
-      name: SOURCE_LABELS[row.key as SourceType] ?? row.key,
-      impressions: formatCount(row.totals.impressions),
-      downloads: formatCount(row.totals.downloads),
-      conversion: formatRate(row.totals.conversion),
+      name: sourceLabel(row.key, store),
+      seen: formatCount(play ? row.totals.pageViews : row.totals.impressions),
+      downloads: formatCount(play ? row.totals.pageDownloads : row.totals.downloads),
+      conversion: formatRate(play ? row.totals.pageConversion : row.totals.conversion),
     })),
+    seenLabel: play ? 'Page visits' : 'Times seen',
     reviews: {
       count: reviews.length,
       average: formatRating(average),
@@ -301,9 +324,9 @@ export function reportMarkdown(report: PeriodReport, summary?: string | null): s
     out.push('');
     out.push('## How people found your app');
     out.push('');
-    out.push('| Source | Times seen | Downloads | Download rate |');
+    out.push(`| Source | ${report.seenLabel} | Downloads | Download rate |`);
     out.push('| --- | --- | --- | --- |');
-    for (const row of report.sources) out.push(`| ${row.name} | ${row.impressions} | ${row.downloads} | ${row.conversion} |`);
+    for (const row of report.sources) out.push(`| ${row.name} | ${row.seen} | ${row.downloads} | ${row.conversion} |`);
   }
   out.push('');
   out.push('## Reviews');
@@ -318,7 +341,7 @@ export function reportMarkdown(report: PeriodReport, summary?: string | null): s
   }
   if (report.missingDays > 0) {
     out.push('');
-    out.push(`Apple has not sent the numbers for ${plural(report.missingDays, 'day')} of this period yet.`);
+    out.push(`${report.owner} has not sent the numbers for ${plural(report.missingDays, 'day')} of this period yet.`);
   }
   out.push('');
   out.push('Made with Open Screenshot Generator.');

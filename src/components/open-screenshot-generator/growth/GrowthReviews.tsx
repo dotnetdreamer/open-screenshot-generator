@@ -2,8 +2,11 @@
 
 // Written reviews, and the replies to them.
 //
-// A reply is public and Apple checks it before it shows, so nothing here sends
-// one without a click on Send: the AI fills the box, the person edits it.
+// A reply is public (Apple checks it before it shows, Google Play shows it at
+// once), so nothing here sends one without a click on Send: the AI fills the
+// box, the person edits it. Google Play does not say where a reviewer is, so
+// its reviews are filtered and named by the reviewer's language instead, and
+// its API has no way to delete a reply.
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -23,6 +26,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { suggestReply, translateText } from '@/lib/growth/ai';
 import { MAX_REPLY_LENGTH, deleteReviewReply, replyToReview } from '@/lib/growth/asc';
+import { MAX_PLAY_REPLY_LENGTH, replyToPlayReview } from '@/lib/growth/play';
+import { ratingSummary } from '@/lib/growth/ratings';
 import { addDays, formatDay, today } from '@/lib/growth/dates';
 import { writeReview } from '@/lib/growth/db';
 import { formatCount, formatRating } from '@/lib/growth/format';
@@ -73,7 +78,13 @@ export function GrowthReviews() {
   const [justAnswered, setJustAnswered] = useState<Set<string>>(() => new Set());
 
   const reviews = view.data.reviews;
-  const territories = useMemo(() => Array.from(new Set(reviews.map((review) => review.territory))).sort(), [reviews]);
+  const play = view.store === 'playstore';
+  // Where a review is from: its country, or on Google Play its language.
+  const placeOf = (review: StoreReview) => (play ? review.language ?? '' : review.territory);
+  const territories = useMemo(
+    () => Array.from(new Set(reviews.map((review) => (play ? review.language ?? '' : review.territory)))).filter(Boolean).sort(),
+    [reviews, play]
+  );
   const recent = useMemo(() => reviews.filter((review) => reviewDay(review) >= addDays(today(), -89)), [reviews]);
   const topics = useMemo(() => topicCounts(recent), [recent]);
 
@@ -87,21 +98,24 @@ export function GrowthReviews() {
       if (/^[1-5]$/.test(stars) && review.rating !== Number(stars)) return false;
       if (reply === 'unanswered' && review.response && !justAnswered.has(review.id)) return false;
       if (reply === 'answered' && !review.response) return false;
-      if (territory !== 'all' && review.territory !== territory) return false;
+      if (territory !== 'all' && placeOf(review) !== territory) return false;
       if (topic !== 'all' && !topicsOf(review).includes(topic)) return false;
       if (since && reviewDay(review) < since) return false;
       if (needle && !`${review.title} ${review.body} ${review.nickname}`.toLowerCase().includes(needle)) return false;
       return true;
     });
-  }, [reviews, stars, reply, territory, topic, period, query, justAnswered]);
+    // placeOf only reads `play`, which is in the list.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reviews, stars, reply, territory, topic, period, query, justAnswered, play]);
 
   useEffect(() => {
     setLimit(PAGE);
     setJustAnswered(new Set());
   }, [stars, reply, territory, topic, period, query]);
 
-  const ratingCount = view.data.ratings.reduce((sum, rating) => sum + rating.count, 0);
-  const ratingAverage = ratingCount > 0 ? view.data.ratings.reduce((sum, rating) => sum + rating.average * rating.count, 0) / ratingCount : null;
+  const rating = ratingSummary(view.data.ratings);
+  const ratingAverage = rating.average;
+  const ratingCount = rating.count ?? 0;
   const histogram = ratingHistogram(reviews);
   const unanswered = reviews.filter((review) => review.rating <= 2 && !review.response).length;
 
@@ -110,7 +124,11 @@ export function GrowthReviews() {
       <EmptyState icon={MessageSquareIcon} title="No written reviews yet">
         {view.data.status.reviews.state === 'forbidden'
           ? view.data.status.reviews.message
-          : 'Refresh to load your written reviews. Ratings without text are counted on the Overview.'}
+          : play
+            ? view.data.status.reviews.state === 'empty'
+              ? 'Google Play has no written reviews from the last 7 days. The monthly report files under Setup bring the older reviews.'
+              : 'Refresh to load your written reviews. Google Play sends the reviews of the last 7 days, and the monthly report files under Setup bring the older reviews.'
+            : 'Refresh to load your written reviews. Ratings without text are counted on the Overview.'}
       </EmptyState>
     );
   }
@@ -126,8 +144,10 @@ export function GrowthReviews() {
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
             {ratingCount > 0
-              ? `${formatCount(ratingCount)} rating${ratingCount === 1 ? '' : 's'} in ${view.data.ratings.length} ${view.data.ratings.length === 1 ? 'country' : 'countries'}, and ${formatCount(reviews.length)} written review${reviews.length === 1 ? '' : 's'}`
-              : `${formatCount(reviews.length)} written review${reviews.length === 1 ? '' : 's'}`}
+              ? `${formatCount(ratingCount)} rating${ratingCount === 1 ? '' : 's'} in ${rating.countries} ${rating.countries === 1 ? 'country' : 'countries'}, and ${formatCount(reviews.length)} written review${reviews.length === 1 ? '' : 's'}`
+              : play && ratingAverage !== null
+                ? `Average of all ratings, and ${formatCount(reviews.length)} written review${reviews.length === 1 ? '' : 's'}`
+                : `${formatCount(reviews.length)} written review${reviews.length === 1 ? '' : 's'}`}
           </p>
           {unanswered > 0 && (
             <button
@@ -210,14 +230,14 @@ export function GrowthReviews() {
           </SelectContent>
         </Select>
         <Select value={territory} onValueChange={setTerritory}>
-          <SelectTrigger className="h-9 w-[160px] text-xs" aria-label="Filter by country">
+          <SelectTrigger className="h-9 w-[160px] text-xs" aria-label={play ? 'Filter by language' : 'Filter by country'}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all" className="text-xs">All countries</SelectItem>
+            <SelectItem value="all" className="text-xs">{play ? 'All languages' : 'All countries'}</SelectItem>
             {territories.map((code) => (
               <SelectItem key={code} value={code} className="text-xs">
-                {territoryName(code)}
+                {play ? listingLanguageName(code) : territoryName(code)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -285,8 +305,10 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
     return aiJob.current.signal;
   };
   const topics = topicsOf(review);
-  const reviewerLanguage = listingLanguageName(listingLanguageFor(review.territory));
-  const sendReason = view.canWrite ? null : view.blocked.app ?? 'To reply, you need the desktop app and an App Store Connect API key';
+  const play = view.store === 'playstore';
+  const reviewerLanguage = listingLanguageName(review.language ?? listingLanguageFor(review.territory));
+  const maxLength = play ? MAX_PLAY_REPLY_LENGTH : MAX_REPLY_LENGTH;
+  const sendReason = view.canWrite ? null : view.blocked.app ?? `To reply, you need the desktop app and your ${view.words.key}`;
 
   const pastReplies = useMemo(
     () =>
@@ -315,8 +337,14 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
       const text = draft.trim();
       if (!text) throw new Error('Write a reply first');
       onAnswered();
-      if (!view.credentials) throw new Error('Add your App Store Connect API key under Setup first');
-      const response = await replyToReview(view.credentials, review.id, text);
+      let response;
+      if (play) {
+        if (!view.playCredentials) throw new Error('Add your Google Play service account key under Setup first');
+        response = await replyToPlayReview(view.playCredentials, review.id, text);
+      } else {
+        if (!view.credentials) throw new Error('Add your App Store Connect API key under Setup first');
+        response = await replyToReview(view.credentials, review.id, text);
+      }
       await writeReview({ ...review, response });
       setComposing(false);
       setDraft('');
@@ -340,9 +368,11 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
           review,
           appName: view.app.name,
           appDescription: description,
-          releaseNotes: notes,
+          releaseNotes: notes || undefined,
           pastReplies,
           notes: draft,
+          store: view.store,
+          language: review.language ? reviewerLanguage : undefined,
         })
       );
     });
@@ -353,10 +383,12 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
     <Panel className="space-y-2" data-review-id={review.id}>
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <Stars rating={review.rating} />
-        <p className="text-sm font-semibold">{review.title || 'No title'}</p>
+        {/* Google Play reviews seldom have a title, so a missing one is not worth a line there. */}
+        {(review.title || !play) && <p className="text-sm font-semibold">{review.title || 'No title'}</p>}
         <p className="text-xs text-muted-foreground">
           {review.nickname ? `${review.nickname}, ` : ''}
-          {territoryName(review.territory)}, {formatDay(reviewDay(review))}
+          {play ? (review.language ? `in ${reviewerLanguage}` : 'Google Play') : territoryName(review.territory)}, {formatDay(reviewDay(review))}
+          {review.appVersion ? `, version ${review.appVersion}` : ''}
         </p>
       </div>
       <p className="whitespace-pre-line text-sm">{showTranslation && translation ? translation : review.body}</p>
@@ -395,7 +427,7 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
             <p className="text-xs font-medium">
               Your reply
               <span className="ml-2 font-normal text-muted-foreground">
-                {review.response.state === 'PENDING_PUBLISH' ? 'Waiting for Apple to check the reply' : 'Published'}
+                {review.response.state === 'PENDING_PUBLISH' ? `Waiting for ${view.words.owner} to check the reply` : 'Published'}
                 {review.response.lastModified ? `, ${formatDay(review.response.lastModified.slice(0, 10))}` : ''}
               </span>
             </p>
@@ -414,12 +446,14 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
                   Edit
                 </Button>
               </Gated>
-              <Gated reason={sendReason}>
-                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" disabled={busy === 'delete'} onClick={() => void remove()}>
-                  {busy === 'delete' ? <Loader2Icon className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Trash2Icon className="mr-1 h-3.5 w-3.5" />}
-                  Delete
-                </Button>
-              </Gated>
+              {!play && (
+                <Gated reason={sendReason}>
+                  <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" disabled={busy === 'delete'} onClick={() => void remove()}>
+                    {busy === 'delete' ? <Loader2Icon className="mr-1 h-3.5 w-3.5 animate-spin" /> : <Trash2Icon className="mr-1 h-3.5 w-3.5" />}
+                    Delete
+                  </Button>
+                </Gated>
+              )}
             </div>
           </div>
           <p className="mt-1 whitespace-pre-line text-sm">{review.response.body}</p>
@@ -471,7 +505,11 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
                     className="h-8 text-xs"
                     disabled={busy !== null}
                     onClick={() => void run('translate-draft', async () => setDraft(await translateText(draft, reviewerLanguage, aiSignal())))}
-                    title={`Translate the reply into ${reviewerLanguage}, the main language of ${territoryName(review.territory)}`}
+                    title={
+                      play
+                        ? `Translate the reply into ${reviewerLanguage}, the language of the review`
+                        : `Translate the reply into ${reviewerLanguage}, the main language of ${territoryName(review.territory)}`
+                    }
                   >
                     {busy === 'translate-draft' ? <Loader2Icon className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <LanguagesIcon className="mr-1.5 h-3.5 w-3.5" />}
                     Translate reply to {reviewerLanguage}
@@ -480,8 +518,8 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
               )}
             </div>
             <div className="flex items-center gap-2">
-              <span className={cn('text-[11px] tabular-nums', length > MAX_REPLY_LENGTH ? 'text-destructive' : 'text-muted-foreground')}>
-                {length} / {MAX_REPLY_LENGTH}
+              <span className={cn('text-[11px] tabular-nums', length > maxLength ? 'text-destructive' : 'text-muted-foreground')}>
+                {length} / {maxLength}
               </span>
               <Button
                 variant="ghost"
@@ -495,14 +533,16 @@ function ReviewCard({ review, onAnswered }: { review: StoreReview; onAnswered: (
               >
                 Cancel
               </Button>
-              <Button size="sm" className="h-8 text-xs" disabled={busy !== null || !draft.trim() || length > MAX_REPLY_LENGTH} onClick={() => void send()}>
+              <Button size="sm" className="h-8 text-xs" disabled={busy !== null || !draft.trim() || length > maxLength} onClick={() => void send()}>
                 {busy === 'send' ? <Loader2Icon className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <SendIcon className="mr-1.5 h-3.5 w-3.5" />}
                 {review.response ? 'Update reply' : 'Send reply'}
               </Button>
             </div>
           </div>
           <p className="text-[11px] text-muted-foreground">
-            Replies are public. Apple checks each reply before the reply shows under the review.
+            {play
+              ? 'Replies are public. Google Play shows each reply under the review.'
+              : 'Replies are public. Apple checks each reply before the reply shows under the review.'}
           </p>
         </div>
       )}

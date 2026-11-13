@@ -64,7 +64,7 @@ export function GrowthReports() {
   const report = useMemo(
     () =>
       span
-        ? buildReport({ appName: view.app.name, records: view.data.records, reviews: view.data.reviews, events: view.data.events, period, window: span })
+        ? buildReport({ appName: view.app.name, records: view.data.records, reviews: view.data.reviews, events: view.data.events, period, window: span, store: view.store })
         : null,
     [span, view.app.name, view.data.records, view.data.reviews, view.data.events, period]
   );
@@ -128,7 +128,7 @@ export function GrowthReports() {
   const writeSummary = () => {
     setError(null);
     // A failure is kept with the period and shown from there.
-    writeKeptReportSummary(summaryKey, reportFacts(report), view.app.name).catch((failure) =>
+    writeKeptReportSummary(summaryKey, reportFacts(report), view.app.name, view.store).catch((failure) =>
       console.error('The report summary failed', failure)
     );
   };
@@ -323,7 +323,7 @@ export function GrowthReports() {
         </div>
         {report.missingDays > 0 && (
           <p className="text-xs text-muted-foreground">
-            Apple has not sent the numbers for {report.missingDays} day{report.missingDays === 1 ? '' : 's'} of this period yet.
+            {report.owner} has not sent the numbers for {report.missingDays} day{report.missingDays === 1 ? '' : 's'} of this period yet.
           </p>
         )}
       </Panel>
@@ -458,11 +458,11 @@ const ReportSheet = React.forwardRef<HTMLDivElement, { report: PeriodReport; sum
         {report.sources.length > 0 && (
           <>
             {heading('How people found your app')}
-            {row('head', [<span key="n">Source</span>, <span key="i" style={{ textAlign: 'right' }}>Times seen</span>, <span key="d" style={{ textAlign: 'right' }}>Downloads</span>, <span key="c" style={{ textAlign: 'right' }}>Download rate</span>], '1fr 110px 100px 90px', true)}
+            {row('head', [<span key="n">Source</span>, <span key="i" style={{ textAlign: 'right' }}>{report.seenLabel}</span>, <span key="d" style={{ textAlign: 'right' }}>Downloads</span>, <span key="c" style={{ textAlign: 'right' }}>Download rate</span>], '1fr 110px 100px 90px', true)}
             {report.sources.map((source) =>
               row(source.name, [
                 <span key="n">{source.name}</span>,
-                <span key="i" style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{source.impressions}</span>,
+                <span key="i" style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{source.seen}</span>,
                 <span key="d" style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{source.downloads}</span>,
                 <span key="c" style={{ textAlign: 'right', color: MUTED }}>{source.conversion}</span>,
               ], '1fr 110px 100px 90px')
@@ -489,7 +489,7 @@ const ReportSheet = React.forwardRef<HTMLDivElement, { report: PeriodReport; sum
 
         {report.missingDays > 0 && (
           <p data-pdf-block style={{ margin: '18px 0 0', fontSize: 11, color: MUTED }}>
-            Apple has not sent the numbers for {report.missingDays} day{report.missingDays === 1 ? '' : 's'} of this period yet.
+            {report.owner} has not sent the numbers for {report.missingDays} day{report.missingDays === 1 ? '' : 's'} of this period yet.
           </p>
         )}
         <p data-pdf-block style={{ margin: '22px 0 0', fontSize: 10, color: MUTED }}>

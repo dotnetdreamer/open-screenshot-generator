@@ -201,7 +201,7 @@ import { ActivityBar, type ActivityId } from './ActivityBar';
 import { getGrowthSettings, setGrowthSettings } from '@/lib/growth/settings';
 import { useGrowthMonitor } from '@/lib/growth/useGrowthMonitor';
 import type { GrowthTab } from './growth/GrowthShared';
-import { localeForAppleLocale } from '@/lib/publish/storeTargets';
+import { localeForAppleLocale, localeForPlayLanguage } from '@/lib/publish/storeTargets';
 import { ProjectNameField } from './ProjectNameField';
 import {
   decodeDataUrl,
@@ -12676,8 +12676,9 @@ const generateRandomProjectName = (): string => {
               setIsPublishDialogOpen(true);
             }}
             onLocalize={(storeLocales) => {
+              // App Store Connect's codes, or Google Play's (ja-JP, iw-IL) for an app there.
               const codes = storeLocales
-                .map((storeLocale) => localeForAppleLocale(storeLocale))
+                .map((storeLocale) => localeForAppleLocale(storeLocale) ?? localeForPlayLanguage(storeLocale))
                 .filter((code): code is string => !!code);
               if (artboards.length === 0) {
                 toast({ title: 'Open a project first', description: 'The screenshots to translate live in a project.' });

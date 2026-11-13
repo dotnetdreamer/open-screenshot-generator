@@ -161,14 +161,34 @@ export function territoryIso3(code: string): string | null {
 }
 
 /**
+ * Google Play's codes for the languages App Store Connect names otherwise:
+ * Play writes Chinese by region and Hebrew with its old code.
+ */
+const PLAY_TO_APPLE: Record<string, string> = {
+  'zh-CN': 'zh-Hans',
+  'zh-TW': 'zh-Hant',
+  'zh-HK': 'zh-Hant',
+  'iw-IL': 'he',
+  iw: 'he',
+};
+
+/** A store page language in App Store Connect's codes, so the two stores' languages compare. */
+export function appleLanguageOf(locale: string): string {
+  return PLAY_TO_APPLE[locale] ?? locale;
+}
+
+/**
  * Whether a listing language covers a storefront's language, by its base:
  * an en-GB listing serves a storefront that reads en-US, but zh-Hans does not
- * serve zh-Hant, which is a different written language.
+ * serve zh-Hant, which is a different written language. Takes Google Play's
+ * codes as well (zh-CN, iw-IL).
  */
 export function languageCovers(listingLocale: string, wanted: string): boolean {
-  if (listingLocale === wanted) return true;
+  const left = appleLanguageOf(listingLocale);
+  const right = appleLanguageOf(wanted);
+  if (left === right) return true;
   const base = (locale: string) => (locale.startsWith('zh') ? locale : locale.split('-')[0]);
-  return base(listingLocale) === base(wanted);
+  return base(left) === base(right);
 }
 
 /** Every listing language App Store Connect offers, as its locale codes. */
@@ -191,9 +211,22 @@ const VARIANT_NAMES: Record<string, string> = {
   'es-MX': 'Latin American Spanish',
   'es-ES': 'Spanish',
   'fr-CA': 'Canadian French',
+  // Google Play's codes, and the English variants a Play store page often has side by side.
+  'zh-CN': 'Simplified Chinese',
+  'zh-TW': 'Traditional Chinese',
+  'zh-HK': 'Chinese (Hong Kong)',
+  'es-419': 'Latin American Spanish',
+  'es-US': 'Spanish (United States)',
+  'iw-IL': 'Hebrew',
+  'en-GB': 'British English',
+  'en-AU': 'Australian English',
+  'en-CA': 'Canadian English',
+  'en-IN': 'English (India)',
+  'en-SG': 'English (Singapore)',
+  'en-ZA': 'English (South Africa)',
 };
 
-/** "German", "Brazilian Portuguese" and so on, for an App Store Connect locale. */
+/** "German", "Brazilian Portuguese" and so on, for an App Store Connect or Google Play locale. */
 export function listingLanguageName(locale: string): string {
   if (VARIANT_NAMES[locale]) return VARIANT_NAMES[locale];
   try {

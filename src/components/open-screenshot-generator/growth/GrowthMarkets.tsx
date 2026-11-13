@@ -1,11 +1,12 @@
 "use client";
 
 // Storefronts: who looks, who downloads, and the main language of each
-// storefront's App Store. That language comes from a table
-// (territories.ts), not from Apple: a phone set to another language the store
-// supports sees that one. The language view is the one that leads back into
-// the editor: a main language the listing does not have is the case for
-// translating the screenshots next.
+// country. That language comes from a table (territories.ts), not from the
+// store: a phone set to another language the store supports sees that one.
+// The language view is the one that leads back into the editor: a main
+// language the listing does not have is the case for translating the
+// screenshots next. Google Play sends no times seen and no earnings, so its
+// table leaves those columns out.
 
 import React, { useMemo, useState } from 'react';
 import { ArrowDownIcon, ArrowUpIcon, GlobeIcon, LanguagesIcon } from 'lucide-react';
@@ -27,17 +28,19 @@ export function GrowthMarkets() {
   const all = useMemo(() => totalsFor(view.byDate, view.window), [view.byDate, view.window]);
   const currency = primaryCurrency(all.proceeds);
   const languages = view.data.listing?.locales.map((locale) => locale.locale) ?? [];
+  const play = view.store === 'playstore';
+  const rateOf = (row: BreakdownRow) => (play ? row.totals.pageConversion : row.totals.conversion);
 
   // Grouped by the language's name, so the four English listings (US, UK,
   // Canada, Australia) read as one line while Brazilian and European
   // Portuguese stay apart, as they do on the store.
   const byLanguage = useMemo(() => {
-    const base = all.hasEngagement ? all.pageViews : all.downloads;
+    const base = all.hasPageViews ? all.pageViews : all.downloads;
     const map = new Map<string, { language: string; share: number; territories: string[]; covered: boolean }>();
     for (const row of rows) {
       const language = listingLanguageFor(row.key);
       const name = listingLanguageName(language);
-      const share = base > 0 ? (all.hasEngagement ? row.totals.pageViews : row.totals.downloads) / base : 0;
+      const share = base > 0 ? (all.hasPageViews ? row.totals.pageViews : row.totals.downloads) / base : 0;
       const entry = map.get(name) ?? {
         language,
         share: 0,
@@ -60,7 +63,7 @@ export function GrowthMarkets() {
       case 'pageViews':
         return row.totals.pageViews;
       case 'conversion':
-        return row.totals.conversion ?? -1;
+        return rateOf(row) ?? -1;
       case 'change':
         return row.change ?? -Infinity;
     }
@@ -101,7 +104,7 @@ export function GrowthMarkets() {
         <Panel>
           <SectionTitle
             title="Visitors by language"
-            hint={`Share of ${all.hasEngagement ? 'page visits' : 'downloads'}, by each country's main language`}
+            hint={`Share of ${all.hasPageViews ? 'page visits' : 'downloads'}, by each country's main language`}
           />
           <ul className="space-y-2">
             {byLanguage.slice(0, 8).map(([name, entry]) => (
@@ -147,19 +150,21 @@ export function GrowthMarkets() {
 
       <Panel className="p-0">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] text-xs">
+          <table className={cn('w-full text-xs', play ? 'min-w-[600px]' : 'min-w-[760px]')}>
             {/* bg-muted overrides the global teal table header (globals.css), which is for document tables. */}
             <thead className="border-b bg-muted/40 text-muted-foreground">
               <tr>
                 <th className="px-3 py-2 text-left font-medium">Country</th>
-                {header('impressions', 'Times seen')}
+                {!play && header('impressions', 'Times seen')}
                 {header('pageViews', 'Page visits')}
                 {header('conversion', 'Download rate')}
                 {header('downloads', 'Downloads')}
                 {header('change', 'Change')}
-                <th className="px-3 py-2 text-right font-medium" title="In the currency Apple uses for each country">
-                  Earnings
-                </th>
+                {!play && (
+                  <th className="px-3 py-2 text-right font-medium" title="In the currency Apple uses for each country">
+                    Earnings
+                  </th>
+                )}
                 <th className="px-3 py-2 text-left font-medium">Main language</th>
               </tr>
             </thead>
@@ -176,21 +181,25 @@ export function GrowthMarkets() {
                       <span className="font-medium">{territoryName(row.key)}</span>
                       <span className="ml-1.5 text-muted-foreground">{row.key}</span>
                     </td>
-                    <td className="px-3 py-2 text-right tabular-nums">{row.totals.hasEngagement ? formatCount(row.totals.impressions) : 'n/a'}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{row.totals.hasEngagement ? formatCount(row.totals.pageViews) : 'n/a'}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{formatRate(row.totals.conversion)}</td>
+                    {!play && (
+                      <td className="px-3 py-2 text-right tabular-nums">{row.totals.hasEngagement ? formatCount(row.totals.impressions) : 'n/a'}</td>
+                    )}
+                    <td className="px-3 py-2 text-right tabular-nums">{row.totals.hasPageViews ? formatCount(row.totals.pageViews) : 'n/a'}</td>
+                    <td className="px-3 py-2 text-right tabular-nums">{formatRate(rateOf(row))}</td>
                     <td className="px-3 py-2 text-right tabular-nums font-medium">{formatCount(row.totals.downloads)}</td>
                     <td className="px-3 py-2 text-right">
                       <Delta change={row.change} />
                     </td>
-                    <td className="px-3 py-2 text-right tabular-nums">
-                      {row.totals.hasSales
-                        ? (() => {
-                            const own = primaryCurrency(row.totals.proceeds, currency);
-                            return formatMoney(row.totals.proceeds[own] ?? 0, own);
-                          })()
-                        : 'n/a'}
-                    </td>
+                    {!play && (
+                      <td className="px-3 py-2 text-right tabular-nums">
+                        {row.totals.hasSales
+                          ? (() => {
+                              const own = primaryCurrency(row.totals.proceeds, currency);
+                              return formatMoney(row.totals.proceeds[own] ?? 0, own);
+                            })()
+                          : 'n/a'}
+                      </td>
+                    )}
                     <td className={cn('px-3 py-2', !covered && 'text-amber-700 dark:text-amber-300')}>
                       {covered ? listingLanguageName(language) : `No ${listingLanguageName(language)} store page`}
                     </td>

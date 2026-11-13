@@ -1,8 +1,8 @@
 // The growth feature's own choices, in localStorage beside the store keys.
 //
-// The App Store Connect key itself is NOT here: it is the one the publish
-// dialog already keeps (src/lib/publish/credentials.ts), so connecting once
-// covers uploading and reading.
+// The store keys themselves are NOT here: they are the ones the publish dialog
+// already keeps (src/lib/publish/credentials.ts), so connecting once covers
+// uploading and reading, on the App Store and on Google Play.
 
 import { useCallback, useEffect, useState } from 'react';
 
@@ -16,6 +16,12 @@ export interface GrowthSettings {
    * under Payments and Financial Reports, top left, all digits.
    */
   vendorNumber?: string;
+  /**
+   * Google Play's reports bucket, as Play Console's "Copy Cloud Storage URI"
+   * gives it (gs://pubsite_prod_rev_...). Downloads, page visits and ratings
+   * on Google Play come from the monthly files there (playReports.ts).
+   */
+  playReportsUri?: string;
   /**
    * Let MCP clients other than the app's own agents read store numbers.
    * Off by default: those numbers include sales, and any program the user

@@ -1,13 +1,15 @@
-// Growth: what an app is doing on the App Store, beside the screenshots that
-// sell it.
+// Growth: what an app is doing on the App Store or Google Play, beside the
+// screenshots that sell it.
 //
-// Everything here is read with the user's own App Store Connect API key, the
-// same one the publish dialog uploads with, and kept on this machine in its own
-// IndexedDB database (./db.ts). There is no server in between and nothing is
-// sent anywhere but Apple, the iTunes lookup service and, when the user asks a
-// question, the AI provider they configured.
+// Everything here is read with the user's own keys, the same ones the publish
+// dialog uploads with (an App Store Connect API key, a Google Play service
+// account key), and kept on this machine in its own IndexedDB database
+// (./db.ts). There is no server in between and nothing is sent anywhere but
+// Apple, Google, the iTunes lookup service and, when the user asks a question,
+// the AI they chose. A Google Play app's id is `play:` and its package name
+// (stores.ts).
 //
-// Four feeds fill it, each with a different source and a different delay:
+// Four App Store feeds fill it, each with a different source and a different delay:
 //
 //   engagement  Analytics Reports, "App Store Discovery and Engagement":
 //               impressions and product page views, a day or two late
@@ -19,6 +21,15 @@
 //
 // plus ratings per storefront from the public lookup service, and the listing
 // itself (name, subtitle, keywords, description) from the version records.
+//
+// A Google Play app has two feeds of numbers, both from the monthly report
+// files Play Console keeps in a Cloud Storage bucket (playReports.ts):
+//
+//   installs    installs by country: new users and updates, a few days late
+//   visits      store listing visitors and acquisitions, by country and by
+//               traffic source, from the store performance report
+//
+// plus reviews and the listing from the Play Developer API (play.ts).
 
 /** A calendar day in UTC, `YYYY-MM-DD`. Every date in this feature is one. */
 export type DayString = string;
@@ -59,6 +70,20 @@ export const SOURCE_LABELS: Record<SourceType, string> = {
   unavailable: 'Other',
 };
 
+/** Google Play's traffic sources, by the names Play Console uses (playSourceType folds them in). */
+const PLAY_SOURCE_LABELS: Partial<Record<SourceType, string>> = {
+  search: 'Google Play search',
+  browse: 'Google Play explore',
+  'web-referrer': 'Ads and links from other apps and websites',
+  unavailable: 'Other',
+};
+
+/** Where people found the app, in the words of the app's store. `store` is 'appstore' or 'playstore'. */
+export function sourceLabel(source: SourceType | string, store: 'appstore' | 'playstore' = 'appstore'): string {
+  const key = source as SourceType;
+  return (store === 'playstore' ? PLAY_SOURCE_LABELS[key] : undefined) ?? SOURCE_LABELS[key] ?? source;
+}
+
 /**
  * Counts for one slice of one day. Every field is optional because each feed
  * fills only its own: a day can have downloads from Sales and Trends long
@@ -86,13 +111,19 @@ export interface Counts {
   proceeds?: Record<string, number>;
 }
 
-export type FeedId = 'engagement' | 'downloads' | 'sales';
+export type FeedId = 'engagement' | 'downloads' | 'sales' | 'installs' | 'visits';
 
-/** Which fields belong to which feed. A feed that reports a day replaces exactly these. */
+/**
+ * Which fields belong to which feed. A feed that reports a day replaces
+ * exactly these. `installs` and `visits` are Google Play's: an App Store app
+ * never has them, and a Google Play app has nothing else.
+ */
 export const FEED_FIELDS: Record<FeedId, Array<keyof Counts>> = {
   engagement: ['impressions', 'uniqueImpressions', 'pageViews', 'uniquePageViews'],
   downloads: ['firstDownloads', 'redownloads', 'pageDownloads'],
   sales: ['units', 'reunits', 'updates', 'iapUnits', 'proceeds'],
+  installs: ['firstDownloads', 'updates'],
+  visits: ['pageViews', 'uniquePageViews', 'pageDownloads'],
 };
 
 /**
@@ -115,7 +146,7 @@ export interface DayRecord {
   feeds: Partial<Record<FeedId, number>>;
 }
 
-/** One written review, as App Store Connect lists it. */
+/** One written review, as App Store Connect or Google Play lists it. */
 export interface StoreReview {
   id: string;
   appId: string;
@@ -123,10 +154,17 @@ export interface StoreReview {
   title: string;
   body: string;
   nickname: string;
-  /** ISO timestamp. */
+  /** ISO timestamp. On Google Play, when the review was written or last changed. */
   createdDate: string;
-  /** ISO 3166-1 alpha-2, converted from Apple's three letter code. */
+  /**
+   * ISO 3166-1 alpha-2, converted from Apple's three letter code. Google Play
+   * does not say where a reviewer is, so its reviews are `ZZ`.
+   */
   territory: string;
+  /** Google Play only: the language the reviewer uses, such as `en-US` or `de`. */
+  language?: string;
+  /** Google Play only: the app version the reviewer had. */
+  appVersion?: string;
   response?: ReviewResponse;
 }
 
@@ -134,7 +172,7 @@ export interface ReviewResponse {
   id: string;
   body: string;
   lastModified: string;
-  /** PUBLISHED or PENDING_PUBLISH. Apple checks every reply before it is shown. */
+  /** PUBLISHED or PENDING_PUBLISH. Apple checks every reply before it is shown; Google Play shows a reply at once. */
   state: string;
 }
 
@@ -200,6 +238,16 @@ export interface TimelineEvent {
   /** Store locales the upload covered. */
   locales?: string[];
   screenshotCount?: number;
+  /**
+   * Google Play only: the day the user said the change went live. Set when a
+   * change waited for them to send it for review in Play Console.
+   */
+  liveDate?: DayString;
+  /**
+   * Google Play only: Play took the change without sending it for review, so
+   * it is not on the store until the user sends it from Play Console.
+   */
+  waitsForReview?: boolean;
   createdAt: number;
 }
 
@@ -220,7 +268,7 @@ export const LISTING_FIELDS: ListingField[] = [
   'whatsNew',
 ];
 
-/** Apple's character limits, from App Store Connect's own form. */
+/** Apple's character limits, from App Store Connect's own form. Google Play's are in listingFields.ts. */
 export const LISTING_LIMITS: Record<ListingField, number> = {
   name: 30,
   subtitle: 30,
@@ -239,9 +287,13 @@ export const LISTING_FIELD_LABELS: Record<ListingField, string> = {
   whatsNew: "What's new",
 };
 
-/** One language of the listing, joined from the app info and the version record. */
+/**
+ * One language of the listing, joined from the app info and the version record.
+ * A Google Play listing fills three fields: its title is `name`, its short
+ * description `subtitle`, and its full description `description`.
+ */
 export interface ListingLocale {
-  /** Apple's locale code: en-US, de-DE, ja. */
+  /** The store's locale code: en-US, de-DE, ja on the App Store; en-US, de-DE, ja-JP on Google Play. */
   locale: string;
   versionLocalizationId?: string;
   appInfoLocalizationId?: string;
@@ -257,6 +309,7 @@ export interface ListingLocale {
 
 export interface ListingSnapshot {
   appId: string;
+  /** Empty for Google Play, where the store page has no version. */
   versionId: string;
   versionString: string;
   state: string;
@@ -384,8 +437,10 @@ export interface SyncProgress {
 
 /** An app the account can see, as the picker lists it. */
 export interface GrowthApp {
+  /** App Store Connect's id, or `play:` and the package name for Google Play (stores.ts). */
   id: string;
   name: string;
+  /** The bundle id, or the package name on Google Play. */
   bundleId: string;
   iconUrl?: string;
 }

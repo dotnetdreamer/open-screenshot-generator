@@ -254,6 +254,9 @@ test.describe('growth sync', () => {
     await expect(view.getByText('2 written reviews')).toBeVisible();
     await expect(view.getByText('30 days of sales')).toBeVisible();
     await expect(view.getByText(`Loaded up to ${DAY}`)).toBeVisible();
+    // The saved vendor number is in its box, not only its look-alike placeholder.
+    await expect(view.getByRole('textbox', { name: 'Vendor number' })).toHaveValue('85012345');
+    await expect(view.getByRole('button', { name: 'Save', exact: true }).first()).toBeDisabled();
 
     await section(view, 'Overview').click();
     // Engagement and downloads come from the analytics files; downloads win over Sales and Trends on a day both report.

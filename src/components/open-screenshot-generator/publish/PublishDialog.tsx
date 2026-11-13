@@ -36,6 +36,7 @@ import {
 } from 'lucide-react';
 import { recordScreenshotUpload } from '@/lib/growth/events';
 import { setGrowthSettings } from '@/lib/growth/settings';
+import { playAppId } from '@/lib/growth/stores';
 import {
   Dialog,
   DialogContent,
@@ -840,6 +841,25 @@ export function PublishDialog({
           .then(() => setGrowthSettings({ appId }))
           .catch((recordError) => console.error('The Growth timeline entry could not be written', recordError));
       }
+      if (store === 'playstore' && outcome.uploaded > 0 && credentials.playstore?.packageName.trim()) {
+        // The same for Google Play, where the new screenshots go live once
+        // Google has checked them, or wait in Play Console when Play would not
+        // send them for review.
+        const growthId = playAppId(credentials.playstore.packageName);
+        const uploadedLanguages = uploadAllLanguages
+          ? matchedLocales.map((row) => row.destinationId).filter((code): code is string => !!code)
+          : [language];
+        void recordScreenshotUpload({
+          appId: growthId,
+          locales: uploadedLanguages,
+          screenshotCount: outcome.uploaded,
+          sentForReview: outcome.sentForReview,
+          projectId: projectId ?? undefined,
+          projectName,
+        })
+          .then(() => setGrowthSettings({ appId: growthId }))
+          .catch((recordError) => console.error('The Growth timeline entry could not be written', recordError));
+      }
     } catch (uploadError) {
       // Stopping an encode is a choice, not a failure, so it leaves no error.
       const stopped = uploadError instanceof DOMException && uploadError.name === 'AbortError';
@@ -1394,7 +1414,7 @@ export function PublishDialog({
                     <ExternalLinkIcon className="ml-1 h-3 w-3" />
                   </Button>
                 )}
-                {store === 'appstore' && onOpenGrowth && (
+                {onOpenGrowth && (
                   <Button
                     variant="link"
                     size="sm"

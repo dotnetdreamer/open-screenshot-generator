@@ -88,3 +88,8 @@ firestore-debug.log
 # infra/vps/README.md. It belongs on the box at /opt/openscreengen/.pb-superuser
 # and nowhere else. Unanchored, so it is caught wherever a copy lands.
 .pb-superuser
+
+# store and signing keys kept beside the code (App Store Connect .p8, the Google
+# Play service account key, the updater signing key). The folder is its own git
+# repository and must never be committed from this one.
+/private/

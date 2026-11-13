@@ -1,11 +1,12 @@
 "use client";
 
-// Connecting App Store Connect, and what each feed is doing.
+// Connecting App Store Connect and Google Play, and what each feed is doing.
 //
-// One key, shared with the upload dialog. Apple splits what a key may read by
-// role, so the status of every feed is shown on its own line with the role it
-// needs: a key that cannot read Sales and Trends still brings in reviews and
-// the listing, and the line says what to change to get the rest.
+// One key per store, shared with the upload dialog. Apple splits what a key may
+// read by role, and Google by Play Console permission, so the status of every
+// feed of the app on screen is shown on its own line with what it needs: a key
+// that cannot read Sales and Trends still brings in reviews and the listing,
+// and the line says what to change to get the rest.
 
 import React, { useState } from 'react';
 import {
@@ -32,23 +33,38 @@ import { clearApp } from '@/lib/growth/db';
 import { discardListingDrafts } from '@/lib/growth/listingDrafts';
 import { discardReportSummaries } from '@/lib/growth/reportSummaries';
 import { formatAgo } from '@/lib/growth/format';
-import { useGrowthSettings } from '@/lib/growth/settings';
+import { bucketFromUri } from '@/lib/growth/play';
+import { getGrowthSettings, useGrowthSettings } from '@/lib/growth/settings';
+import { playAppId, type GrowthStore } from '@/lib/growth/stores';
 import type { FeedState, GrowthFeed } from '@/lib/growth/types';
-import { forgetAppStoreToken, useStoreCredentials } from '@/lib/publish';
+import { forgetAppStoreToken, forgetPlayToken, serviceAccountEmail, useStoreCredentials } from '@/lib/publish';
 import { cn } from '@/lib/utils';
-import { AppStoreCredentialsForm } from '../publish/StoreCredentialsForms';
+import { AppStoreCredentialsForm, PlayCredentialsForm } from '../publish/StoreCredentialsForms';
 import { Gated, Panel, SectionTitle, useGrowthView } from './GrowthShared';
 
 const DESKTOP_URL = 'https://openscrgen.app';
 const VENDOR_URL = 'https://appstoreconnect.apple.com/itc/payments_and_financial_reports';
+const PLAY_CONSOLE_URL = 'https://play.google.com/console';
 
-const FEEDS: Array<{ feed: GrowthFeed; label: string; needs: string }> = [
-  { feed: 'listing', label: 'Store page', needs: 'Needs a key with the Admin, App Manager or Marketing role' },
-  { feed: 'reviews', label: 'Reviews and replies', needs: 'Needs a key with the Admin, App Manager or Customer Support role' },
-  { feed: 'sales', label: 'Sales and Trends (downloads and earnings)', needs: 'Needs a key with the Admin, Finance or Sales role, and your vendor number' },
-  { feed: 'analytics', label: 'App Analytics (times seen and download rate)', needs: 'Needs an Admin key the first time, to turn on App Analytics' },
-  { feed: 'ratings', label: 'Ratings per country', needs: 'Needs no key, because ratings are public' },
-];
+const FEEDS: Record<GrowthStore, Array<{ feed: GrowthFeed; label: string; needs: string }>> = {
+  appstore: [
+    { feed: 'listing', label: 'Store page', needs: 'Needs a key with the Admin, App Manager or Marketing role' },
+    { feed: 'reviews', label: 'Reviews and replies', needs: 'Needs a key with the Admin, App Manager or Customer Support role' },
+    { feed: 'sales', label: 'Sales and Trends (downloads and earnings)', needs: 'Needs a key with the Admin, Finance or Sales role, and your vendor number' },
+    { feed: 'analytics', label: 'App Analytics (times seen and download rate)', needs: 'Needs an Admin key the first time, to turn on App Analytics' },
+    { feed: 'ratings', label: 'Ratings per country', needs: 'Needs no key, because ratings are public' },
+  ],
+  playstore: [
+    { feed: 'listing', label: 'Store page', needs: 'Needs the service account to have access to your app in Play Console' },
+    { feed: 'reviews', label: 'Reviews and replies', needs: 'Needs the permission to reply to reviews' },
+    {
+      feed: 'analytics',
+      label: 'Report files (downloads, page visits and download rate)',
+      needs: 'Needs your Cloud Storage URI and the permission to download bulk reports',
+    },
+    { feed: 'ratings', label: 'Ratings', needs: 'From the same report files as the downloads' },
+  ],
+};
 
 const STATE_ICON: Record<FeedState, React.ComponentType<{ className?: string }>> = {
   idle: CircleDashedIcon,
@@ -67,22 +83,215 @@ const STATE_LABEL: Record<FeedState, string> = {
   ok: 'Up to date',
   empty: 'Nothing yet',
   'needs-setup': 'Not set up yet',
-  pending: 'Waiting for Apple',
+  pending: 'Waiting for {owner}',
   forbidden: 'Your key has no access',
   error: 'Could not load',
 };
 
 export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: () => void }) {
   const view = useGrowthView();
-  const { credentials, saveAppStore } = useStoreCredentials();
+  const { credentials, saveAppStore, savePlay } = useStoreCredentials();
   const [settings, setSettings] = useGrowthSettings();
   const [editingKey, setEditingKey] = useState(false);
-  const [vendor, setVendor] = useState(settings.vendorNumber ?? '');
+  const [editingPlayKey, setEditingPlayKey] = useState(false);
+  // From storage, not from `settings`: the hook's first render is the defaults,
+  // so a box started from it showed empty with Save on, and Save then erased
+  // the vendor number. Setup only renders in the browser, after mount.
+  const [vendor, setVendor] = useState(() => getGrowthSettings().vendorNumber ?? '');
+  const [reportsUri, setReportsUri] = useState(() => getGrowthSettings().playReportsUri ?? '');
   const [confirmClear, setConfirmClear] = useState(false);
   const key = credentials.appstore;
+  const playKey = credentials.playstore;
+  const playEmail = playKey ? serviceAccountEmail(playKey) : null;
+  const showingPlay = view.store === 'playstore';
+  const uriProblem = reportsUri.trim() && !bucketFromUri(reportsUri) ? 'The text is not a Cloud Storage URI. A Cloud Storage URI starts with gs://' : null;
 
   // The web build shows the whole screen too, with what cannot work there disabled.
   const webOnly = desktop ? null : view.blocked.app;
+
+  const appleKeyPanel = (
+      <Panel>
+        <SectionTitle
+          title="App Store Connect API key"
+          hint="Growth and the screenshot upload use the same key. The API key stays on your computer and goes only to Apple."
+        />
+        {webOnly ? (
+          <Gated reason={webOnly}>
+            <Button size="sm" variant="outline">
+              <KeyRoundIcon className="mr-1.5 h-4 w-4" />
+              Add your key
+            </Button>
+          </Gated>
+        ) : key && !editingKey ? (
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="flex items-center gap-2 text-sm">
+              <KeyRoundIcon className="h-4 w-4 text-muted-foreground" />
+              Key <span className="font-mono">{key.keyId}</span>
+            </p>
+            <Button variant="outline" size="sm" onClick={() => setEditingKey(true)}>
+              Change key
+            </Button>
+          </div>
+        ) : !key && !editingKey && showingPlay ? (
+          // A Google Play app is on screen: the App Store form waits for a click.
+          <Button size="sm" variant="outline" onClick={() => setEditingKey(true)}>
+            <KeyRoundIcon className="mr-1.5 h-4 w-4" />
+            Add your App Store Connect API key
+          </Button>
+        ) : (
+          <AppStoreCredentialsForm
+            value={key}
+            onSave={(next) => {
+              if (key) forgetAppStoreToken(key);
+              saveAppStore(next);
+              setEditingKey(false);
+              onSync();
+            }}
+            onCancel={key || showingPlay ? () => setEditingKey(false) : undefined}
+          />
+        )}
+        <p className="mt-3 text-xs text-muted-foreground">
+          A key with the Admin role loads all the data from Apple. A key with another role loads only part of the data.
+        </p>
+      </Panel>
+  );
+
+  const vendorPanel = (
+      <Panel>
+        <SectionTitle title="Vendor number" hint="Find the vendor number in App Store Connect, at the top of Payments and Financial Reports" />
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            value={vendor}
+            onChange={(event) => setVendor(event.target.value.replace(/\D/g, ''))}
+            placeholder="85012345"
+            inputMode="numeric"
+            className="h-9 w-[180px] font-mono text-sm"
+            aria-label="Vendor number"
+          />
+          <Gated reason={webOnly}>
+            <Button
+              size="sm"
+              disabled={vendor === (settings.vendorNumber ?? '')}
+              onClick={() => {
+                setSettings({ vendorNumber: vendor || undefined });
+                if (vendor) onSync();
+              }}
+            >
+              Save
+            </Button>
+          </Gated>
+          <Button variant="link" size="sm" className="h-auto px-0 text-xs" onClick={() => void openExternal(VENDOR_URL)}>
+            Open App Store Connect
+            <ExternalLinkIcon className="ml-1 h-3 w-3" />
+          </Button>
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          With the vendor number, a year of downloads, purchases and earnings loads in a few minutes. If Apple does not accept the
+          vendor number, the Account Holder may need to accept an agreement. Look under Business in App Store Connect.
+        </p>
+      </Panel>
+  );
+
+  const playKeyPanel = (
+      <Panel data-testid="growth-play-key">
+        <SectionTitle
+          title="Google Play service account key"
+          hint="Growth and the screenshot upload use the same key. The key stays on your computer and goes only to Google."
+        />
+        {webOnly ? (
+          <Gated reason={webOnly}>
+            <Button size="sm" variant="outline">
+              <KeyRoundIcon className="mr-1.5 h-4 w-4" />
+              Add your Google Play key
+            </Button>
+          </Gated>
+        ) : playKey && !editingPlayKey ? (
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="min-w-0 text-sm">
+              <p className="flex items-center gap-2">
+                <KeyRoundIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <span className="truncate font-mono text-xs">{playEmail ?? 'Service account key'}</span>
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                App <span className="font-mono">{playKey.packageName}</span>
+              </p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setEditingPlayKey(true)}>
+              Change key
+            </Button>
+          </div>
+        ) : !playKey && !editingPlayKey && !showingPlay ? (
+          // An App Store app, or none yet, is on screen: the Google Play form waits for a click.
+          <Button size="sm" variant="outline" onClick={() => setEditingPlayKey(true)}>
+            <KeyRoundIcon className="mr-1.5 h-4 w-4" />
+            Add your Google Play key
+          </Button>
+        ) : (
+          <PlayCredentialsForm
+            value={playKey}
+            onSave={(next) => {
+              if (playKey) forgetPlayToken(playKey);
+              savePlay(next);
+              setEditingPlayKey(false);
+              const id = playAppId(next.packageName);
+              if (view.app.id === id) onSync();
+              else setSettings({ appId: id });
+            }}
+            onCancel={playKey || !showingPlay ? () => setEditingPlayKey(false) : undefined}
+          />
+        )}
+        <p className="mt-3 text-xs text-muted-foreground">
+          Growth shows the app with the package name of the key. To see another app, change the package name.
+        </p>
+      </Panel>
+  );
+
+  const playReportsPanel = (
+      <Panel>
+        <SectionTitle
+          title="Google Play report files"
+          hint="Downloads, page visits and ratings on Google Play come from monthly report files that Google keeps for your account"
+        />
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            value={reportsUri}
+            onChange={(event) => setReportsUri(event.target.value)}
+            placeholder="gs://pubsite_prod_rev_01234567890987654321"
+            spellCheck={false}
+            autoComplete="off"
+            className="h-9 min-w-[220px] flex-1 font-mono text-xs"
+            aria-label="Cloud Storage URI"
+          />
+          <Gated reason={webOnly}>
+            <Button
+              size="sm"
+              disabled={reportsUri.trim() === (settings.playReportsUri ?? '') || !!uriProblem}
+              onClick={() => {
+                setSettings({ playReportsUri: reportsUri.trim() || undefined });
+                if (showingPlay && reportsUri.trim()) onSync();
+              }}
+            >
+              Save
+            </Button>
+          </Gated>
+          <Button variant="link" size="sm" className="h-auto px-0 text-xs" onClick={() => void openExternal(PLAY_CONSOLE_URL)}>
+            Open Play Console
+            <ExternalLinkIcon className="ml-1 h-3 w-3" />
+          </Button>
+        </div>
+        {uriProblem && <p className="mt-2 text-xs text-destructive">{uriProblem}</p>}
+        <ol className="mt-2 list-decimal space-y-1 pl-4 text-xs text-muted-foreground">
+          <li>
+            In Play Console, open Manage account, then Play apps reports, then Statistics. Click Copy Cloud Storage URI, then paste
+            the URI in the box above.
+          </li>
+          <li>
+            Under Users and permissions, give the service account the View app information permission for the whole account. The
+            permission can take a day or more to work.
+          </li>
+        </ol>
+      </Panel>
+  );
 
   return (
     <div className="space-y-4">
@@ -91,8 +300,8 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
           <MonitorDownIcon className="h-6 w-6 text-muted-foreground" />
           <p className="text-sm font-medium">Your own numbers need the desktop app</p>
           <p className="max-w-xl text-xs text-muted-foreground">
-            Growth works in the desktop app only. The desktop app gets your numbers from Apple with your own App Store Connect
-            API key. The key stays on your computer.
+            Growth works in the desktop app only. The desktop app gets your numbers from Apple and Google with your own App Store
+            Connect API key and Google Play service account key. The keys stay on your computer.
           </p>
           <Button size="sm" onClick={() => void openExternal(DESKTOP_URL)}>
             Get the desktop app
@@ -102,85 +311,32 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
       )}
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="space-y-4">
-          <Panel>
-            <SectionTitle
-              title="App Store Connect API key"
-              hint="Growth and the screenshot upload use the same key. The API key stays on your computer and goes only to Apple."
-            />
-            {webOnly ? (
-              <Gated reason={webOnly}>
-                <Button size="sm" variant="outline">
-                  <KeyRoundIcon className="mr-1.5 h-4 w-4" />
-                  Add your key
-                </Button>
-              </Gated>
-            ) : key && !editingKey ? (
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="flex items-center gap-2 text-sm">
-                  <KeyRoundIcon className="h-4 w-4 text-muted-foreground" />
-                  Key <span className="font-mono">{key.keyId}</span>
-                </p>
-                <Button variant="outline" size="sm" onClick={() => setEditingKey(true)}>
-                  Change key
-                </Button>
-              </div>
-            ) : (
-              <AppStoreCredentialsForm
-                value={key}
-                onSave={(next) => {
-                  if (key) forgetAppStoreToken(key);
-                  saveAppStore(next);
-                  setEditingKey(false);
-                  onSync();
-                }}
-                onCancel={key ? () => setEditingKey(false) : undefined}
-              />
-            )}
-            <p className="mt-3 text-xs text-muted-foreground">
-              A key with the Admin role loads all the data from Apple. A key with another role loads only part of the data.
-            </p>
-          </Panel>
-
-          <Panel>
-            <SectionTitle title="Vendor number" hint="Find the vendor number in App Store Connect, at the top of Payments and Financial Reports" />
-            <div className="flex flex-wrap items-center gap-2">
-              <Input
-                value={vendor}
-                onChange={(event) => setVendor(event.target.value.replace(/\D/g, ''))}
-                placeholder="85012345"
-                inputMode="numeric"
-                className="h-9 w-[180px] font-mono text-sm"
-                aria-label="Vendor number"
-              />
-              <Gated reason={webOnly}>
-                <Button
-                  size="sm"
-                  disabled={vendor === (settings.vendorNumber ?? '')}
-                  onClick={() => {
-                    setSettings({ vendorNumber: vendor || undefined });
-                    if (vendor) onSync();
-                  }}
-                >
-                  Save
-                </Button>
-              </Gated>
-              <Button variant="link" size="sm" className="h-auto px-0 text-xs" onClick={() => void openExternal(VENDOR_URL)}>
-                Open App Store Connect
-                <ExternalLinkIcon className="ml-1 h-3 w-3" />
-              </Button>
-            </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              With the vendor number, a year of downloads, purchases and earnings loads in a few minutes. If Apple does not accept the
-              vendor number, the Account Holder may need to accept an agreement. Look under Business in App Store Connect.
-            </p>
-          </Panel>
+          {/* The app's own store first; the other store's key waits below. */}
+          {showingPlay ? (
+            <>
+              {playKeyPanel}
+              {playReportsPanel}
+              {appleKeyPanel}
+              {vendorPanel}
+            </>
+          ) : (
+            <>
+              {appleKeyPanel}
+              {vendorPanel}
+              {playKeyPanel}
+              {playReportsPanel}
+            </>
+          )}
         </div>
 
         <div className="space-y-4">
           <Panel>
-            <SectionTitle title="Data from Apple" hint={view.data.lastSync ? `Updated ${formatAgo(view.data.lastSync)}` : 'Not loaded yet'} />
+            <SectionTitle
+              title={`Data from ${view.words.owner}`}
+              hint={view.data.lastSync ? `Updated ${formatAgo(view.data.lastSync)}` : 'Not loaded yet'}
+            />
             <ul className="space-y-3">
-              {FEEDS.map(({ feed, label, needs }) => {
+              {FEEDS[view.store].map(({ feed, label, needs }) => {
                 const status = view.data.status[feed];
                 const Icon = STATE_ICON[status.state];
                 return (
@@ -198,7 +354,9 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
                     <div className="min-w-0">
                       <p className="text-sm font-medium">
                         {label}
-                        <span className="ml-2 text-xs font-normal text-muted-foreground">{STATE_LABEL[status.state]}</span>
+                        <span className="ml-2 text-xs font-normal text-muted-foreground">
+                          {STATE_LABEL[status.state].replace('{owner}', view.words.owner)}
+                        </span>
                       </p>
                       {status.message && <p className="text-xs">{status.message}</p>}
                       <p className="text-[11px] text-muted-foreground">{needs}</p>
@@ -207,7 +365,7 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
                 );
               })}
             </ul>
-            {view.data.status.analytics.state === 'needs-setup' && (
+            {!showingPlay && view.data.status.analytics.state === 'needs-setup' && (
               <p className="mt-3 rounded-md bg-muted p-2 text-xs">
                 To turn on App Analytics, change to an Admin key and refresh once. Then you can go back to your other key. The first
                 numbers take a day or two.
@@ -295,10 +453,10 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
             <div className="flex items-start justify-between gap-3">
               <div>
                 <Label htmlFor="growth-share" className="text-xs font-normal">
-                  Let external AI tools see your App Store numbers
+                  Let external AI tools see your store numbers
                 </Label>
                 <p className="text-[11px] text-muted-foreground">
-                  The agent can always see your App Store numbers. With the switch on, other AI tools you connected to Open Screenshot Generator can see the numbers too. The numbers include your sales.
+                  The agent can always see your App Store and Google Play numbers. With the switch on, other AI tools you connected to Open Screenshot Generator can see the numbers too. The numbers include your sales.
                 </p>
               </div>
               <Switch id="growth-share" checked={settings.shareWithClients} onCheckedChange={(checked) => setSettings({ shareWithClients: checked })} />

@@ -101,6 +101,10 @@ export const metaKeys = {
   analyticsReports: (requestId: string) => `analytics:reports:${requestId}`,
   insightsDismissed: (appId: string) => `insights:dismissed:${appId}`,
   ratingsSwept: (appId: string) => `ratings:swept:${appId}`,
+  /** Google Play: the report files read, by name, with the time each last changed. */
+  playFiles: (appId: string) => `play:files:${appId}`,
+  /** Google Play: the app's name and icon, from its store page, for the app picker. */
+  playApp: (appId: string) => `play:app:${appId}`,
 };
 
 const running = new Map<string, Promise<SyncStatus>>();
@@ -129,7 +133,7 @@ function withDayLock<T>(task: () => Promise<T>): Promise<T> {
 }
 
 /** Merge each day into what is stored, inside the lock. */
-async function mergeAndWrite(entries: Array<{ appId: string; date: string; feed: FeedId; day: ReturnType<typeof emptyFeedDay> }>): Promise<void> {
+export async function mergeAndWrite(entries: Array<{ appId: string; date: string; feed: FeedId; day: ReturnType<typeof emptyFeedDay> }>): Promise<void> {
   if (entries.length === 0) return;
   await withDayLock(async () => {
     const now = Date.now();
@@ -152,29 +156,38 @@ export function isSyncing(appId: string): boolean {
  * second one beside it.
  */
 export function syncApp(options: SyncOptions): Promise<SyncStatus> {
-  const existing = running.get(options.app.id);
+  return exclusiveSync(options.app.id, () => runSync(options));
+}
+
+/**
+ * Run one app's sync unless one is running already: in this window it is
+ * joined, in another editor window it is left to finish and the last saved
+ * status answers. Both stores' syncs go through here (playSync.ts too).
+ */
+export function exclusiveSync(appId: string, task: () => Promise<SyncStatus>): Promise<SyncStatus> {
+  const existing = running.get(appId);
   if (existing) return existing;
   const locks = webLocks();
   const work = (
     locks
-      ? locks.request(`osg-growth-sync:${options.app.id}`, { ifAvailable: true }, async (lock) => {
+      ? locks.request(`osg-growth-sync:${appId}`, { ifAvailable: true }, async (lock) => {
           if (!lock) {
-            const saved = (await readMeta<SyncStatus>(metaKeys.status(options.app.id))) ?? IDLE_STATUS;
+            const saved = (await readMeta<SyncStatus>(metaKeys.status(appId))) ?? IDLE_STATUS;
             return { ...IDLE_STATUS, ...saved };
           }
-          return runSync(options);
+          return task();
         })
-      : runSync(options)
-  ).finally(() => running.delete(options.app.id));
-  running.set(options.app.id, work);
+      : task()
+  ).finally(() => running.delete(appId));
+  running.set(appId, work);
   return work;
 }
 
-function isAbort(error: unknown, signal?: AbortSignal): boolean {
+export function isAbort(error: unknown, signal?: AbortSignal): boolean {
   return (error as Error)?.name === 'AbortError' || !!signal?.aborted;
 }
 
-function describe(error: unknown): string {
+export function describe(error: unknown): string {
   return error instanceof Error ? error.message : 'The data could not be loaded. Refresh to try again';
 }
 

@@ -85,7 +85,7 @@ test.describe('growth', () => {
     expect(pressLands, 'the spot where Export was belongs to Growth').toBe(true);
 
     const reason = isDesktop
-      ? 'Add your App Store Connect API key under Setup first'
+      ? 'Add your App Store Connect API key or Google Play service account key under Setup first'
       : 'Growth works in the desktop app only';
     await expect(view.getByTestId('growth-no-app')).toContainText(reason);
     const sync = view.getByRole('button', { name: 'Refresh', exact: true });

@@ -555,12 +555,12 @@ test('an app syncs on its own whenever its numbers are old, and a failed try wai
 });
 
 test('a period is compared only when the history reaches back over all of it', () => {
-  const starts = { engagement: '2026-10-01', downloads: '2026-10-01', sales: '2026-06-01' };
+  const starts = { engagement: '2026-10-01', downloads: '2026-10-01', sales: '2026-06-01', installs: null, visits: null };
   assert.equal(covers(starts, 'downloads', { from: '2026-07-01', to: '2026-07-31' }), true, 'Sales and Trends covers downloads');
   assert.equal(covers(starts, 'impressions', { from: '2026-09-15', to: '2026-10-14' }), false);
   assert.equal(covers(starts, 'conversion', { from: '2026-10-01', to: '2026-10-31' }), true);
   assert.equal(covers(starts, 'proceeds', { from: '2026-05-01', to: '2026-05-31' }), false);
-  assert.equal(covers({ engagement: null, downloads: null, sales: null }, 'downloads', { from: '2026-01-01', to: '2026-01-02' }), false);
+  assert.equal(covers({ engagement: null, downloads: null, sales: null, installs: null, visits: null }, 'downloads', { from: '2026-01-01', to: '2026-01-02' }), false);
   const records = sampleRecords();
   assert.equal(feedStarts(records).sales, records[0].date);
 });

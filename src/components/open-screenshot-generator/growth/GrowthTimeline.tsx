@@ -27,7 +27,7 @@ import { formatDay, isDay, today } from '@/lib/growth/dates';
 import { deleteEvent } from '@/lib/growth/db';
 import { addManualEvent } from '@/lib/growth/events';
 import { eventImpact } from '@/lib/growth/impact';
-import { METRICS, dailySeries, primaryCurrency, totalsFor, type MetricId } from '@/lib/growth/metrics';
+import { dailySeries, downloadRateMetric, metricSpec, primaryCurrency, storeMetrics, totalsFor, type MetricId } from '@/lib/growth/metrics';
 import { EVENT_KIND_LABELS, type TimelineEvent, type TimelineEventKind } from '@/lib/growth/types';
 import { cn } from '@/lib/utils';
 import { TrendChart } from './GrowthCharts';
@@ -46,17 +46,23 @@ const KIND_ICON: Record<TimelineEventKind, React.ComponentType<{ className?: str
 };
 
 const ORIGIN_LABEL: Record<TimelineEvent['origin'], string> = {
-  auto: 'From the App Store',
+  auto: 'From the {store}',
   publish: 'From the editor',
   listing: 'From Growth',
   manual: 'Added by you',
 };
 
+function originLabel(origin: TimelineEvent['origin'], store: string): string {
+  return ORIGIN_LABEL[origin].replace('the {store}', store === 'Google Play' ? 'Google Play' : `the ${store}`);
+}
+
 const ADDABLE: TimelineEventKind[] = ['campaign', 'price', 'featured', 'in-app-event', 'release', 'note'];
 
 export function GrowthTimeline() {
   const view = useGrowthView();
-  const [metric, setMetric] = useState<MetricId>(view.data.records.some((record) => record.feeds.engagement) ? 'conversion' : 'downloads');
+  const [metric, setMetric] = useState<MetricId>(
+    view.data.records.some((record) => record.feeds.engagement || record.feeds.visits) ? downloadRateMetric(view.store) : 'downloads'
+  );
   const events = useMemo(() => [...view.data.events].sort((a, b) => b.date.localeCompare(a.date)), [view.data.events]);
   const range = useMemo(() => {
     const first = view.data.records[0]?.date;
@@ -82,9 +88,9 @@ export function GrowthTimeline() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {(Object.keys(METRICS) as MetricId[]).map((id) => (
+                {storeMetrics(view.store).map((id) => (
                   <SelectItem key={id} value={id} className="text-xs">
-                    {METRICS[id].label}
+                    {metricSpec(id, view.store).label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -92,7 +98,7 @@ export function GrowthTimeline() {
           }
         />
         {view.data.records.length > 0 ? (
-          <TrendChart points={points} metric={METRICS[metric]} currency={currency} events={view.data.events} showPrevious={false} highlightEventId={view.tabOptions.eventId} />
+          <TrendChart points={points} metric={metricSpec(metric, view.store)} currency={currency} events={view.data.events} showPrevious={false} highlightEventId={view.tabOptions.eventId} />
         ) : (
           <p className="text-xs text-muted-foreground">The chart appears when your app has numbers.</p>
         )}
@@ -138,13 +144,13 @@ function EventRow({ event }: { event: TimelineEvent }) {
           <p className="text-xs text-muted-foreground">{formatDay(event.date, { withYear: true })}</p>
         </div>
         <p className="text-xs text-muted-foreground">
-          {EVENT_KIND_LABELS[event.kind]} · {ORIGIN_LABEL[event.origin]}
+          {EVENT_KIND_LABELS[event.kind]} · {originLabel(event.origin, view.words.store)}
           {event.version && event.kind !== 'release' ? ` · version ${event.version}` : ''}
         </p>
         {event.detail && <p className="mt-1 text-xs">{event.detail}</p>}
         {impact && event.kind !== 'note' && (
           <p className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-muted-foreground">{impactLine(impact)}</span>
+            <span className="text-muted-foreground">{impactLine(impact, view.store)}</span>
             {(impact.verdict === 'better' || impact.verdict === 'worse') && <Delta change={impact.change} />}
             {impact.verdict === 'too-early' && impact.liveDate && (
               <span className="text-muted-foreground">Not sure yet. Wait {impact.daysToWait} more day{impact.daysToWait === 1 ? '' : 's'}</span>
@@ -204,7 +210,10 @@ function AddEventForm() {
 
   return (
     <Panel className="h-fit space-y-3">
-      <SectionTitle title="Add an event" hint="Ad campaigns, price changes and App Store features help explain jumps in your numbers. The AI reads your events too." />
+      <SectionTitle
+        title="Add an event"
+        hint={`Ad campaigns, price changes and ${view.words.store} features help explain jumps in your numbers. The AI reads your events too.`}
+      />
       <Select value={kind} onValueChange={(value) => setKind(value as TimelineEventKind)}>
         <SelectTrigger className="h-9 text-xs" aria-label="Kind of event">
           <SelectValue />

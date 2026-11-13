@@ -19,8 +19,10 @@ import { cn } from '@/lib/utils';
 import type { DayWindow } from '@/lib/growth/dates';
 import type { GrowthData } from '@/lib/growth/useGrowthData';
 import type { DayRecord, DayString, GrowthApp, Insight, InsightTone, ListingIssue } from '@/lib/growth/types';
-import type { AppStoreCredentials } from '@/lib/publish/types';
+import type { GrowthStore, StoreWords } from '@/lib/growth/stores';
+import type { AppStoreCredentials, PlayCredentials } from '@/lib/publish/types';
 import { formatChange } from '@/lib/growth/impact';
+import { useStoreImage } from '@/lib/growth/storeImages';
 
 export type GrowthTab =
   | 'overview'
@@ -50,6 +52,9 @@ export interface GrowthTabOptions {
 
 export interface GrowthView {
   app: GrowthApp;
+  /** The store the app is in, and the words for it ("App Store", "Apple"; "Google Play", "Google"). */
+  store: GrowthStore;
+  words: StoreWords;
   data: GrowthData;
   byDate: Map<DayString, DayRecord>;
   /** The selected range, ending where every feed has reported. */
@@ -60,7 +65,9 @@ export interface GrowthView {
   dismissedInsights: Insight[];
   listingIssues: ListingIssue[];
   credentials?: AppStoreCredentials;
-  /** Writes reach Apple: desktop, a key and an app of the account. */
+  /** The Google Play service account key, for an app on Google Play. */
+  playCredentials?: PlayCredentials;
+  /** Writes reach the store: desktop, the store's key and an app of the account. */
   canWrite: boolean;
   /**
    * Why each kind of action cannot run now, null when it can. The buttons
@@ -224,6 +231,18 @@ export function Gated({ reason, children }: { reason: string | null | undefined;
 /** The first reason that applies, for an action that needs more than one thing. */
 export function firstReason(...reasons: Array<string | null | undefined>): string | null {
   return reasons.find((reason) => !!reason) ?? null;
+}
+
+/**
+ * An image from a store: Google Play's are fetched by the app first
+ * (storeImages.ts), since their server refuses the web view's own requests.
+ */
+export function StoreImage({ src, alt, ...rest }: Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'src'> & { src: string }) {
+  const source = useStoreImage(src);
+  // While the app fetches it: a box of a phone screenshot's shape, or the size the caller gave.
+  if (!source) return <span aria-hidden className={cn('inline-block aspect-[1/2] rounded-md bg-muted', rest.className)} />;
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={source} alt={alt} {...rest} />;
 }
 
 export function Panel({ className, children, ...rest }: React.HTMLAttributes<HTMLDivElement>) {

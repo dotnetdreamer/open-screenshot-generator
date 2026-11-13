@@ -22,9 +22,16 @@
 // Screenshots uploaded to a version waiting for review are not on the store
 // until that version is released, so a screenshots event is measured from the
 // release of the version it was uploaded to (liveDateFor), not from the upload.
+//
+// Google Play has no versions on the store page: new screenshots go live once
+// Google has checked them, usually within days of the upload, so they are
+// measured from the upload day. A Google Play app has no impressions either,
+// so its rate is the store listing conversion rate (`pageConversion`): of the
+// people who opened the page, how many installed.
 
 import { addDays, daysBetween, formatDay, type DayWindow } from './dates';
 import { dailySeries, relativeChange, totalsFor, type Totals } from './metrics';
+import { storeOf } from './stores';
 import type { DayRecord, DayString, TimelineEvent } from './types';
 
 export type ImpactVerdict = 'better' | 'worse' | 'flat' | 'too-early' | 'not-live' | 'no-data';
@@ -35,8 +42,11 @@ export interface ImpactResult {
   liveDate: DayString | null;
   before: DayWindow;
   after: DayWindow;
-  /** Which rate was compared. */
-  measure: 'conversion' | 'downloads';
+  /**
+   * Which rate was compared: the download rate from times seen (App Store),
+   * the download rate from page visits (Google Play), or downloads per day.
+   */
+  measure: 'conversion' | 'pageConversion' | 'downloads';
   beforeRate: number | null;
   afterRate: number | null;
   /** Relative change of the measure, 0.18 for +18%. */
@@ -148,6 +158,10 @@ export function countConfidence(before: number, after: number): number | null {
  * live the day it happened. Null while the version is still waiting.
  */
 export function liveDateFor(event: TimelineEvent, events: TimelineEvent[]): DayString | null {
+  // The day the user said a Google Play change went live, or not live yet
+  // while Play holds it for them to send for review.
+  if (event.liveDate) return event.liveDate;
+  if (event.waitsForReview) return null;
   const version = versionOf(event);
   // Only screenshots and listing text wait for their version; a release, a
   // campaign or a promotional text change is live the day it happens.
@@ -260,8 +274,9 @@ export function eventImpact(
     others,
   };
 
+  const rateMeasure = storeOf(event.appId) === 'playstore' ? 'pageConversion' : 'conversion';
   if (liveDate === null) {
-    return { ...base, measure: 'conversion', beforeRate: null, afterRate: null, change: null, confidence: null, verdict: 'not-live' };
+    return { ...base, measure: rateMeasure, beforeRate: null, afterRate: null, change: null, confidence: null, verdict: 'not-live' };
   }
 
   const useRate =
@@ -280,6 +295,25 @@ export function eventImpact(
           )
         : null;
     return { ...base, measure: 'conversion', beforeRate, afterRate, change, confidence, verdict: verdictFor(change, confidence, daysAfter, days) };
+  }
+
+  // Google Play: no times seen, so the rate is from page visits.
+  const usePageRate =
+    beforeTotals.pageConversionBase.uniquePageViews > 0 && afterTotals.pageConversionBase.uniquePageViews > 0;
+  if (usePageRate) {
+    const beforeRate = beforeTotals.pageConversion;
+    const afterRate = daysAfter > 0 ? afterTotals.pageConversion : null;
+    const change = relativeChange(afterRate, beforeRate);
+    const confidence =
+      daysAfter > 0
+        ? proportionConfidence(
+            beforeTotals.pageConversionBase.downloads,
+            beforeTotals.pageConversionBase.uniquePageViews,
+            afterTotals.pageConversionBase.downloads,
+            afterTotals.pageConversionBase.uniquePageViews
+          )
+        : null;
+    return { ...base, measure: 'pageConversion', beforeRate, afterRate, change, confidence, verdict: verdictFor(change, confidence, daysAfter, days) };
   }
 
   if (beforeTotals.days === 0 || (daysAfter > 0 && afterTotals.days === 0)) {

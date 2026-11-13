@@ -12,9 +12,16 @@
 //   product page rate      downloads started on the product page / unique page views
 // and is only computed over days where both halves were reported, so a day
 // with impressions but no download report yet cannot drag the rate to zero.
+//
+// A Google Play app has no impressions, so its download rate is Play
+// Console's store listing conversion rate: acquisitions over visitors, which
+// lands in the page rate's fields (`visits` feed). Its new downloads and updates
+// come from the installs report (`installs` feed). storeMetrics() says which
+// numbers each store has, and metricSpec() what each is called there.
 
 import { addDays, dayRange, inWindow, previousWindow, type DayWindow } from './dates';
 import { addCounts } from './records';
+import type { GrowthStore } from './stores';
 import type { Counts, DayRecord, DayString, SourceType } from './types';
 
 export type MetricId =
@@ -36,6 +43,7 @@ export interface MetricSpec {
   kind: 'count' | 'rate' | 'money';
 }
 
+/** The App Store's numbers, by the names Growth uses. Google Play's differ: see metricSpec. */
 export const METRICS: Record<MetricId, MetricSpec> = {
   impressions: { id: 'impressions', label: 'Times seen', hint: "How often your app showed up in the App Store. In App Store Connect: Impressions", kind: 'count' },
   pageViews: { id: 'pageViews', label: 'Page visits', hint: "How often people opened your app's page. In App Store Connect: Product Page Views", kind: 'count' },
@@ -47,6 +55,44 @@ export const METRICS: Record<MetricId, MetricSpec> = {
   iapUnits: { id: 'iapUnits', label: 'In-app purchases', hint: 'Purchases and subscription renewals', kind: 'count' },
   proceeds: { id: 'proceeds', label: 'Earnings', hint: "What Apple pays you, after Apple's fee", kind: 'money' },
 };
+
+/** Google Play's numbers. Play reports no times seen, redownloads or earnings to Growth. */
+const PLAY_METRICS: Partial<Record<MetricId, MetricSpec>> = {
+  pageViews: { id: 'pageViews', label: 'Page visits', hint: "How many people opened your app's page. In Play Console: Store listing visitors", kind: 'count' },
+  pageConversion: {
+    id: 'pageConversion',
+    label: 'Download rate',
+    hint: "How many of the people who opened your app's page then installed your app. In Play Console: Store listing conversion rate",
+    kind: 'rate',
+  },
+  downloads: {
+    id: 'downloads',
+    label: 'New downloads',
+    hint: "People who installed your app for the first time. In Google's report files: Daily User Installs",
+    kind: 'count',
+  },
+  updates: { id: 'updates', label: 'Updates', hint: "Updates installed. In Google's report files: Update events", kind: 'count' },
+};
+
+const STORE_METRICS: Record<GrowthStore, MetricId[]> = {
+  appstore: Object.keys(METRICS) as MetricId[],
+  playstore: ['pageViews', 'pageConversion', 'downloads', 'updates'],
+};
+
+/** The numbers a store has, in the order the chart picker lists them. */
+export function storeMetrics(store: GrowthStore): MetricId[] {
+  return STORE_METRICS[store];
+}
+
+/** What a number is called in a store, and what it means there. */
+export function metricSpec(id: MetricId, store: GrowthStore = 'appstore'): MetricSpec {
+  return (store === 'playstore' ? PLAY_METRICS[id] : undefined) ?? METRICS[id];
+}
+
+/** The rate a store's "download rate" is: from times seen on the App Store, from page visits on Google Play. */
+export function downloadRateMetric(store: GrowthStore): MetricId {
+  return store === 'playstore' ? 'pageConversion' : 'conversion';
+}
 
 /** Which slice of the data to read. Empty means everything. */
 export interface MetricFilter {
@@ -76,8 +122,12 @@ export interface Totals {
   /** Days that had any data at all, and which feeds. */
   days: number;
   hasEngagement: boolean;
+  /** Page visits were reported: App Analytics, or Google Play's store performance report. */
+  hasPageViews: boolean;
   hasDownloads: boolean;
   hasSales: boolean;
+  /** Google Play's installs report. */
+  hasInstalls: boolean;
 }
 
 function sliceOf(record: DayRecord, filter: MetricFilter): Counts {
@@ -127,12 +177,25 @@ export function dayValues(record: DayRecord | undefined, date: DayString, filter
   const engagement = record.feeds.engagement !== undefined;
   const analytics = record.feeds.downloads !== undefined;
   const sales = record.feeds.sales !== undefined && !filter.source;
+  // Google Play: visitors and acquisitions come by source too, installs do not.
+  const visits = record.feeds.visits !== undefined;
+  const installs = record.feeds.installs !== undefined && !filter.source;
   const out = { ...empty };
   if (engagement) {
     out.impressions = counts.impressions ?? 0;
     out.uniqueImpressions = counts.uniqueImpressions ?? 0;
     out.pageViews = counts.pageViews ?? 0;
     out.uniquePageViews = counts.uniquePageViews ?? 0;
+  }
+  if (visits) {
+    out.pageViews = counts.pageViews ?? 0;
+    out.uniquePageViews = counts.uniquePageViews ?? 0;
+    out.pageDownloads = counts.pageDownloads ?? 0;
+  }
+  if (installs) {
+    out.firstDownloads = counts.firstDownloads ?? 0;
+    out.downloads = out.firstDownloads;
+    out.updates = counts.updates ?? 0;
   }
   if (analytics) {
     out.firstDownloads = counts.firstDownloads ?? 0;
@@ -179,21 +242,26 @@ export function totalsFor(
     pageConversionBase: { downloads: 0, uniquePageViews: 0 },
     days: 0,
     hasEngagement: false,
+    hasPageViews: false,
     hasDownloads: false,
     hasSales: false,
+    hasInstalls: false,
   };
   for (const date of dayRange(window.from, window.to)) {
     const record = byDate.get(date);
     if (!record) continue;
     const values = dayValues(record, date, filter);
-    const any = values.impressions !== null || values.downloads !== null;
+    const any = values.impressions !== null || values.downloads !== null || values.pageViews !== null;
     if (!any) continue;
     totals.days += 1;
     if (values.impressions !== null) {
       totals.hasEngagement = true;
       totals.impressions += values.impressions;
       totals.uniqueImpressions += values.uniqueImpressions ?? 0;
-      totals.pageViews += values.pageViews ?? 0;
+    }
+    if (values.pageViews !== null) {
+      totals.hasPageViews = true;
+      totals.pageViews += values.pageViews;
       totals.uniquePageViews += values.uniquePageViews ?? 0;
     }
     if (values.downloads !== null) {
@@ -201,13 +269,12 @@ export function totalsFor(
       totals.firstDownloads += values.firstDownloads ?? 0;
       totals.redownloads += values.redownloads ?? 0;
     }
-    if (record.feeds.downloads !== undefined) {
-      totals.hasDownloads = true;
-      totals.pageDownloads += values.pageDownloads ?? 0;
-    }
+    if (record.feeds.downloads !== undefined) totals.hasDownloads = true;
+    if (record.feeds.installs !== undefined && !filter.source) totals.hasInstalls = true;
+    if (values.pageDownloads !== null) totals.pageDownloads += values.pageDownloads;
+    if (values.updates !== null) totals.updates += values.updates;
     if (values.proceeds !== null) {
       totals.hasSales = true;
-      totals.updates += values.updates ?? 0;
       totals.iapUnits += values.iapUnits ?? 0;
       for (const [currency, amount] of Object.entries(values.proceeds)) {
         totals.proceeds[currency] = Math.round(((totals.proceeds[currency] ?? 0) + amount) * 100) / 100;
@@ -217,8 +284,8 @@ export function totalsFor(
       totals.conversionBase.downloads += (values.firstDownloads ?? 0) + (values.redownloads ?? 0);
       totals.conversionBase.uniqueImpressions += values.uniqueImpressions;
     }
-    if (values.uniquePageViews !== null && record.feeds.downloads !== undefined) {
-      totals.pageConversionBase.downloads += values.pageDownloads ?? 0;
+    if (values.uniquePageViews !== null && values.pageDownloads !== null) {
+      totals.pageConversionBase.downloads += values.pageDownloads;
       totals.pageConversionBase.uniquePageViews += values.uniquePageViews;
     }
   }
@@ -285,9 +352,9 @@ export function metricValue(totals: Totals, metric: MetricId, currency?: string)
     case 'impressions':
       return totals.hasEngagement ? totals.impressions : null;
     case 'pageViews':
-      return totals.hasEngagement ? totals.pageViews : null;
+      return totals.hasPageViews ? totals.pageViews : null;
     case 'downloads':
-      return totals.days > 0 && (totals.hasDownloads || totals.hasSales) ? totals.downloads : null;
+      return totals.days > 0 && (totals.hasDownloads || totals.hasSales || totals.hasInstalls) ? totals.downloads : null;
     case 'conversion':
       return totals.conversion;
     case 'pageConversion':
@@ -295,7 +362,7 @@ export function metricValue(totals: Totals, metric: MetricId, currency?: string)
     case 'redownloads':
       return totals.hasDownloads || totals.hasSales ? totals.redownloads : null;
     case 'updates':
-      return totals.hasSales ? totals.updates : null;
+      return totals.hasSales || totals.hasInstalls ? totals.updates : null;
     case 'iapUnits':
       return totals.hasSales ? totals.iapUnits : null;
     case 'proceeds': {
@@ -310,12 +377,16 @@ export interface FeedStarts {
   engagement: DayString | null;
   downloads: DayString | null;
   sales: DayString | null;
+  /** Google Play's installs report. */
+  installs: DayString | null;
+  /** Google Play's store performance report. */
+  visits: DayString | null;
 }
 
 export function feedStarts(records: DayRecord[]): FeedStarts {
-  const starts: FeedStarts = { engagement: null, downloads: null, sales: null };
+  const starts: FeedStarts = { engagement: null, downloads: null, sales: null, installs: null, visits: null };
   for (const record of records) {
-    for (const feed of ['engagement', 'downloads', 'sales'] as const) {
+    for (const feed of ['engagement', 'downloads', 'sales', 'installs', 'visits'] as const) {
       if (record.feeds[feed] === undefined) continue;
       const seen = starts[feed];
       if (!seen || record.date < seen) starts[feed] = record.date;
@@ -329,6 +400,11 @@ function earliest(...days: Array<DayString | null>): DayString | null {
   return present.length ? present.reduce((a, b) => (a < b ? a : b)) : null;
 }
 
+/** The later of two starts, or null when either is missing: a rate needs both halves. */
+function latestOf(a: DayString | null, b: DayString | null): DayString | null {
+  return a && b ? (a > b ? a : b) : null;
+}
+
 /**
  * Whether a metric's history reaches back over all of a span, so the span can
  * stand beside another. One that starts before the data does holds a fraction
@@ -338,22 +414,29 @@ function earliest(...days: Array<DayString | null>): DayString | null {
  * with rows instead would leave a small app with no comparisons at all.
  */
 export function covers(starts: FeedStarts, metric: MetricId, window: DayWindow): boolean {
-  const downloads = earliest(starts.downloads, starts.sales);
+  const downloads = earliest(starts.downloads, starts.sales, starts.installs);
   let start: DayString | null;
   switch (metric) {
     case 'impressions':
-    case 'pageViews':
       start = starts.engagement;
+      break;
+    case 'pageViews':
+      start = earliest(starts.engagement, starts.visits);
       break;
     case 'downloads':
     case 'redownloads':
       start = downloads;
       break;
     case 'conversion':
+      start = latestOf(starts.engagement, downloads);
+      break;
     case 'pageConversion':
-      start = starts.engagement && downloads ? (starts.engagement > downloads ? starts.engagement : downloads) : null;
+      // App Analytics needs both of its reports; Google Play's store performance report carries both halves.
+      start = earliest(latestOf(starts.engagement, starts.downloads), starts.visits);
       break;
     case 'updates':
+      start = earliest(starts.sales, starts.installs);
+      break;
     case 'iapUnits':
     case 'proceeds':
       start = starts.sales;
@@ -506,6 +589,7 @@ function breakdown(
   return rows.sort(
     (a, b) =>
       b.totals.downloads - a.totals.downloads ||
+      b.totals.pageDownloads - a.totals.pageDownloads ||
       b.totals.pageViews - a.totals.pageViews ||
       b.totals.impressions - a.totals.impressions
   );
@@ -526,8 +610,9 @@ export function byTerritory(
 export function bySource(byDate: Map<DayString, DayRecord>, window: DayWindow): BreakdownRow[] {
   const compareTo = previousWindow(window);
   const keys = keysIn(byDate, window, compareTo, (record) => Object.keys(record.sources));
+  // Google Play splits only page visits and the downloads from them by source.
   return breakdown(byDate, window, compareTo, keys, (source) => ({ source: source as SourceType })).filter(
-    (row) => row.totals.downloads > 0 || row.totals.impressions > 0
+    (row) => row.totals.downloads > 0 || row.totals.impressions > 0 || row.totals.pageDownloads > 0 || row.totals.pageViews > 0
   );
 }
 

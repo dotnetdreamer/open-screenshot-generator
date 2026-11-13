@@ -1,15 +1,18 @@
 "use client";
 
-// The App Store listing: name, subtitle, keywords, promotional text,
-// description and what's new, per language, with the checks beside it and
-// every edit collected as a suggested change until the user applies them.
+// The store listing: name, subtitle, keywords, promotional text, description
+// and what's new on the App Store, title, short description and full
+// description on Google Play (listingFields.ts), per language, with the checks
+// beside it and every edit collected as a suggested change until the user
+// applies them.
 //
 // Edits never go to Apple one keystroke at a time. They queue up as before and
 // after pairs (ListingChange), which the user reads, trims and applies in one
 // go, the same review step AI suggestions and quick fixes go through. Apple
 // refuses changes to a version in review, and name and subtitle live on the
 // app info, which has its own editable state, so each field says whether it
-// can be changed right now and why not.
+// can be changed right now and why not. Google Play takes a change at any
+// time, in one commit for every language, and checks it before it goes live.
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -32,7 +35,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { reviewListingWithAi, suggestListingField, translateListingFields } from '@/lib/growth/ai';
 import { addListingLanguage, applyListingChanges, editableAppInfoId, fetchListing } from '@/lib/growth/asc';
-import { announceGrowthChange, writeListing } from '@/lib/growth/db';
+import { announceGrowthChange, writeListing, writeMeta } from '@/lib/growth/db';
+import { listingFieldLabel, listingFieldsFor, listingLimit } from '@/lib/growth/listingFields';
+import { applyPlayListingChanges, fetchPlayListing } from '@/lib/growth/play';
+import { metaKeys, type LiveListing } from '@/lib/growth/sync';
 import { recordListingChange } from '@/lib/growth/events';
 import { cleanKeywords, collapseChanges, fieldLength, listingScore } from '@/lib/growth/listingChecks';
 import {
@@ -46,17 +52,10 @@ import {
   type ListingNote,
 } from '@/lib/growth/listingDrafts';
 import { LISTING_LANGUAGES, listingLanguageName } from '@/lib/growth/territories';
-import {
-  LISTING_FIELDS,
-  LISTING_FIELD_LABELS,
-  LISTING_LIMITS,
-  type ListingChange,
-  type ListingField,
-  type ListingIssue,
-  type ListingSnapshot,
-} from '@/lib/growth/types';
+import { storeOf } from '@/lib/growth/stores';
+import { type ListingChange, type ListingField, type ListingIssue, type ListingSnapshot } from '@/lib/growth/types';
 import { cn } from '@/lib/utils';
-import { EmptyState, Gated, Panel, SectionTitle, useGrowthView } from './GrowthShared';
+import { EmptyState, Gated, Panel, SectionTitle, StoreImage, useGrowthView } from './GrowthShared';
 
 const MULTILINE: ListingField[] = ['description', 'whatsNew', 'promotionalText'];
 
@@ -70,6 +69,8 @@ function isLiveState(state: string): boolean {
 const SEVERITY_ICON = { problem: OctagonAlertIcon, warning: AlertTriangleIcon, tip: InfoIcon };
 
 function fieldEditable(listing: ListingSnapshot, field: ListingField): { ok: boolean; why?: string } {
+  // Google Play takes a store page change at any time.
+  if (storeOf(listing.appId) === 'playstore') return { ok: true };
   if (field === 'promotionalText') return { ok: true };
   if (field === 'name' || field === 'subtitle') {
     return listing.appInfoEditable
@@ -89,6 +90,9 @@ export function GrowthListing() {
   // (listingDrafts.ts): the window mounts a new one for every section, and an
   // action still running when the user comes back must show, not start again.
   const appId = view.app.id;
+  const play = view.store === 'playstore';
+  const fields = listingFieldsFor(appId);
+  const labelOf = (field: ListingField) => listingFieldLabel(appId, field);
   const drafts = useListingDrafts(appId);
   const changes = useMemo(() => (listing ? rebaseChanges(drafts.changes, listing) : drafts.changes), [drafts.changes, listing]);
   const aiIssues = drafts.aiIssues;
@@ -156,6 +160,17 @@ export function GrowthListing() {
   };
 
   const refreshListing = async () => {
+    if (play) {
+      if (!view.playCredentials) return;
+      const fresh = await fetchPlayListing(view.playCredentials, view.app.id);
+      if (fresh) {
+        await writeListing(fresh.listing);
+        const live = { ...(view.data.live ?? {}), ...fresh.images, ipadScreenshotUrls: [], version: '', releaseDate: null, checkedAt: Date.now() } as LiveListing;
+        await writeMeta(metaKeys.live(view.app.id), live);
+        announceGrowthChange(view.app.id);
+      }
+      return;
+    }
     if (!view.credentials) return;
     const fresh = await fetchListing(view.credentials, { id: view.app.id, primaryLocale: listing.primaryLocale });
     if (fresh) {
@@ -169,25 +184,37 @@ export function GrowthListing() {
       const toApply = collapseChanges(changes);
       if (toApply.length === 0) return;
       for (const change of toApply) {
-        if (!fieldEditable(listing, change.field).ok) {
-          throw new Error(`${LISTING_FIELD_LABELS[change.field]} cannot be changed right now. Remove the ${LISTING_FIELD_LABELS[change.field].toLowerCase()} change first`);
+        if (!fields.includes(change.field)) {
+          throw new Error(`${view.words.store} has no ${labelOf(change.field).toLowerCase()}. Remove the ${labelOf(change.field).toLowerCase()} change first`);
         }
-        if (fieldLength(change.after) > LISTING_LIMITS[change.field]) {
-          throw new Error(`The ${listingLanguageName(change.locale)} ${LISTING_FIELD_LABELS[change.field].toLowerCase()} is over the ${LISTING_LIMITS[change.field]} character limit`);
+        if (!fieldEditable(listing, change.field).ok) {
+          throw new Error(`${labelOf(change.field)} cannot be changed right now. Remove the ${labelOf(change.field).toLowerCase()} change first`);
+        }
+        if (fieldLength(change.after) > listingLimit(appId, change.field)) {
+          throw new Error(`The ${listingLanguageName(change.locale)} ${labelOf(change.field).toLowerCase()} is over the ${listingLimit(appId, change.field)} character limit`);
         }
       }
-      if (!view.credentials) throw new Error('Add your App Store Connect API key under Setup first');
-      const result = await applyListingChanges(view.credentials, listing, toApply);
+      let result: { applied: string[]; warnings: string[]; sentForReview?: boolean };
+      if (play) {
+        if (!view.playCredentials) throw new Error('Add your Google Play service account key under Setup first');
+        const written = await applyPlayListingChanges(view.playCredentials, listing, toApply);
+        result = { applied: written.applied, warnings: [], sentForReview: written.sentForReview };
+      } else {
+        if (!view.credentials) throw new Error('Add your App Store Connect API key under Setup first');
+        result = await applyListingChanges(view.credentials, listing, toApply);
+      }
       const took = new Set(result.applied);
       const applied = toApply.filter((change) => took.has(`${change.locale}:${change.field}`));
       if (applied.length > 0) {
         // A change shows on the store when the version it was written to
         // does, so only an edit to the live version counts from today.
+        // Google Play has no versions; a change Play holds for review waits.
         await recordListingChange({
           appId: view.app.id,
-          fields: Array.from(new Set(applied.map((change) => LISTING_FIELD_LABELS[change.field].toLowerCase()))),
+          fields: Array.from(new Set(applied.map((change) => labelOf(change.field).toLowerCase()))),
           locales: Array.from(new Set(applied.map((change) => change.locale))),
-          versionString: isLiveState(listing.state) ? undefined : listing.versionString,
+          versionString: play || isLiveState(listing.state) ? undefined : listing.versionString,
+          sentForReview: play ? result.sentForReview : undefined,
         });
         await refreshListing();
       }
@@ -198,11 +225,20 @@ export function GrowthListing() {
       setMessage(
         result.warnings.length > 0
           ? { tone: 'error', text: `Applied ${applied.length} of ${toApply.length} changes. ${result.warnings.join(' ')}` }
-          : { tone: 'ok', text: `Applied ${applied.length} change${applied.length === 1 ? '' : 's'} in App Store Connect` }
+          : play
+            ? {
+                tone: 'ok',
+                text: `Applied ${applied.length} change${applied.length === 1 ? '' : 's'} in Play Console. ${
+                  result.sentForReview === false
+                    ? 'Google Play holds the changes until you send the changes for review in Play Console'
+                    : 'Google checks the changes before people see the changes, which can take up to a week'
+                }`,
+              }
+            : { tone: 'ok', text: `Applied ${applied.length} change${applied.length === 1 ? '' : 's'} in App Store Connect` }
       );
     });
 
-  const applyReason = view.canWrite ? null : view.blocked.app ?? 'To apply changes, you need the desktop app and an App Store Connect API key';
+  const applyReason = view.canWrite ? null : view.blocked.app ?? `To apply changes, you need the desktop app and your ${view.words.key}`;
   const addable = LISTING_LANGUAGES.filter((code) => !listing.locales.some((entry) => entry.locale === code));
 
   return (
@@ -210,20 +246,30 @@ export function GrowthListing() {
       <div className="min-w-0 space-y-4">
         <Panel>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold">
-                Version {listing.versionString}
-                {listing.platform !== 'IOS' && ` for ${PLATFORM_LABELS[listing.platform] ?? listing.platform}`}
-                <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[11px] font-normal text-muted-foreground">
-                  {listing.state.toLowerCase().replace(/_/g, ' ')}
-                </span>
-              </p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {listing.editable
-                  ? `You can change every field until you submit version ${listing.versionString} for review. People see the changes when version ${listing.versionString} is in the App Store.`
-                  : `Version ${listing.versionString} is live or in review, so you can only change the promotional text.`}
-              </p>
-            </div>
+            {play ? (
+              <div>
+                <p className="text-sm font-semibold">Google Play store page</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  You can change every field at any time. Google checks each change before people see the change, which can take up
+                  to a week.
+                </p>
+              </div>
+            ) : (
+              <div>
+                <p className="text-sm font-semibold">
+                  Version {listing.versionString}
+                  {listing.platform !== 'IOS' && ` for ${PLATFORM_LABELS[listing.platform] ?? listing.platform}`}
+                  <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[11px] font-normal text-muted-foreground">
+                    {listing.state.toLowerCase().replace(/_/g, ' ')}
+                  </span>
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {listing.editable
+                    ? `You can change every field until you submit version ${listing.versionString} for review. People see the changes when version ${listing.versionString} is in the App Store.`
+                    : `Version ${listing.versionString} is live or in review, so you can only change the promotional text.`}
+                </p>
+              </div>
+            )}
             <div className="flex items-center gap-3">
               <div className="text-right">
                 <p className={cn('text-2xl font-semibold leading-none', score >= 80 ? 'text-[hsl(var(--growth-good))]' : score < 55 ? 'text-[hsl(var(--growth-bad))]' : '')}>
@@ -271,7 +317,7 @@ export function GrowthListing() {
                 </button>
               );
             })}
-            {view.canWrite && listing.editable && addable.length > 0 && (
+            {!play && view.canWrite && listing.editable && addable.length > 0 && (
               <div className="flex items-center gap-1">
                 <Select value={newLanguage} onValueChange={setNewLanguage}>
                   <SelectTrigger className="h-7 w-[150px] text-xs" aria-label="Language to add">
@@ -315,12 +361,12 @@ export function GrowthListing() {
         <Panel className="space-y-4">
           <SectionTitle
             title={`${listingLanguageName(current.locale)} store page`}
-            hint="Nothing changes in the App Store until you apply your edits"
+            hint={play ? 'Nothing changes on Google Play until you apply your edits' : 'Nothing changes in the App Store until you apply your edits'}
           />
-          {LISTING_FIELDS.map((field) => {
+          {fields.map((field) => {
             const value = valueOf(field);
             const length = fieldLength(value);
-            const limit = LISTING_LIMITS[field];
+            const limit = listingLimit(appId, field);
             const editable = fieldEditable(listing, field);
             const changed = value !== current[field];
             const fieldProps = {
@@ -336,7 +382,7 @@ export function GrowthListing() {
               <div key={field} className="space-y-1">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <label htmlFor={`growth-field-${field}`} className="text-xs font-medium">
-                    {LISTING_FIELD_LABELS[field]}
+                    {labelOf(field)}
                     {changed && <span className="ml-2 text-[11px] font-normal text-[hsl(var(--growth-highlight))]">edited</span>}
                   </label>
                   <div className="flex items-center gap-1">
@@ -372,7 +418,7 @@ export function GrowthListing() {
                               // The text on the store, or the edit waiting: as a change it
                               // would be dropped, or would undo the edit, without a word.
                               if (after === current[field] || after === valueOf(field)) {
-                                setMessage({ tone: 'ok', text: `The AI would not change the ${LISTING_FIELD_LABELS[field].toLowerCase()}` });
+                                setMessage({ tone: 'ok', text: `The AI would not change the ${labelOf(field).toLowerCase()}` });
                                 return;
                               }
                               upsert([{ locale: current.locale, field, before: current[field], after, reason: 'Written by AI' }]);
@@ -405,7 +451,7 @@ export function GrowthListing() {
                 Translate into your other {listing.locales.length - 1} language{listing.locales.length === 2 ? '' : 's'}
               </p>
               <div className="flex flex-wrap gap-3">
-                {LISTING_FIELDS.filter((field) => field !== 'name').map((field) => (
+                {fields.filter((field) => field !== 'name').map((field) => (
                   <label key={field} className="flex items-center gap-1.5 text-xs">
                     <Checkbox
                       checked={translateFields.includes(field)}
@@ -413,7 +459,7 @@ export function GrowthListing() {
                         setTranslateFields((list) => (checked ? [...list, field] : list.filter((item) => item !== field)))
                       }
                     />
-                    {LISTING_FIELD_LABELS[field]}
+                    {labelOf(field)}
                   </label>
                 ))}
               </div>
@@ -421,7 +467,7 @@ export function GrowthListing() {
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={busy !== null || translateFields.length === 0}
+                  disabled={busy !== null || !translateFields.some((field) => fields.includes(field))}
                   onClick={() =>
                     void run('translate', async () => {
                       const others = listing.locales.map((entry) => entry.locale).filter((code) => code !== listing.primaryLocale);
@@ -429,7 +475,7 @@ export function GrowthListing() {
                         listing,
                         from: listing.primaryLocale,
                         to: others,
-                        fields: translateFields,
+                        fields: translateFields.filter((field) => fields.includes(field)),
                         onProgress: (code, index, total) =>
                           setListingJob(appId, { label: 'translate', progress: `${listingLanguageName(code)}, ${index + 1} of ${total}` }),
                       });
@@ -471,7 +517,7 @@ export function GrowthListing() {
                 <li key={`${change.locale}:${change.field}`} className="rounded-md border p-2 text-xs">
                   <div className="flex items-start justify-between gap-2">
                     <p className="font-medium">
-                      {listingLanguageName(change.locale)}, {LISTING_FIELD_LABELS[change.field].toLowerCase()}
+                      {listingLanguageName(change.locale)}, {labelOf(change.field).toLowerCase()}
                     </p>
                     <button
                       type="button"
@@ -494,7 +540,7 @@ export function GrowthListing() {
             <Gated reason={applyReason}>
               <Button size="sm" disabled={pending.length === 0 || busy !== null} onClick={() => void apply()}>
                 {busy === 'apply' ? <Loader2Icon className="mr-1.5 h-4 w-4 animate-spin" /> : <UploadCloudIcon className="mr-1.5 h-4 w-4" />}
-                Apply in App Store Connect
+                Apply in {view.words.console}
               </Button>
             </Gated>
             {pending.length > 0 && (
@@ -570,10 +616,14 @@ export function GrowthListing() {
   );
 }
 
-/** The screenshots shoppers see today, from the public lookup, beside the way to replace them. */
+/**
+ * The screenshots shoppers see today, from the public lookup on the App
+ * Store and from Play Console on Google Play, beside the way to replace them.
+ */
 function LiveScreenshots() {
   const view = useGrowthView();
   const live = view.data.live;
+  const play = view.store === 'playstore';
   if (!live || live.screenshotUrls.length === 0) {
     return (
       <Panel className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -593,8 +643,8 @@ function LiveScreenshots() {
   return (
     <Panel>
       <SectionTitle
-        title={`In the App Store now, version ${live.version}`}
-        hint="The first three screenshots also show in search results"
+        title={play ? 'Your phone screenshots in Play Console' : `In the App Store now, version ${live.version}`}
+        hint={play ? 'Google Play shows new screenshots to people after Google checks the new screenshots' : 'The first three screenshots also show in search results'}
         actions={
           <Button size="sm" variant="outline" onClick={view.onPublish}>
             <UploadCloudIcon className="mr-1.5 h-4 w-4" />
@@ -604,12 +654,12 @@ function LiveScreenshots() {
       />
       <div className="flex gap-2 overflow-x-auto pb-1">
         {live.screenshotUrls.slice(0, 10).map((url, index) => (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            key={url}
+          <StoreImage
+            // By place as well: a store can hand out one image twice.
+            key={`${index}:${url}`}
             src={url}
             alt={`Live screenshot ${index + 1}`}
-            className={cn('h-56 w-auto shrink-0 rounded-md border object-contain', index < 3 && 'ring-1 ring-[hsl(var(--growth-series))]/50')}
+            className={cn('h-56 w-auto shrink-0 rounded-md border object-contain', !play && index < 3 && 'ring-1 ring-[hsl(var(--growth-series))]/50')}
             loading="lazy"
           />
         ))}

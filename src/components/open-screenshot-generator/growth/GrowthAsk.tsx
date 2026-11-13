@@ -60,7 +60,7 @@ export function GrowthAsk() {
     setTurns([...history, { role: 'user', text }]);
     controller.current = new AbortController();
     try {
-      const answer = await askAboutGrowth({ question: text, digest, history, signal: controller.current.signal });
+      const answer = await askAboutGrowth({ question: text, digest, history, signal: controller.current.signal, store: view.store });
       setTurns((list) => [...list, { role: 'assistant', text: answer }]);
     } catch (failure) {
       if (controller.current?.signal.aborted) return;

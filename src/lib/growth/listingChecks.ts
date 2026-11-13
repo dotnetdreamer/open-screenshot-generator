@@ -1,6 +1,9 @@
-// Checks on the App Store listing that need no AI: limits, wasted keyword
+// Checks on the store listing that need no AI: limits, wasted keyword
 // characters, words indexed twice, text copied into a language untranslated,
-// and a language whose shoppers see another language's screenshots.
+// and a language whose shoppers see another language's screenshots. A Google
+// Play page has no keywords, subtitle or promotional text, so it gets the
+// checks that apply there (checkPlayText), including the words Google's rules
+// keep out of a title.
 //
 // Apple indexes the name, the subtitle and the keyword field together, and
 // combines single words across them, so a word that appears in two of them is
@@ -20,6 +23,8 @@ import {
   type ListingLocale,
   type ListingSnapshot,
 } from './types';
+import { listingFieldLabel, listingFieldsFor, listingLimit } from './listingFields';
+import { storeOf } from './stores';
 import { listingLanguageName } from './territories';
 
 const NO_SPACES = /^(ja|zh|th|ko)/i;
@@ -145,21 +150,88 @@ function change(locale: ListingLocale, field: ListingField, after: string, reaso
   return { locale: locale.locale, field, before: locale[field], after, reason };
 }
 
-function checkLimits(locale: ListingLocale, out: ListingIssue[]): void {
-  for (const field of Object.keys(LISTING_LIMITS) as ListingField[]) {
+function checkLimits(locale: ListingLocale, out: ListingIssue[], appId = ''): void {
+  const play = storeOf(appId) === 'playstore';
+  for (const field of listingFieldsFor(play ? 'playstore' : 'appstore')) {
+    const limit = listingLimit(play ? 'playstore' : 'appstore', field);
     const length = fieldLength(locale[field]);
-    if (length > LISTING_LIMITS[field]) {
+    if (length > limit) {
       out.push(
         issue(
           locale.locale,
           field,
           'too-long',
           'problem',
-          `${LISTING_FIELD_LABELS[field]} is ${length - LISTING_LIMITS[field]} character${length - LISTING_LIMITS[field] === 1 ? '' : 's'} too long`,
-          `The limit is ${LISTING_LIMITS[field]} characters. App Store Connect will not accept longer text.`
+          `${listingFieldLabel(play ? 'playstore' : 'appstore', field)} is ${length - limit} character${length - limit === 1 ? '' : 's'} too long`,
+          `The limit is ${limit} characters. ${play ? 'Play Console' : 'App Store Connect'} will not accept longer text.`
         )
       );
     }
+  }
+}
+
+/**
+ * Words Google Play's metadata rules keep out of a title: ranks, prices and
+ * promotions. Matched as whole words, in English only, where the rule is
+ * clearest; "#1" is matched on its own. "New" and "top" are left out, since
+ * they start brand names ("New York", "Top Eleven") as often as they sell.
+ */
+const PLAY_TITLE_WORDS = /(^|[^\p{L}\p{N}])(best|free|sale|discount|cheap)(?![\p{L}\p{N}])/iu;
+const EMOJI = /\p{Extended_Pictographic}/u;
+
+/** The checks that apply to a Google Play page: title, short description and full description. */
+function checkPlayText(locale: ListingLocale, out: ListingIssue[]): void {
+  const title = locale.name.trim();
+  if (!title) {
+    out.push(issue(locale.locale, 'name', 'empty', 'problem', 'The title is empty', 'Every language of your store page needs a title.'));
+  } else {
+    const word = PLAY_TITLE_WORDS.exec(title)?.[2];
+    const flagged = word ? `"${word}"` : title.includes('#1') ? '"#1"' : EMOJI.test(title) ? 'an emoji' : null;
+    if (flagged) {
+      out.push(
+        issue(
+          locale.locale,
+          'name',
+          'play-title-rules',
+          'warning',
+          `Google Play may reject the title because of ${flagged}`,
+          "Google Play's rules do not allow emoji, or words like best, #1 or free, in the title. Put words like best or free in the description instead."
+        )
+      );
+    }
+  }
+  const short = locale.subtitle.trim();
+  if (!short) {
+    out.push(
+      issue(
+        locale.locale,
+        'subtitle',
+        'empty',
+        'problem',
+        'No short description',
+        'The short description shows on your store page under the title. Every language needs one. Use up to 80 characters to make people want your app.'
+      )
+    );
+  } else {
+    const free = 80 - fieldLength(short);
+    if (free >= 20) {
+      out.push(issue(locale.locale, 'subtitle', 'room', 'tip', `${free} characters left in the short description`, 'Add a word or two about what your app does best.'));
+    }
+  }
+  const description = locale.description.trim();
+  if (!description) {
+    out.push(issue(locale.locale, 'description', 'empty', 'problem', 'The full description is empty', 'Every language of your store page needs a full description.'));
+  } else if (fieldLength(description) < 300) {
+    out.push(
+      issue(
+        locale.locale,
+        'description',
+        'short',
+        'warning',
+        'The full description is short',
+        'Google Play search reads the full description. Add a few lines on what your app does, in the words people search for.'
+      )
+    );
   }
 }
 
@@ -375,7 +447,7 @@ function checkCopy(locale: ListingLocale, out: ListingIssue[], editable: boolean
   }
 }
 
-function checkTranslation(locale: ListingLocale, primary: ListingLocale, out: ListingIssue[]): void {
+function checkTranslation(locale: ListingLocale, primary: ListingLocale, out: ListingIssue[], appId = ''): void {
   const copied = (['name', 'subtitle', 'description'] as ListingField[]).filter((field) => {
     const value = locale[field].trim();
     return value.length > 12 && value === primary[field].trim();
@@ -388,7 +460,7 @@ function checkTranslation(locale: ListingLocale, primary: ListingLocale, out: Li
         'untranslated',
         'warning',
         `The ${listingLanguageName(locale.locale)} store page uses the ${listingLanguageName(primary.locale)} ${andList(
-          copied.map((field) => LISTING_FIELD_LABELS[field].toLowerCase())
+          copied.map((field) => (appId ? listingFieldLabel(appId, field) : LISTING_FIELD_LABELS[field]).toLowerCase())
         )}`,
         `People who read ${listingLanguageName(locale.locale)} may not understand the ${listingLanguageName(primary.locale)} text. Searches in ${listingLanguageName(locale.locale)} will not match the ${listingLanguageName(primary.locale)} words.`
       )
@@ -396,8 +468,9 @@ function checkTranslation(locale: ListingLocale, primary: ListingLocale, out: Li
   }
 }
 
-function checkScreenshots(locale: ListingLocale, primary: ListingLocale, out: ListingIssue[]): void {
+function checkScreenshots(locale: ListingLocale, primary: ListingLocale, out: ListingIssue[], appId = ''): void {
   if (!locale.screenshotCounts || !primary.screenshotCounts) return;
+  const play = storeOf(appId) === 'playstore';
   const own = Object.values(locale.screenshotCounts).reduce((sum, count) => sum + count, 0);
   const primaryCount = Object.values(primary.screenshotCounts).reduce((sum, count) => sum + count, 0);
   if (locale.locale !== primary.locale && own === 0 && primaryCount > 0 && !sameLanguage(locale.locale, primary.locale)) {
@@ -414,7 +487,7 @@ function checkScreenshots(locale: ListingLocale, primary: ListingLocale, out: Li
     return;
   }
   const largest = Math.max(0, ...Object.values(locale.screenshotCounts));
-  if (own > 0 && largest < 3) {
+  if (own > 0 && largest < (play ? 4 : 3)) {
     out.push(
       issue(
         locale.locale,
@@ -422,7 +495,9 @@ function checkScreenshots(locale: ListingLocale, primary: ListingLocale, out: Li
         'few-screenshots',
         'tip',
         `Only ${largest} screenshot${largest === 1 ? '' : 's'} in ${listingLanguageName(locale.locale)}`,
-        'Search results show the first three screenshots, and the store page shows up to ten. Add at least three screenshots to give people a reason to tap.'
+        play
+          ? 'Google Play shows up to 8 phone screenshots. Add at least 4 to show people more of your app.'
+          : 'Search results show the first three screenshots, and the store page shows up to ten. Add at least three screenshots to give people a reason to tap.'
       )
     );
   }
@@ -454,17 +529,22 @@ const SEVERITY_ORDER: Record<ListingIssue['severity'], number> = { problem: 0, w
 export function checkListing(listing: ListingSnapshot): ListingIssue[] {
   const out: ListingIssue[] = [];
   const primary = listing.locales.find((locale) => locale.locale === listing.primaryLocale) ?? listing.locales[0];
+  const play = storeOf(listing.appId) === 'playstore';
   for (const locale of listing.locales) {
-    checkLimits(locale, out);
-    checkName(locale, out);
-    checkSubtitle(locale, out);
-    checkKeywords(locale, out);
-    checkCopy(locale, out, listing.editable);
+    checkLimits(locale, out, listing.appId);
+    if (play) {
+      checkPlayText(locale, out);
+    } else {
+      checkName(locale, out);
+      checkSubtitle(locale, out);
+      checkKeywords(locale, out);
+      checkCopy(locale, out, listing.editable);
+    }
     if (primary && locale !== primary) {
-      checkTranslation(locale, primary, out);
-      checkScreenshots(locale, primary, out);
+      checkTranslation(locale, primary, out, listing.appId);
+      checkScreenshots(locale, primary, out, listing.appId);
     } else if (primary) {
-      checkScreenshots(locale, primary, out);
+      checkScreenshots(locale, primary, out, listing.appId);
     }
   }
   return out.sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]);

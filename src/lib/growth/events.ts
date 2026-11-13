@@ -2,11 +2,11 @@
 // finds on its own.
 //
 // The one that matters most is the screenshot upload: the publish dialog calls
-// recordScreenshotUpload after every successful App Store run, with the
-// version the screenshots went to. That entry is what lets the overview say
-// "your new screenshots lifted conversion by 14%" once the version is out,
-// a question no store dashboard can answer because none of them know when the
-// design changed.
+// recordScreenshotUpload after every successful run, with the version the
+// screenshots went to on the App Store, and with whether Google Play sent them
+// for review. That entry is what lets the overview say "your new screenshots
+// lifted conversion by 14%" once they are live, a question no store dashboard
+// can answer because none of them know when the design changed.
 
 import { today } from './dates';
 import { writeEvent } from './db';
@@ -21,6 +21,11 @@ export interface ScreenshotUploadRecord {
   appId: string;
   /** The version uploaded to. Its release is when the screenshots go live. */
   versionString?: string;
+  /**
+   * Google Play only. False when Play took the screenshots without sending
+   * them for review: they wait for the user to send them from Play Console.
+   */
+  sentForReview?: boolean;
   /** Store locales the run covered. */
   locales: string[];
   screenshotCount: number;
@@ -54,10 +59,18 @@ export async function recordScreenshotUpload(record: ScreenshotUploadRecord): Pr
     projectName: record.projectName,
     locales: record.locales,
     screenshotCount: record.screenshotCount,
+    waitsForReview: record.sentForReview === false ? true : undefined,
     createdAt: Date.now(),
   };
   await writeEvent(event);
   return event;
+}
+
+/** The user says a change Google Play held for review went live on `date`. */
+export async function markEventLive(event: TimelineEvent, date: string = today()): Promise<TimelineEvent> {
+  const live: TimelineEvent = { ...event, liveDate: date };
+  await writeEvent(live);
+  return live;
 }
 
 export async function recordListingChange(input: {
@@ -66,6 +79,8 @@ export async function recordListingChange(input: {
   locales: string[];
   /** Absent when only promotional text changed, which is live at once. */
   versionString?: string;
+  /** Google Play only: false when Play held the change for the user to send for review. */
+  sentForReview?: boolean;
 }): Promise<TimelineEvent> {
   const event: TimelineEvent = {
     id: newId('listing'),
@@ -77,6 +92,7 @@ export async function recordListingChange(input: {
     version: input.versionString,
     origin: 'listing',
     locales: input.locales,
+    waitsForReview: input.sentForReview === false ? true : undefined,
     createdAt: Date.now(),
   };
   await writeEvent(event);

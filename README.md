@@ -15,13 +15,15 @@ https://github.com/user-attachments/assets/92348435-668f-4a58-b0be-0b939841150d
 
 ## What's new
 
-### 12 November 2026: Growth, your App Store numbers beside your screenshots
+### 12 November 2026: Growth, your App Store and Google Play numbers beside your screenshots
 
-Click **Growth** on the bar at the left to see how your app is doing in the App Store: downloads, ratings, reviews and your store page. Growth uses the same App Store Connect API key as the screenshot upload.
+Click **Growth** on the bar at the left to see how your app is doing in the App Store and on Google Play: downloads, ratings, reviews and your store page. Growth uses the same keys as the screenshot upload: your App Store Connect API key and your Google Play service account key.
 
 After you upload new screenshots, Growth compares what share of visitors downloaded your app before and after the new screenshots went live. Growth also tells you if the difference is a real change or just luck. Growth finds problems on your store page, such as wasted keyword space or text that is not translated. Growth lists the countries where your store page is not in the local language, and the complaints that come up again and again in reviews.
 
-AI can write replies to reviews, and weekly, monthly and yearly reports. The AI runs on your Claude Code or Codex plan, or on the AI you set up in the app. Save a report as PDF, Markdown or text. While the desktop app is open, Growth keeps checking your App Store numbers and tells you about a drop in your download rate, a falling rating or a new record. The Claude Code and Codex agents can read your App Store numbers too. Read the [Growth guide](docs/GROWTH.md).
+On Google Play, Growth reads your downloads, page visits and ratings from the monthly report files that Google keeps for your account. For the report files, Growth needs the address of the report files and one more permission on your service account. Setup in Growth shows both steps.
+
+AI can write replies to reviews, and weekly, monthly and yearly reports. The AI runs on your Claude Code or Codex plan, or on the AI you set up in the app. Save a report as PDF, Markdown or text. While the desktop app is open, Growth keeps checking your numbers and tells you about a drop in your download rate, a falling rating or a new record. The Claude Code and Codex agents can read your store numbers too. Read the [Growth guide](docs/GROWTH.md).
 
 ### 14 October 2026: Codex joins Claude Code in the desktop app
 
@@ -81,7 +83,7 @@ Both versions use the same editor. The desktop app adds features that need acces
 | Coding agent design tools | With the [web relay](infra/vps/mcp-relay/README.md) or CLI | Built in MCP server |
 | Save to your own Google Drive or GitHub account | Yes | Yes |
 | Upload screenshots directly to App Store Connect or Google Play | No | Yes |
-| Growth: App Store numbers, reviews, store page checks, results of new screenshots | Empty screens only | Yes |
+| Growth: App Store and Google Play numbers, reviews, store page checks, results of new screenshots | Empty screens only | Yes |
 
 ## Command line and coding agents
 

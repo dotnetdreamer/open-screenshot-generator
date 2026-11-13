@@ -9,6 +9,10 @@
 // Ids are stable for as long as the condition they describe: trend cards are
 // keyed by the week of the newest data, so dismissing one hides it for that
 // week and a new week's trend is a new card.
+//
+// A Google Play app has no times seen, so its download rate is from page
+// visits (rateOf), and the cards name Google and Play Console where an App
+// Store app's name Apple and App Store Connect.
 
 import { addDays, daysBetween, formatDay, weekStart, type DayWindow } from './dates';
 import { formatCount, formatMoney, formatRate, formatRating, plural } from './format';
@@ -43,9 +47,10 @@ import {
   topicCounts,
   unansweredLow,
 } from './reviewTopics';
+import { storeOf, type GrowthStore } from './stores';
 import { languageCovers, listingLanguageFor, listingLanguageName, territoryName } from './territories';
 import {
-  SOURCE_LABELS,
+  sourceLabel,
   type DayRecord,
   type DayString,
   type Insight,
@@ -87,7 +92,7 @@ export function buildInsights(input: InsightInput): Insight[] {
   if (latest) {
     const window: DayWindow = { from: addDays(latest, -13), to: latest };
     const week = weekStart(latest);
-    const ctx: Ctx = { input, byDate, latest, window, week, out };
+    const ctx: Ctx = { input, byDate, latest, window, week, out, store: storeOf(input.appId) };
     discovery(ctx);
     featured(ctx);
     conversion(ctx);
@@ -110,6 +115,17 @@ interface Ctx {
   window: DayWindow;
   week: DayString;
   out: Insight[];
+  store: GrowthStore;
+}
+
+/**
+ * The store's download rate and what it is made of: from times seen on the
+ * App Store, from page visits on Google Play.
+ */
+function rateOf(totals: Totals, store: GrowthStore): { rate: number | null; downloads: number; trials: number } {
+  return store === 'playstore'
+    ? { rate: totals.pageConversion, downloads: totals.pageConversionBase.downloads, trials: totals.pageConversionBase.uniquePageViews }
+    : { rate: totals.conversion, downloads: totals.conversionBase.downloads, trials: totals.conversionBase.uniqueImpressions };
 }
 
 function weightFor(change: number, base: number): number {
@@ -139,7 +155,7 @@ function discovery(ctx: Ctx): void {
   const mover = biggestMover(ctx, 'impressions');
   const because =
     mover && Math.abs(mover.delta) > Math.abs(current.impressions - previous.impressions) * 0.4
-      ? ` Most of the change came from ${SOURCE_LABELS[mover.source]}, where your app was seen ${formatCount(Math.abs(mover.delta))} ${mover.delta > 0 ? 'more' : 'fewer'} times.`
+      ? ` Most of the change came from ${sourceLabel(mover.source, ctx.store)}, where your app was seen ${formatCount(Math.abs(mover.delta))} ${mover.delta > 0 ? 'more' : 'fewer'} times.`
       : '';
   ctx.out.push({
     id: `impressions:${ctx.week}`,
@@ -194,30 +210,32 @@ function featured(ctx: Ctx): void {
 }
 
 function conversion(ctx: Ctx): void {
-  const { current, previous } = compareWindows(ctx.byDate, ctx.window);
-  if (current.conversion === null || previous.conversion === null) return;
-  const confidence = proportionConfidence(
-    previous.conversionBase.downloads,
-    previous.conversionBase.uniqueImpressions,
-    current.conversionBase.downloads,
-    current.conversionBase.uniqueImpressions
-  );
-  const change = relativeChange(current.conversion, previous.conversion);
+  const totals = compareWindows(ctx.byDate, ctx.window);
+  const current = rateOf(totals.current, ctx.store);
+  const previous = rateOf(totals.previous, ctx.store);
+  if (current.rate === null || previous.rate === null) return;
+  const confidence = proportionConfidence(previous.downloads, previous.trials, current.downloads, current.trials);
+  const change = relativeChange(current.rate, previous.rate);
   if (change === null || confidence === null || confidence < CONFIDENT || Math.abs(change) < 0.1) return;
   const up = change > 0;
+  const play = ctx.store === 'playstore';
   ctx.out.push({
     id: `conversion:${ctx.week}`,
     appId: ctx.input.appId,
     kind: 'conversion',
     category: 'conversion',
     tone: up ? 'good' : 'problem',
-    title: `Download rate ${up ? 'up' : 'down'} from ${formatRate(previous.conversion)} to ${formatRate(current.conversion)}`,
-    body: up
-      ? 'More of the people who see your app now download your app. If you recently changed your screenshots, icon or subtitle, the change probably worked.'
-      : 'Fewer of the people who see your app now download your app. Check your first three screenshots, shown in search results, then your icon, subtitle and recent ratings.',
+    title: `Download rate ${up ? 'up' : 'down'} from ${formatRate(previous.rate)} to ${formatRate(current.rate)}`,
+    body: play
+      ? up
+        ? 'More of the people who open your page now install your app. If you recently changed your screenshots, icon or short description, the change probably worked.'
+        : 'Fewer of the people who open your page now install your app. Check your first screenshots, then your icon, short description and recent ratings.'
+      : up
+        ? 'More of the people who see your app now download your app. If you recently changed your screenshots, icon or subtitle, the change probably worked.'
+        : 'Fewer of the people who see your app now download your app. Check your first three screenshots, shown in search results, then your icon, subtitle and recent ratings.',
     date: ctx.latest,
-    weight: up ? weightFor(change, current.conversionBase.uniqueImpressions) : Math.min(98, weightFor(change, current.conversionBase.uniqueImpressions) + 10),
-    metric: { label: 'Download rate', value: formatRate(current.conversion), delta: change },
+    weight: up ? weightFor(change, current.trials) : Math.min(98, weightFor(change, current.trials) + 10),
+    metric: { label: 'Download rate', value: formatRate(current.rate), delta: change },
     action: up ? { kind: 'timeline' } : { kind: 'ask', question: 'My download rate went down. What changed, and what should I try first?' },
   });
 }
@@ -230,7 +248,7 @@ function downloads(ctx: Ctx): void {
   const mover = current.hasDownloads ? biggestMover(ctx, 'downloads') : null;
   const because =
     mover && Math.abs(mover.delta) > Math.abs(current.downloads - previous.downloads) * 0.4
-      ? ` Most of the change came from ${SOURCE_LABELS[mover.source]}.`
+      ? ` Most of the change came from ${sourceLabel(mover.source, ctx.store)}.`
       : '';
   ctx.out.push({
     id: `downloads:${ctx.week}`,
@@ -368,7 +386,7 @@ function markets(ctx: Ctx): void {
   // looking at the product page; downloads stand in when there are none.
   // Both need volume: on an app with 16 downloads a month, one download from
   // Greece is "6% of downloads" and says nothing about Greek shoppers.
-  const pageViews = all.hasEngagement;
+  const pageViews = all.hasPageViews;
   const base = pageViews ? all.pageViews : all.downloads;
   if (base < (pageViews ? LOCALIZE_MIN_BASE_VIEWS : LOCALIZE_MIN_BASE_DOWNLOADS)) return;
   const missing = new Map<string, { territories: string[]; share: number; count: number }>();
@@ -394,7 +412,7 @@ function markets(ctx: Ctx): void {
       kind: 'localize',
       category: 'markets',
       tone: 'warning',
-      title: `${Math.round(entry.share * 100)}% of your ${all.hasEngagement ? 'page visits' : 'downloads'} come from countries where ${listingLanguageName(language)} is the main language`,
+      title: `${Math.round(entry.share * 100)}% of your ${pageViews ? 'page visits' : 'downloads'} come from countries where ${listingLanguageName(language)} is the main language`,
       body: `Your store page has no ${listingLanguageName(language)} version, so most people in ${where} see your store page in another language. Translate and upload your screenshots in the editor, then add ${listingLanguageName(language)} on the Store page.`,
       date: ctx.latest,
       weight: Math.min(92, 55 + Math.round(entry.share * 150)),
@@ -403,17 +421,16 @@ function markets(ctx: Ctx): void {
     });
   }
 
-  // A big market converting far below the rest.
-  if (all.conversion !== null) {
+  // A big market converting far below the rest. Google Play's rate is from
+  // page visits, of which a country has fewer than times seen, so it needs fewer.
+  const overall = rateOf(all, ctx.store);
+  const minimum = ctx.store === 'playstore' ? 500 : 2000;
+  if (overall.rate !== null) {
     for (const row of rows.slice(0, 10)) {
-      if (row.totals.conversion === null || row.totals.conversionBase.uniqueImpressions < 2000) continue;
-      if (row.totals.conversion > all.conversion * 0.55) continue;
-      const confidence = proportionConfidence(
-        all.conversionBase.downloads - row.totals.conversionBase.downloads,
-        all.conversionBase.uniqueImpressions - row.totals.conversionBase.uniqueImpressions,
-        row.totals.conversionBase.downloads,
-        row.totals.conversionBase.uniqueImpressions
-      );
+      const here = rateOf(row.totals, ctx.store);
+      if (here.rate === null || here.trials < minimum) continue;
+      if (here.rate > overall.rate * 0.55) continue;
+      const confidence = proportionConfidence(overall.downloads - here.downloads, overall.trials - here.trials, here.downloads, here.trials);
       if (confidence === null || confidence < CONFIDENT) continue;
       const language = listingLanguageFor(row.key);
       const localized = languages.some((locale) => languageCovers(locale, language));
@@ -423,13 +440,13 @@ function markets(ctx: Ctx): void {
         kind: 'market-conversion',
         category: 'conversion',
         tone: 'warning',
-        title: `Download rate in ${territoryName(row.key)} is ${formatRate(row.totals.conversion)}, compared with ${formatRate(all.conversion)} overall`,
+        title: `Download rate in ${territoryName(row.key)} is ${formatRate(here.rate)}, compared with ${formatRate(overall.rate)} overall`,
         body: localized
           ? `Your store page is already in ${listingLanguageName(language)}. Check your screenshots: what works in other countries may not be what people in ${territoryName(row.key)} want.`
           : `Most people in ${territoryName(row.key)} see your store page in another language. Try your store page and screenshots in ${listingLanguageName(language)} first.`,
         date: ctx.latest,
         weight: 62,
-        metric: { label: 'Download rate', value: formatRate(row.totals.conversion) },
+        metric: { label: 'Download rate', value: formatRate(here.rate) },
         action: localized ? { kind: 'markets', territory: row.key } : { kind: 'localize', locales: [language] },
       });
     }
@@ -444,7 +461,9 @@ function screenshots(ctx: Ctx): void {
   if (latestShot) {
     const impact = eventImpact(ctx.byDate, latestShot, { latest: ctx.latest, events: ctx.input.events });
     const what = latestShot.projectName ? `the screenshots from "${latestShot.projectName}"` : 'your new screenshots';
-    const measure = impact.measure === 'conversion' ? 'download rate' : 'downloads per day';
+    const rate = impact.measure !== 'downloads';
+    const measure = rate ? 'download rate' : 'downloads per day';
+    const play = ctx.store === 'playstore';
     let insight: Omit<Insight, 'id' | 'appId' | 'kind' | 'category' | 'date'> | null = null;
     if (impact.verdict === 'better' || impact.verdict === 'worse') {
       const better = impact.verdict === 'better';
@@ -458,19 +477,27 @@ function screenshots(ctx: Ctx): void {
       insight = {
         tone: better ? 'good' : 'problem',
         title: `The ${measure} is ${better ? 'up' : 'down'} ${size} since your new screenshots went live`,
-        body: `${impact.measure === 'conversion' ? `The download rate was ${formatRate(impact.beforeRate)} before and ${formatRate(impact.afterRate)} after` : `Downloads were ${formatCount(impact.beforeRate)} a day before and ${formatCount(impact.afterRate)} a day after`} ${what} went live on ${formatDay(impact.liveDate ?? latestShot.date)}, measured over ${impact.daysAfter} days. ${confidenceSentence(impact.confidence, confidenceBar(impact.daysAfter))} ${others}${better ? '' : ' You can bring back your old design from the project history.'}`,
+        body: `${rate ? `The download rate was ${formatRate(impact.beforeRate)} before and ${formatRate(impact.afterRate)} after` : `Downloads were ${formatCount(impact.beforeRate)} a day before and ${formatCount(impact.afterRate)} a day after`} ${what} went live on ${formatDay(impact.liveDate ?? latestShot.date)}, measured over ${impact.daysAfter} days. ${confidenceSentence(impact.confidence, confidenceBar(impact.daysAfter))} ${others}${better ? '' : ' You can bring back your old design from the project history.'}`,
         weight: better ? 85 : 95,
-        metric: { label: measure, value: impact.measure === 'conversion' ? formatRate(impact.afterRate) : formatCount(impact.afterRate), delta: impact.change ?? undefined },
+        metric: { label: measure, value: rate ? formatRate(impact.afterRate) : formatCount(impact.afterRate), delta: impact.change ?? undefined },
         action: { kind: 'timeline', eventId: latestShot.id },
       };
     } else if (impact.verdict === 'not-live') {
-      insight = {
-        tone: 'neutral',
-        title: `Your new screenshots go live with ${latestShot.version ? `version ${latestShot.version}` : 'the next release'}`,
-        body: 'Your new screenshots show in the App Store once the new version comes out. Growth measures your new screenshots from the release day.',
-        weight: 40,
-        action: { kind: 'timeline', eventId: latestShot.id },
-      };
+      insight = play
+        ? {
+            tone: 'neutral',
+            title: 'Your new screenshots are waiting for you in Play Console',
+            body: 'Google Play holds the new screenshots until you send the changes for review in Play Console. When the new screenshots are live, set the day on the Overview, and Growth measures from the day you set.',
+            weight: 40,
+            action: { kind: 'timeline', eventId: latestShot.id },
+          }
+        : {
+            tone: 'neutral',
+            title: `Your new screenshots go live with ${latestShot.version ? `version ${latestShot.version}` : 'the next release'}`,
+            body: 'Your new screenshots show in the App Store once the new version comes out. Growth measures your new screenshots from the release day.',
+            weight: 40,
+            action: { kind: 'timeline', eventId: latestShot.id },
+          };
     } else if (impact.verdict === 'too-early' && impact.liveDate) {
       insight = {
         tone: 'neutral',
@@ -478,7 +505,9 @@ function screenshots(ctx: Ctx): void {
         body:
           impact.change !== null
             ? `So far the change in ${measure} is ${formatChange(impact.change)}, too early to be sure. The full result is ready in ${plural(impact.daysToWait, 'day')}.`
-            : `Apple sends each day's numbers one or two days later. No numbers since ${formatDay(impact.liveDate)} have come in yet.`,
+            : play
+              ? `Google adds each day's numbers to Google's report files about a week later. No numbers since ${formatDay(impact.liveDate)} have come in yet.`
+              : `Apple sends each day's numbers one or two days later. No numbers since ${formatDay(impact.liveDate)} have come in yet.`,
         weight: 45,
         action: { kind: 'timeline', eventId: latestShot.id },
       };
@@ -486,7 +515,11 @@ function screenshots(ctx: Ctx): void {
       insight = {
         tone: 'neutral',
         title: `The ${measure} is about the same since your new screenshots went live`,
-        body: `In ${impact.daysAfter} days the ${measure} changed by ${formatChange(impact.change)}, which could be luck. A bigger change, like a new first screenshot, is easier to measure. To test two sets of screenshots side by side, use product page optimization in App Store Connect.`,
+        body: `In ${impact.daysAfter} days the ${measure} changed by ${formatChange(impact.change)}, which could be luck. A bigger change, like a new first screenshot, is easier to measure. ${
+          play
+            ? 'To test two sets of screenshots side by side, use a store listing experiment in Play Console.'
+            : 'To test two sets of screenshots side by side, use product page optimization in App Store Connect.'
+        }`,
         weight: 42,
         action: { kind: 'timeline', eventId: latestShot.id },
       };
@@ -537,7 +570,11 @@ function reviewInsights(input: InsightInput, out: Insight[]): void {
       category: 'reviews',
       tone: 'warning',
       title: `${plural(waiting.length, 'low rating')} waiting for a reply`,
-      body: `Reviews with 1 or 2 stars from the last 30 days have no reply. The oldest review is from ${formatDay(reviewDay(oldest))}. Everyone sees your reply, and Apple tells the reviewer, who can then change the rating.`,
+      body: `Reviews with 1 or 2 stars from the last 30 days have no reply. The oldest review is from ${formatDay(reviewDay(oldest))}. ${
+        storeOf(input.appId) === 'playstore'
+          ? 'Everyone sees your reply, and the reviewer can then change the rating.'
+          : 'Everyone sees your reply, and Apple tells the reviewer, who can then change the rating.'
+      }`,
       date: input.today,
       weight: Math.min(88, 50 + waiting.length * 4),
       metric: { label: 'Waiting', value: String(waiting.length) },
@@ -666,7 +703,9 @@ function listingInsights(input: InsightInput, out: Insight[]): void {
       kind: 'listing',
       category: 'listing',
       tone: problems.length > 0 ? 'problem' : 'warning',
-      title: `Your store page for version ${input.listing.versionString} has ${parts.join(' and ')}`,
+      title: input.listing.versionString
+        ? `Your store page for version ${input.listing.versionString} has ${parts.join(' and ')}`
+        : `Your store page has ${parts.join(' and ')}`,
       body: `${(problems[0] ?? warnings[0]).title}.${
         fixable === 1 ? ' One issue has a fix ready to apply.' : fixable > 1 ? ` ${fixable} issues have a fix ready to apply.` : ''
       }`,

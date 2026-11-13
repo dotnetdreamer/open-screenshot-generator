@@ -21,16 +21,17 @@ import {
   relativeChange,
   type Totals,
 } from './metrics';
+import { ratingSummary } from './ratings';
 import { REVIEW_TOPIC_LABELS, averageRating, reviewDay, reviewsIn, topicCounts, unansweredLow } from './reviewTopics';
+import { STORE_WORDS, storeOf, type GrowthStore } from './stores';
 import { territoryName } from './territories';
 import {
   EVENT_KIND_LABELS,
-  SOURCE_LABELS,
+  sourceLabel,
   type DayRecord,
   type Insight,
   type ListingIssue,
   type ListingSnapshot,
-  type SourceType,
   type StoreReview,
   type TerritoryRating,
   type TimelineEvent,
@@ -57,10 +58,21 @@ function round(value: number | null, digits = 4): number | null {
   return Math.round(value * factor) / factor;
 }
 
-function totalsSummary(totals: Totals, currency: string) {
+function totalsSummary(totals: Totals, currency: string, store: GrowthStore) {
+  if (store === 'playstore') {
+    // Google Play's download rate is from page visits: there are no times seen.
+    return {
+      storeListingVisitors: totals.hasPageViews ? totals.pageViews : null,
+      storeListingAcquisitions: totals.hasPageViews ? totals.pageDownloads : null,
+      downloadRate: round(totals.pageConversion),
+      newDownloads: totals.days > 0 && totals.hasInstalls ? totals.downloads : null,
+      updates: totals.hasInstalls ? totals.updates : null,
+      daysWithData: totals.days,
+    };
+  }
   return {
     impressions: totals.hasEngagement ? totals.impressions : null,
-    productPageViews: totals.hasEngagement ? totals.pageViews : null,
+    productPageViews: totals.hasPageViews ? totals.pageViews : null,
     firstTimeDownloads: totals.days > 0 ? totals.downloads : null,
     redownloads: totals.days > 0 ? totals.redownloads : null,
     conversionRate: round(totals.conversion),
@@ -73,6 +85,8 @@ function totalsSummary(totals: Totals, currency: string) {
 }
 
 export function buildDigest(input: DigestInput) {
+  const store = storeOf(input.appId);
+  const play = store === 'playstore';
   const byDate = indexRecords(input.records);
   const through = completeThrough(input.records);
   const days = input.days ?? 28;
@@ -85,8 +99,8 @@ export function buildDigest(input: DigestInput) {
   if (window) {
     const { current, previous, previousWindow } = compareWindows(byDate, window);
     const currency = proceedsCurrency(current, previous);
-    const now = totalsSummary(current, currency);
-    const then = totalsSummary(previous, currency);
+    const now = totalsSummary(current, currency, store);
+    const then = totalsSummary(previous, currency, store);
     totals = {
       window: `${window.from} to ${window.to} (${formatWindow(window)})`,
       previousWindow: `${previousWindow.from} to ${previousWindow.to}`,
@@ -98,31 +112,44 @@ export function buildDigest(input: DigestInput) {
           .map((key) => [key, formatChange(relativeChange(now[key] as number, then[key] as number))])
       ),
     };
-    if (!current.hasEngagement) notes.push('No App Analytics data: impressions, page views and conversion are unknown.');
-    if (!current.hasSales) notes.push('No Sales and Trends data: proceeds and in-app purchases are unknown.');
+    if (play) {
+      notes.push('Google Play sends no times seen and no earnings. The download rate is store listing acquisitions per store listing visitor.');
+      if (!current.hasPageViews) notes.push("No store performance numbers from Google's report files: page visits and the download rate are unknown.");
+      if (!current.hasInstalls) notes.push("No installs numbers from Google's report files: new downloads are unknown.");
+    } else {
+      if (!current.hasEngagement) notes.push('No App Analytics data: impressions, page views and conversion are unknown.');
+      if (!current.hasSales) notes.push('No Sales and Trends data: proceeds and in-app purchases are unknown.');
+    }
     territories = byTerritory(byDate, window)
       .slice(0, 12)
       .map((row) => ({
         territory: `${territoryName(row.key)} (${row.key})`,
         firstTimeDownloads: row.totals.downloads,
         shareOfDownloads: round(row.share, 3),
-        productPageViews: row.totals.hasEngagement ? row.totals.pageViews : null,
-        conversionRate: round(row.totals.conversion),
+        productPageViews: row.totals.hasPageViews ? row.totals.pageViews : null,
+        conversionRate: round(play ? row.totals.pageConversion : row.totals.conversion),
         downloadsChange: formatChange(row.change),
       }));
-    sources = bySource(byDate, window).map((row) => ({
-      source: SOURCE_LABELS[row.key as SourceType] ?? row.key,
-      impressions: row.totals.impressions,
-      firstTimeDownloads: row.totals.downloads,
-      conversionRate: round(row.totals.conversion),
-    }));
+    sources = bySource(byDate, window).map((row) =>
+      play
+        ? {
+            source: sourceLabel(row.key, store),
+            storeListingVisitors: row.totals.pageViews,
+            storeListingAcquisitions: row.totals.pageDownloads,
+            downloadRate: round(row.totals.pageConversion),
+          }
+        : {
+            source: sourceLabel(row.key, store),
+            impressions: row.totals.impressions,
+            firstTimeDownloads: row.totals.downloads,
+            conversionRate: round(row.totals.conversion),
+          }
+    );
   } else {
     notes.push('No numbers have been synced for this app yet.');
   }
 
-  const ratingCount = input.ratings.reduce((sum, rating) => sum + rating.count, 0);
-  const ratingAverage =
-    ratingCount > 0 ? input.ratings.reduce((sum, rating) => sum + rating.average * rating.count, 0) / ratingCount : null;
+  const rating = ratingSummary(input.ratings);
 
   const recentWindow: DayWindow = { from: addDays(input.today, -(days - 1)), to: input.today };
   const recent = reviewsIn(input.reviews, recentWindow);
@@ -132,7 +159,7 @@ export function buildDigest(input: DigestInput) {
     .map((review) => ({
       date: reviewDay(review),
       rating: review.rating,
-      territory: review.territory,
+      ...(play ? { language: review.language ?? null } : { territory: review.territory }),
       title: review.title.slice(0, 120),
       body: review.body.slice(0, 280),
       replied: !!review.response,
@@ -164,18 +191,20 @@ export function buildDigest(input: DigestInput) {
     });
 
   return {
-    app: { id: input.appId, name: input.appName },
+    app: { id: input.appId, name: input.appName, store: STORE_WORDS[store].store },
     dataCompleteThrough: through,
     totals,
     topTerritories: territories,
     sources,
     ratings: {
-      averageAcrossStorefronts: round(ratingAverage, 2),
-      ratingsCount: ratingCount,
+      averageAcrossStorefronts: round(rating.average, 2),
+      // Google Play's report files give averages without counts.
+      ratingsCount: rating.count,
       byStorefront: [...input.ratings]
+        .filter((entry) => entry.territory !== 'ZZ')
         .sort((a, b) => b.count - a.count)
         .slice(0, 8)
-        .map((rating) => ({ territory: rating.territory, average: rating.average, count: rating.count })),
+        .map((entry) => ({ territory: entry.territory, average: entry.average, count: entry.count > 0 ? entry.count : null })),
     },
     reviews: {
       writtenInLastDays: recent.length,
@@ -191,13 +220,17 @@ export function buildDigest(input: DigestInput) {
           version: input.listing.versionString,
           state: input.listing.state,
           primaryLanguage: input.listing.primaryLocale,
-          languages: input.listing.locales.map((locale) => ({
-            locale: locale.locale,
-            name: locale.name,
-            subtitle: locale.subtitle,
-            keywords: locale.keywords,
-            screenshots: locale.screenshotCounts ?? null,
-          })),
+          languages: input.listing.locales.map((locale) =>
+            play
+              ? { locale: locale.locale, title: locale.name, shortDescription: locale.subtitle, screenshots: locale.screenshotCounts ?? null }
+              : {
+                  locale: locale.locale,
+                  name: locale.name,
+                  subtitle: locale.subtitle,
+                  keywords: locale.keywords,
+                  screenshots: locale.screenshotCounts ?? null,
+                }
+          ),
           issues: input.listingIssues.slice(0, 12).map((entry) => `${entry.locale}: ${entry.title}`),
         }
       : null,

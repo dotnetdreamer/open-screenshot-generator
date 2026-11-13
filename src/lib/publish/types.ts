@@ -117,6 +117,12 @@ export interface PublishResult {
   warnings: string[];
   /** Where the user should go to check the result. */
   reviewUrl?: string;
+  /**
+   * Google Play only: the commit sent the changes for review, so they go live
+   * once Google approves them. False when Play would only take them without,
+   * which leaves them waiting until the user sends them from Play Console.
+   */
+  sentForReview?: boolean;
 }
 
 /**

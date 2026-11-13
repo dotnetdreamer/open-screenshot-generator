@@ -13,35 +13,44 @@ import {
   UploadCloudIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { formatDay, previousWindow } from '@/lib/growth/dates';
+import { formatDay, previousWindow, today } from '@/lib/growth/dates';
+import { markEventLive } from '@/lib/growth/events';
 import { formatCount, formatRate, formatRating } from '@/lib/growth/format';
 import { confidenceBar, describeEvents, eventImpact, formatChange, type ImpactResult } from '@/lib/growth/impact';
 import { confidenceSentence } from '@/lib/growth/insights';
 import {
-  METRICS,
   bySource,
   byTerritory,
   compareWindows,
   covers,
   feedStarts,
   dailySeries,
+  metricSpec,
   metricValue,
   proceedsCurrency,
   relativeChange,
   smooth,
+  storeMetrics,
   type MetricId,
 } from '@/lib/growth/metrics';
+import { ratingSummary } from '@/lib/growth/ratings';
+import type { GrowthStore } from '@/lib/growth/stores';
 import { territoryName } from '@/lib/growth/territories';
-import { SOURCE_LABELS, type SourceType, type TimelineEvent } from '@/lib/growth/types';
+import { sourceLabel, type TimelineEvent } from '@/lib/growth/types';
 import { cn } from '@/lib/utils';
 import { BarList, Sparkline, TrendChart, formatMetricValue } from './GrowthCharts';
 import { Delta, Gated, Panel, SectionTitle, ToneIcon, useGrowthView } from './GrowthShared';
 import { InsightActions } from './GrowthInsights';
 
-const TILE_METRICS: MetricId[] = ['impressions', 'pageViews', 'conversion', 'downloads', 'proceeds'];
+const TILE_METRICS: Record<GrowthStore, MetricId[]> = {
+  appstore: ['impressions', 'pageViews', 'conversion', 'downloads', 'proceeds'],
+  // Google Play sends Growth no times seen and no earnings.
+  playstore: ['pageViews', 'pageConversion', 'downloads', 'updates'],
+};
 
 export function GrowthOverview() {
   const view = useGrowthView();
@@ -66,8 +75,8 @@ export function GrowthOverview() {
     return shaped.map((point, index) => ({ ...point, previous: shapedBefore[index]?.value ?? null }));
   }, [view.byDate, view.window, metric, currency, smoothed]);
 
-  const ratingCount = view.data.ratings.reduce((sum, rating) => sum + rating.count, 0);
-  const ratingAverage = ratingCount > 0 ? view.data.ratings.reduce((sum, rating) => sum + rating.average * rating.count, 0) / ratingCount : null;
+  const rating = ratingSummary(view.data.ratings);
+  const play = view.store === 'playstore';
 
   const sources = useMemo(() => bySource(view.byDate, view.window), [view.byDate, view.window]);
   const territories = useMemo(() => byTerritory(view.byDate, view.window).slice(0, 6), [view.byDate, view.window]);
@@ -87,9 +96,9 @@ export function GrowthOverview() {
     <div className="space-y-4">
       <ImpactHero event={latestShots} impact={impact} />
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-        {TILE_METRICS.map((id) => {
-          const spec = METRICS[id];
+      <div className={cn('grid grid-cols-2 gap-3 md:grid-cols-3', play ? 'xl:grid-cols-5' : 'xl:grid-cols-6')}>
+        {TILE_METRICS[view.store].map((id) => {
+          const spec = metricSpec(id, view.store);
           const now = metricValue(comparison.current, id, currency);
           // Only beside a period the history reaches all the way back over: one
           // that starts before the data does would make any period look like a leap.
@@ -129,22 +138,24 @@ export function GrowthOverview() {
           type="button"
           onClick={() => view.goTo('reviews')}
           className="rounded-lg border bg-card p-3 text-left transition-colors hover:bg-muted/50"
-          title="Star rating in the countries checked. Open the reviews"
+          title={play ? "Average star rating from Google's report files. Open the reviews" : 'Star rating in the countries checked. Open the reviews'}
         >
           <p className="truncate text-xs text-muted-foreground">Rating</p>
-          <p className="mt-1 text-xl font-semibold leading-none">{ratingAverage === null ? 'n/a' : formatRating(ratingAverage)}</p>
+          <p className="mt-1 text-xl font-semibold leading-none">{rating.average === null ? 'n/a' : formatRating(rating.average)}</p>
           <p className="mt-1.5 text-[11px] text-muted-foreground">
-            {ratingCount > 0
-              ? `${formatCount(ratingCount)} rating${ratingCount === 1 ? '' : 's'} in ${view.data.ratings.length} ${view.data.ratings.length === 1 ? 'country' : 'countries'}`
-              : 'No ratings loaded yet'}
+            {rating.count !== null
+              ? `${formatCount(rating.count)} rating${rating.count === 1 ? '' : 's'} in ${rating.countries} ${rating.countries === 1 ? 'country' : 'countries'}`
+              : rating.average !== null
+                ? 'Average of all ratings'
+                : 'No ratings loaded yet'}
           </p>
         </button>
       </div>
 
       <Panel>
         <SectionTitle
-          title={`${METRICS[metric].label} by day`}
-          hint={METRICS[metric].hint}
+          title={`${metricSpec(metric, view.store).label} by day`}
+          hint={metricSpec(metric, view.store).hint}
           actions={
             <>
               <div className="flex items-center gap-1.5">
@@ -164,9 +175,9 @@ export function GrowthOverview() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {(Object.keys(METRICS) as MetricId[]).map((id) => (
+                  {storeMetrics(view.store).map((id) => (
                     <SelectItem key={id} value={id} className="text-xs">
-                      {METRICS[id].label}
+                      {metricSpec(id, view.store).label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -176,7 +187,7 @@ export function GrowthOverview() {
         />
         <TrendChart
           points={series}
-          metric={METRICS[metric]}
+          metric={metricSpec(metric, view.store)}
           currency={currency}
           events={view.data.events}
           showPrevious={showPrevious}
@@ -213,16 +224,24 @@ export function GrowthOverview() {
         </Panel>
 
         <Panel>
-          <SectionTitle title="How people find your app" hint="New downloads by where people came from" />
+          <SectionTitle
+            title="How people find your app"
+            hint={play ? 'Downloads from your page, by where people came from' : 'New downloads by where people came from'}
+          />
           <BarList
-            rows={sources.slice(0, 6).map((row) => ({
-              key: row.key,
-              label: SOURCE_LABELS[row.key as SourceType] ?? row.key,
-              value: row.totals.downloads,
-              display: formatCount(row.totals.downloads),
-              sub: row.totals.conversion !== null ? `${formatRate(row.totals.conversion)} download rate` : undefined,
-            }))}
-            emptyText="App Analytics has not sent numbers for your app yet"
+            rows={sources.slice(0, 6).map((row) => {
+              // Google Play splits only the page's visits and downloads by source.
+              const value = play ? row.totals.pageDownloads : row.totals.downloads;
+              const rate = play ? row.totals.pageConversion : row.totals.conversion;
+              return {
+                key: row.key,
+                label: sourceLabel(row.key, view.store),
+                value,
+                display: formatCount(value),
+                sub: rate !== null ? `${formatRate(rate)} download rate` : undefined,
+              };
+            })}
+            emptyText={play ? "Google's report files have no traffic sources for your app yet" : 'App Analytics has not sent numbers for your app yet'}
           />
         </Panel>
 
@@ -259,7 +278,15 @@ function NoNumbersYet() {
       <ImagesIcon className="h-8 w-8 text-muted-foreground" />
       <p className="text-sm font-medium">No numbers for your app yet</p>
       <p className="max-w-md text-xs text-muted-foreground">
-        {statuses.sales.state === 'needs-setup'
+        {view.store === 'playstore'
+          ? statuses.analytics.state === 'needs-setup'
+            ? "Add your Cloud Storage URI under Setup. Google then sends your downloads, page visits and ratings from Google's monthly report files."
+            : statuses.analytics.state === 'forbidden' || statuses.analytics.state === 'error'
+              ? statuses.analytics.message
+              : view.data.lastSync
+                ? "Google's report files have no numbers for your app yet. Google adds each day's numbers about a week later."
+                : "Refresh to load your numbers. Google adds each day's numbers to Google's report files about a week later."
+          : statuses.sales.state === 'needs-setup'
           ? 'Add your vendor number under Setup. Then downloads and earnings from Sales and Trends arrive in a few minutes. App Analytics (times seen and download rate) takes a day or two.'
           : view.data.lastSync && (statuses.sales.state === 'ok' || statuses.sales.state === 'empty')
             ? // Synced, and Sales and Trends answered: an app with no downloads in
@@ -291,9 +318,61 @@ const VERDICT_TEXT: Record<ImpactResult['verdict'], string> = {
   worse: 'Down',
   flat: 'About the same',
   'too-early': 'Not sure yet',
-  'not-live': 'Not in the App Store yet',
+  'not-live': 'Not live yet',
   'no-data': 'No numbers',
 };
+
+function verdictText(verdict: ImpactResult['verdict'], store: GrowthStore): string {
+  // "Not in the App Store yet", "Not on Google Play yet".
+  if (verdict === 'not-live') return store === 'playstore' ? 'Not on Google Play yet' : 'Not in the App Store yet';
+  return VERDICT_TEXT[verdict];
+}
+
+/**
+ * Google Play: when the new screenshots went live. Google checks them first,
+ * which can take up to a week, and no API says when it is done, so the user
+ * can set the day, which the comparison then starts from (impact.ts).
+ */
+function LiveDayControl({ event, waiting }: { event: TimelineEvent; waiting: boolean }) {
+  const view = useGrowthView();
+  // The day Growth counts from now: the one set, else the upload day, else none while Play holds them.
+  const current = event.liveDate ?? (waiting ? null : event.date);
+  const [day, setDay] = useState(current ?? today());
+  const [saving, setSaving] = useState(false);
+  const valid = day >= event.date && day <= today();
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <label htmlFor={`growth-live-${event.id}`} className="text-[11px] text-muted-foreground">
+        {waiting ? 'Day the new screenshots went live' : 'Day the new screenshots went live, if Google took longer'}
+      </label>
+      <Input
+        id={`growth-live-${event.id}`}
+        type="date"
+        value={day}
+        min={event.date}
+        max={today()}
+        onChange={(change) => setDay(change.target.value)}
+        className="h-7 w-[150px] text-xs"
+      />
+      <Gated reason={view.blocked.app}>
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-7 text-xs"
+          disabled={!valid || saving || day === current}
+          onClick={() => {
+            setSaving(true);
+            void markEventLive(event, day)
+              .catch((error) => console.error('The live day could not be saved', error))
+              .finally(() => setSaving(false));
+          }}
+        >
+          Save the day
+        </Button>
+      </Gated>
+    </div>
+  );
+}
 
 function ImpactHero({ event, impact }: { event: TimelineEvent | null; impact: ImpactResult | null }) {
   const view = useGrowthView();
@@ -314,10 +393,11 @@ function ImpactHero({ event, impact }: { event: TimelineEvent | null; impact: Im
       </Panel>
     );
   }
-  const measuredRate = impact.measure === 'conversion';
+  const measuredRate = impact.measure !== 'downloads';
   const format = (value: number | null) => (measuredRate ? formatRate(value) : formatCount(value));
   const days = Math.min(14, impact.daysAfter);
   const tone = impact.verdict === 'better' ? 'good' : impact.verdict === 'worse' ? 'problem' : 'neutral';
+  const play = view.store === 'playstore';
   return (
     <Panel
       className={cn(
@@ -339,18 +419,30 @@ function ImpactHero({ event, impact }: { event: TimelineEvent | null; impact: Im
               tone === 'neutral' && 'bg-muted text-muted-foreground'
             )}
           >
-            {VERDICT_TEXT[impact.verdict]}
+            {verdictText(impact.verdict, view.store)}
           </span>
         </div>
         <p className="text-xs text-muted-foreground">
           {event.detail ?? event.title}. Uploaded {formatDay(event.date)}
           {event.version ? ` to version ${event.version}` : ''}
-          {impact.liveDate ? `, in the App Store since ${formatDay(impact.liveDate)}` : ''}.
+          {impact.liveDate ? `, ${play ? 'on Google Play' : 'in the App Store'} since ${formatDay(impact.liveDate)}` : ''}.
         </p>
-        {impact.verdict === 'not-live' ? (
-          <p className="text-xs">
-            Waiting for version {event.version} to be released. Growth then compares your numbers before and after the release day.
+        {play && (
+          <p className="text-[11px] text-muted-foreground">
+            {event.waitsForReview && !event.liveDate
+              ? 'Google Play holds the new screenshots until you send the changes for review in Play Console. Google then checks the new screenshots, which can take up to a week.'
+              : event.liveDate
+                ? 'Growth compares your numbers before and after the day you set.'
+                : 'Google checks new screenshots before people see the new screenshots, which can take up to a week. Growth counts from the upload day.'}
           </p>
+        )}
+        {play && event.kind === 'screenshots' && <LiveDayControl event={event} waiting={!!event.waitsForReview && !event.liveDate} />}
+        {impact.verdict === 'not-live' ? (
+          play ? null : (
+            <p className="text-xs">
+              Waiting for version {event.version} to be released. Growth then compares your numbers before and after the release day.
+            </p>
+          )
         ) : (
           <>
             <div className="flex flex-wrap items-end gap-6">
@@ -416,11 +508,12 @@ function ImpactHero({ event, impact }: { event: TimelineEvent | null; impact: Im
 }
 
 /** For the timeline: the same before and after, as one line. */
-export function impactLine(impact: ImpactResult): string {
-  if (impact.verdict === 'not-live') return 'Not in the App Store yet';
+export function impactLine(impact: ImpactResult, store: GrowthStore = 'appstore'): string {
+  if (impact.verdict === 'not-live') return verdictText('not-live', store);
   if (impact.verdict === 'no-data') return 'No numbers around the event date';
-  const measured = impact.measure === 'conversion' ? 'Download rate' : 'Downloads a day';
-  const format = (value: number | null) => (impact.measure === 'conversion' ? formatRate(value) : formatCount(value));
+  const rate = impact.measure !== 'downloads';
+  const measured = rate ? 'Download rate' : 'Downloads a day';
+  const format = (value: number | null) => (rate ? formatRate(value) : formatCount(value));
   const days = impact.daysAfter > 0 ? `, ${Math.min(impact.daysAfter, 14)} days after the event` : '';
   return `${measured} ${format(impact.beforeRate)} to ${format(impact.afterRate)} (${formatChange(impact.change)})${days}`;
 }
