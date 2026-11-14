@@ -10,26 +10,28 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Loader2Icon } from 'lucide-react';
 
-// Machine translation is one network round trip per distinct string, against a
-// per minute budget, so a six board project in three languages is a minute of
-// nothing happening. Adding a language used to close its dialog and go silent
-// until a toast appeared at the end, which reads as a hang. This is the live
-// readout, and the only place the run can be stopped.
+// A translation run takes seconds with the user's own AI and can take a minute
+// with the app's free translator, which answers a few requests a minute.
+// Without a readout a dialog that closed and went silent until a toast
+// appeared would read as a hang. This is the live readout, and the only place
+// the run can be stopped.
 
 export interface TranslateProgress {
-  /** The language being worked on right now, e.g. "Deutsch (de-DE)". */
+  /** The language at work, e.g. "Deutsch (de-DE)". A run of several lists them. */
   localeLabel: string;
-  /** Strings finished and strings to do, within THIS language. */
+  /** Strings written and strings to write, every language of the run together. */
   done: number;
   total: number;
-  // Set when one run covers several languages (ticking three at once in the
-  // manager). A single language run leaves the count at 1 and the line stays
-  // quiet about it.
-  localeIndex: number;
+  // Languages with nothing left to write, of how many the run covers (ticking
+  // three at once in the manager). A single language run leaves the count at
+  // 1 and the line stays quiet about it.
+  localesDone: number;
   localeCount: number;
   // 'starting' covers the gap before the engine reports its first string,
   // where a bar pinned at 0 would look stuck.
   phase: 'starting' | 'translating';
+  /** Who is translating, as it reads after "Using": "Claude Code (Max plan)". Unset until known. */
+  engineLabel?: string;
 }
 
 interface TranslateProgressDialogProps {
@@ -43,16 +45,10 @@ export function TranslateProgressDialog({
   onCancel,
   isCancelling,
 }: TranslateProgressDialogProps) {
-  // Weight each language equally and fill within it, so a three language run
-  // crosses a third of the bar per language instead of restarting at zero.
-  // Monotonic across the whole run.
-  const perLocale = progress && progress.total > 0 ? progress.done / progress.total : 0;
-  const value = progress
-    ? Math.min(
-        100,
-        Math.round((((progress.localeIndex - 1) + perLocale) / Math.max(1, progress.localeCount)) * 100)
-      )
-    : 0;
+  // Languages run side by side, so the bar counts strings across all of them.
+  // It only ever moves forward.
+  const value =
+    progress && progress.total > 0 ? Math.min(100, Math.round((progress.done / progress.total) * 100)) : 0;
 
   const statusLine = !progress
     ? ''
@@ -60,7 +56,9 @@ export function TranslateProgressDialog({
       // Before the run has counted its work. Naming a number here would mean
       // showing a zero that is about to be wrong.
       ? 'Working out what needs translating'
-      : `${progress.done} of ${progress.total} ${progress.total === 1 ? 'string' : 'strings'}`;
+      : progress.localeCount > 1
+        ? `${progress.done} of ${progress.total} strings, ${progress.localesDone} of ${progress.localeCount} languages done`
+        : `${progress.done} of ${progress.total} ${progress.total === 1 ? 'string' : 'strings'}`;
 
   return (
     <Dialog
@@ -84,8 +82,8 @@ export function TranslateProgressDialog({
             Translating
           </DialogTitle>
           <DialogDescription>
-            {progress && progress.localeCount > 1
-              ? `Language ${progress.localeIndex} of ${progress.localeCount}. Anything you typed yourself is left alone.`
+            {progress?.engineLabel
+              ? `Using ${progress.engineLabel}. Anything you typed yourself is left alone.`
               : 'Anything you typed yourself is left alone.'}
           </DialogDescription>
         </DialogHeader>
@@ -95,7 +93,9 @@ export function TranslateProgressDialog({
           <p className="text-xs text-muted-foreground truncate" dir="auto">
             {isCancelling
               ? 'Stopping, keeping what came back'
-              : `${progress?.localeLabel ?? ''}: ${statusLine}`}
+              : progress && progress.localeCount > 1
+                ? statusLine
+                : `${progress?.localeLabel ?? ''}: ${statusLine}`}
           </p>
         </div>
 

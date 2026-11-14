@@ -55,7 +55,6 @@ import { StudioDeviceProperties } from './StudioDeviceProperties';
 import { studioConversionPatch, studioModelFor } from '@/lib/device3dStudio';
 import { isDevice3dStyle } from '@/lib/devicePerspective';
 import type { StudioLiveHandler } from '@/lib/device3dStudioLive';
-import { isTranslationEnabled } from '@/services/translation';
 import { DEVICE_PICKER_GROUPS } from '@/lib/deviceRegistry';
 import { trackScreenshotUploaded } from '@/lib/analytics';
 import { DEFAULT_BASE_LOCALE, localeLabel, localeName } from '@/lib/i18n/locales';
@@ -757,6 +756,8 @@ interface PropertiesPanelProps {
    * the host has no translation flow to offer.
    */
   onTranslateElement?: (elementId: string) => void;
+  /** Something can translate: the user's own AI or the app's free translator. */
+  translationAvailable?: boolean;
   /**
    * Take a screenshot from the running simulator or emulator into a frame, or
    * open Capture on it (src/components/open-screenshot-generator/capture/).
@@ -1083,6 +1084,7 @@ export function PropertiesPanel({
   onMoveSelectionTo,
   layerElements,
   onTranslateElement,
+  translationAvailable = false,
   onCaptureScreenshot,
   activeArtboardDetails,
   onUpdateArtboardDetails,
@@ -3080,12 +3082,8 @@ export function PropertiesPanel({
                 variant="outline"
                 size="icon"
                 className="h-10 w-10 shrink-0"
-                disabled={!isTranslationEnabled || !localContent.trim()}
-                title={
-                  isTranslationEnabled
-                    ? "Translate this text"
-                    : "Translation is disabled because API URLs are not configured"
-                }
+                disabled={!translationAvailable || !localContent.trim()}
+                title={translationAvailable ? 'Translate this text' : 'Add an AI in the AI panel to translate'}
                 aria-label="Translate this text"
                 onClick={() => {
                   // Flush an edit the blur may not have committed yet, so the

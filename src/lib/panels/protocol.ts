@@ -106,6 +106,13 @@ export interface DockData {
   agent: AgentPanelView | null;
 
   /**
+   * Something can translate: the user's Claude Code, Codex or AI panel, or the
+   * app's free translator. Only the editor window looks for Claude Code and
+   * Codex, so a detached panel takes the answer from here.
+   */
+  translationAvailable: boolean;
+
+  /**
    * An export is holding the canvas.
    *
    * An export swaps a converted or re-projected board list onto the canvas for

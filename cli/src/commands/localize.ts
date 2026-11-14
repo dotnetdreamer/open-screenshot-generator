@@ -59,8 +59,12 @@ interface LocaleConfigResult {
 }
 
 interface TranslateResult {
-  /** Null means no engine is configured in this editor build. */
-  engine: 'ai' | 'libre' | null;
+  /**
+   * The engine that wrote most: the user's Claude Code or Codex (desktop app
+   * only), the AI panel's provider, or the free translator. Null means none is
+   * set up in this editor.
+   */
+  engine: 'claude' | 'codex' | 'ai' | 'libre' | null;
   runs: { locale: string; translated: number; failed: number; skipped: number; rateLimited: boolean; error?: string }[];
   completion: { locale: string; translated: number; total: number }[];
 }

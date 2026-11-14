@@ -237,6 +237,7 @@ export function RightDockPanels({
               onUpdateElementById={handlers.onUpdateElementById}
               onStudioLive={handlers.onStudioLive}
               onTranslateElement={handlers.onTranslateElement}
+              translationAvailable={data.translationAvailable}
               onCaptureScreenshot={handlers.onCaptureScreenshot}
               activeArtboardDetails={data.activeArtboardDetails}
               onUpdateArtboardDetails={handlers.onUpdateArtboardDetails}

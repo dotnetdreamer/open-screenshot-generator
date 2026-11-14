@@ -1971,8 +1971,9 @@ pub fn abs_claude_list(state: tauri::State<'_, ClaudeState>) -> Vec<ListedSessio
 // ---------------------------------------------------------------------------
 //
 // The Growth window's writing jobs (a review reply, a listing field, a report
-// summary, a question about the numbers) need a model and nothing else: no
-// tools, no MCP server, no chat. abs_claude_prompt and codex.rs's
+// summary, a question about the numbers) and the translations of the text on
+// the artboards need a model and nothing else: no tools, no MCP server, no
+// chat. abs_claude_prompt and codex.rs's
 // abs_codex_prompt start the CLI for one prompt, read its answer and let it
 // exit, on the user's own plan. No conversation is kept. Any editor window may
 // ask, a torn-off tab too, and Stop (abs_claude_prompt_stop) kills the process
@@ -1981,8 +1982,10 @@ pub fn abs_claude_list(state: tauri::State<'_, ClaudeState>) -> Vec<ListedSessio
 /// How long a one-shot prompt may take before its process is stopped.
 pub(crate) const PROMPT_TIMEOUT: Duration = Duration::from_secs(180);
 
-/// One-shot prompts one CLI runs at once. Each is a click in the Growth window,
-/// so more than this is a page asking again and again.
+/// One-shot prompts one CLI runs at once. A translation runs this many
+/// languages side by side, and a page queues the rest itself
+/// (AGENT_PROMPTS_AT_ONCE in agentPrompt.ts), so more than this is a page
+/// asking again and again.
 pub(crate) const MAX_PROMPTS: usize = 3;
 
 /// The most text, instructions and prompt together, a one-shot prompt takes.

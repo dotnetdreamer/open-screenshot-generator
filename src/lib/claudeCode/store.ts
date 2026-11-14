@@ -26,6 +26,7 @@ import { db } from '@/database';
 import { isTauri } from '@/lib/desktop';
 import { clipText } from '@/lib/clipText';
 import { OperationRecorder, type OperationStatus } from '@/lib/ai/operationLog';
+import { beginAgentLook, noteClaudeDetection, noteCodexDetection } from '@/lib/ai/agentPrompt';
 import { codexTransport } from '@/lib/codex/desktopTransport';
 import { clampCodexEffort } from '@/lib/codex/effort';
 import { describeCodexExit, failCodexTurn, reduceCodexNotification } from '@/lib/codex/reducer';
@@ -1905,10 +1906,13 @@ async function detect(force = false): Promise<ClaudeDetection | null> {
     return detection.result;
   }
   set({ detection: { status: 'checking', result: detection.result, error: null } }, { immediate: true });
+  const look = beginAgentLook();
   detecting = t
     .detect()
     .then((result) => {
       detectedAt = Date.now();
+      // Translation and Growth read the same answer (agentPrompt.ts).
+      noteClaudeDetection(result, look);
       set({ detection: { status: 'done', result, error: null } }, { immediate: true });
       return result;
     })
@@ -1933,10 +1937,12 @@ async function detectCodex(force = false): Promise<CodexDetection | null> {
     return detection.result;
   }
   set({ codexDetection: { status: 'checking', result: detection.result, error: null } }, { immediate: true });
+  const look = beginAgentLook();
   codexDetecting = t
     .detect()
     .then((result) => {
       codexDetectedAt = Date.now();
+      noteCodexDetection(result, look);
       set({ codexDetection: { status: 'done', result, error: null } }, { immediate: true });
       return result;
     })

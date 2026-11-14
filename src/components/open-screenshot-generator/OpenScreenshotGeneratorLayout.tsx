@@ -65,7 +65,24 @@ import {
   unprojectArtboards,
   type DetachableKey,
 } from '@/lib/i18n/project';
-import { availableEngines, translateIntoLocale } from '@/lib/i18n/translate';
+import {
+  inPlaceTexts,
+  translateIntoLocale,
+  translateIntoLocales,
+  translateTextsWith,
+  writeInPlace,
+  type TranslateLocalesProgress,
+  type TranslateTextsResult,
+} from '@/lib/i18n/translate';
+import {
+  availableEngines,
+  detectTranslateEngines,
+  engineLabel,
+  isOwnEngine,
+  onTranslateEnginesChange,
+  resolveEngines,
+  type TranslateEngine,
+} from '@/lib/i18n/engines';
 import { applyCsvImport, buildTranslationRows, planCsvImport, toCsv } from '@/lib/i18n/translationCsv';
 import { applyLocalizedText } from '@/lib/mcp/localizedText';
 // The language tools' pure half. Everything they do is a function of the base
@@ -1032,18 +1049,33 @@ export function OpenScreenshotGeneratorLayout() {
   const [isTranslationTableOpen, setIsTranslationTableOpen] = useState(false);
   const [translationTableLocale, setTranslationTableLocale] = useState<string | null>(null);
   const [translationTableFilter, setTranslationTableFilter] = useState<'all' | 'untranslated'>('all');
-  // Live readout for machine translation, which is one network round trip per
-  // distinct string and can run for a minute across several languages.
+  // Live readout for a translation run, which can take a minute across several
+  // languages.
   const [translateProgress, setTranslateProgress] = useState<TranslateProgress | null>(null);
   const [isCancellingTranslate, setIsCancellingTranslate] = useState(false);
   const translateAbortRef = useRef<AbortController | null>(null);
-  // A machine translation path exists at all. Set in an effect, never during
-  // render: it reads localStorage and isTauri(), both of which are absent on
-  // the server and on the first client render.
+  // Something can translate at all, and the engine a run would start with
+  // (src/lib/i18n/engines.ts). Set in an effect, never during render: they
+  // read localStorage and isTauri(), both of which are absent on the server
+  // and on the first client render.
   const [translationAvailable, setTranslationAvailable] = useState(false);
-  useEffect(() => {
-    setTranslationAvailable(availableEngines().length > 0);
+  const [translationEngine, setTranslationEngine] = useState<{ engine: TranslateEngine; label: string } | null>(null);
+  const refreshTranslationEngines = useCallback(() => {
+    const engines = availableEngines();
+    setTranslationAvailable(engines.length > 0);
+    setTranslationEngine(engines[0] ? { engine: engines[0], label: engineLabel(engines[0]) } : null);
   }, []);
+  useEffect(() => {
+    refreshTranslationEngines();
+    const stop = onTranslateEnginesChange(refreshTranslationEngines);
+    // Claude Code and Codex count once a detect has found them. A detect
+    // starts each CLI, so it waits until the editor has finished opening.
+    const timer = window.setTimeout(detectTranslateEngines, 4000);
+    return () => {
+      stop();
+      window.clearTimeout(timer);
+    };
+  }, [refreshTranslationEngines]);
   // Set for exactly as long as an export or a store upload has a converted or
   // re-projected list on the canvas. It closes the mutation door, so an MCP
   // call or a stray drag landing mid-swap cannot write a temporary render into
@@ -1850,6 +1882,14 @@ export function OpenScreenshotGeneratorLayout() {
   // Set when the run is scoped to one text element (the properties panel
   // button); null means the dialog translates artboards as before.
   const [translateElementId, setTranslateElementId] = useState<string | null>(null);
+  // A key added in the AI panel after the editor opened changes who
+  // translates, and the dialogs name that engine. A dialog opened before the
+  // first look for Claude Code and Codex starts it, and updates when it lands.
+  useEffect(() => {
+    if (!isTranslateDialogOpen && !isLanguageManagerOpen && !isTranslationTableOpen) return;
+    refreshTranslationEngines();
+    detectTranslateEngines();
+  }, [isTranslateDialogOpen, isLanguageManagerOpen, isTranslationTableOpen, refreshTranslationEngines]);
 
   const handleTranslateArtboard = (artboardId: string) => {
     handleArtboardSelection(artboardId);
@@ -1870,9 +1910,22 @@ export function OpenScreenshotGeneratorLayout() {
     setIsExportDialogOpen(true);
   };
 
+  // The Properties panel names its element by id alone. Opening a project
+  // makes ids unique across it (ensureUniqueElementIds); should two ever
+  // coincide, the one on the active artboard is meant.
+  const artboardHoldingElement = (boards: ArtboardState[], elementId: string) =>
+    boards.find((ab) => ab.id === activeArtboardId && ab.elements.some((el) => el.id === elementId)) ??
+    boards.find((ab) => ab.elements.some((el) => el.id === elementId));
+
   const handleTranslateTextElement = (elementId: string) => {
     if (hasLocales(artboardsRef.current)) {
-      void translateScopeIntoActiveLocale({ elementIds: [elementId] }, 'Translate Element');
+      // This run writes over what a person typed, so it names the element's
+      // artboard as well as its id and can reach nothing else.
+      const owner = artboardHoldingElement(artboardsRef.current, elementId);
+      void translateScopeIntoActiveLocale(
+        { elementIds: [elementId], ...(owner ? { artboardIds: [owner.id] } : {}) },
+        'Translate Element'
+      );
       return;
     }
     setTranslateElementId(elementId);
@@ -3121,24 +3174,33 @@ export function OpenScreenshotGeneratorLayout() {
     );
   }, [handleArtboardsUpdate]);
 
+  /** Folds an engine's progress into the readout, naming the engine at work. */
+  const showTranslateProgress = useCallback((progress: TranslateLocalesProgress) => {
+    setTranslateProgress((prev) =>
+      prev
+        ? {
+            ...prev,
+            done: progress.done,
+            total: progress.total,
+            localesDone: progress.localesDone,
+            localeCount: progress.localeCount,
+            phase: 'translating',
+            engineLabel: progress.engine ? engineLabel(progress.engine) : prev.engineLabel,
+          }
+        : prev
+    );
+  }, []);
+
   /**
-   * One machine translation run, shared by the switcher's "Update translations"
-   * and by the translation table's buttons. It never commits: the caller
-   * decides, because the table holds its result until Save.
+   * One translation run into one language, shared by the switcher's "Update
+   * translations" and by the translation table's buttons. It never commits:
+   * the caller decides, because the table holds its result until Save.
    */
   const runLocaleTranslation = useCallback(async (
     locale: string,
     only: 'empty' | 'stale' | 'all',
     scope?: { artboardIds?: string[]; elementIds?: string[]; includeManual?: boolean }
   ): Promise<ArtboardState[] | null> => {
-    const engines = availableEngines();
-    if (engines.length === 0) {
-      toast({
-        title: 'Translation is not set up',
-        description: 'Add an AI provider key, or type the strings into the translations table.',
-      });
-      return null;
-    }
     const controller = new AbortController();
     translateAbortRef.current = controller;
     setIsCancellingTranslate(false);
@@ -3146,20 +3208,28 @@ export function OpenScreenshotGeneratorLayout() {
       localeLabel: localeLabel(locale),
       done: 0,
       total: 0,
-      localeIndex: 1,
+      localesDone: 0,
       localeCount: 1,
       phase: 'starting',
     });
     try {
+      // The first run in a window waits here while Claude Code and Codex are
+      // looked for, with the readout already up.
+      const engines = await resolveEngines();
+      if (controller.signal.aborted) return null;
+      if (engines.length === 0) {
+        toast({
+          title: 'Translation is not set up',
+          description: 'Add an AI provider key, or type the strings into the translations table.',
+        });
+        return null;
+      }
       const result = await translateIntoLocale(artboardsRef.current, locale, {
-        engine: engines[0],
+        engines,
         only,
         ...scope,
         signal: controller.signal,
-        onProgress: (done, total) =>
-          setTranslateProgress((prev) =>
-            prev ? { ...prev, done, total, phase: 'translating' } : prev
-          ),
+        onProgress: showTranslateProgress,
       });
       toast(
         result.rateLimited
@@ -3173,6 +3243,7 @@ export function OpenScreenshotGeneratorLayout() {
               description:
                 [
                   result.failed ? `${result.failed} did not come back` : '',
+                  result.failed && result.error ? result.error.replace(/\.$/, '') : '',
                   result.skipped ? `${result.skipped} you edited were left alone` : '',
                 ]
                   .filter(Boolean)
@@ -3194,7 +3265,7 @@ export function OpenScreenshotGeneratorLayout() {
       setTranslateProgress(null);
       setIsCancellingTranslate(false);
     }
-  }, [toast]);
+  }, [showTranslateProgress, toast]);
 
   /**
    * What the artboard toolbar's and the Properties panel's translate buttons do
@@ -3247,37 +3318,40 @@ export function OpenScreenshotGeneratorLayout() {
     let boards = normalizeLocalization(
       setLocalization(artboardsRef.current, next.locales.length > 0 ? next : undefined)
     );
-    if (opts.machineTranslate && opts.addedLocales.length > 0 && availableEngines().length > 0) {
+    let missed: { strings: number; rateLimited: boolean; error?: string } | null = null;
+    if (opts.machineTranslate && opts.addedLocales.length > 0) {
       const controller = new AbortController();
       translateAbortRef.current = controller;
       setIsCancellingTranslate(false);
+      setTranslateProgress({
+        localeLabel: opts.addedLocales.map(localeLabel).join(', '),
+        done: 0,
+        total: 0,
+        localesDone: 0,
+        localeCount: opts.addedLocales.length,
+        phase: 'starting',
+      });
       try {
-        // Sequential, not Promise.all: the engines share one rate-limit budget.
-        for (const [index, code] of opts.addedLocales.entries()) {
-          if (controller.signal.aborted) break;
-          setTranslateProgress({
-            localeLabel: localeLabel(code),
-            done: 0,
-            total: 0,
-            localeIndex: index + 1,
-            localeCount: opts.addedLocales.length,
-            phase: 'starting',
+        // Every language in one run: an AI of the user's own takes several at
+        // once, and our server still gets one request at a time. A language
+        // that fails never costs the user the languages themselves, since the
+        // config commits below either way.
+        const engines = await resolveEngines();
+        if (engines.length > 0 && !controller.signal.aborted) {
+          const run = await translateIntoLocales(boards, opts.addedLocales, {
+            engines,
+            only: 'empty',
+            signal: controller.signal,
+            onProgress: showTranslateProgress,
           });
-          try {
-            const done = await translateIntoLocale(boards, code, {
-              engine: availableEngines()[0],
-              only: 'empty',
-              signal: controller.signal,
-              onProgress: (doneCount, total) =>
-                setTranslateProgress((prev) =>
-                  prev ? { ...prev, done: doneCount, total, phase: 'translating' } : prev
-                ),
-            });
-            boards = done.artboards;
-          } catch (error) {
-            // One language failing must not cost the user the languages
-            // themselves, so the loop keeps going and the config still commits.
-            console.error('Could not machine translate into', code, error);
+          boards = run.artboards;
+          const failed = run.locales.reduce((sum, entry) => sum + entry.failed, 0);
+          const reason = run.locales.find((entry) => entry.error)?.error;
+          if (!controller.signal.aborted && (failed > 0 || reason)) {
+            missed = { strings: failed, rateLimited: run.locales.some((entry) => entry.rateLimited), error: reason };
+          }
+          for (const entry of run.locales) {
+            if (entry.error) console.error('Could not translate into', entry.locale, entry.error);
           }
         }
       } finally {
@@ -3294,13 +3368,28 @@ export function OpenScreenshotGeneratorLayout() {
       toastUnsavedResult('The languages were not saved');
       return;
     }
+    if (missed) {
+      // The engine's own reason says what to do (sign in, wait, type them in),
+      // so the table's button is only offered when there is none.
+      toast({
+        title: missed.rateLimited
+          ? 'Translation stopped early'
+          : missed.strings > 0
+            ? `${missed.strings} ${missed.strings === 1 ? 'string was' : 'strings were'} not translated`
+            : 'Some languages were not translated',
+        description: missed.rateLimited
+          ? 'Wait a minute, then use Translate empty in the translations table.'
+          : missed.error ?? 'Use Translate empty in the translations table to try again.',
+        variant: 'destructive',
+      });
+    }
     // Viewing a language that was just removed would show a projection of a
     // locale the project no longer has.
     const viewing = activeLocaleRef.current;
     if (viewing && !next.locales.some((entry) => entry.code === viewing)) {
       handleSelectLocale(null);
     }
-  }, [handleArtboardsUpdate, handleSelectLocale, toastUnsavedResult]);
+  }, [handleArtboardsUpdate, handleSelectLocale, showTranslateProgress, toast, toastUnsavedResult]);
 
   const handleOpenTranslations = useCallback((filter: 'all' | 'untranslated' = 'all') => {
     setTranslationTableLocale(activeLocaleRef.current);
@@ -8449,6 +8538,59 @@ export function OpenScreenshotGeneratorLayout() {
     return Array.from(languages)[0];
   }, [artboards]);
 
+  /**
+   * The Translate dialog's run through an AI of the user's own, for a project
+   * with no languages, where it writes over the text itself. The model works
+   * out the source language, so our server is not asked to detect it either.
+   * Null when the user has no AI of their own set up, and the caller asks the
+   * app's free translator instead.
+   */
+  const translateInPlaceWithOwnAi = async (
+    texts: string[],
+    targetLanguage: string,
+    sourceLanguage: string
+  ): Promise<(TranslateTextsResult & { aborted: boolean }) | null> => {
+    const engines = (await resolveEngines()).filter(isOwnEngine);
+    if (engines.length === 0) return null;
+    // The progress readout, with its Cancel, takes over from the dialog.
+    setIsTranslateDialogOpen(false);
+    const controller = new AbortController();
+    translateAbortRef.current = controller;
+    setIsCancellingTranslate(false);
+    const targetName = getLanguageName(targetLanguage);
+    setTranslateProgress({
+      localeLabel: targetName,
+      done: 0,
+      total: 0,
+      localesDone: 0,
+      localeCount: 1,
+      phase: 'starting',
+      engineLabel: engineLabel(engines[0]),
+    });
+    try {
+      const result = await translateTextsWith(
+        texts,
+        { model: `${targetName} (${targetLanguage})`, machine: targetLanguage },
+        sourceLanguage !== AUTO_DETECT
+          ? { model: `${getLanguageName(sourceLanguage)} (${sourceLanguage})`, machine: sourceLanguage }
+          : undefined,
+        {
+          engines,
+          signal: controller.signal,
+          onProgress: (done, total, engine) =>
+            setTranslateProgress((prev) =>
+              prev ? { ...prev, done, total, phase: 'translating', engineLabel: engineLabel(engine) } : prev
+            ),
+        }
+      );
+      return { ...result, aborted: controller.signal.aborted };
+    } finally {
+      translateAbortRef.current = null;
+      setTranslateProgress(null);
+      setIsCancellingTranslate(false);
+    }
+  };
+
   const handleTranslateProject = async (
     targetLanguage: string,
     allArtboards: boolean,
@@ -8472,6 +8614,41 @@ export function OpenScreenshotGeneratorLayout() {
         title: "No text found",
         description: "There are no text elements to translate in the selected artboards."
       });
+      return;
+    }
+
+    const textElements = inPlaceTexts(artboardsToUpdate, modifiedIds);
+    const own = await translateInPlaceWithOwnAi(
+      textElements.map((el) => el.content),
+      targetLanguage,
+      sourceLanguage
+    );
+    // Our server below is only for a user with no AI of their own.
+    if (own) {
+      // Built on the project as it is now: the run took a while, and text
+      // edited meanwhile keeps the edit.
+      const { artboards: next, written } = writeInPlace(artboardsRef.current, textElements, own.texts, {
+        artboardIds: modifiedIds,
+        language: targetLanguage,
+        fontFamily: targetFont,
+      });
+      if (written > 0) {
+        if (!handleArtboardsUpdate(next, namedChange('Translate', 'translate', `${written} text layers`))) {
+          toastUnsavedResult('The translation was not saved');
+          return;
+        }
+        const missed = textElements.length - written;
+        toast({
+          title: `Translated ${written} text ${written === 1 ? 'element' : 'elements'}`,
+          description: missed > 0 ? `${missed} did not come back${own.error ? `. ${own.error}` : ''}` : undefined,
+        });
+      } else if (!own.aborted) {
+        toast({
+          title: 'The text was not translated',
+          description: own.error ?? 'Try again in a moment.',
+          variant: 'destructive',
+        });
+      }
       return;
     }
 
@@ -8596,7 +8773,7 @@ export function OpenScreenshotGeneratorLayout() {
   // Artboard whose text the element-scoped dialog is about to translate, so
   // the source picker can seed from that board rather than the whole project.
   const translateElementArtboard = translateElementId
-    ? artboards.find((ab) => ab.elements.some((el) => el.id === translateElementId))
+    ? artboardHoldingElement(artboards, translateElementId)
     : undefined;
 
   const handleTranslateElement = async (
@@ -8605,7 +8782,7 @@ export function OpenScreenshotGeneratorLayout() {
     sourceLanguage: string = AUTO_DETECT,
     targetFont?: string
   ) => {
-    const owner = artboards.find((ab) => ab.elements.some((el) => el.id === elementId));
+    const owner = artboardHoldingElement(artboards, elementId);
     const element = owner?.elements.find((el) => el.id === elementId);
 
     if (!owner || !element || element.type !== 'text' || !element.content?.trim()) {
@@ -8616,37 +8793,56 @@ export function OpenScreenshotGeneratorLayout() {
       return;
     }
 
-    let effectiveSource = sourceLanguage || AUTO_DETECT;
-    if (effectiveSource === AUTO_DETECT) {
-      const detected = await detectLanguage(element.content.slice(0, 1000));
-      if (detected) {
-        effectiveSource = detected.language;
+    let translated: string | null = null;
+    // Our server below is only for a user with no AI of their own.
+    const own = await translateInPlaceWithOwnAi([element.content], targetLanguage, sourceLanguage);
+    if (own) {
+      translated = own.texts[0] ?? null;
+      if (!translated) {
+        if (!own.aborted) {
+          toast({
+            title: 'The text was not translated',
+            description: own.error ?? 'Try again in a moment.',
+            variant: 'destructive',
+          });
+        }
+        return;
       }
     }
 
-    if (effectiveSource !== AUTO_DETECT && effectiveSource === targetLanguage) {
-      toast({
-        title: "Nothing to translate",
-        description: `The text is already in ${getLanguageName(targetLanguage)}.`
-      });
-      return;
-    }
+    if (translated === null) {
+      let effectiveSource = sourceLanguage || AUTO_DETECT;
+      if (effectiveSource === AUTO_DETECT) {
+        const detected = await detectLanguage(element.content.slice(0, 1000));
+        if (detected) {
+          effectiveSource = detected.language;
+        }
+      }
 
-    let translated: string;
-    try {
-      const result = await translateText(element.content, targetLanguage, effectiveSource);
-      translated = result.text;
-    } catch (e: any) {
-      console.error("Failed to translate element", elementId, e);
-      toast({
-        title: e?.status === 429 ? "Rate limit exceeded" : "Translation failed",
-        description: e?.status === 429
-          ? "Please wait a minute before trying again."
-          : "Failed to translate this text element. Please try again later.",
-        variant: "destructive"
-      });
-      return;
+      if (effectiveSource !== AUTO_DETECT && effectiveSource === targetLanguage) {
+        toast({
+          title: "Nothing to translate",
+          description: `The text is already in ${getLanguageName(targetLanguage)}.`
+        });
+        return;
+      }
+
+      try {
+        const result = await translateText(element.content, targetLanguage, effectiveSource);
+        translated = result.text;
+      } catch (e: any) {
+        console.error("Failed to translate element", elementId, e);
+        toast({
+          title: e?.status === 429 ? "Rate limit exceeded" : "Translation failed",
+          description: e?.status === 429
+            ? "Please wait a minute before trying again."
+            : "Failed to translate this text element. Please try again later.",
+          variant: "destructive"
+        });
+        return;
+      }
     }
+    const content = translated;
 
     // The artboard's language stamp describes all of its text. It only stays
     // true if this was the board's one and only text element; otherwise the
@@ -8655,15 +8851,16 @@ export function OpenScreenshotGeneratorLayout() {
       (el) => el.type === 'text' && el.id !== elementId
     );
 
+    // The project as it is now, since the translation took a while.
     const landed = handleArtboardsUpdate(
-      artboards.map((ab) =>
+      artboardsRef.current.map((ab) =>
         ab.id !== owner.id
           ? ab
           : {
               ...ab,
               elements: ab.elements.map((el) =>
                 el.id === elementId
-                  ? { ...el, content: translated, ...(targetFont ? { fontFamily: targetFont } : {}) }
+                  ? { ...el, content, ...(targetFont ? { fontFamily: targetFont } : {}) }
                   : el
               ),
               language: isOnlyTextElement ? targetLanguage : undefined,
@@ -8918,6 +9115,7 @@ export function OpenScreenshotGeneratorLayout() {
       isExporting: exportCanvasArtboards !== null,
       tabRequest,
       agent: agentView,
+      translationAvailable,
     }),
     [
       activeProjectId,
@@ -8942,6 +9140,7 @@ export function OpenScreenshotGeneratorLayout() {
       exportCanvasArtboards,
       tabRequest,
       agentView,
+      translationAvailable,
     ]
   );
 
@@ -10397,14 +10596,12 @@ const generateRandomProjectName = (): string => {
   };
 
   /**
-   * The MCP translate path: run the engine over one or more languages against a
-   * single snapshot and hand the boards back UNCOMMITTED, so the caller decides
-   * whether this was the whole tool (translate_locales) or one step of a bigger
-   * one (add_locales drafting the languages it just added).
-   *
-   * Sequential, not Promise.all, because the engines share one rate-limit
-   * budget, and each language is fed the previous one's output so a single
-   * commit at the end carries all of them and one undo takes all of them back.
+   * The MCP translate path: run the engines over one or more languages against
+   * a single snapshot and hand the boards back UNCOMMITTED, so the caller
+   * decides whether this was the whole tool (translate_locales) or one step of
+   * a bigger one (add_locales drafting the languages it just added). Every
+   * language lands in the same document, so one commit carries all of them and
+   * one undo takes all of them back.
    *
    * The progress dialog and the abort ref are the ones the app's own translate
    * buttons use: a run started from outside the app still shows the user what
@@ -10421,81 +10618,58 @@ const generateRandomProjectName = (): string => {
       elementIds?: string[];
     }
   ): Promise<{ artboards: ArtboardState[]; result: McpTranslateRunResult }> => {
-    const engines = availableEngines();
-    // Not an error here. The tool turns "no engine" into the instruction that
-    // actually helps a model: write the strings yourself and send them back.
-    if (engines.length === 0) {
-      return { artboards: boards, result: { engine: null, runs: [], completion: [] } };
-    }
-    const engine = engines[0];
     const controller = new AbortController();
     translateAbortRef.current = controller;
     setIsCancellingTranslate(false);
-    const runs: McpTranslateRun[] = [];
-    let next = boards;
+    setTranslateProgress({
+      localeLabel: locales.map(localeLabel).join(', '),
+      done: 0,
+      total: 0,
+      localesDone: 0,
+      localeCount: locales.length,
+      phase: 'starting',
+    });
     try {
-      for (const [index, locale] of locales.entries()) {
-        if (controller.signal.aborted) break;
-        setTranslateProgress({
-          localeLabel: localeLabel(locale),
-          done: 0,
-          total: 0,
-          localeIndex: index + 1,
-          localeCount: locales.length,
-          phase: 'starting',
-        });
-        try {
-          const result = await translateIntoLocale(next, locale, {
-            engine,
-            only: options.only,
-            includeManual: options.includeManual,
-            guidance: options.guidance,
-            artboardIds: options.artboardIds,
-            elementIds: options.elementIds,
-            signal: controller.signal,
-            onProgress: (done, total) =>
-              setTranslateProgress((prev) =>
-                prev ? { ...prev, done, total, phase: 'translating' } : prev
-              ),
-          });
-          next = result.artboards;
-          runs.push({
-            locale,
-            translated: result.translated,
-            failed: result.failed,
-            skipped: result.skipped,
-            rateLimited: result.rateLimited,
-          });
-        } catch (error) {
-          // translateIntoLocale throws only for a setup problem, e.g. a
-          // language the machine engine does not cover. One of those must not
-          // cost the caller the other languages, or the languages themselves
-          // when this is running inside add_locales, so it is reported per
-          // language and the loop keeps going.
-          console.error('Could not machine translate into', locale, error);
-          runs.push({
-            locale,
-            translated: 0,
-            failed: 0,
-            skipped: 0,
-            rateLimited: false,
-            error: error instanceof Error ? error.message : String(error),
-          });
-        }
+      const engines = await resolveEngines();
+      // Not an error here. The tool turns "no engine" into the instruction that
+      // actually helps a model: write the strings yourself and send them back.
+      if (engines.length === 0) {
+        return { artboards: boards, result: { engine: null, runs: [], completion: [] } };
       }
+      const run = await translateIntoLocales(boards, locales, {
+        engines,
+        only: options.only,
+        includeManual: options.includeManual,
+        guidance: options.guidance,
+        artboardIds: options.artboardIds,
+        elementIds: options.elementIds,
+        signal: controller.signal,
+        onProgress: showTranslateProgress,
+      });
+      const runs: McpTranslateRun[] = run.locales.map((entry) => {
+        if (entry.error) console.error('Could not translate into', entry.locale, entry.error);
+        return {
+          locale: entry.locale,
+          translated: entry.translated,
+          failed: entry.failed,
+          skipped: entry.skipped,
+          rateLimited: entry.rateLimited,
+          ...(entry.error ? { error: entry.error } : {}),
+        };
+      });
+      return {
+        artboards: run.artboards,
+        result: {
+          engine: run.engine,
+          runs,
+          completion: locales.map((locale) => ({ locale, ...localeCompletion(run.artboards, locale) })),
+        },
+      };
     } finally {
       translateAbortRef.current = null;
       setTranslateProgress(null);
       setIsCancellingTranslate(false);
     }
-    return {
-      artboards: next,
-      result: {
-        engine,
-        runs,
-        completion: locales.map((locale) => ({ locale, ...localeCompletion(next, locale) })),
-      },
-    };
   };
 
   // Two frames, which is how long the canvas takes to repaint after a state
@@ -11997,7 +12171,8 @@ const generateRandomProjectName = (): string => {
               setIsTranslateSingleArtboard(false);
               setIsTranslateDialogOpen(true);
             }}
-            isTranslationEnabled={isTranslationEnabled}
+            // The user's own AI translates in place as well as our server does.
+            isTranslationEnabled={translationAvailable}
             // The BASE document, never viewArtboards: the switcher counts
             // overrides, and a projection has already folded them away.
             artboards={artboards}
@@ -12874,6 +13049,9 @@ const generateRandomProjectName = (): string => {
               setIsTranslateDialogOpen(false);
               handleOpenTranslations('all');
             }}
+            ownAiLabel={
+              translationEngine && isOwnEngine(translationEngine.engine) ? translationEngine.label : undefined
+            }
             onTranslate={handleTranslateRequest}
           />
 

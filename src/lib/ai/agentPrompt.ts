@@ -1,9 +1,15 @@
 // One prompt and its answer through the Claude Code or Codex CLI the user is
-// signed in to, on their own plan (abs_claude_prompt and abs_codex_prompt in
+// signed in to, on that sign-in (abs_claude_prompt and abs_codex_prompt in
 // src-tauri). For writing jobs that need a model and nothing else, such as the
-// Growth window's review replies and report summaries: the CLI starts with no
-// tools and no MCP server, answers once and exits, and no conversation is
-// kept. Any editor window can ask, a torn-off tab too.
+// Growth window's review replies and report summaries, and the translations
+// of the text on the artboards: the CLI starts with no tools and no MCP
+// server, answers once and exits, and no conversation is kept. Any editor
+// window can ask, a torn-off tab too.
+//
+// Rust runs at most three prompts per CLI at once and refuses a fourth. A
+// translation sends several at a time while Growth may be writing a summary,
+// so prompts from this window wait for a free slot here, and one refused
+// because another window holds the slots waits and asks again.
 //
 // Desktop only. Import safe on the web, where every call rejects without
 // importing anything from Tauri.
@@ -107,6 +113,11 @@ function untilStopped<T>(work: Promise<T>, signal: AbortSignal | undefined, onSt
       onStop();
       reject(stopped());
     };
+    // A signal that has already fired never fires again for a new listener.
+    if (signal.aborted) {
+      onAbort();
+      return;
+    }
     signal.addEventListener('abort', onAbort, { once: true });
     work.then(
       (value) => {
@@ -121,12 +132,103 @@ function untilStopped<T>(work: Promise<T>, signal: AbortSignal | undefined, onSt
   });
 }
 
+/** How many prompts Rust runs at once for one CLI (MAX_PROMPTS in claude_code.rs). */
+export const AGENT_PROMPTS_AT_ONCE = 3;
+
+/** How long a prompt refused for want of a slot waits before it asks again, and how often. */
+const BUSY_PAUSE_MS = 1500;
+const BUSY_ATTEMPTS = 40;
+
+const running: Record<AgentWriter, number> = { claude: 0, codex: 0 };
+const waiting: Record<AgentWriter, Array<() => void>> = { claude: [], codex: [] };
+
+/**
+ * One of the CLI's slots for this window, waiting while all of them are in
+ * use. Resolves with the function that gives it back.
+ */
+function takeSlot(agent: AgentWriter, signal?: AbortSignal): Promise<() => void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(stopped());
+      return;
+    }
+    const grant = () => {
+      running[agent]++;
+      let given = false;
+      resolve(() => {
+        if (given) return;
+        given = true;
+        running[agent]--;
+        waiting[agent].shift()?.();
+      });
+    };
+    if (running[agent] < AGENT_PROMPTS_AT_ONCE) {
+      grant();
+      return;
+    }
+    const onAbort = () => {
+      const at = waiting[agent].indexOf(next);
+      if (at >= 0) waiting[agent].splice(at, 1);
+      reject(stopped());
+    };
+    const next = () => {
+      signal?.removeEventListener('abort', onAbort);
+      grant();
+    };
+    waiting[agent].push(next);
+    signal?.addEventListener('abort', onAbort, { once: true });
+  });
+}
+
+/**
+ * True for Rust's answer when all of a CLI's slots are taken (PROMPT_BUSY in
+ * claude_code.rs and codex.rs). Another window holds them, or a stopped
+ * prompt's process has not ended yet.
+ */
+function isBusy(error: unknown): boolean {
+  return error instanceof Error && /is still answering/.test(error.message);
+}
+
+function pause(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) return reject(stopped());
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(stopped());
+    };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener('abort', onAbort);
+      resolve();
+    }, ms);
+    signal?.addEventListener('abort', onAbort, { once: true });
+  });
+}
+
 /**
  * Send one prompt to Claude Code or Codex and resolve with the answer text.
  * Aborting `signal` kills the CLI's process, and the slot it held is free for
  * the next prompt.
  */
 export async function runAgentPrompt(request: AgentPromptRequest): Promise<string> {
+  if (request.signal?.aborted) throw stopped();
+  const release = await takeSlot(request.agent, request.signal);
+  try {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return await promptOnce(request);
+      } catch (error) {
+        if (request.signal?.aborted || !isBusy(error) || attempt >= BUSY_ATTEMPTS) throw error;
+        await pause(BUSY_PAUSE_MS, request.signal);
+      }
+    }
+  } finally {
+    release();
+  }
+}
+
+async function promptOnce(request: AgentPromptRequest): Promise<string> {
+  // The slot can be granted, or the busy pause end, in the same moment as a
+  // Stop: nothing may start after it.
   if (request.signal?.aborted) throw stopped();
   const choices = storedAgentChoices();
   // Rust takes the prompt and its Stop as two calls, matched by this id.
@@ -209,6 +311,50 @@ function failedStatus(label: string, reason: unknown): AgentWriterStatus {
 }
 
 let detecting: Promise<AgentWriters> | null = null;
+/**
+ * What the newest look found for each CLI, for code that cannot wait for one.
+ * The Agent panel looks for itself (its store's detect, and Check again), and
+ * notes what it found here too, so translation and Growth see a sign in as
+ * soon as any part of the app has.
+ */
+let known: AgentWriters | null = null;
+/**
+ * One look at the CLIs, numbered as it starts. The number decides which of two
+ * answers is newer, whatever order they land in: two looks can start in the
+ * same millisecond, so a time cannot. The time says how old the answer is.
+ */
+export interface AgentLook {
+  order: number;
+  at: number;
+}
+let looks = 0;
+/** The look behind each entry of `known`. An older look never replaces a newer one. */
+const knownLook: Record<AgentWriter, AgentLook> = { claude: { order: 0, at: 0 }, codex: { order: 0, at: 0 } };
+const detectListeners = new Set<() => void>();
+
+/** Number a look that is about to start. */
+export function beginAgentLook(): AgentLook {
+  looks += 1;
+  return { order: looks, at: Date.now() };
+}
+
+/** Stands in for the CLI not looked for yet when the other one has been. */
+const NOT_LOOKED_FOR: AgentWriters = {
+  claude: { ready: false, label: 'Claude Code', detail: 'Looking for Claude Code' },
+  codex: { ready: false, label: 'Codex', detail: 'Looking for Codex' },
+};
+
+/** Keep `status` if its look started after the one `known` holds. True when it was kept. */
+function remember(agent: AgentWriter, status: AgentWriterStatus, look: AgentLook): boolean {
+  if (look.order <= knownLook[agent].order) return false;
+  knownLook[agent] = look;
+  known = { ...(known ?? NOT_LOOKED_FOR), [agent]: status };
+  return true;
+}
+
+function announceDetection(): void {
+  detectListeners.forEach((listener) => listener());
+}
 
 /**
  * Which of the two CLIs can answer here. Every detect starts both CLIs, so
@@ -217,13 +363,49 @@ let detecting: Promise<AgentWriters> | null = null;
  */
 export function detectAgentWriters(options: { refresh?: boolean } = {}): Promise<AgentWriters> {
   if (!detecting || options.refresh) {
+    const look = beginAgentLook();
     detecting = Promise.allSettled([
       invoke<ClaudeDetection>('abs_claude_detect'),
       invoke<CodexDetection>('abs_codex_detect'),
-    ]).then(([claude, codex]) => ({
-      claude: claude.status === 'fulfilled' ? claudeWriterStatus(claude.value) : failedStatus('Claude Code', claude.reason),
-      codex: codex.status === 'fulfilled' ? codexWriterStatus(codex.value) : failedStatus('Codex', codex.reason),
-    }));
+    ]).then(([claude, codex]) => {
+      const found: AgentWriters = {
+        claude: claude.status === 'fulfilled' ? claudeWriterStatus(claude.value) : failedStatus('Claude Code', claude.reason),
+        codex: codex.status === 'fulfilled' ? codexWriterStatus(codex.value) : failedStatus('Codex', codex.reason),
+      };
+      const kept = [remember('claude', found.claude, look), remember('codex', found.codex, look)];
+      if (kept.some(Boolean)) announceDetection();
+      return known ?? found;
+    });
   }
   return detecting;
+}
+
+/** What the Agent panel's own look at Claude Code found. `look` is from beginAgentLook, taken as it started. */
+export function noteClaudeDetection(detection: ClaudeDetection, look: AgentLook): void {
+  if (!detection || typeof detection !== 'object') return;
+  if (remember('claude', claudeWriterStatus(detection), look)) announceDetection();
+}
+
+/** What the Agent panel's own look at Codex found. `look` is from beginAgentLook, taken as it started. */
+export function noteCodexDetection(detection: CodexDetection, look: AgentLook): void {
+  if (!detection || typeof detection !== 'object') return;
+  if (remember('codex', codexWriterStatus(detection), look)) announceDetection();
+}
+
+/** When the newest look at `agent` began, or 0 when there has been none in this window. */
+export function agentDetectedAt(agent: AgentWriter): number {
+  return knownLook[agent].at;
+}
+
+/** What the newest detect found, or null while none has finished in this window. */
+export function knownAgentWriters(): AgentWriters | null {
+  return known;
+}
+
+/** Called each time a detect finishes. Returns the function that stops it. */
+export function onAgentWritersDetected(listener: () => void): () => void {
+  detectListeners.add(listener);
+  return () => {
+    detectListeners.delete(listener);
+  };
 }

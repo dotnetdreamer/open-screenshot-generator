@@ -11,8 +11,15 @@
 // instructions" is then a review about ignoring instructions.
 
 import { extractJsonCandidates } from '@/lib/ai/jsonExtract';
-import { detectAgentWriters, runAgentPrompt, type AgentWriter, type AgentWriters } from '@/lib/ai/agentPrompt';
-import { isAiTranslateAvailable, aiTranslateTransportLabel, runAiPrompt } from '@/lib/ai/translateStrings';
+import {
+  detectAgentWriters,
+  knownAgentWriters,
+  onAgentWritersDetected,
+  runAgentPrompt,
+  type AgentWriter,
+  type AgentWriters,
+} from '@/lib/ai/agentPrompt';
+import { isPanelAiAvailable, panelAiLabel, runAiPrompt } from '@/lib/ai/translateStrings';
 import { isTauri } from '@/lib/desktop';
 import { getGrowthSettings, subscribeGrowthSettings } from './settings';
 import { fieldLength } from './listingChecks';
@@ -40,8 +47,8 @@ export type GrowthAiWriterChoice = 'auto' | AgentWriter | 'panel';
 
 type Writer = { kind: 'agent'; agent: AgentWriter; label: string } | { kind: 'panel'; label: string | null };
 
-/** The last answer on which CLIs can write, null until the first detect lands. */
-let agentWriters: AgentWriters | null = null;
+// Which CLIs can write is the answer every part of the app shares
+// (knownAgentWriters), so a sign in the Agent panel saw counts here too.
 let detectStarted = false;
 const aiListeners = new Set<() => void>();
 
@@ -57,10 +64,7 @@ export function refreshGrowthAi(options: { refresh?: boolean } = {}): void {
   if (!isTauri() || (detectStarted && !options.refresh)) return;
   detectStarted = true;
   void detectAgentWriters({ refresh: options.refresh })
-    .then((found) => {
-      agentWriters = found;
-      announceAiChange();
-    })
+    .then(() => announceAiChange())
     .catch((error) => console.error('Looking for Claude Code and Codex failed', error));
 }
 
@@ -69,24 +73,26 @@ export function onGrowthAiChange(listener: () => void): () => void {
   refreshGrowthAi();
   aiListeners.add(listener);
   const unsubscribe = subscribeGrowthSettings(listener);
+  const stopDetect = onAgentWritersDetected(listener);
   return () => {
     aiListeners.delete(listener);
     unsubscribe();
+    stopDetect();
   };
 }
 
 /** Claude Code and Codex as last detected, for the setting's list. Null until known. */
 export function growthAgentWriters(): AgentWriters | null {
-  return agentWriters;
+  return knownAgentWriters();
 }
 
 function agentWriter(agent: AgentWriter): Writer | null {
-  const status = agentWriters?.[agent];
+  const status = knownAgentWriters()?.[agent];
   return status?.ready ? { kind: 'agent', agent, label: status.label } : null;
 }
 
 function panelWriter(): Writer | null {
-  return isAiTranslateAvailable() ? { kind: 'panel', label: aiTranslateTransportLabel() } : null;
+  return isPanelAiAvailable() ? { kind: 'panel', label: panelAiLabel() } : null;
 }
 
 function pickWriter(): Writer | null {
@@ -117,12 +123,12 @@ export function growthAiUnavailableReason(): string | null {
   const choice = getGrowthSettings().aiWriter ?? 'auto';
   if (!isTauri()) return 'Set up an AI first: add an API key in the AI panel';
   if (choice === 'claude' || choice === 'codex') {
-    const status = agentWriters?.[choice];
+    const status = knownAgentWriters()?.[choice];
     if (!status) return 'Looking for Claude Code and Codex';
     return status.detail ?? `${status.label} cannot answer right now`;
   }
   if (choice === 'panel') return 'Set up an AI in the AI panel first, or pick Claude Code or Codex under Setup';
-  if (!agentWriters) return 'Looking for Claude Code and Codex';
+  if (!knownAgentWriters()) return 'Looking for Claude Code and Codex';
   return 'Set up an AI first: sign in to Claude Code or Codex, or add a provider in the AI panel';
 }
 
