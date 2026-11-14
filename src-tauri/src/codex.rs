@@ -627,7 +627,13 @@ fn workspace_dir<R: Runtime>(app: &AppHandle<R>) -> Result<PathBuf, String> {
 
 /// Bring the workspace to what this build ships. Only what differs is written,
 /// because a second process can be starting from the same folder.
+///
+/// Several prompts start Codex side by side (a translation sends three at
+/// once). The lock lets one of them rewrite a config this build changed while
+/// the others wait, so none reads it half written and writes it again.
 fn prepare_workspace(dir: &Path) -> Result<Workspace, String> {
+    static PREPARING: Mutex<()> = Mutex::new(());
+    let _preparing = PREPARING.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
     let home = dir.join(HOME_DIR);
     let user = dir.join(USER_DIR);
     let cwd = dir.join(SESSION_DIR);
@@ -666,7 +672,16 @@ enum Login {
 /// into the file in place, so through the link it lands in the user's file
 /// and their own Codex keeps working (checked on 0.162). Nothing here ever
 /// writes the user's file, and removing the link leaves it alone.
+///
+/// Several Codex processes start from this home at once (a translation sends
+/// three prompts side by side), so a new link is made under a name of its own
+/// and renamed over auth.json in one step. Removing the old link first left a
+/// moment in which a Codex that was starting found no login. The lock keeps
+/// two links from being made at the same time.
 fn link_login(home: &Path, user_home: Option<&Path>) -> Result<Login, String> {
+    static LINKING: Mutex<()> = Mutex::new(());
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    let _linking = LINKING.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
     let link = home.join("auth.json");
     let target = user_home.map(|dir| dir.join("auth.json")).filter(|target| target.is_file());
     let Some(target) = target else {
@@ -675,28 +690,29 @@ fn link_login(home: &Path, user_home: Option<&Path>) -> Result<Login, String> {
         }
         return Ok(Login::Missing);
     };
-    #[cfg(unix)]
-    {
-        if std::fs::read_link(&link).is_ok_and(|current| current == target) {
-            return Ok(Login::Linked);
-        }
-        if std::fs::symlink_metadata(&link).is_ok() {
-            std::fs::remove_file(&link).map_err(|e| e.to_string())?;
-        }
-        std::os::unix::fs::symlink(&target, &link).map_err(|e| e.to_string())?;
+    if std::fs::read_link(&link).is_ok_and(|current| current == target) {
+        return Ok(Login::Linked);
     }
+    let fresh = home.join(format!("auth.json.{}-{}.new", std::process::id(), NEXT.fetch_add(1, Ordering::SeqCst)));
+    let _ = std::fs::remove_file(&fresh);
+    #[cfg(unix)]
+    std::os::unix::fs::symlink(&target, &fresh).map_err(|e| e.to_string())?;
     #[cfg(windows)]
     {
         // A symbolic link needs Developer Mode; a hard link does not, but it
         // keeps the file the user had when it was made, so it is made again on
         // every start.
-        if std::fs::symlink_metadata(&link).is_ok() {
-            std::fs::remove_file(&link).map_err(|e| e.to_string())?;
-        }
-        if std::os::windows::fs::symlink_file(&target, &link).is_err() {
-            std::fs::hard_link(&target, &link).map_err(|e| e.to_string())?;
+        if std::os::windows::fs::symlink_file(&target, &fresh).is_err() {
+            std::fs::hard_link(&target, &fresh).map_err(|e| e.to_string())?;
         }
     }
+    let moved = std::fs::rename(&fresh, &link);
+    // A rename between two links to one file can leave the source where it
+    // was, which would pile up a name per start.
+    if std::fs::symlink_metadata(&fresh).is_ok() {
+        let _ = std::fs::remove_file(&fresh);
+    }
+    moved.map_err(|e| e.to_string())?;
     Ok(Login::Linked)
 }
 
@@ -2160,6 +2176,57 @@ mod tests {
         assert_eq!(link_login(&home, Some(&user)).unwrap(), Login::Missing);
         assert!(std::fs::symlink_metadata(home.join("auth.json")).is_err());
         assert!(user.is_dir());
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    /// Prompts start Codex from one home side by side. Each links the login
+    /// again, and a Codex starting in the middle of that must still find it.
+    /// The linkers take two logins in turn, so every call replaces the link,
+    /// as every start does with a hard link where a symbolic link needs
+    /// Developer Mode.
+    #[test]
+    fn links_made_side_by_side_never_leave_the_login_missing() {
+        let dir = temp_dir("login-race");
+        let home = dir.join("home");
+        let users = [dir.join("user-a"), dir.join("user-b")];
+        std::fs::create_dir_all(&home).unwrap();
+        for user in &users {
+            std::fs::create_dir_all(user).unwrap();
+            std::fs::write(user.join("auth.json"), "{\"auth_mode\":\"chatgpt\"}").unwrap();
+        }
+        assert_eq!(link_login(&home, Some(&users[0])).unwrap(), Login::Linked);
+
+        let done = Arc::new(AtomicBool::new(false));
+        let reader = {
+            let (home, done) = (home.clone(), done.clone());
+            std::thread::spawn(move || {
+                let (mut reads, mut misses) = (0usize, 0usize);
+                while !done.load(Ordering::SeqCst) {
+                    reads += 1;
+                    if !std::fs::read_to_string(home.join("auth.json")).is_ok_and(|text| text.contains("chatgpt")) {
+                        misses += 1;
+                    }
+                }
+                (reads, misses)
+            })
+        };
+        let linkers: Vec<_> = (0..6)
+            .map(|index: usize| {
+                let (home, users) = (home.clone(), users.clone());
+                std::thread::spawn(move || {
+                    (0..50usize)
+                        .filter(|round| link_login(&home, Some(&users[(index + round) % 2])) != Ok(Login::Linked))
+                        .count()
+                })
+            })
+            .collect();
+        let failed: usize = linkers.into_iter().map(|linker| linker.join().unwrap()).sum();
+        done.store(true, Ordering::SeqCst);
+        let (reads, misses) = reader.join().unwrap();
+        assert_eq!(failed, 0, "every one of 300 links succeeds");
+        assert_eq!(misses, 0, "the login was missing in {misses} of {reads} reads");
+        let names: Vec<_> = std::fs::read_dir(&home).unwrap().map(|entry| entry.unwrap().file_name()).collect();
+        assert_eq!(names, vec![std::ffi::OsString::from("auth.json")], "no link is left behind");
         let _ = std::fs::remove_dir_all(&dir);
     }
 

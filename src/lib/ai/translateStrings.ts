@@ -1,5 +1,6 @@
-// Marketing copy translation through whichever AI provider the user already
-// configured for the agent.
+// Marketing copy translation through an AI the user already has: the Claude
+// Code or Codex CLI they are signed in to (desktop), or the provider set up in
+// the AI panel.
 //
 // LibreTranslate is a document translator pointed at advertising: it renders
 // "Never break a streak" into something a native speaker rejects, and a rejected
@@ -7,15 +8,19 @@
 // told what the strings are for writes copy instead, which is why this exists
 // beside src/services/translation.ts rather than replacing it.
 //
-// There is no new provider plumbing here. The three transports the agent
-// already ships are reused as they are, in the order that costs the user least:
-// their own API key, then the desktop keyless providers, then the signed in
+// There is no new provider plumbing here. The transports the app already
+// ships are reused as they are: the one-shot CLI prompt (agentPrompt.ts), the
+// user's own API key, the desktop keyless providers, and the signed in
 // assistant window. Every one of them answers with raw text, so there is a
 // single parse path and no provider can drift into its own reply format.
+//
+// This file translates one chunk. Which AI gets which chunk, how big a chunk
+// is and how many run at once is src/lib/i18n/engines.ts and translateRun.ts.
 
 import { generateText } from 'ai';
 import { isTauri } from '@/lib/desktop';
 import { extractJsonCandidates } from './jsonExtract';
+import { runAgentPrompt, type AgentWriter } from './agentPrompt';
 import {
   AI_PROVIDERS,
   AI_PROVIDER_IDS,
@@ -36,29 +41,23 @@ import {
 import { runViaEmbeddedWebview } from './webSessionDesktop';
 import { WEB_PROVIDERS, type WebProviderId } from './webAdapters';
 
-export interface AiTranslateRequest {
+/** Which AI a chunk goes to: one of the CLIs, or whatever the AI panel has set up. */
+export type AiTranslator = { kind: 'agent'; agent: AgentWriter } | { kind: 'panel' };
+
+export interface AiTranslateChunkRequest {
   items: Array<{ id: string; text: string }>;
   /** Shown to the model by name, so pass something a person would recognise. */
   targetLocale: string;
-  sourceLocale: string;
+  /** Unset when nobody knows: the model works it out per string. */
+  sourceLocale?: string;
   /** The user's own brief: terms to keep, tone, length limits. */
   guidance?: string;
   signal?: AbortSignal;
-  /** Fires once per chunk. Long runs are several requests, not one. */
-  onProgress?: (done: number, total: number) => void;
 }
 
-/**
- * A chunk is small enough that a local 8B model with a modest context window
- * answers it, and small enough that one failure costs a handful of strings
- * rather than the whole project.
- */
-const MAX_CHUNK_ITEMS = 25;
-const MAX_CHUNK_CHARS = 2500;
+// --- the AI panel's transport --------------------------------------------------
 
-// --- transport selection -----------------------------------------------------
-
-type Transport =
+type PanelTransport =
   | {
       kind: 'api';
       provider: AiProviderId;
@@ -98,7 +97,7 @@ export function setAiTranslateWebProvider(provider: WebProviderId | null): void 
   }
 }
 
-function resolveTransport(): Transport | null {
+function resolveTransport(): PanelTransport | null {
   const settings = loadAiSettings();
   // The selected provider first, then any other one that is still set up, so
   // a user who switched the picker to try a provider they never keyed does not
@@ -138,13 +137,22 @@ function resolveTransport(): Transport | null {
   return null;
 }
 
-/** True when a translation run would have something to send the strings to. */
-export function isAiTranslateAvailable(): boolean {
+/** True when the AI panel has a provider set up: a key, a local model, or an assistant window. */
+export function isPanelAiAvailable(): boolean {
   return resolveTransport() !== null;
 }
 
-/** What the UI can name as the engine behind "Translate with AI". */
-export function aiTranslateTransportLabel(): string | null {
+/**
+ * How the AI panel's provider is reached, or null when none is set up. An API
+ * key can take several requests at once; a model on this computer or an
+ * assistant window answers one at a time.
+ */
+export function panelAiKind(): PanelTransport['kind'] | null {
+  return resolveTransport()?.kind ?? null;
+}
+
+/** What the UI can name as the AI panel's provider. */
+export function panelAiLabel(): string | null {
   const transport = resolveTransport();
   if (!transport) return null;
   if (transport.kind === 'api') {
@@ -156,9 +164,11 @@ export function aiTranslateTransportLabel(): string | null {
 
 // --- prompt ------------------------------------------------------------------
 
-function systemPrompt(sourceLocale: string, targetLocale: string, guidance?: string): string {
+function systemPrompt(targetLocale: string, sourceLocale?: string, guidance?: string): string {
   const rules = [
-    `Translate from ${sourceLocale} into ${targetLocale}.`,
+    sourceLocale
+      ? `Translate from ${sourceLocale} into ${targetLocale}.`
+      : `Translate into ${targetLocale}. Work out which language each string is written in.`,
     'This is App Store and Google Play marketing copy printed on a screenshot, not documentation. Write what a native speaker would put on the poster, not a literal rendering.',
     'Keep brand names, product names and interface labels that ship untranslated exactly as they are.',
     'Match the tone, the capitalisation style and the punctuation of the source.',
@@ -188,14 +198,19 @@ function userPrompt(items: Array<{ id: string; text: string }>): string {
  * object than they were asked for, so every plausible shape is tried and only
  * ids we asked about survive. A hallucinated id is a string that would be
  * written onto an element that does not exist.
+ *
+ * Exported for tests.
  */
-function readTranslations(reply: string, wanted: Set<string>): Record<string, string> {
+export function readTranslations(reply: string, wanted: Set<string>): Record<string, string> {
   const out: Record<string, string> = {};
 
   const take = (id: unknown, value: unknown) => {
     if (typeof id !== 'string' || typeof value !== 'string') return;
     if (!wanted.has(id) || out[id] !== undefined) return;
-    const trimmed = value.trim();
+    // Claude Code's prompt puts an invisible word joiner in front of an @ that
+    // could name a file (once_input in claude_code.rs), and a model can copy
+    // it into its answer, where it would sit inside the user's copy unseen.
+    const trimmed = value.replace(/⁠(?=@)/g, '').trim();
     if (trimmed) out[id] = trimmed;
   };
 
@@ -227,14 +242,7 @@ function readTranslations(reply: string, wanted: Set<string>): Record<string, st
 
 // --- running -----------------------------------------------------------------
 
-async function runChunk(
-  transport: Transport,
-  items: Array<{ id: string; text: string }>,
-  request: AiTranslateRequest
-): Promise<string> {
-  const system = systemPrompt(request.sourceLocale, request.targetLocale, request.guidance);
-  const user = userPrompt(items);
-
+async function runPanel(transport: PanelTransport, system: string, user: string, signal?: AbortSignal): Promise<string> {
   if (transport.kind === 'api') {
     const result = await generateText({
       model: createModel({
@@ -247,7 +255,7 @@ async function runChunk(
       // supported channel for it.
       instructions: system,
       prompt: user,
-      abortSignal: request.signal,
+      abortSignal: signal,
     });
     return result.text;
   }
@@ -262,21 +270,55 @@ async function runChunk(
       model: transport.model,
       prompt,
       images: [],
-      signal: request.signal,
+      signal,
     });
   }
 
-  return runViaEmbeddedWebview(
-    { provider: transport.provider, prompt, images: [] },
-    { signal: request.signal }
-  );
+  return runViaEmbeddedWebview({ provider: transport.provider, prompt, images: [] }, { signal });
 }
 
 /**
- * One prompt through the same transport a translation would take, answered as
- * raw text. For the growth feature's writing jobs (review replies, listing
- * suggestions, report summaries, questions about the numbers), which need the
- * user's provider and none of the chunking above.
+ * Translate one chunk and resolve with id -> translation. An id the model
+ * dropped or mangled is simply absent, which is what lets the caller count
+ * what actually landed instead of assuming the chunk was whole. Throws when
+ * the AI could not be reached or refused, so the caller can hand the chunk to
+ * the next one.
+ */
+export async function aiTranslateChunk(
+  translator: AiTranslator,
+  request: AiTranslateChunkRequest
+): Promise<Record<string, string>> {
+  const items = request.items.filter((item) => item.id && item.text && item.text.trim().length > 0);
+  if (items.length === 0) return {};
+
+  const system = systemPrompt(request.targetLocale, request.sourceLocale, request.guidance);
+  const user = userPrompt(items);
+  let reply: string;
+  if (translator.kind === 'agent') {
+    reply = await runAgentPrompt({
+      agent: translator.agent,
+      system,
+      user,
+      signal: request.signal,
+      // Translating takes no reasoning, and at the CLI's default effort Codex
+      // thinks about each chunk for far longer than it takes to write it.
+      effort: translator.agent === 'codex' ? 'low' : undefined,
+    });
+  } else {
+    const transport = resolveTransport();
+    if (!transport) {
+      throw new Error('No AI provider is set up. Add an API key in the AI panel');
+    }
+    reply = await runPanel(transport, system, user, request.signal);
+  }
+  return readTranslations(reply, new Set(items.map((item) => item.id)));
+}
+
+/**
+ * One prompt through the AI panel's provider, answered as raw text. For the
+ * growth feature's writing jobs (review replies, listing suggestions, report
+ * summaries, questions about the numbers), which need the user's provider and
+ * none of the chunking a translation does.
  */
 export async function runAiPrompt(request: {
   system: string;
@@ -289,86 +331,9 @@ export async function runAiPrompt(request: {
   if (!transport) {
     throw new Error('No AI provider is set up. Add an API key in the AI panel, or a local model in Settings');
   }
-  if (transport.kind === 'api') {
-    const result = await generateText({
-      model: createModel({
-        provider: transport.provider,
-        model: transport.model,
-        apiKey: transport.apiKey,
-        baseUrl: transport.baseUrl,
-      }),
-      instructions: request.system,
-      prompt: request.user,
-      abortSignal: request.signal,
-    });
-    return result.text;
-  }
-  const prompt = `${request.system}\n\n${request.user}`;
   if (transport.kind === 'free') {
+    const prompt = `${request.system}\n\n${request.user}`;
     return runFreeProvider({ provider: transport.provider, model: transport.model, prompt, images: [], signal: request.signal, effort: request.effort });
   }
-  return runViaEmbeddedWebview({ provider: transport.provider, prompt, images: [] }, { signal: request.signal });
-}
-
-function chunkItems(items: Array<{ id: string; text: string }>): Array<Array<{ id: string; text: string }>> {
-  const chunks: Array<Array<{ id: string; text: string }>> = [];
-  let current: Array<{ id: string; text: string }> = [];
-  let chars = 0;
-  for (const item of items) {
-    if (current.length > 0 && (current.length >= MAX_CHUNK_ITEMS || chars + item.text.length > MAX_CHUNK_CHARS)) {
-      chunks.push(current);
-      current = [];
-      chars = 0;
-    }
-    current.push(item);
-    chars += item.text.length;
-  }
-  if (current.length > 0) chunks.push(current);
-  return chunks;
-}
-
-/**
- * Translate the given strings and resolve with id -> translation. An id the
- * model dropped or mangled is simply absent, which is what lets the caller
- * count what actually landed instead of assuming the run was whole.
- *
- * Throws when there is no configured provider and when the very first chunk
- * fails (a rejected key or a model that is not there fails the same way for
- * every chunk, so hammering it wastes the user's time). A later chunk failing,
- * or a cancel, stops the run and keeps everything already translated.
- */
-export async function aiTranslateStrings(req: AiTranslateRequest): Promise<Record<string, string>> {
-  const items = req.items.filter((item) => item.id && item.text && item.text.trim().length > 0);
-  if (items.length === 0) return {};
-
-  const transport = resolveTransport();
-  if (!transport) {
-    throw new Error(
-      'No AI provider is set up. Add an API key in the AI panel, or use the machine translation engine.'
-    );
-  }
-
-  const out: Record<string, string> = {};
-  const chunks = chunkItems(items);
-  let done = 0;
-
-  for (const chunk of chunks) {
-    if (req.signal?.aborted) break;
-    try {
-      const reply = await runChunk(transport, chunk, req);
-      Object.assign(out, readTranslations(reply, new Set(chunk.map((item) => item.id))));
-    } catch (error) {
-      // A cancelled run keeps what it already translated: the strings are
-      // written either way, and throwing them away is the one outcome nobody
-      // asked for.
-      if (req.signal?.aborted) break;
-      if (Object.keys(out).length === 0) throw error;
-      console.error('AI translation stopped after a failed batch', error);
-      break;
-    }
-    done += chunk.length;
-    req.onProgress?.(done, items.length);
-  }
-
-  return out;
+  return runPanel(transport, request.system, request.user, request.signal);
 }

@@ -42,6 +42,7 @@ import {
   storeReviews,
 } from '@/lib/growth/agentTools';
 import type { AlignEdge, DistributeAxis } from '@/lib/elementGeometry';
+import { isOwnEngine, resolveEngines } from '@/lib/i18n/engines';
 import {
   LIBRARY_KINDS,
   device3dOptions,
@@ -255,15 +256,19 @@ export interface McpTranslateRun {
   /** The engine stopped answering, so `failed` includes strings never sent. */
   rateLimited: boolean;
   /**
-   * This language could not be run at all, e.g. the engine does not cover it.
-   * The other languages in the same call still ran.
+   * Why strings in this language did not come back, e.g. no engine covers it
+   * or the user's AI refused. The other languages in the same call still ran.
    */
   error?: string;
 }
 
 export interface McpTranslateRunResult {
-  /** The engine that ran. Null means none is configured in this app. */
-  engine: 'ai' | 'libre' | null;
+  /**
+   * The engine that wrote most: the user's Claude Code or Codex sign-in, the AI
+   * panel's provider ('ai'), or the app's free translator ('libre'). Null
+   * means none is set up in this app.
+   */
+  engine: 'claude' | 'codex' | 'ai' | 'libre' | null;
   runs: McpTranslateRun[];
   /** How complete each language is now. */
   completion: Array<{ locale: string; translated: number; total: number }>;
@@ -2189,10 +2194,11 @@ const TOOLS: ToolDef[] = [
         query: { type: 'string', description: 'Filter over the code, the English name and the native name.' },
       },
     },
-    run: (args, api) => {
+    run: async (args, api) => {
       const state = api.listLocales();
       const inProject = new Set(state.locales.map((entry) => entry.code));
-      const catalog = listSupportedLocales(typeof args.query === 'string' ? args.query : undefined).map(
+      const anyLanguage = (await resolveEngines()).some(isOwnEngine);
+      const catalog = listSupportedLocales(typeof args.query === 'string' ? args.query : undefined, { anyLanguage }).map(
         (def) => ({ ...def, inProject: inProject.has(def.code), base: def.code === state.baseLocale })
       );
       return textResult({ baseLocale: state.baseLocale, total: catalog.length, locales: catalog });
@@ -2417,7 +2423,7 @@ const TOOLS: ToolDef[] = [
   {
     name: 'translate_locales',
     description:
-      'Run the app\'s own translation engine over one or more languages. Prefer writing the strings yourself with set_localized_texts: this engine is a machine translator and store copy is what it is worst at. Use it for a first draft of a language you do not read, or to refresh the drafts it made earlier after the base copy changed ("only": "stale"). Strings a person wrote are skipped unless includeManual is set, and nothing here ever touches the base document.',
+      'Run the app\'s translation engine over one or more languages, several at once. The engine is the user\'s own AI when one is set up (their Claude Code or Codex sign-in, or the AI panel\'s provider), else a plain machine translator; `engine` in the result says which ran. Prefer writing the strings yourself with set_localized_texts: you know the app and the brief, and a machine translator is worst at store copy. Use it for a first draft of a language you do not read, or to refresh the drafts it made earlier after the base copy changed ("only": "stale"). Strings a person wrote are skipped unless includeManual is set, and nothing here ever touches the base document.',
     inputSchema: {
       type: 'object',
       properties: {

@@ -1,28 +1,24 @@
-// Machine translation into one language, written as overrides.
+// Machine translation into a project's languages, written as overrides.
 //
 // The rule this file exists to enforce: base content is never touched. A run
 // writes into `localized[locale]` and marks everything it writes `origin:
 // 'auto'` with a fresh sourceHash, so "Update translations" can refresh its own
 // output later and can tell it apart from a string a person typed.
 //
-// The other rule is honest counting. The handler this replaces incremented
-// nothing when a 429 arrived, so "translated 7 elements" could mean "and
-// abandoned 23 without saying so". Every element that was asked for is
+// The other rule is honest counting. Every element that was asked for is
 // accounted for here as translated, failed, or skipped, and a rate limit is
 // reported as itself because waiting a minute is a different instruction from
 // trying something else.
+//
+// Who translates is engines.ts, and translateRun.ts runs the languages side by
+// side. Each language only ever writes its own `localized[locale]`, which is
+// what lets them run at once and still fold into one document.
 
 import type {
   ArtboardState,
   ElementLocaleOverride,
   TextElementProps,
 } from '@/types/artboard';
-import {
-  AUTO_DETECT,
-  isTranslationEnabled,
-  translateTexts,
-} from '@/services/translation';
-import { aiTranslateStrings, isAiTranslateAvailable } from '@/lib/ai/translateStrings';
 import {
   getBaseLocale,
   getProjectLocales,
@@ -32,18 +28,21 @@ import {
 } from './localization';
 import { getLocaleDef, localeName } from './locales';
 import { hash32 } from './hash';
+import { isOwnEngine, resolveEngines, type ChunkLanguage, type TranslateEngine } from './engines';
+import { runTranslation, type TranslationJob } from './translateRun';
 
-export type TranslateEngine = 'ai' | 'libre';
+export { availableEngines, type TranslateEngine } from './engines';
 
-export interface TranslateIntoLocaleOptions {
-  engine: TranslateEngine;
+export interface TranslateLocalesOptions {
+  /** The engines to try, best first. Unset means every engine set up now (resolveEngines). */
+  engines?: TranslateEngine[];
   /** Which strings the run is allowed to touch. */
   only: 'empty' | 'stale' | 'all';
   /** Refresh strings a person typed. Off by default, and it has to stay off by default. */
   includeManual?: boolean;
-  /** Brand brief passed to the AI engine. Machine translation ignores it. */
+  /** Brand brief passed to a model. Our server ignores it. */
   guidance?: string;
-  onProgress?: (done: number, total: number) => void;
+  onProgress?: (progress: TranslateLocalesProgress) => void;
   /** Limit the run to these artboards. Unset means every artboard. */
   artboardIds?: string[];
   /** Limit the run to these elements. Unset means every text element. */
@@ -51,23 +50,38 @@ export interface TranslateIntoLocaleOptions {
   signal?: AbortSignal;
 }
 
-export interface TranslateIntoLocaleResult {
-  artboards: ArtboardState[];
+export interface TranslateLocalesProgress {
+  /** Elements written so far, and all the run will try, every language together. */
+  done: number;
+  total: number;
+  /** Languages with nothing left to write, of how many. */
+  localesDone: number;
+  localeCount: number;
+  /** The engine at work. Null when there is none. */
+  engine: TranslateEngine | null;
+}
+
+export interface LocaleTranslation {
+  locale: string;
   translated: number;
   /** Asked for and did not come back. */
   failed: number;
-  /** In scope but deliberately left alone: a human wrote it. */
+  /** In scope but deliberately left alone: a human wrote it, or there is nothing to translate. */
   skipped: number;
-  /** The server stopped answering, so `failed` includes strings never sent. */
+  /** Our server stopped answering, so `failed` includes strings never sent. */
   rateLimited: boolean;
+  /** The engine that wrote most of this language. */
+  engine?: TranslateEngine;
+  /** Why strings did not come back, when an engine said so. */
+  error?: string;
 }
 
-/** Engines that would actually work right now, best first. */
-export function availableEngines(): TranslateEngine[] {
-  const engines: TranslateEngine[] = [];
-  if (isAiTranslateAvailable()) engines.push('ai');
-  if (isTranslationEnabled) engines.push('libre');
-  return engines;
+export interface TranslateLocalesResult {
+  artboards: ArtboardState[];
+  /** One entry per requested language that the project has, in order. */
+  locales: LocaleTranslation[];
+  /** The engine that wrote most, else the first one tried. Null when none is set up. */
+  engine: TranslateEngine | null;
 }
 
 interface Target {
@@ -82,8 +96,11 @@ interface Group {
   targets: Target[];
 }
 
-function empty(artboards: ArtboardState[]): TranslateIntoLocaleResult {
-  return { artboards, translated: 0, failed: 0, skipped: 0, rateLimited: false };
+interface LocalePlan {
+  locale: string;
+  targets: Target[];
+  groups: Group[];
+  skipped: number;
 }
 
 /** How the model is told which language it is working in. */
@@ -92,32 +109,12 @@ function localeForModel(code: string): string {
   return def ? `${def.name} (${def.nativeName}, ${def.code})` : code;
 }
 
-/** True for a provider error that means "wait", not "this will never work". */
-function looksRateLimited(error: unknown): boolean {
-  if (!error || typeof error !== 'object') return false;
-  const record = error as { status?: unknown; statusCode?: unknown; message?: unknown };
-  if (record.status === 429 || record.statusCode === 429) return true;
-  return typeof record.message === 'string' && /rate limit/i.test(record.message);
+function chunkLanguage(code: string): ChunkLanguage {
+  return { model: localeForModel(code), machine: getLocaleDef(code)?.translateCode };
 }
 
-/**
- * Translate one language's strings and give back the base document with the new
- * overrides folded in. The input array is returned by reference when nothing
- * was written, so a run that found nothing to do does not push a history entry.
- *
- * Throws only for a setup problem the user has to fix: a language with no
- * machine translation path, or an engine that is not configured. Everything a
- * run can survive comes back in the counts.
- */
-export async function translateIntoLocale(
-  artboards: ArtboardState[],
-  locale: string,
-  options: TranslateIntoLocaleOptions
-): Promise<TranslateIntoLocaleResult> {
-  const entry = getProjectLocales(artboards).find((candidate) => candidate.code === locale);
-  if (!entry) return empty(artboards);
-
-  const baseLocale = getBaseLocale(artboards);
+/** The elements one language should get, by distinct string. */
+function planLocale(artboards: ArtboardState[], locale: string, options: TranslateLocalesOptions): LocalePlan {
   const targets: Target[] = [];
   let skipped = 0;
 
@@ -151,16 +148,8 @@ export async function translateIntoLocale(
     }
   });
 
-  if (targets.length === 0) {
-    return { artboards, translated: 0, failed: 0, skipped, rateLimited: false };
-  }
-
-  // Report the total before any engine work, so the readout says "0 of 12" from
-  // the first frame rather than "0 strings" until the first callback lands.
-  options.onProgress?.(0, targets.length);
-
   // Screenshot sets repeat strings across boards ("Get started", a tagline in a
-  // footer), and every repeat is another request against a per minute budget.
+  // footer), and every repeat is another request.
   const groups: Group[] = [];
   const byText = new Map<string, Group>();
   for (const target of targets) {
@@ -173,106 +162,337 @@ export async function translateIntoLocale(
     }
     group.targets.push(target);
   }
+  return { locale, targets, groups, skipped };
+}
 
-  // Progress is reported in elements, which is what the counts and the UI talk
-  // in, even though the engines work in distinct strings.
-  const reportProgress = (done: number, total: number) => {
-    if (!options.onProgress || total === 0) return;
-    options.onProgress(Math.min(targets.length, Math.round((done / total) * targets.length)), targets.length);
-  };
+/**
+ * Translate several languages at once and give back the base document with
+ * the new overrides folded in. The input array is returned by reference when
+ * nothing was written, so a run that found nothing to do does not push a
+ * history entry.
+ *
+ * Never throws. A language that could not be translated at all says why in
+ * its `error`.
+ */
+export async function translateIntoLocales(
+  artboards: ArtboardState[],
+  locales: string[],
+  options: TranslateLocalesOptions
+): Promise<TranslateLocalesResult> {
+  const inProject = new Set(getProjectLocales(artboards).map((entry) => entry.code));
+  const requested = locales.filter((locale, index) => inProject.has(locale) && locales.indexOf(locale) === index);
+  const engines = options.engines ?? (await resolveEngines());
+  const baseLocale = getBaseLocale(artboards);
+  const source = chunkLanguage(baseLocale);
 
-  let results: Array<string | null>;
-  let rateLimited = false;
+  const results = new Map<string, LocaleTranslation>();
+  const plans: LocalePlan[] = [];
+  const jobs: TranslationJob[] = [];
 
-  if (options.engine === 'ai') {
-    const items = groups.map((group, index) => ({ id: `s${index + 1}`, text: group.text }));
-    let map: Record<string, string> = {};
-    try {
-      map = await aiTranslateStrings({
-        items,
-        targetLocale: localeForModel(locale),
-        sourceLocale: localeForModel(baseLocale),
-        guidance: options.guidance,
-        signal: options.signal,
-        onProgress: reportProgress,
-      });
-    } catch (error) {
-      // A rate limit is a wait, not a misconfiguration, so it is reported in
-      // the counts like the machine engine's is rather than thrown at the user.
-      if (!looksRateLimited(error)) throw error;
-      rateLimited = true;
-    }
-    results = items.map((item) => map[item.id] ?? null);
-  } else {
-    if (!isTranslationEnabled) {
-      throw new Error('Machine translation is not configured in this build.');
-    }
-    const targetDef = getLocaleDef(locale);
-    if (!targetDef?.translateCode) {
-      throw new Error(
-        `Machine translation does not cover ${localeName(locale)}. Type those strings in, or import them from a CSV.`
-      );
-    }
-    const source = getLocaleDef(baseLocale)?.translateCode || AUTO_DETECT;
-    // en-US to en-GB is the same machine language on both ends, so there is
-    // nothing a translator could do with it and nothing worth a request.
-    if (source !== AUTO_DETECT && source === targetDef.translateCode) {
-      return { artboards, translated: 0, failed: 0, skipped: skipped + targets.length, rateLimited: false };
-    }
+  for (const locale of requested) {
+    const plan = planLocale(artboards, locale, options);
+    const result: LocaleTranslation = {
+      locale,
+      translated: 0,
+      failed: 0,
+      skipped: plan.skipped,
+      rateLimited: false,
+    };
+    results.set(locale, result);
+    if (plan.targets.length === 0) continue;
 
-    const batch = await translateTexts(
-      groups.map((group) => group.text),
-      targetDef.translateCode,
+    if (engines.length === 0) {
+      result.failed = plan.targets.length;
+      result.error = 'Nothing is set up to translate with. Add an AI in the AI panel, or type the strings into the translations table';
+      continue;
+    }
+    const target = chunkLanguage(locale);
+    // With only our server to ask, a language it lacks is a setup problem the
+    // user has to hear about, and en-US to en-GB is nothing to do. A model
+    // ahead of it in the list covers both.
+    if (!engines.some(isOwnEngine)) {
+      if (!target.machine) {
+        result.error = `Machine translation does not cover ${localeName(locale)}. Type those strings in, or import them from a CSV.`;
+        continue;
+      }
+      if (source.machine && source.machine === target.machine) {
+        result.skipped += plan.targets.length;
+        continue;
+      }
+    }
+    plans.push(plan);
+    jobs.push({
+      key: locale,
+      items: plan.groups.map((group, index) => ({ id: `s${index + 1}`, text: group.text, weight: group.targets.length })),
+      target,
       source,
-      { signal: options.signal, onProgress: reportProgress }
-    );
-    results = batch.texts;
-    rateLimited = batch.rateLimited;
+    });
   }
+
+  const settled = requested.length - jobs.length;
+  const total = plans.reduce((sum, plan) => sum + plan.targets.length, 0);
+  // Report the total before any engine work, so the readout says "0 of 12" from
+  // the first frame rather than "0 strings" until the first callback lands.
+  options.onProgress?.({ done: 0, total, localesDone: settled, localeCount: requested.length, engine: engines[0] ?? null });
+
+  const outcomes =
+    jobs.length > 0
+      ? await runTranslation(jobs, {
+          engines,
+          guidance: options.guidance,
+          signal: options.signal,
+          onProgress: (progress) =>
+            options.onProgress?.({
+              done: progress.done,
+              total,
+              localesDone: settled + progress.jobsDone,
+              localeCount: requested.length,
+              engine: progress.engine,
+            }),
+        })
+      : [];
 
   // --- write the overrides ---------------------------------------------------
 
-  const perBoard = new Map<number, Record<string, ElementLocaleOverride>>();
-  let translated = 0;
+  const perBoard = new Map<number, Map<string, Record<string, ElementLocaleOverride>>>();
+  const tally = new Map<TranslateEngine, number>();
 
-  groups.forEach((group, index) => {
-    const value = results[index];
-    if (value === null || value === undefined || !value.trim()) return;
-    for (const target of group.targets) {
-      const board = artboards[target.boardIndex];
-      let map = perBoard.get(target.boardIndex);
-      if (!map) {
-        map = { ...(board.localized?.[locale] || {}) };
-        perBoard.set(target.boardIndex, map);
+  plans.forEach((plan, planIndex) => {
+    const outcome = outcomes[planIndex];
+    const result = results.get(plan.locale)!;
+    plan.groups.forEach((group, index) => {
+      const value = outcome.translations.get(`s${index + 1}`);
+      if (value === undefined || !value.trim()) return;
+      for (const target of group.targets) {
+        const board = artboards[target.boardIndex];
+        let locales = perBoard.get(target.boardIndex);
+        if (!locales) {
+          locales = new Map();
+          perBoard.set(target.boardIndex, locales);
+        }
+        let map = locales.get(plan.locale);
+        if (!map) {
+          map = { ...(board.localized?.[plan.locale] || {}) };
+          locales.set(plan.locale, map);
+        }
+        const next: ElementLocaleOverride = {
+          ...(map[target.elementId] || {}),
+          content: value,
+          origin: 'auto',
+        };
+        // Hashed through the same helper the staleness check reads, so the two can
+        // never disagree about which base string this came from.
+        const sourceValue = overrideSourceValue(target.element, next);
+        if (sourceValue === undefined) delete next.sourceHash;
+        else next.sourceHash = hash32(sourceValue);
+        map[target.elementId] = next;
+        result.translated++;
       }
-      const next: ElementLocaleOverride = {
-        ...(map[target.elementId] || {}),
-        content: value,
-        origin: 'auto',
-      };
-      // Hashed through the same helper the staleness check reads, so the two can
-      // never disagree about which base string this came from.
-      const sourceValue = overrideSourceValue(target.element, next);
-      if (sourceValue === undefined) delete next.sourceHash;
-      else next.sourceHash = hash32(sourceValue);
-      map[target.elementId] = next;
-      translated++;
+    });
+    result.failed = plan.targets.length - result.translated;
+    result.rateLimited = outcome.rateLimited;
+    result.engine = outcome.engine;
+    if (result.failed > 0) {
+      result.error =
+        outcome.error ??
+        (outcome.uncovered
+          ? `Machine translation does not cover ${localeName(plan.locale)}. Type those strings in, or import them from a CSV.`
+          : undefined);
     }
+    if (outcome.engine) tally.set(outcome.engine, (tally.get(outcome.engine) ?? 0) + result.translated);
   });
 
-  const result: TranslateIntoLocaleResult = {
+  let engine: TranslateEngine | null = engines[0] ?? null;
+  let most = 0;
+  for (const [candidate, count] of tally) {
+    if (count > most) {
+      engine = candidate;
+      most = count;
+    }
+  }
+
+  const final: TranslateLocalesResult = {
     artboards,
-    translated,
-    failed: targets.length - translated,
-    skipped,
-    rateLimited,
+    locales: requested.map((locale) => results.get(locale)!),
+    engine,
   };
-  if (perBoard.size === 0) return result;
+  if (perBoard.size === 0) return final;
 
-  result.artboards = artboards.map((board, index) => {
-    const map = perBoard.get(index);
-    if (!map) return board;
-    return { ...board, localized: { ...(board.localized || {}), [locale]: map } };
+  final.artboards = artboards.map((board, index) => {
+    const locales = perBoard.get(index);
+    if (!locales) return board;
+    const localized = { ...(board.localized || {}) };
+    for (const [locale, map] of locales) localized[locale] = map;
+    return { ...board, localized };
   });
-  return result;
+  return final;
+}
+
+// --- one language ---------------------------------------------------------------
+
+export type TranslateIntoLocaleOptions = TranslateLocalesOptions;
+
+export interface TranslateIntoLocaleResult {
+  artboards: ArtboardState[];
+  translated: number;
+  /** Asked for and did not come back. */
+  failed: number;
+  /** In scope but deliberately left alone: a human wrote it. */
+  skipped: number;
+  /** Our server stopped answering, so `failed` includes strings never sent. */
+  rateLimited: boolean;
+  /** The engine that wrote most of it. */
+  engine?: TranslateEngine;
+  /** Why some strings did not come back, when an engine said so. */
+  error?: string;
+}
+
+/**
+ * Translate one language. Throws when nothing could be written and there is
+ * a reason to give: a language no engine covers, or every engine failing.
+ * Everything a run can survive comes back in the counts.
+ */
+export async function translateIntoLocale(
+  artboards: ArtboardState[],
+  locale: string,
+  options: TranslateIntoLocaleOptions
+): Promise<TranslateIntoLocaleResult> {
+  const result = await translateIntoLocales(artboards, [locale], options);
+  const entry = result.locales[0];
+  if (!entry) return { artboards, translated: 0, failed: 0, skipped: 0, rateLimited: false };
+  if (entry.error && entry.translated === 0 && !entry.rateLimited && !options.signal?.aborted) {
+    throw new Error(entry.error);
+  }
+  return {
+    artboards: result.artboards,
+    translated: entry.translated,
+    failed: entry.failed,
+    skipped: entry.skipped,
+    rateLimited: entry.rateLimited,
+    engine: entry.engine,
+    error: entry.error,
+  };
+}
+
+// --- strings with no language attached --------------------------------------------
+
+export interface TranslateTextsResult {
+  /** One entry per input, in order. null where the string did not come back. */
+  texts: Array<string | null>;
+  /** The engine that wrote most of them. */
+  engine?: TranslateEngine;
+  /** Why some did not come back, when an engine said so. */
+  error?: string;
+}
+
+/**
+ * Translate loose strings, for the Translate dialog's run on a project with no
+ * languages, which writes over the text itself. `engines` are the user's own
+ * AIs: that dialog asks our server through a path of its own.
+ */
+export async function translateTextsWith(
+  texts: string[],
+  target: ChunkLanguage,
+  source: ChunkLanguage | undefined,
+  options: {
+    engines: TranslateEngine[];
+    signal?: AbortSignal;
+    onProgress?: (done: number, total: number, engine: TranslateEngine) => void;
+  }
+): Promise<TranslateTextsResult> {
+  const distinct: string[] = [];
+  const weights = new Map<string, number>();
+  for (const text of texts) {
+    if (!text || !text.trim()) continue;
+    if (!weights.has(text)) distinct.push(text);
+    weights.set(text, (weights.get(text) ?? 0) + 1);
+  }
+  if (distinct.length === 0) return { texts: texts.map((text) => (text && text.trim() ? null : text)) };
+
+  const [outcome] = await runTranslation(
+    [
+      {
+        key: target.model,
+        items: distinct.map((text, index) => ({ id: `s${index + 1}`, text, weight: weights.get(text) })),
+        target,
+        source,
+      },
+    ],
+    {
+      engines: options.engines,
+      signal: options.signal,
+      onProgress: (progress) => options.onProgress?.(progress.done, progress.total, progress.engine),
+    }
+  );
+  const byText = new Map<string, string>();
+  distinct.forEach((text, index) => {
+    const value = outcome.translations.get(`s${index + 1}`);
+    if (value !== undefined && value.trim()) byText.set(text, value);
+  });
+  return {
+    texts: texts.map((text) => (!text || !text.trim() ? text : byText.get(text) ?? null)),
+    engine: outcome.engine,
+    error: outcome.error,
+  };
+}
+
+// --- the Translate dialog, writing over the text itself ---------------------------
+
+/** One text element an in-place run sends, named by its artboard and its id. */
+export interface InPlaceText {
+  artboardId: string;
+  elementId: string;
+  content: string;
+}
+
+/**
+ * The text elements of `artboardIds` that have something to translate, in
+ * artboard order. Each carries its artboard as well as its id: opening a
+ * project makes ids unique across it (ensureUniqueElementIds), and keying by
+ * both keeps every write on its own artboard should two ever coincide.
+ */
+export function inPlaceTexts(artboards: ArtboardState[], artboardIds: Set<string>): InPlaceText[] {
+  return artboards
+    .filter((board) => artboardIds.has(board.id))
+    .flatMap((board) =>
+      board.elements
+        .filter((el): el is TextElementProps => el.type === 'text' && !!el.content?.trim())
+        .map((el) => ({ artboardId: board.id, elementId: el.id, content: el.content }))
+    );
+}
+
+/**
+ * Write `translations` (one per entry of `texts`, null where none came back)
+ * over the text of `artboards`, the project as it is now. A text edited since
+ * `texts` was taken keeps the edit. An artboard says it is in `language` only
+ * when all of its text made it across.
+ */
+export function writeInPlace(
+  artboards: ArtboardState[],
+  texts: InPlaceText[],
+  translations: Array<string | null>,
+  options: { artboardIds: Set<string>; language: string; fontFamily?: string }
+): { artboards: ArtboardState[]; written: number } {
+  const keyOf = (artboardId: string, elementId: string) => `${artboardId}\u0000${elementId}`;
+  const sent = new Map<string, { content: string; value: string | null }>();
+  texts.forEach((text, index) => {
+    sent.set(keyOf(text.artboardId, text.elementId), { content: text.content, value: translations[index] ?? null });
+  });
+  let written = 0;
+  const next = artboards.map((board) => {
+    if (!options.artboardIds.has(board.id)) return board;
+    let whole = true;
+    const elements = board.elements.map((el) => {
+      if (el.type !== 'text' || !el.content?.trim()) return el;
+      const entry = sent.get(keyOf(board.id, el.id));
+      if (!entry?.value || el.content !== entry.content) {
+        whole = false;
+        return el;
+      }
+      written++;
+      return { ...el, content: entry.value, ...(options.fontFamily ? { fontFamily: options.fontFamily } : {}) };
+    });
+    return { ...board, elements, language: whole ? options.language : undefined };
+  });
+  return { artboards: written > 0 ? next : artboards, written };
 }

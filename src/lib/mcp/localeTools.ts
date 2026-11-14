@@ -111,8 +111,10 @@ export interface McpSupportedLocale {
   name: string;
   nativeName: string;
   /**
-   * A machine engine can draft this language. False means the strings have to
-   * be written (which an MCP client can do itself through set_localized_texts).
+   * An engine can draft this language: any language once the user has an AI
+   * of their own set up, else the ones the app's free translator has. False
+   * means the strings have to be written (which an MCP client can do itself
+   * through set_localized_texts).
    */
   machineTranslation: boolean;
   /** The code App Store Connect files this language under. Absent: no listing. */
@@ -148,8 +150,12 @@ export function resolveCatalogLocale(requested: string): string | null {
   return byName ? byName.code : null;
 }
 
-/** The language catalog, optionally filtered by code, English name or native name. */
-export function listSupportedLocales(query?: string): McpSupportedLocale[] {
+/**
+ * The language catalog, optionally filtered by code, English name or native
+ * name. `anyLanguage` says an AI of the user's own translates, which takes
+ * every language.
+ */
+export function listSupportedLocales(query?: string, options: { anyLanguage?: boolean } = {}): McpSupportedLocale[] {
   const needle = (query ?? '').trim().toLowerCase();
   return LOCALES.filter(
     (def) =>
@@ -161,7 +167,7 @@ export function listSupportedLocales(query?: string): McpSupportedLocale[] {
     code: def.code,
     name: def.name,
     nativeName: def.nativeName,
-    machineTranslation: !!def.translateCode,
+    machineTranslation: !!options.anyLanguage || !!def.translateCode,
     appStoreLocale: def.appleLocale,
     playLanguage: def.playLanguage,
     rtl: def.rtl,
