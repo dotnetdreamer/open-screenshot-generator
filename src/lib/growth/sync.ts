@@ -36,8 +36,9 @@ import {
   parseEngagementReport,
   type AnalyticsReportKind,
 } from './analyticsReport';
-import { addDays, normalizeDay, today, windowEndingAt } from './dates';
+import { addDays, dayRange, formatDay, normalizeDay, today, windowEndingAt } from './dates';
 import { reportText } from './delimited';
+import { plural } from './format';
 import {
   announceGrowthChange,
   readDay,
@@ -57,7 +58,7 @@ import { RATING_PACE_MS, lookupApp, type LookupResult } from './itunes';
 import { byTerritory, indexRecords } from './metrics';
 import { emptyFeedDay, mergeFeed, type FeedBatch } from './records';
 import { parseSalesReport } from './salesReport';
-import type { FeedId, FeedStatus, GrowthFeed, SyncProgress, SyncStatus, TerritoryRating, TimelineEvent } from './types';
+import type { DayRecord, DayString, FeedId, FeedStatus, GrowthFeed, SyncProgress, SyncStatus, TerritoryRating, TimelineEvent } from './types';
 
 export const IDLE_STATUS: SyncStatus = {
   listing: { state: 'idle' },
@@ -98,6 +99,10 @@ export const metaKeys = {
   salesDays: (vendor: string) => `sales:days:${vendor}`,
   skus: (vendor: string) => `sales:skus:${vendor}`,
   analyticsDone: (appId: string) => `analytics:done:${appId}`,
+  /** The import version the files in analyticsDone were read with (ANALYTICS_IMPORT_VERSION). */
+  analyticsVersion: (appId: string) => `analytics:version:${appId}`,
+  /** What the analytics import knows about the app's history (AnalyticsHistory). */
+  analyticsHistory: (appId: string) => `analytics:history:${appId}`,
   analyticsReports: (requestId: string) => `analytics:reports:${requestId}`,
   insightsDismissed: (appId: string) => `insights:dismissed:${appId}`,
   ratingsSwept: (appId: string) => `ratings:swept:${appId}`,
@@ -132,14 +137,25 @@ function withDayLock<T>(task: () => Promise<T>): Promise<T> {
   return next;
 }
 
+/** One feed's numbers for a day. `onlyIfMissing` writes them only where that feed has nothing for the day yet. */
+export interface DayWrite {
+  appId: string;
+  date: string;
+  feed: FeedId;
+  day: ReturnType<typeof emptyFeedDay>;
+  onlyIfMissing?: boolean;
+}
+
 /** Merge each day into what is stored, inside the lock. */
-export async function mergeAndWrite(entries: Array<{ appId: string; date: string; feed: FeedId; day: ReturnType<typeof emptyFeedDay> }>): Promise<void> {
+export async function mergeAndWrite(entries: DayWrite[]): Promise<void> {
   if (entries.length === 0) return;
   await withDayLock(async () => {
     const now = Date.now();
     const writes = [];
     for (const entry of entries) {
-      writes.push(mergeFeed(await readDay(entry.appId, entry.date), entry.appId, entry.date, entry.feed, entry.day, now));
+      const stored = await readDay(entry.appId, entry.date);
+      if (entry.onlyIfMissing && stored?.feeds[entry.feed] !== undefined) continue;
+      writes.push(mergeFeed(stored, entry.appId, entry.date, entry.feed, entry.day, now));
     }
     await writeDays(writes);
   });
@@ -498,24 +514,65 @@ async function zeroFill(appId: string, fetched: Record<string, SalesDayState>): 
 /** At most this many report instances per sync; the rest wait for the next one. */
 const MAX_INSTANCES_PER_SYNC = 150;
 
-async function ensureRequests(options: SyncOptions): Promise<{ requests: ReportRequest[]; refusedCreate: boolean }> {
+/**
+ * Raised when the import starts storing something new for files it has read
+ * before, so the next sync reads every file Apple still lists once more.
+ * Version 2 stores the days a file covers with nothing counted on them
+ * (`instanceDays`); version 1 skipped them.
+ */
+export const ANALYTICS_IMPORT_VERSION = 2;
+
+const DAY_MS = 86_400_000;
+
+/**
+ * Apple deletes a report instance 35 days after making it, and a new one-time
+ * snapshot brings back all the history it still has (Analytics Reports
+ * documentation). It makes one about every 31 days, counting deleted
+ * requests, and before that answers 409 "You already have such an entity"
+ * (an App Store Connect engineer on the developer forums, thread 759773).
+ */
+const SNAPSHOT_EVERY_MS = 31 * DAY_MS;
+
+/**
+ * How far back a daily file's own days reach. Apple re-sends the last days in
+ * full until they are complete: two for App Downloads and three for Discovery
+ * and Engagement in Ludo Wala's files of November 2026. An older date in a
+ * daily file is a correction.
+ */
+const RECENT_DAYS = 4;
+
+/** What the analytics import knows about an app's history, kept between syncs. */
+export interface AnalyticsHistory {
+  /**
+   * The reports whose snapshot file has been read, so their history before
+   * the daily files is in. Per report: in November 2026 Apple listed Ludo
+   * Wala's Downloads snapshot before its Discovery and Engagement one.
+   */
+  snapshotRead?: Partial<Record<AnalyticsReportKind, true>>;
+  /** The last time Growth asked Apple for a snapshot, whatever Apple answered. */
+  snapshotAskedAt?: number;
+  /** The key may not ask for one: it needs the Admin role. */
+  snapshotRefused?: boolean;
+}
+
+/**
+ * Make sure Apple is making the daily reports. The snapshot of the history
+ * before them is asked for after the import (`snapshotDue`), since a later
+ * one is how days Apple has deleted come back.
+ */
+async function ensureOngoing(options: SyncOptions): Promise<{ requests: ReportRequest[]; refusedCreate: boolean }> {
   const appId = options.app.id;
-  let requests = await listReportRequests(options.credentials, appId, options.signal);
+  let requests = (await listReportRequests(options.credentials, appId, options.signal)).filter((request) => !request.stoppedDueToInactivity);
   let refusedCreate = false;
-  const live = requests.filter((request) => !request.stoppedDueToInactivity);
-  const tryCreate = async (accessType: 'ONGOING' | 'ONE_TIME_SNAPSHOT') => {
+  if (!requests.some((request) => request.accessType === 'ONGOING')) {
     try {
-      const created = await createReportRequest(options.credentials, appId, accessType);
-      requests = [...requests, created];
+      requests = [...requests, await createReportRequest(options.credentials, appId, 'ONGOING')];
     } catch (error) {
       if (error instanceof AscForbiddenError) refusedCreate = true;
       else if (!/409|already exists|duplicate/i.test(describe(error))) throw error;
     }
-  };
-  if (!live.some((request) => request.accessType === 'ONGOING')) await tryCreate('ONGOING');
-  // History before the ongoing request began. Apple makes it once.
-  if (!requests.some((request) => request.accessType === 'ONE_TIME_SNAPSHOT')) await tryCreate('ONE_TIME_SNAPSHOT');
-  return { requests: requests.filter((request) => !request.stoppedDueToInactivity), refusedCreate };
+  }
+  return { requests, refusedCreate };
 }
 
 async function syncAnalytics(options: SyncOptions, setProgress: (value: SyncProgress | null) => void): Promise<FeedStatus> {
@@ -523,7 +580,7 @@ async function syncAnalytics(options: SyncOptions, setProgress: (value: SyncProg
   let requests: ReportRequest[];
   let refusedCreate = false;
   try {
-    ({ requests, refusedCreate } = await ensureRequests(options));
+    ({ requests, refusedCreate } = await ensureOngoing(options));
   } catch (error) {
     if (error instanceof AscForbiddenError) {
       return {
@@ -543,7 +600,7 @@ async function syncAnalytics(options: SyncOptions, setProgress: (value: SyncProg
   }
 
   // Which reports to read, from each request.
-  const targets: Array<{ reportId: string; kind: AnalyticsReportKind }> = [];
+  const targets: Array<{ reportId: string; kind: AnalyticsReportKind; snapshot: boolean }> = [];
   for (const request of requests) {
     let refs = await readMeta<Partial<Record<AnalyticsReportKind, string>>>(metaKeys.analyticsReports(request.id));
     if (!refs || !refs.engagement || !refs.downloads) {
@@ -556,26 +613,29 @@ async function syncAnalytics(options: SyncOptions, setProgress: (value: SyncProg
     }
     for (const kind of ['engagement', 'downloads'] as AnalyticsReportKind[]) {
       const reportId = refs[kind];
-      if (reportId) targets.push({ reportId, kind });
+      if (reportId) targets.push({ reportId, kind, snapshot: request.accessType === 'ONE_TIME_SNAPSHOT' });
     }
   }
 
-  const done = { ...((await readMeta<Record<string, string>>(metaKeys.analyticsDone(appId))) ?? {}) };
-  const queue: Array<{ instanceId: string; processingDate: string; kind: AnalyticsReportKind }> = [];
+  // Files an older import read are read once more (ANALYTICS_IMPORT_VERSION).
+  const upToDate = (await readMeta<number>(metaKeys.analyticsVersion(appId))) === ANALYTICS_IMPORT_VERSION;
+  const done: Record<string, string> = upToDate ? { ...((await readMeta<Record<string, string>>(metaKeys.analyticsDone(appId))) ?? {}) } : {};
+  const history: AnalyticsHistory = { ...((await readMeta<AnalyticsHistory>(metaKeys.analyticsHistory(appId))) ?? {}) };
+  const queue: Array<{ instanceId: string; processingDate: string; kind: AnalyticsReportKind; snapshot: boolean }> = [];
   for (const target of targets) {
     for (const instance of await listInstances(options.credentials, target.reportId, options.signal)) {
-      if (!done[instance.id]) queue.push({ instanceId: instance.id, processingDate: instance.processingDate, kind: target.kind });
+      if (!done[instance.id]) queue.push({ instanceId: instance.id, processingDate: instance.processingDate, kind: target.kind, snapshot: target.snapshot });
     }
   }
-  // Oldest first, so a later instance's corrections land last and win.
-  queue.sort((a, b) => a.processingDate.localeCompare(b.processingDate));
+  // Oldest first, so a later instance's corrections land last and win. On one
+  // processing date the daily file goes after the snapshot.
+  queue.sort((a, b) => a.processingDate.localeCompare(b.processingDate) || Number(b.snapshot) - Number(a.snapshot));
   const batch = queue.slice(0, MAX_INSTANCES_PER_SYNC);
 
-  const anyDone = Object.keys(done).length > 0;
-  if (batch.length === 0 && !anyDone) {
-    return { state: 'pending', message: 'Apple is getting App Analytics ready. The first numbers usually come within two days' };
-  }
-
+  const save = async () => {
+    await writeMeta(metaKeys.analyticsDone(appId), done);
+    await writeMeta(metaKeys.analyticsHistory(appId), history);
+  };
   let processed = 0;
   setProgress({ label: 'App Analytics', done: 0, total: batch.length });
   for (const item of batch) {
@@ -587,27 +647,132 @@ async function syncAnalytics(options: SyncOptions, setProgress: (value: SyncProg
     }
     const combined = combineBatches(batches);
     const feed: FeedId = item.kind;
-    await mergeAndWrite(Array.from(combined, ([date, day]) => ({ appId, date, feed, day })));
+    const writes: DayWrite[] = Array.from(combined, ([date, day]) => ({ appId, date, feed, day }));
+    // The file's quiet days are zeros, but never over numbers another file stored.
+    for (const date of instanceDays(item.processingDate, item.snapshot, combined.keys())) {
+      if (!combined.has(date)) writes.push({ appId, date, feed, day: emptyFeedDay(), onlyIfMissing: true });
+    }
+    await mergeAndWrite(writes);
+    if (item.snapshot) history.snapshotRead = { ...history.snapshotRead, [item.kind]: true };
     done[item.instanceId] = item.processingDate;
     processed += 1;
     setProgress({ label: 'App Analytics', done: processed, total: batch.length });
     if (processed % 10 === 0) {
-      await writeMeta(metaKeys.analyticsDone(appId), done);
+      await save();
       announceGrowthChange(appId);
     }
   }
-  await writeMeta(metaKeys.analyticsDone(appId), done);
+  await save();
+  await writeMeta(metaKeys.analyticsVersion(appId), ANALYTICS_IMPORT_VERSION);
 
   const remaining = queue.length - batch.length;
-  const latest = Object.values(done).sort().pop();
-  return {
-    state: 'ok',
-    message: remaining > 0
-      ? `Loaded ${processed} files from Apple. Files left for the next refresh: ${remaining}`
-      : latest
-        ? `Loaded up to ${latest}`
-        : 'Up to date',
-  };
+  const { newest, missing } = analyticsCoverage(await readDays(appId));
+  // Only with every listed file read: one still waiting may hold the days.
+  if (remaining === 0 && !refusedCreate && snapshotDue(history, missing.length, Date.now())) {
+    await askForSnapshot(options, history);
+    await writeMeta(metaKeys.analyticsHistory(appId), history);
+  }
+
+  if (!newest) {
+    return { state: 'pending', message: 'Apple is getting App Analytics ready. The first numbers usually come within two days' };
+  }
+  if (remaining > 0) {
+    return { state: 'ok', message: `Loaded ${processed} files from Apple. Files left for the next refresh: ${remaining}` };
+  }
+  // The day the numbers reach, which an instance's processing date is not.
+  const reach = `Numbers up to ${formatDay(newest, { withYear: true })}`;
+  if (missing.length === 0) return { state: 'ok', message: reach };
+  const gap = `${plural(missing.length, 'day')} ${missing.length === 1 ? 'is' : 'are'} missing`;
+  if (refusedCreate || history.snapshotRefused) return { state: 'ok', message: `${reach}. ${gap}. An Admin key can ask Apple for them again` };
+  // An ask that never reached Apple is not noted, and the next sync makes it.
+  const asked = history.snapshotAskedAt !== undefined && Date.now() - history.snapshotAskedAt < SNAPSHOT_EVERY_MS;
+  return { state: 'ok', message: asked ? `${reach}. ${gap}, and Growth asked Apple for them again` : `${reach}. ${gap}. The next refresh asks Apple for them again` };
+}
+
+/**
+ * The days one analytics file answers for, rows or not. A day in there with
+ * no rows is a zero of that report. A day no file answers for stays unknown,
+ * and the overview takes its downloads from Sales and Trends (`dayValues`).
+ *
+ * A snapshot holds the history up to its processing date, quiet days and all.
+ * Ludo Wala's, in November 2026, had no rows for Oct 31 and Nov 1: Sales and
+ * Trends had no report for Oct 31, and its one download on Nov 1 is the
+ * second one App Analytics counts on Nov 2. A daily file holds the day before
+ * its processing date and the few before that still filling in, so its days
+ * run from its oldest recent row. An older date in it is a correction and
+ * stands alone. A day between two files is no file's: Apple deletes a file
+ * after 35 days, and developers report daily files that skip a day (forums,
+ * thread 825231), so a zero there would be made up.
+ */
+export function instanceDays(processingDate: string, snapshot: boolean, rowDates: Iterable<DayString>): DayString[] {
+  const dates = [...new Set(rowDates)].sort();
+  const processed = normalizeDay(processingDate);
+  if (!processed) return dates;
+  if (snapshot) {
+    if (dates.length === 0) return [];
+    const last = dates[dates.length - 1];
+    return dayRange(dates[0], last > processed ? last : processed);
+  }
+  const newest = addDays(processed, -1);
+  const recentFrom = addDays(processed, -RECENT_DAYS);
+  const from = dates.find((date) => date >= recentFrom && date <= newest) ?? newest;
+  return [...new Set([...dates, ...dayRange(from, newest)])].sort();
+}
+
+/**
+ * The newest day App Analytics covers, and the days between each report's
+ * first and newest that no file has covered: deleted before a sync read
+ * them, or never sent. Exported for tests.
+ */
+export function analyticsCoverage(records: DayRecord[]): { newest: DayString | null; missing: DayString[] } {
+  const byDate = indexRecords(records);
+  const missing = new Set<DayString>();
+  let newest: DayString | null = null;
+  for (const feed of ['engagement', 'downloads'] as const) {
+    const days = records.filter((record) => record.feeds[feed] !== undefined).map((record) => record.date).sort();
+    if (days.length === 0) continue;
+    const last = days[days.length - 1];
+    if (!newest || last > newest) newest = last;
+    for (const date of dayRange(days[0], last)) {
+      if (byDate.get(date)?.feeds[feed] === undefined) missing.add(date);
+    }
+  }
+  return { newest, missing: [...missing].sort() };
+}
+
+/**
+ * Whether to ask Apple for a new snapshot: a report's snapshot has not been
+ * read yet, or days are missing from the history. At most once in Apple's 31
+ * days, or a day after a key that may not ask was refused. Exported for tests.
+ */
+export function snapshotDue(history: AnalyticsHistory, missingDays: number, now: number): boolean {
+  if (history.snapshotRead?.engagement && history.snapshotRead.downloads && missingDays === 0) return false;
+  if (!history.snapshotAskedAt) return true;
+  return now - history.snapshotAskedAt >= (history.snapshotRefused ? DAY_MS : SNAPSHOT_EVERY_MS);
+}
+
+/**
+ * Ask Apple for a snapshot of the app's history. Apple's answer is no failure
+ * of the feed: the numbers read so far stand. A refused key or Apple's monthly
+ * limit is noted, so the next ask waits; anything else is tried again by the
+ * next sync.
+ */
+async function askForSnapshot(options: SyncOptions, history: AnalyticsHistory): Promise<void> {
+  try {
+    await createReportRequest(options.credentials, options.app.id, 'ONE_TIME_SNAPSHOT');
+    history.snapshotRefused = false;
+  } catch (error) {
+    if (isAbort(error, options.signal)) throw error;
+    if (error instanceof AscForbiddenError) {
+      history.snapshotRefused = true;
+    } else if (/409|already exists|already have/i.test(describe(error))) {
+      history.snapshotRefused = false;
+    } else {
+      console.error('Growth sync: asking Apple for an App Analytics snapshot failed', error);
+      return;
+    }
+  }
+  history.snapshotAskedAt = Date.now();
 }
 
 // --- ratings and the live listing ------------------------------------------------

@@ -88,7 +88,8 @@ const STATE_LABEL: Record<FeedState, string> = {
   error: 'Could not load',
 };
 
-export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: () => void }) {
+/** `onSync` is told which store's apps a saved setting changes. */
+export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (changed: GrowthStore) => void }) {
   const view = useGrowthView();
   const { credentials, saveAppStore, savePlay } = useStoreCredentials();
   const [settings, setSettings] = useGrowthSettings();
@@ -145,7 +146,7 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
               if (key) forgetAppStoreToken(key);
               saveAppStore(next);
               setEditingKey(false);
-              onSync();
+              onSync('appstore');
             }}
             onCancel={key || showingPlay ? () => setEditingKey(false) : undefined}
           />
@@ -174,7 +175,8 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
               disabled={vendor === (settings.vendorNumber ?? '')}
               onClick={() => {
                 setSettings({ vendorNumber: vendor || undefined });
-                if (vendor) onSync();
+                // A cleared number refreshes too, so Sales and Trends says what it needs.
+                onSync('appstore');
               }}
             >
               Save
@@ -233,9 +235,10 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
               if (playKey) forgetPlayToken(playKey);
               savePlay(next);
               setEditingPlayKey(false);
+              // The key's app owes a sync, which runs once that app shows.
+              onSync('playstore');
               const id = playAppId(next.packageName);
-              if (view.app.id === id) onSync();
-              else setSettings({ appId: id });
+              if (view.app.id !== id) setSettings({ appId: id });
             }}
             onCancel={playKey || !showingPlay ? () => setEditingPlayKey(false) : undefined}
           />
@@ -268,7 +271,7 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
               disabled={reportsUri.trim() === (settings.playReportsUri ?? '') || !!uriProblem}
               onClick={() => {
                 setSettings({ playReportsUri: reportsUri.trim() || undefined });
-                if (showingPlay && reportsUri.trim()) onSync();
+                onSync('playstore');
               }}
             >
               Save

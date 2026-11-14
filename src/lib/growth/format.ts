@@ -11,6 +11,16 @@ export function formatCount(value: number | null | undefined): string {
   return Math.round(value).toLocaleString('en-US');
 }
 
+/**
+ * A daily average: one decimal below 10, else as formatCount. Rounded to whole
+ * numbers, a small app's 2.3 and 1.9 downloads a day would both read as 2,
+ * beside a change of -16%.
+ */
+export function formatPerDay(value: number | null | undefined): string {
+  if (value === null || value === undefined || !Number.isFinite(value)) return 'n/a';
+  return Math.abs(value) < 10 ? trim(value, 1) : formatCount(value);
+}
+
 /** Exact, with separators, for tables and exports. */
 export function formatExact(value: number | null | undefined): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return 'n/a';

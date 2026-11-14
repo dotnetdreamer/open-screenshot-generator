@@ -53,7 +53,7 @@ const LABELS: Record<string, ToolLabel> = {
   apply_template: { running: 'Applying a template...', done: 'Applied a template' },
   create_project_from_template: { running: 'Creating a project...', done: 'Created a project' },
   list_projects: { running: 'Listing projects...', done: 'Listed projects' },
-  get_store_overview: { running: 'Reading the App Store numbers...', done: 'Read the App Store numbers' },
+  get_store_overview: { running: 'Reading the store numbers...', done: 'Read the store numbers' },
   get_store_metrics: { running: 'Reading the numbers...', done: 'Read the numbers' },
   list_store_reviews: { running: 'Reading reviews...', done: 'Read reviews' },
   list_store_insights: { running: 'Reading the insights...', done: 'Read the insights' },

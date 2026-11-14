@@ -36,6 +36,7 @@ import {
   byTerritory,
   bySource,
   completeThrough,
+  earliestDay,
   feedStarts,
   covers,
   indexRecords,
@@ -77,8 +78,10 @@ export interface PeriodReport {
   seenLabel: string;
   reviews: { count: number; average: string; unanswered: number; topics: string[] };
   events: Array<{ date: string; label: string }>;
-  /** Days in the period with no data from any feed. */
+  /** Days in the period, from the app's first number on, with no data from any feed: still to come. */
   missingDays: number;
+  /** The app's first day with numbers, formatted, when the period starts before it; null otherwise. */
+  numbersFrom: string | null;
   /** Whether downloads go back over the whole period before, which the storefront changes need. */
   previousCovered: boolean;
   /** Figures shown without a change, because their history does not reach back over the period before. */
@@ -196,7 +199,14 @@ export function buildReport(input: {
 
   const reviews = reviewsIn(input.reviews, input.window);
   const average = averageRating(reviews);
-  const span = daysBetween(input.window.from, input.window.to) + 1;
+  // Days before the app's first number are not owed by the store: the app had
+  // none yet, or the history Growth loads starts later. Counted as missing,
+  // they would have a yearly report for an app out since August say Apple has
+  // not sent 234 days yet. Only the days after the first number can still come.
+  const first = earliestDay(input.records);
+  const from = first && first > input.window.from ? first : input.window.from;
+  const startsLate = from !== input.window.from;
+  const span = from > input.window.to ? 0 : daysBetween(from, input.window.to) + 1;
 
   return {
     appName: input.appName,
@@ -236,6 +246,7 @@ export function buildReport(input: {
       .sort((a, b) => a.date.localeCompare(b.date))
       .map((event) => ({ date: formatDay(event.date), label: `${EVENT_KIND_LABELS[event.kind]}: ${event.title}` })),
     missingDays: Math.max(0, span - current.days),
+    numbersFrom: startsLate && from <= input.window.to ? formatDay(from, { withYear: true }) : null,
     previousCovered,
     uncompared,
     currency,
@@ -285,7 +296,8 @@ export function reportFacts(report: PeriodReport): string {
       report.reviews.topics.length ? ` Topics: ${report.reviews.topics.join(', ')}.` : ''
     }`,
     report.events.length ? `Events: ${report.events.map((event) => `${event.date} ${event.label}`).join('; ')}.` : 'No events recorded.',
-    report.missingDays > 0 ? `${plural(report.missingDays, 'day')} in the period have no data yet.` : '',
+    report.numbersFrom ? `The numbers start on ${report.numbersFrom}, so the period's figures cover only the days from then on.` : '',
+    report.missingDays > 0 ? `${plural(report.missingDays, 'day')} in the period ${report.missingDays === 1 ? 'has' : 'have'} no data yet.` : '',
   ];
   return parts.filter(Boolean).join('\n');
 }
@@ -338,6 +350,10 @@ export function reportMarkdown(report: PeriodReport, summary?: string | null): s
     out.push('## Timeline');
     out.push('');
     for (const event of report.events) out.push(`- ${event.date}: ${event.label}`);
+  }
+  if (report.numbersFrom) {
+    out.push('');
+    out.push(`Your numbers start on ${report.numbersFrom}.`);
   }
   if (report.missingDays > 0) {
     out.push('');

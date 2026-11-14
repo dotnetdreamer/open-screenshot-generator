@@ -19,7 +19,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatDay, previousWindow, today } from '@/lib/growth/dates';
 import { markEventLive } from '@/lib/growth/events';
-import { formatCount, formatRate, formatRating } from '@/lib/growth/format';
+import { formatCount, formatPerDay, formatRate, formatRating } from '@/lib/growth/format';
 import { confidenceBar, describeEvents, eventImpact, formatChange, type ImpactResult } from '@/lib/growth/impact';
 import { confidenceSentence } from '@/lib/growth/insights';
 import {
@@ -394,7 +394,7 @@ function ImpactHero({ event, impact }: { event: TimelineEvent | null; impact: Im
     );
   }
   const measuredRate = impact.measure !== 'downloads';
-  const format = (value: number | null) => (measuredRate ? formatRate(value) : formatCount(value));
+  const format = (value: number | null) => (measuredRate ? formatRate(value) : formatPerDay(value));
   const days = Math.min(14, impact.daysAfter);
   const tone = impact.verdict === 'better' ? 'good' : impact.verdict === 'worse' ? 'problem' : 'neutral';
   const play = view.store === 'playstore';
@@ -513,7 +513,7 @@ export function impactLine(impact: ImpactResult, store: GrowthStore = 'appstore'
   if (impact.verdict === 'no-data') return 'No numbers around the event date';
   const rate = impact.measure !== 'downloads';
   const measured = rate ? 'Download rate' : 'Downloads a day';
-  const format = (value: number | null) => (rate ? formatRate(value) : formatCount(value));
+  const format = (value: number | null) => (rate ? formatRate(value) : formatPerDay(value));
   const days = impact.daysAfter > 0 ? `, ${Math.min(impact.daysAfter, 14)} days after the event` : '';
   return `${measured} ${format(impact.beforeRate)} to ${format(impact.afterRate)} (${formatChange(impact.change)})${days}`;
 }

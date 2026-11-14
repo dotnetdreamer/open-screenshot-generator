@@ -321,6 +321,7 @@ export function GrowthReports() {
             )}
           </div>
         </div>
+        {report.numbersFrom && <p className="text-xs text-muted-foreground">Your numbers start on {report.numbersFrom}.</p>}
         {report.missingDays > 0 && (
           <p className="text-xs text-muted-foreground">
             {report.owner} has not sent the numbers for {report.missingDays} day{report.missingDays === 1 ? '' : 's'} of this period yet.
@@ -487,6 +488,11 @@ const ReportSheet = React.forwardRef<HTMLDivElement, { report: PeriodReport; sum
           </>
         )}
 
+        {report.numbersFrom && (
+          <p data-pdf-block style={{ margin: '18px 0 0', fontSize: 11, color: MUTED }}>
+            Your numbers start on {report.numbersFrom}.
+          </p>
+        )}
         {report.missingDays > 0 && (
           <p data-pdf-block style={{ margin: '18px 0 0', fontSize: 11, color: MUTED }}>
             {report.owner} has not sent the numbers for {report.missingDays} day{report.missingDays === 1 ? '' : 's'} of this period yet.
