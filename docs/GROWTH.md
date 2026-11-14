@@ -168,6 +168,8 @@ The AI reads the newest reviews, up to 200, and sorts them into themes. Growth t
 
 For your app, the summary also suggests **Lines for your screenshots** from what people like. For an app you follow, it lists **What people miss** in that app, which your screenshots could show if your app has it. Growth keeps your last 12 summaries for each app, so you can compare a new summary with the one before.
 
+To get a summary without asking each time, pick **Every week** or **Every month** under **Write a summary on its own**. While the desktop app is open, Growth then writes a summary of the last 7 days (or 30 days) of reviews when the last one is a week (or a month) old, and a message tells you it's ready. Each summary is one request to the AI you picked under Setup.
+
 ### Competitor reviews
 
 What people say about the apps you follow on Competitors, in each country you check. The screen shows the app's rating, its ratings by stars, and what people complain about in the 1 and 2 star reviews, next to your own app's complaints. **Summarize with AI** opens the review summary for that app.
