@@ -59,7 +59,7 @@ export function frameTitle(target: CaptureTarget): string {
 }
 
 function screenSummary(screen: CaptureScreen | undefined): string {
-  if (!screen) return 'You go to the screen yourself';
+  if (!screen) return 'You go to it yourself';
   return screen.link ? `Opens ${screen.link}` : 'The first screen of the app';
 }
 
@@ -88,8 +88,8 @@ function ScreenRoute({
         <PopoverTrigger asChild>
           <button
             type="button"
-            title={`How Capture gets to this screen: ${screenSummary(target.screen)}`}
-            aria-label={`How Capture gets to ${frameTitle(target)}`}
+            title={`How Capture finds this screen: ${screenSummary(target.screen)}`}
+            aria-label={`How Capture finds ${frameTitle(target)}`}
             className={cn(
               'flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground',
               set && 'text-primary'
@@ -101,21 +101,22 @@ function ScreenRoute({
       </Gated>
       <PopoverContent align="start" className="w-80 space-y-3">
         <div className="space-y-1">
-          <p className="text-sm font-medium">How Capture gets to this screen</p>
+          <p className="text-sm font-medium">How should Capture find this screen?</p>
           <p className="text-xs text-muted-foreground">
-            With the first screen or a link, Capture can take {frameTitle(target)} in every language on its own.
+            Tell Capture how to find this screen, and it can take the screenshots in all languages for you.
           </p>
         </div>
         <RadioGroup value={mode} onValueChange={(value) => setMode(value as typeof mode)} className="gap-2">
           <Label className="flex items-center gap-2 text-sm font-normal">
-            <RadioGroupItem value="hand" />I go to the screen myself
+            <RadioGroupItem value="hand" />
+            I&apos;ll go to it myself
           </Label>
           <Label className="flex items-center gap-2 text-sm font-normal">
             <RadioGroupItem value="start" />
-            The first screen of the app
+            It&apos;s the first screen of the app
           </Label>
           <Label className="flex items-center gap-2 text-sm font-normal">
-            <RadioGroupItem value="link" />A link that opens the screen
+            <RadioGroupItem value="link" />A link opens it
           </Label>
         </RadioGroup>
         {mode === 'link' && (
@@ -124,14 +125,14 @@ function ScreenRoute({
               value={link}
               onChange={(event) => setLink(event.target.value)}
               placeholder="myapp://settings"
-              aria-label="Link that opens the screen"
+              aria-label="Link to this screen"
               className="h-8 text-xs"
               autoFocus
             />
             <p className="text-xs text-muted-foreground">
               {target.platform === 'android'
-                ? 'Capture opens your app with this link'
-                : 'iOS asks before it opens a link from outside, so Capture gives the link to your app as the launch argument -OSGLink. Your app reads -OSGLink when it opens and goes to that screen.'}
+                ? 'Capture opens this link in your app'
+                : 'On iPhone, your app has to support this. For developers: Capture passes the link as the launch argument -OSGLink, and your app goes to that screen.'}
             </p>
           </div>
         )}
@@ -224,20 +225,21 @@ export function CaptureGrid({
               <tr key={locale} className="!bg-transparent">
                 <th scope="row" className="sticky left-0 z-10 bg-background pr-2 text-left align-middle font-normal">
                   <div className="flex w-36 flex-col gap-1">
-                    <span className="flex items-center gap-1.5 text-sm font-medium" dir="auto">
-                      <span className="truncate">{name}</span>
-                      {isBase && <span className="shrink-0 text-xs font-normal text-muted-foreground">Base</span>}
+                    <span className="truncate text-sm font-medium" dir="auto">
+                      {name}
                     </span>
+                    {isBase && <span className="-mt-1 text-xs text-muted-foreground">Main language</span>}
                     <Gated reason={openReason}>
                       <Button
                         variant={appLocale === locale ? 'secondary' : 'outline'}
                         size="sm"
                         className="h-7 w-fit gap-1 px-2 text-xs"
-                        title={`Open your app from the start in ${name}`}
+                        title={`Restart your app in ${name}`}
+                        aria-label={appLocale === locale ? `Open app again in ${name}` : `Open app in ${name}`}
                         onClick={() => onOpenInLanguage(locale)}
                       >
                         <PlayIcon className="h-3 w-3" />
-                        {appLocale === locale ? `Open in ${name} again` : `Open in ${name}`}
+                        {appLocale === locale ? 'Open app again' : 'Open app'}
                       </Button>
                     </Gated>
                   </div>
@@ -281,7 +283,7 @@ export function CaptureGrid({
                         )}
                         {!hidden && !own && src && (
                           <span className="absolute bottom-1 left-1 rounded bg-background/85 px-1 text-[10px] text-muted-foreground">
-                            Sample
+                            Example
                           </span>
                         )}
                         {target.kind === 'recording' && !hidden && (

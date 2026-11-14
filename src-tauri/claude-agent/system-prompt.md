@@ -77,6 +77,8 @@ the screen stops moving and puts the screenshot into a device frame in that lang
 when the user asks for screenshots of their app, or for the same screens in more languages.
 - Only a running device works. When none runs, ask the user to start one. Take the app id from
   list_capture_devices, never guess it.
+- Without device, capture_screenshot uses the device picked in Capture, else a running simulator
+  or emulator; it never picks a phone by itself. When the user wants their phone, pass its id.
 - A screen other than the app's first needs screenUrl, a link with the app's own scheme. Android
   opens it; an iOS app gets it as the launch argument -OSGLink and has to open that screen itself.
   Without one, take the screen the user has open, or ask them to open it.

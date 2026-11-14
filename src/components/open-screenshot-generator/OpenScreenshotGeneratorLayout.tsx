@@ -1604,7 +1604,7 @@ export function OpenScreenshotGeneratorLayout() {
   // Capture: screenshots of the user's app from a simulator or emulator
   // (src/lib/capture). Mounted on its first visit and kept, like Growth, so
   // a run of screenshots goes on while the editor is in front. A request
-  // chooses a frame, as the Properties panel's From Simulator button does.
+  // chooses a frame, as the Properties panel's Screenshot from device button does.
   const [captureMounted, setCaptureMounted] = useState(false);
   const [captureRequest, setCaptureRequest] = useState<CaptureRequest | null>(null);
   const showCapture = useCallback((frame?: Omit<CaptureRequest, 'nonce'>) => {
@@ -8933,7 +8933,7 @@ export function OpenScreenshotGeneratorLayout() {
     if (!changed) return;
     handleArtboardsUpdateRef.current(next, { label: 'Set Capture Screen', icon: 'device', detail: boardName, mergeKey: null });
   }, []);
-  // The Properties panel's From Simulator button. With a device running, the
+  // The Properties panel's Screenshot from device button. With a device running, the
   // screenshot goes straight into the frame in the language on the canvas;
   // a recording frame, or no device running, opens Capture on the frame.
   const handleCaptureScreenshot = useCallback(

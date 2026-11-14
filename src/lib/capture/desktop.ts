@@ -5,6 +5,7 @@
  */
 
 import { isTauri } from '@/lib/desktop';
+import { getCaptureSession, noteListing } from './session';
 import type { CaptureApp, CaptureDevices, CapturePlatform } from './types';
 
 async function call<T>(command: string, args?: Record<string, unknown>): Promise<T> {
@@ -26,8 +27,24 @@ function toBytes(value: unknown): Uint8Array {
   throw new Error('The device sent something that is not a picture');
 }
 
-export function listDevices(): Promise<CaptureDevices> {
-  return call<CaptureDevices>('abs_capture_devices');
+export async function listDevices(): Promise<CaptureDevices> {
+  const listed = await call<CaptureDevices>('abs_capture_devices');
+  noteListing(listed);
+  return listed;
+}
+
+let platformsProbe: Promise<unknown> | null = null;
+
+/**
+ * Lists the devices once this sitting if nothing has yet, so the editor
+ * knows whether the iPhone Simulator can run here before the user asks it
+ * for a screenshot.
+ */
+export function knowPlatforms(): void {
+  if (!isTauri() || platformsProbe || getCaptureSession().iosMissing !== undefined) return;
+  platformsProbe = listDevices().catch(() => {
+    platformsProbe = null;
+  });
 }
 
 export function startDevice(platform: CapturePlatform, id: string): Promise<void> {

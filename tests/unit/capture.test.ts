@@ -7,7 +7,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { appLanguageFor } from '@/lib/capture/locales';
 import { captureCells, captureTargets, cellKey, isOwnPicture } from '@/lib/capture/frames';
-import { bestRunningDevice, deviceFit, modelForFrame, shapeDifference, SHAPE_WARNING } from '@/lib/capture/match';
+import { bestRunningDevice, deviceFit, modelForFrame, phoneConnection, shapeDifference, SHAPE_WARNING } from '@/lib/capture/match';
 import { placeClip, placeShots } from '@/lib/capture/place';
 import { frameDifference, STILL_BELOW } from '@/lib/capture/settle';
 import { projectArtboards } from '@/lib/i18n/project';
@@ -254,6 +254,29 @@ test('the device with the frame model wins, then the same platform, then anythin
   assert.equal(bestRunningDevice(target, [off]), null);
   // An AVD name carries "API 35"; the model is what counts.
   assert.equal(deviceFit({ deviceLabel: 'Pixel 9 Pro', platform: 'android' }, pixel), 'same-model');
+});
+
+test('Capture chooses a phone only when told to, and never another platform for an iPhone frame', () => {
+  const iphone = { deviceLabel: 'iPhone 17 Pro Max', platform: 'ios' as const };
+  const android = { deviceLabel: 'Pixel 10 Pro', platform: 'android' as const };
+  const phone = device({ id: 'YPKRA6VS754L6XTO', platform: 'android', kind: 'phone', name: 'M2006C3LG', os: 'Android 11' });
+  const emulator = device({ id: 'emulator-5554', platform: 'android', kind: 'emulator', name: 'OSG Test API 35', os: 'Android 15' });
+  // The phone is listed first, as adb lists it, and still the emulator is chosen.
+  assert.equal(bestRunningDevice(android, [phone, emulator], { phones: false })?.id, 'emulator-5554');
+  assert.equal(bestRunningDevice(null, [phone, emulator], { phones: false })?.id, 'emulator-5554');
+  assert.equal(bestRunningDevice(android, [phone], { phones: false }), null);
+  assert.equal(bestRunningDevice(android, [phone])?.id, 'YPKRA6VS754L6XTO');
+  // An iPhone frame on Windows, with only Android running: nothing, not the emulator.
+  assert.equal(bestRunningDevice(iphone, [phone, emulator], { phones: false, otherPlatform: false }), null);
+  assert.equal(bestRunningDevice(iphone, [emulator])?.id, 'emulator-5554');
+});
+
+test('a phone on USB and the same phone over Wi-Fi are told apart', () => {
+  const phone = (id: string) => device({ id, platform: 'android', kind: 'phone', name: 'SM-S921B' });
+  assert.equal(phoneConnection(phone('RFCY90YWS1P')), 'usb');
+  assert.equal(phoneConnection(phone('adb-RFCY90YWS1P-6dqaWO._adb-tls-connect._tcp')), 'wifi');
+  assert.equal(phoneConnection(phone('192.168.1.20:5555')), 'wifi');
+  assert.equal(phoneConnection(device({ id: 'emulator-5554', platform: 'android', kind: 'emulator' })), null);
 });
 
 test('the simulator model with the frame name is offered, Android never', () => {

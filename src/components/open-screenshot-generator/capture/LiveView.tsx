@@ -104,18 +104,22 @@ export function LiveView({ device, polling, frame, aspect, emptyText, onTake, ta
         aria-label={device ? `Screen of ${device.name}` : 'Device screen'}
         data-testid="capture-live-view"
         className={cn(
-          'group relative max-h-[44vh] w-full max-w-[240px] overflow-hidden rounded-[22px] border-[6px] border-foreground/85 bg-muted shadow-sm',
+          'group relative max-h-[44vh] overflow-hidden rounded-[22px] border-[6px] border-foreground/85 bg-muted shadow-sm',
           canTake && 'cursor-pointer',
           !canTake && 'cursor-default'
         )}
-        style={{ aspectRatio: shape }}
+        // The width follows from the 44vh height cap and the screen's shape: a
+        // box as wide as the column but capped in height loses that shape. The
+        // picture is contained, never cropped: the live view shows all of what
+        // the next screenshot will be, status bar included.
+        style={{ aspectRatio: shape, width: `min(100%, 240px, calc(44vh * ${shape}))` }}
       >
         {url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={url}
             alt=""
-            className="h-full w-full object-cover"
+            className="h-full w-full object-contain"
             onLoad={(event) => {
               const { naturalWidth, naturalHeight } = event.currentTarget;
               if (naturalWidth > 0 && naturalHeight > 0) setSize({ width: naturalWidth, height: naturalHeight });

@@ -35,6 +35,8 @@ export type CaptureMissing = 'mac' | 'xcode' | 'sdk';
 
 export interface PlatformDevices {
   missing?: CaptureMissing;
+  /** The listing failed this time (adb did not answer): the devices are unknown, not gone. */
+  error?: string;
   devices: CaptureDevice[];
   models: SimulatorModel[];
 }

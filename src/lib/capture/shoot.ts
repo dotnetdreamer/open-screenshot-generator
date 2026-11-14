@@ -11,7 +11,7 @@
 
 import { saveImageBlobAsset } from '@/lib/mcp/assetStore';
 import { listDevices, takeScreenshot, tidyStatusBar } from './desktop';
-import { bestRunningDevice } from './match';
+import { bestRunningDevice, deviceFit } from './match';
 import type { CaptureTarget } from './frames';
 import { addCapturedShot, getCaptureSession, updateCaptureSession } from './session';
 import type { CaptureDevice, CapturedShot } from './types';
@@ -68,20 +68,21 @@ export async function shootDevice(device: CaptureDevice, language: string | null
 
 /**
  * The device a screenshot for this frame comes from without opening Capture:
- * the one picked in Capture when it is running, else the running device that
- * suits the frame best. Null when nothing runs, and then the caller opens
- * Capture instead.
+ * the one picked in Capture when it runs the frame's platform, else a running
+ * simulator or emulator of that platform. Never a phone the user did not pick,
+ * and never an Android screen for an iPhone frame. Null when none fits, and
+ * then the caller opens Capture, which says why.
  */
 export async function deviceForQuickCapture(target: CaptureTarget | null): Promise<CaptureDevice | null> {
   const listed = await listDevices();
   const all = [...listed.ios.devices, ...listed.android.devices];
   const picked = getCaptureSession().device;
   const fresh = picked ? all.find((device) => device.platform === picked.platform && device.id === picked.id) : undefined;
-  if (fresh?.state === 'running') {
+  if (fresh?.state === 'running' && (!target || deviceFit(target, fresh) !== 'other')) {
     updateCaptureSession({ device: fresh });
     return fresh;
   }
-  const best = bestRunningDevice(target, all);
+  const best = bestRunningDevice(target, all, { phones: false, otherPlatform: false });
   if (best) updateCaptureSession({ device: best });
   return best;
 }

@@ -26,7 +26,8 @@ import {
 } from '@/lib/capture/desktop';
 import { captureTargets } from '@/lib/capture/frames';
 import { appLanguageFor } from '@/lib/capture/locales';
-import { bestRunningDevice, shapeDifference, SHAPE_WARNING } from '@/lib/capture/match';
+import { bestRunningDevice, deviceFit, shapeDifference, SHAPE_WARNING } from '@/lib/capture/match';
+import { getCaptureSession } from '@/lib/capture/session';
 import { waitUntilStill } from '@/lib/capture/settle';
 import { ensureTidy, shootDevice } from '@/lib/capture/shoot';
 import type { CaptureApp } from '@/lib/capture/types';
@@ -1653,7 +1654,11 @@ const TOOLS: ToolDef[] = [
       properties: {
         elementId: { type: 'string', description: 'A device element (a screenshot frame) to put the screenshot into.' },
         artboardId: { type: 'string', description: 'The artboard holding elementId. Found from elementId when left out.' },
-        device: { type: 'string', description: 'A device id from list_capture_devices. Defaults to the running device that suits the frame best.' },
+        device: {
+          type: 'string',
+          description:
+            "A device id from list_capture_devices. Defaults to the device picked in Capture, else a running simulator or emulator that suits the frame. A phone is used only when its id is given here or the user picked it in Capture.",
+        },
         app: { type: 'string', description: 'Bundle id (iOS) or package name (Android) to open from the start first.' },
         locale: { type: 'string', description: "A project language code (list_locales): the frame's language, and the language the app opens in." },
         screenUrl: { type: 'string', description: 'The screen to open, as a link with the app scheme such as myapp://settings. On iOS the app reads it from -OSGLink. Needs app.' },
@@ -1676,13 +1681,25 @@ const TOOLS: ToolDef[] = [
         }
         const listed = await listCaptureDevices();
         const all = [...listed.ios.devices, ...listed.android.devices];
-        const device = args.device ? all.find((candidate) => candidate.id === String(args.device)) ?? null : bestRunningDevice(target, all);
+        // Without a device id: the one picked in Capture when it suits the
+        // frame, else a running simulator or emulator of the frame's platform.
+        // Never a phone the user did not pick, and never an Android screen
+        // for an iPhone frame.
+        const picked = getCaptureSession().device;
+        const pickedNow = picked ? all.find((candidate) => candidate.platform === picked.platform && candidate.id === picked.id) : undefined;
+        const device = args.device
+          ? all.find((candidate) => candidate.id === String(args.device)) ?? null
+          : pickedNow?.state === 'running' && (!target || deviceFit(target, pickedNow) !== 'other')
+            ? pickedNow
+            : bestRunningDevice(target, all, { phones: false, otherPlatform: false });
         if (!device) {
           return {
             ...textResult(
               args.device
                 ? `No device "${args.device}". Call list_capture_devices.`
-                : 'No simulator, emulator or phone is running. Ask the user to start one, then call list_capture_devices.'
+                : target?.platform === 'ios' && listed.ios.missing === 'mac'
+                  ? 'That frame is an iPhone or iPad, and the iPhone Simulator needs a Mac with Xcode. Use an Android frame, or take this screen on a Mac.'
+                  : 'No simulator or emulator for this frame is running. Ask the user to start one in Capture, or pass the id of a phone from list_capture_devices.'
             ),
             isError: true,
           };

@@ -29,7 +29,7 @@ export interface Activity {
 
 export const ACTIVITIES: Activity[] = [
   { id: 'editor', label: 'Editor', icon: PenToolIcon },
-  { id: 'capture', label: 'Capture: screenshots of your app from a simulator or emulator', icon: CameraIcon },
+  { id: 'capture', label: 'Capture: screenshots of your app', icon: CameraIcon },
   { id: 'growth', label: 'Growth: downloads, reviews and your store page', icon: TrendingUpIcon },
 ];
 

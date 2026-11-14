@@ -16,9 +16,11 @@
 //!
 //! Two things a capture changes on a device are put back. The tidy status bar
 //! (9:41, full signal and battery) is cleared when the app quits, for every
-//! device it was set on. A recording belongs to the window that started it,
-//! and stops when that window closes or loads another page, or when the app
-//! quits, so a forgotten `recordVideo` never fills the disk.
+//! device it was set on, and Android's `sysui_demo_allowed` goes back to what
+//! it was. A recording belongs to the window that started it, and stops when
+//! that window closes or loads another page, or when the app quits, so a
+//! forgotten `recordVideo` never fills the disk. Quitting waits until the
+//! recorder has stopped and its file on the device is gone.
 //!
 //! Every command answers editor windows only (`main`, `editor-*`): a detached
 //! panel asks the editor, and the assistant windows host other people's sites.
@@ -44,14 +46,29 @@ const DEVICE_RECORDING: &str = "/data/local/tmp/osg-capture.mp4";
 
 #[derive(Default)]
 pub struct CaptureState {
-    /// Devices whose status bar this app tidied, cleared again on quit.
-    tidied: Mutex<Vec<(Platform, String)>>,
+    /// Devices whose status bar this app tidied, put back on quit.
+    tidied: Mutex<Vec<Tidied>>,
     /// Recordings under way, by `device_key`. Shared, so a recording being
     /// saved on another thread can free its device when it is done.
     recordings: Arc<Mutex<Slots<Recording>>>,
+    /// The threads throwing away the recordings of windows that closed or
+    /// reloaded. Quitting waits for them: a thread cut off between stopping the
+    /// recorder and deleting its file left the file on the device.
+    cleanups: Mutex<Vec<std::thread::JoinHandle<()>>>,
     /// Where adb was found last. Looked for again while it is missing, so an
     /// SDK installed while the app runs is found on the next refresh.
     adb: Mutex<Option<PathBuf>>,
+    /// What each Android device in the last listing was called, by adb serial.
+    android_names: Mutex<HashMap<String, AndroidName>>,
+}
+
+/// A device whose status bar this app tidied.
+struct Tidied {
+    platform: Platform,
+    id: String,
+    /// Android's `sysui_demo_allowed` before the tidy turned it on ("null"
+    /// when it was never set), written back with the real status bar.
+    demo_allowed: Option<String>,
 }
 
 struct Recording {
@@ -134,15 +151,11 @@ impl<T> Slots<T> {
         }
     }
 
-    /// Every recording under way, for the app quitting.
-    fn drain(&mut self) -> Vec<T> {
-        self.0
-            .drain()
-            .filter_map(|(_, slot)| match slot {
-                Slot::Recording(recording) => Some(recording),
-                Slot::Saving => None,
-            })
-            .collect()
+    /// The devices whose recording is still being saved, for the app quitting.
+    fn saving_keys(&self) -> Vec<String> {
+        let mut keys: Vec<String> = self.0.iter().filter(|(_, slot)| matches!(slot, Slot::Saving)).map(|(key, _)| key.clone()).collect();
+        keys.sort();
+        keys
     }
 }
 
@@ -220,6 +233,10 @@ pub struct PlatformDevices {
     /// Mac), "xcode" or "sdk" (no adb found).
     #[serde(skip_serializing_if = "Option::is_none")]
     missing: Option<&'static str>,
+    /// The listing failed this time (adb did not answer), so the devices are
+    /// unknown, not gone. The page keeps the list and the device it had.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    error: Option<String>,
     devices: Vec<CaptureDevice>,
     /// iOS only, for making a simulator that matches a frame.
     models: Vec<SimulatorModel>,
@@ -587,7 +604,7 @@ fn ios_devices() -> PlatformDevices {
         return PlatformDevices { missing: Some("xcode"), ..Default::default() };
     };
     let (devices, models) = parse_simulators(&list);
-    PlatformDevices { missing: None, devices, models }
+    PlatformDevices { devices, models, ..Default::default() }
 }
 
 /// The installed apps of `simctl listapps`, converted from the old-style
@@ -712,6 +729,98 @@ fn parse_adb_devices(text: &str) -> Vec<(String, String)> {
         .collect()
 }
 
+/// What the page says when `adb devices` fails or times out.
+const ADB_SILENT: &str = "Could not check for Android devices just now, so this list may be out of date";
+
+/// What `getprop` said about one Android device, a line per property.
+#[derive(Debug, Default, PartialEq)]
+struct AndroidProps {
+    release: String,
+    model: String,
+    avd: String,
+    /// `sys.boot_completed` is 1: Android has finished starting.
+    booted: bool,
+}
+
+fn parse_props(text: &str) -> AndroidProps {
+    let mut lines = text.lines().map(str::trim);
+    let mut next = || lines.next().unwrap_or("").to_string();
+    let (release, model, avd) = (next(), next(), next());
+    AndroidProps { release, model, avd, booted: next() == "1" }
+}
+
+/// What an Android device is called in the list, kept from one listing to the
+/// next while its serial stays in adb's list.
+#[derive(Clone, Debug, PartialEq)]
+struct AndroidName {
+    name: String,
+    /// "Android 15", or "Android" when the version is not known.
+    os: String,
+    /// The AVD an emulator runs.
+    avd: Option<String>,
+}
+
+/// One line of `adb devices` as the page shows it. `props` is what `getprop`
+/// said, `None` when adb did not call the device ready or its shell did not
+/// answer. `earlier` is what the last listing called the same serial. Returns
+/// the device and what to call that serial at the next listing.
+fn android_device(
+    serial: String,
+    adb_state: &str,
+    props: Option<AndroidProps>,
+    earlier: Option<&AndroidName>,
+) -> (CaptureDevice, Option<AndroidName>) {
+    let is_emulator = serial.starts_with("emulator-");
+    let mut state = match adb_state {
+        "device" => "running",
+        "unauthorized" => "unauthorized",
+        "offline" => "offline",
+        _ => "starting",
+    };
+    let known = match props {
+        Some(props) => {
+            let mut os = "Android".to_string();
+            if !props.release.is_empty() {
+                os = format!("Android {}", props.release);
+                // adb answers an emulator half a minute before its settings
+                // and activity services do, and a tidy or an app list sent
+                // then fails with "Can't find service".
+                if !props.booted {
+                    state = "starting";
+                }
+            }
+            let avd = (is_emulator && valid_avd(&props.avd)).then(|| props.avd.clone());
+            let name = match &avd {
+                Some(avd) => avd_label(avd),
+                None if !props.model.is_empty() => props.model.clone(),
+                None => serial.clone(),
+            };
+            Some(AndroidName { name, os, avd })
+        }
+        None => {
+            // An emulator that is shutting down stays in adb's list for a
+            // moment after its shell has closed, first as "device" and then
+            // as "offline". It keeps its name meanwhile, so the page can still
+            // tell which AVD stopped and offer to start it again.
+            if state == "running" {
+                state = "offline";
+            }
+            earlier.cloned()
+        }
+    };
+    let shown = known.clone().unwrap_or_else(|| AndroidName { name: serial.clone(), os: "Android".into(), avd: None });
+    let device = CaptureDevice {
+        id: serial,
+        platform: "android",
+        kind: if is_emulator { "emulator" } else { "phone" },
+        name: shown.name,
+        state,
+        os: shown.os,
+        model: None,
+    };
+    (device, known)
+}
+
 /// `emulator -list-avds`, without the log lines some versions print first.
 fn parse_avds(text: &str) -> Vec<String> {
     text.lines()
@@ -733,52 +842,42 @@ fn android_devices(state: &CaptureState) -> PlatformDevices {
     };
     // Started on its own first, so `devices` never waits on a server starting.
     let _ = run(&adb, &["start-server"], Duration::from_secs(15));
-    let listed = run(&adb, &["devices", "-l"], Duration::from_secs(10)).map(|ran| ran.text()).unwrap_or_default();
+    let listed = match run(&adb, &["devices", "-l"], Duration::from_secs(10)) {
+        Ok(ran) if ran.ok => ran.text(),
+        _ => return PlatformDevices { error: Some(ADB_SILENT.into()), ..Default::default() },
+    };
     let mut devices = Vec::new();
     let mut running_avds = Vec::new();
+    let earlier = state.android_names.lock().unwrap().clone();
+    let mut names = HashMap::new();
     for (serial, adb_state) in parse_adb_devices(&listed) {
-        let is_emulator = serial.starts_with("emulator-");
-        let state = match adb_state.as_str() {
-            "device" => "running",
-            "unauthorized" => "unauthorized",
-            "offline" => "offline",
-            _ => "starting",
-        };
-        let (mut name, mut os) = (serial.clone(), "Android".to_string());
-        if state == "running" {
-            let props = adb_shell(
+        let props = if adb_state == "device" {
+            adb_shell(
                 &adb,
                 &serial,
-                "getprop ro.build.version.release; getprop ro.product.model; getprop ro.boot.qemu.avd_name",
+                "getprop ro.build.version.release; getprop ro.product.model; getprop ro.boot.qemu.avd_name; getprop sys.boot_completed",
                 Duration::from_secs(8),
                 "Could not read the device",
             )
-            .map(|ran| ran.text())
-            .unwrap_or_default();
-            let mut lines = props.lines().map(str::trim);
-            let release = lines.next().unwrap_or("");
-            let model = lines.next().unwrap_or("");
-            let avd = lines.next().unwrap_or("");
-            if !release.is_empty() {
-                os = format!("Android {release}");
+            .ok()
+            .map(|ran| parse_props(&ran.text()))
+        } else {
+            None
+        };
+        let (device, known) = android_device(serial.clone(), &adb_state, props, earlier.get(&serial));
+        if let Some(known) = known {
+            // Listed while it shuts down too, so its AVD is not offered as off
+            // until the emulator has really gone.
+            if let Some(avd) = &known.avd {
+                running_avds.push(avd.clone());
             }
-            if is_emulator && valid_avd(avd) {
-                running_avds.push(avd.to_string());
-                name = avd_label(avd);
-            } else if !model.is_empty() {
-                name = model.to_string();
-            }
+            names.insert(serial, known);
         }
-        devices.push(CaptureDevice {
-            id: serial,
-            platform: "android",
-            kind: if is_emulator { "emulator" } else { "phone" },
-            name,
-            state,
-            os,
-            model: None,
-        });
+        devices.push(device);
     }
+    // Only serials still listed: a serial that left the list is forgotten, so
+    // one used again later is never shown under an old name.
+    *state.android_names.lock().unwrap() = names;
     if let Some(emulator) = emulator_path(&adb) {
         let avds = run(&emulator, &["-list-avds"], Duration::from_secs(10)).map(|ran| ran.text()).unwrap_or_default();
         for avd in parse_avds(&avds) {
@@ -796,7 +895,7 @@ fn android_devices(state: &CaptureState) -> PlatformDevices {
             });
         }
     }
-    PlatformDevices { missing: None, devices, models: Vec::new() }
+    PlatformDevices { devices, ..Default::default() }
 }
 
 fn parse_packages(text: &str) -> Vec<String> {
@@ -838,15 +937,62 @@ fn android_apps(adb: &Path, serial: &str) -> Result<Vec<CaptureApp>, String> {
 }
 
 /// The demo mode lines that draw Android's status bar at 9:41 with full Wi-Fi
-/// and battery, no mobile signal and no notification icons.
+/// and battery, no mobile signal and no notification icons. `fully true`
+/// marks the Wi-Fi as connected to the internet: without it Android 15 draws
+/// its "!" for no internet on the icon.
 const ANDROID_TIDY: &str = "settings put global sysui_demo_allowed 1; \
 am broadcast -a com.android.systemui.demo -e command enter >/dev/null; \
 am broadcast -a com.android.systemui.demo -e command clock -e hhmm 0941 >/dev/null; \
 am broadcast -a com.android.systemui.demo -e command battery -e level 100 -e plugged false >/dev/null; \
-am broadcast -a com.android.systemui.demo -e command network -e wifi show -e level 4 >/dev/null; \
+am broadcast -a com.android.systemui.demo -e command network -e wifi show -e level 4 -e fully true >/dev/null; \
 am broadcast -a com.android.systemui.demo -e command network -e mobile hide >/dev/null; \
 am broadcast -a com.android.systemui.demo -e command notifications -e visible false >/dev/null";
 const ANDROID_UNTIDY: &str = "am broadcast -a com.android.systemui.demo -e command exit >/dev/null";
+const DEMO_ALLOWED: &str = "settings get global sysui_demo_allowed";
+
+/// A tidy that changed nothing: the phone kept `sysui_demo_allowed` off (a
+/// Xiaomi with MIUI did), and then SystemUI ignores every demo command.
+const STATUS_BAR_REFUSED: &str = "That phone does not let Capture change its status bar";
+
+/// A value `settings get` printed that can be written back unquoted.
+fn valid_setting(value: &str) -> bool {
+    value == "null" || (!value.is_empty() && value.len() <= 8 && value.chars().all(|c| c.is_ascii_digit()))
+}
+
+/// The line that brings back Android's real status bar and the
+/// `sysui_demo_allowed` the device had before the tidy. Exit goes first, and
+/// a second later the setting: SystemUI ignores a demo command it is no
+/// longer allowed to take, exit included.
+fn android_untidy(previous: Option<&str>) -> String {
+    match previous.filter(|value| valid_setting(value)) {
+        Some("null") => format!("{ANDROID_UNTIDY}; sleep 1; settings delete global sysui_demo_allowed >/dev/null"),
+        Some(value) if value != "1" => format!("{ANDROID_UNTIDY}; sleep 1; settings put global sysui_demo_allowed {value}"),
+        _ => ANDROID_UNTIDY.to_string(),
+    }
+}
+
+/// `sysui_demo_allowed` as the device has it, or None when it did not answer.
+fn read_demo_allowed(adb: &Path, serial: &str) -> Option<String> {
+    adb_shell(adb, serial, DEMO_ALLOWED, Duration::from_secs(10), "")
+        .ok()
+        .map(|ran| ran.text().trim().to_string())
+}
+
+/// Tidies an Android status bar, and fails when the device kept its own.
+fn tidy_android(adb: &Path, serial: &str) -> Result<(), String> {
+    adb_shell(adb, serial, ANDROID_TIDY, Duration::from_secs(20), "Could not change the status bar")?;
+    if read_demo_allowed(adb, serial).as_deref() != Some("1") {
+        return Err(STATUS_BAR_REFUSED.into());
+    }
+    Ok(())
+}
+
+/// Notes a device whose status bar this app tidied, with what to put back.
+fn remember_tidy(state: &CaptureState, platform: Platform, id: &str, demo_allowed: Option<String>) {
+    let mut tidied = state.tidied.lock().unwrap();
+    tidied.retain(|entry| !(entry.platform == platform && entry.id == id));
+    tidied.push(Tidied { platform, id: id.to_string(), demo_allowed });
+}
 
 // ---------------------------------------------------------------------------
 // Commands
@@ -860,8 +1006,11 @@ async fn finish<T>(handle: tauri::async_runtime::JoinHandle<Result<T, String>>) 
     handle.await.map_err(|e| e.to_string())?
 }
 
+/// What the page says when adb is nowhere to be found.
+const NO_ADB: &str = "Android devices need Android Studio. Install it, then try again";
+
 fn need_adb<R: Runtime>(app: &AppHandle<R>) -> Result<PathBuf, String> {
-    adb_path(&app.state::<CaptureState>()).ok_or_else(|| "adb was not found. Install Android Studio and its SDK".to_string())
+    adb_path(&app.state::<CaptureState>()).ok_or_else(|| NO_ADB.to_string())
 }
 
 /// Every simulator, emulator and phone this computer can reach.
@@ -999,37 +1148,56 @@ pub async fn abs_capture_tidy_status_bar<R: Runtime>(
     let platform = Platform::parse(&platform)?;
     device_id(platform, &id)?;
     let adb = if platform == Platform::Android { Some(need_adb(&app)?) } else { None };
+    // What a tidy this app already did on the device found there before it.
+    let mut earlier: Option<String> = app
+        .state::<CaptureState>()
+        .tidied
+        .lock()
+        .unwrap()
+        .iter()
+        .find(|entry| entry.platform == platform && entry.id == id)
+        .and_then(|entry| entry.demo_allowed.clone());
+    // Android's setting is read (unless an earlier tidy did) and noted before
+    // the tidy changes anything. The tidy turns the setting on first, so one
+    // cut short after that never noted the value from before. On Windows in
+    // November 2026 an emulator closed four seconds after it started was left
+    // with the setting on after Capture quit.
+    if let (true, None, Some(adb)) = (tidy, &earlier, &adb) {
+        let (adb, device) = (adb.clone(), id.clone());
+        earlier = finish(blocking(move || Ok(read_demo_allowed(&adb, &device)))).await?;
+        remember_tidy(&app.state::<CaptureState>(), platform, &id, earlier.clone());
+    }
     let device = id.clone();
-    finish(blocking(move || {
-        match (platform, &adb) {
-            (Platform::Ios, _) if tidy => simctl_ok(
-                &[
-                    "status_bar", &device, "override", "--time", "9:41", "--dataNetwork", "wifi", "--wifiMode", "active",
-                    "--wifiBars", "3", "--cellularMode", "active", "--cellularBars", "4", "--operatorName", "",
-                    "--batteryState", "discharging", "--batteryLevel", "100",
-                ],
-                Duration::from_secs(15),
-                "Could not change the status bar",
-            )
-            .map(|_| ()),
-            (Platform::Ios, _) => simctl_ok(&["status_bar", &device, "clear"], Duration::from_secs(15), "Could not put the status bar back").map(|_| ()),
-            (Platform::Android, Some(adb)) => adb_shell(
-                adb,
-                &device,
-                if tidy { ANDROID_TIDY } else { ANDROID_UNTIDY },
-                Duration::from_secs(20),
-                "Could not change the status bar",
-            )
-            .map(|_| ()),
-            (Platform::Android, None) => Err("adb was not found".into()),
-        }
+    let previous = earlier.clone();
+    finish(blocking(move || match (platform, &adb) {
+        (Platform::Ios, _) if tidy => simctl_ok(
+            &[
+                "status_bar", &device, "override", "--time", "9:41", "--dataNetwork", "wifi", "--wifiMode", "active",
+                "--wifiBars", "3", "--cellularMode", "active", "--cellularBars", "4", "--operatorName", "",
+                "--batteryState", "discharging", "--batteryLevel", "100",
+            ],
+            Duration::from_secs(15),
+            "Could not change the status bar",
+        )
+        .map(|_| ()),
+        (Platform::Ios, _) => simctl_ok(&["status_bar", &device, "clear"], Duration::from_secs(15), "Could not put the status bar back").map(|_| ()),
+        (Platform::Android, Some(adb)) if tidy => tidy_android(adb, &device),
+        (Platform::Android, Some(adb)) => adb_shell(
+            adb,
+            &device,
+            &android_untidy(previous.as_deref()),
+            Duration::from_secs(20),
+            "Could not put the status bar back",
+        )
+        .map(|_| ()),
+        (Platform::Android, None) => Err(NO_ADB.into()),
     }))
     .await?;
     let state = app.state::<CaptureState>();
-    let mut tidied = state.tidied.lock().unwrap();
-    tidied.retain(|(p, d)| !(*p == platform && d == &id));
     if tidy {
-        tidied.push((platform, id));
+        remember_tidy(&state, platform, &id, earlier);
+    } else {
+        state.tidied.lock().unwrap().retain(|entry| !(entry.platform == platform && entry.id == id));
     }
     Ok(())
 }
@@ -1136,7 +1304,7 @@ pub async fn abs_capture_launch<R: Runtime>(
                     let ran = adb_shell(&adb, &id, &set, Duration::from_secs(15), "Could not change the app's language")?;
                     let said = ran.text();
                     if said.contains("Unknown command") || said.contains("No shell command implementation") {
-                        return Err("Android 13 or later is needed to switch the app's language from here".into());
+                        return Err("This device needs Android 13 or later to switch your app's language".into());
                     }
                 }
                 adb_shell(&adb, &id, &format!("am force-stop {package}"), Duration::from_secs(15), "Could not close the app")?;
@@ -1271,7 +1439,7 @@ pub async fn abs_capture_record_start<R: Runtime>(
                 .spawn()
         }
         Platform::Android => {
-            let adb = adb.as_deref().ok_or("adb was not found")?;
+            let adb = adb.as_deref().ok_or(NO_ADB)?;
             command(adb, &["-s", &id, "shell", &format!("screenrecord --bit-rate 20000000 {DEVICE_RECORDING}")])
                 .stdout(Stdio::null())
                 .stderr(Stdio::null())
@@ -1283,20 +1451,62 @@ pub async fn abs_capture_record_start<R: Runtime>(
     Ok(())
 }
 
-/// Ask a recorder to finish its file and wait for it, then take the file.
-fn finish_recording<R: Runtime>(app: &AppHandle<R>, mut recording: Recording) -> Result<Vec<u8>, String> {
+/// How long Stop waits at most for an Android encoder to catch up with the screen.
+const ENCODER_CATCH_UP: Duration = Duration::from_secs(20);
+/// The encoder has used next to no CPU for this long: it has caught up.
+const ENCODER_IDLE: Duration = Duration::from_secs(1);
+/// CPU clock ticks (10 ms each) in a quarter second that still count as idle.
+const ENCODER_BUSY_TICKS: u64 = 2;
+
+/// CPU time spent encoding on the device so far, in clock ticks: screenrecord
+/// itself and the software codec service an emulator encodes in. None when
+/// the device does not answer.
+fn encoder_ticks(adb: &Path, serial: &str) -> Option<u64> {
+    let ran = adb_shell(
+        adb,
+        serial,
+        "for p in $(pidof screenrecord) $(pidof media.swcodec); do cut -d' ' -f14,15 /proc/$p/stat; done",
+        Duration::from_secs(5),
+        "",
+    )
+    .ok()?;
+    Some(ran.text().split_whitespace().filter_map(|ticks| ticks.parse::<u64>().ok()).sum())
+}
+
+/// Waits until the encoder has gone idle, or ENCODER_CATCH_UP at most. An
+/// emulator's software encoder runs seconds behind a changing screen, and
+/// screenrecord drops whatever it has not encoded when it is interrupted:
+/// measured on Windows, 6.3 s of a changing screen came out as a 0.8 s clip
+/// when interrupted at once, and whole after waiting 6.8 s for the encoder.
+/// The size of the file on the device says nothing here, because the muxer
+/// holds the frames in memory until the end.
+fn wait_for_encoder(adb: &Path, serial: &str) {
+    let started = Instant::now();
+    let Some(mut last) = encoder_ticks(adb, serial) else { return };
+    let mut idle_since = Instant::now();
+    while started.elapsed() < ENCODER_CATCH_UP {
+        std::thread::sleep(Duration::from_millis(250));
+        let Some(now) = encoder_ticks(adb, serial) else { return };
+        if now.saturating_sub(last) > ENCODER_BUSY_TICKS {
+            idle_since = Instant::now();
+        }
+        last = now;
+        if idle_since.elapsed() >= ENCODER_IDLE {
+            return;
+        }
+    }
+}
+
+/// Asks a recorder to finish its file, and waits up to `patience` for it to
+/// exit. An interrupt, as Ctrl+C in a terminal: the recorder writes the movie
+/// out and exits, where a kill would leave a file that does not play.
+fn stop_recorder<R: Runtime>(app: &AppHandle<R>, recording: &mut Recording, patience: Duration) {
     let pid = recording.child.id();
     match recording.platform {
         Platform::Ios => {
-            // An interrupt, as Ctrl+C in a terminal: simctl writes the movie out
-            // and exits. A kill would leave a file that does not play.
             #[cfg(unix)]
             {
                 let _ = run(Path::new("/bin/kill"), &["-INT", &pid.to_string()], Duration::from_secs(5));
-            }
-            #[cfg(not(unix))]
-            {
-                let _ = pid;
             }
         }
         Platform::Android => {
@@ -1305,7 +1515,7 @@ fn finish_recording<R: Runtime>(app: &AppHandle<R>, mut recording: Recording) ->
             }
         }
     }
-    let deadline = Instant::now() + Duration::from_secs(20);
+    let deadline = Instant::now() + patience;
     loop {
         match recording.child.try_wait() {
             Ok(Some(_)) => break,
@@ -1319,8 +1529,18 @@ fn finish_recording<R: Runtime>(app: &AppHandle<R>, mut recording: Recording) ->
             Err(_) => break,
         }
     }
+}
+
+/// Stops a recorder once its encoder has caught up, then takes the movie.
+fn finish_recording<R: Runtime>(app: &AppHandle<R>, mut recording: Recording) -> Result<Vec<u8>, String> {
     if recording.platform == Platform::Android {
-        let adb = adb_path(&app.state::<CaptureState>()).ok_or("adb was not found")?;
+        if let Some(adb) = adb_path(&app.state::<CaptureState>()) {
+            wait_for_encoder(&adb, &recording.id);
+        }
+    }
+    stop_recorder(app, &mut recording, Duration::from_secs(20));
+    if recording.platform == Platform::Android {
+        let adb = adb_path(&app.state::<CaptureState>()).ok_or(NO_ADB)?;
         let target = recording.file.to_string_lossy().into_owned();
         let pulled = adb_ok(&adb, &recording.id, &["pull", DEVICE_RECORDING, &target], Duration::from_secs(60), "Could not copy the recording from the device");
         let _ = adb_shell(&adb, &recording.id, &format!("rm -f {DEVICE_RECORDING}"), Duration::from_secs(10), "");
@@ -1367,10 +1587,23 @@ pub async fn abs_capture_record_stop<R: Runtime>(
     Ok(Response::new(bytes))
 }
 
-/// Throw away the recordings one window started, without the movie.
+/// Stops a recording nobody will use and leaves nothing behind: no recorder,
+/// no file on the device, no file here.
+fn discard_recording<R: Runtime>(app: &AppHandle<R>, mut recording: Recording) {
+    stop_recorder(app, &mut recording, Duration::from_secs(5));
+    if recording.platform == Platform::Android {
+        if let Some(adb) = adb_path(&app.state::<CaptureState>()) {
+            let _ = adb_shell(&adb, &recording.id, &format!("rm -f {DEVICE_RECORDING}"), Duration::from_secs(10), "");
+        }
+    }
+    let _ = std::fs::remove_file(&recording.file);
+}
+
+/// Throws away the recordings one window started (all of them with `None`),
+/// on a thread `stop_all` waits for.
 fn drop_recordings<R: Runtime>(app: &AppHandle<R>, window: Option<&str>) {
+    let state = app.state::<CaptureState>();
     let dropped: Vec<(Release<Recording>, Recording)> = {
-        let state = app.state::<CaptureState>();
         let mut recordings = state.recordings.lock().unwrap();
         recordings
             .take_where(|recording| window.is_none_or(|label| recording.window == label))
@@ -1382,14 +1615,15 @@ fn drop_recordings<R: Runtime>(app: &AppHandle<R>, window: Option<&str>) {
         return;
     }
     let handle = app.clone();
-    std::thread::spawn(move || {
+    let cleanup = std::thread::spawn(move || {
         for (release, recording) in dropped {
-            let file = recording.file.clone();
-            let _ = finish_recording(&handle, recording);
-            let _ = std::fs::remove_file(file);
+            discard_recording(&handle, recording);
             drop(release);
         }
     });
+    let mut cleanups = state.cleanups.lock().unwrap();
+    cleanups.retain(|thread| !thread.is_finished());
+    cleanups.push(cleanup);
 }
 
 /// A window closed: its recordings stop.
@@ -1405,26 +1639,46 @@ pub fn on_page_load<R: Runtime>(webview: &tauri::Webview<R>, payload: &tauri::we
     }
 }
 
-/// The app is quitting: every recording stops and every status bar this app
-/// tidied is put back. Waits, briefly, because the process is about to end.
+/// How long quitting waits for the recordings being thrown away.
+const QUIT_CLEANUP: Duration = Duration::from_secs(10);
+
+/// The app is quitting: every recording stops and leaves nothing on its
+/// device, and every status bar this app tidied is put back. It waits, at
+/// most QUIT_CLEANUP for the recordings, because the process ends after this.
+/// A window closing first has already handed its recordings to a thread; the
+/// process ending with that thread between the recorder stopping and the file
+/// going left the file on the device.
 pub fn stop_all<R: Runtime>(app: &AppHandle<R>) {
+    drop_recordings(app, None);
     let state = app.state::<CaptureState>();
-    let recordings: Vec<Recording> = state.recordings.lock().unwrap().drain();
-    for mut recording in recordings {
-        kill_tree(recording.child.id());
-        let _ = recording.child.kill();
-        let _ = std::fs::remove_file(&recording.file);
+    let cleanups: Vec<std::thread::JoinHandle<()>> = state.cleanups.lock().unwrap().drain(..).collect();
+    let deadline = Instant::now() + QUIT_CLEANUP;
+    for cleanup in cleanups {
+        while !cleanup.is_finished() && Instant::now() < deadline {
+            std::thread::sleep(Duration::from_millis(25));
+        }
+        if cleanup.is_finished() {
+            let _ = cleanup.join();
+        }
     }
-    let tidied: Vec<(Platform, String)> = state.tidied.lock().unwrap().drain(..).collect();
     let adb = state.adb.lock().unwrap().clone();
-    for (platform, id) in tidied {
-        match platform {
+    // A Stop still saving belongs to a page that is going away with the app.
+    let saving = state.recordings.lock().unwrap().saving_keys();
+    for key in saving {
+        if let (Some(serial), Some(adb)) = (key.strip_prefix("Android:"), &adb) {
+            let line = format!("pkill -INT screenrecord; sleep 1; rm -f {DEVICE_RECORDING}");
+            let _ = adb_shell(adb, serial, &line, Duration::from_secs(8), "");
+        }
+    }
+    let tidied: Vec<Tidied> = state.tidied.lock().unwrap().drain(..).collect();
+    for entry in tidied {
+        match entry.platform {
             Platform::Ios => {
-                let _ = simctl(&["status_bar", &id, "clear"], Duration::from_secs(5));
+                let _ = simctl(&["status_bar", &entry.id, "clear"], Duration::from_secs(5));
             }
             Platform::Android => {
                 if let Some(adb) = &adb {
-                    let _ = adb_shell(adb, &id, ANDROID_UNTIDY, Duration::from_secs(5), "");
+                    let _ = adb_shell(adb, &entry.id, &android_untidy(entry.demo_allowed.as_deref()), Duration::from_secs(8), "");
                 }
             }
         }
@@ -1589,7 +1843,80 @@ mod tests {
         // A release for a device that is recording, not saving, leaves the recording alone.
         slots.lock().unwrap().release(ios);
         assert!(slots.lock().unwrap().check_free(ios).unwrap_err().contains("already recording"));
-        // Quitting takes what is still recording, not what is being saved.
-        assert_eq!(slots.lock().unwrap().drain(), vec!["panel"]);
+        // Quitting takes what is still recording, then knows every device still saving.
+        assert_eq!(slots.lock().unwrap().take_where(|_| true), vec![(ios.to_string(), "panel")]);
+        assert_eq!(slots.lock().unwrap().saving_keys(), vec![EMULATOR.to_string(), ios.to_string()]);
+    }
+
+    #[test]
+    fn a_device_runs_once_android_has_started() {
+        let booted = parse_props("15\nsdk_gphone64_x86_64\nOSG_Test_API_35\n1\n");
+        assert_eq!(
+            booted,
+            AndroidProps { release: "15".into(), model: "sdk_gphone64_x86_64".into(), avd: "OSG_Test_API_35".into(), booted: true }
+        );
+        // adb answers while Android is still starting, and sys.boot_completed is empty then.
+        assert!(!parse_props("15\nsdk_gphone64_x86_64\nOSG_Test_API_35\n\n").booted);
+        // A phone has no AVD name; its empty line keeps the others in place.
+        let phone = parse_props("11\nM2006C3LG\n\n1\n");
+        assert_eq!((phone.model.as_str(), phone.avd.as_str(), phone.booted), ("M2006C3LG", "", true));
+        assert_eq!(parse_props(""), AndroidProps::default());
+    }
+
+    #[test]
+    fn the_real_status_bar_comes_back_with_the_setting_it_had() {
+        assert!(ANDROID_TIDY.contains("-e wifi show -e level 4 -e fully true"));
+        assert_eq!(android_untidy(Some("0")), format!("{ANDROID_UNTIDY}; sleep 1; settings put global sysui_demo_allowed 0"));
+        assert_eq!(android_untidy(Some("null")), format!("{ANDROID_UNTIDY}; sleep 1; settings delete global sysui_demo_allowed >/dev/null"));
+        // Allowed before the tidy, or never read: only the exit.
+        assert_eq!(android_untidy(Some("1")), ANDROID_UNTIDY);
+        assert_eq!(android_untidy(None), ANDROID_UNTIDY);
+        // Anything else a device printed is never written back.
+        assert_eq!(android_untidy(Some("0; reboot")), ANDROID_UNTIDY);
+        assert_eq!(android_untidy(Some("")), ANDROID_UNTIDY);
+    }
+
+    #[test]
+    fn a_tidy_cut_short_still_knows_what_to_put_back() {
+        let state = CaptureState::default();
+        // Noted before the tidy runs. The tidy then fails half way, so
+        // nothing after this line is ever reached for it.
+        remember_tidy(&state, Platform::Android, "emulator-5554", Some("0".into()));
+        // Noting the same device again replaces its entry, never adds one.
+        remember_tidy(&state, Platform::Android, "emulator-5554", Some("0".into()));
+        let tidied = state.tidied.lock().unwrap();
+        assert_eq!(tidied.len(), 1);
+        assert_eq!(
+            android_untidy(tidied[0].demo_allowed.as_deref()),
+            format!("{ANDROID_UNTIDY}; sleep 1; settings put global sysui_demo_allowed 0")
+        );
+    }
+
+    #[test]
+    fn an_emulator_that_shuts_down_keeps_its_name_until_it_has_gone() {
+        let serial = || "emulator-5554".to_string();
+        let (running, known) = android_device(serial(), "device", Some(parse_props("15\nsdk_gphone64_x86_64\nOSG_Test_API_35\n1\n")), None);
+        assert_eq!((running.name.as_str(), running.state, running.os.as_str()), ("OSG Test API 35", "running", "Android 15"));
+        let known = known.expect("a device that answered is remembered");
+        assert_eq!(known.avd.as_deref(), Some("OSG_Test_API_35"));
+
+        // Measured on Windows: two seconds after `emu kill` adb still lists
+        // the emulator as "device" while its shell answers "error: closed",
+        // then "offline", then nothing.
+        let (closing, kept) = android_device(serial(), "device", None, Some(&known));
+        assert_eq!((closing.name.as_str(), closing.state, closing.os.as_str()), ("OSG Test API 35", "offline", "Android 15"));
+        assert_eq!(kept.as_ref(), Some(&known));
+        let (offline, kept) = android_device(serial(), "offline", None, kept.as_ref());
+        assert_eq!((offline.name.as_str(), offline.state), ("OSG Test API 35", "offline"));
+        assert_eq!(kept, Some(known));
+
+        // Never seen answering: the serial is all there is to show.
+        let (unknown, kept) = android_device(serial(), "device", None, None);
+        assert_eq!((unknown.name.as_str(), unknown.state), ("emulator-5554", "offline"));
+        assert_eq!(kept, None);
+        // A phone has no AVD, and its model is its name.
+        let (phone, kept) = android_device("YPKRA6VS754L6XTO".into(), "device", Some(parse_props("11\nM2006C3LG\n\n1\n")), None);
+        assert_eq!((phone.name.as_str(), phone.kind, phone.state), ("M2006C3LG", "phone", "running"));
+        assert_eq!(kept.and_then(|known| known.avd), None);
     }
 }

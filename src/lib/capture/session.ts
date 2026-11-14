@@ -1,6 +1,7 @@
 /**
  * Capture's state for this window: the device and app picked, the switches,
- * and the screenshots taken this sitting.
+ * the screenshots taken this sitting, and whether the iPhone Simulator can
+ * run on this computer.
  *
  * Outside React because two places read it: the Capture view, and the
  * Properties panel's button, which takes a screenshot from the picked device
@@ -10,7 +11,7 @@
  */
 
 import { useSyncExternalStore } from 'react';
-import type { CaptureDevice, CapturePlatform, CapturedShot } from './types';
+import type { CaptureDevice, CaptureDevices, CaptureMissing, CapturePlatform, CapturedShot } from './types';
 
 export type Appearance = 'as-set' | 'light' | 'dark';
 
@@ -25,6 +26,11 @@ export interface CaptureSession {
   advance: boolean;
   /** Newest first. */
   shots: CapturedShot[];
+  /**
+   * Why this computer has no iPhone Simulator ("mac" on Windows and Linux),
+   * null when it has one, undefined until a device listing has said.
+   */
+  iosMissing: CaptureMissing | null | undefined;
 }
 
 const STORAGE_KEY = 'osg-capture-prefs';
@@ -77,6 +83,7 @@ function current(): CaptureSession {
       appearance: stored.appearance ?? 'as-set',
       advance: stored.advance ?? true,
       shots: [],
+      iosMissing: undefined,
     };
   }
   return state;
@@ -90,6 +97,12 @@ export function updateCaptureSession(patch: Partial<CaptureSession>): void {
   state = { ...current(), ...patch };
   writeStored(state);
   listeners.forEach((listener) => listener());
+}
+
+/** Keeps what a device listing says about the iPhone Simulator on this computer. */
+export function noteListing(listed: CaptureDevices): void {
+  const iosMissing = listed.ios.missing ?? null;
+  if (current().iosMissing !== iosMissing) updateCaptureSession({ iosMissing });
 }
 
 export function addCapturedShot(shot: CapturedShot): void {
@@ -109,6 +122,7 @@ const SERVER_SNAPSHOT: CaptureSession = {
   appearance: 'as-set',
   advance: true,
   shots: [],
+  iosMissing: undefined,
 };
 
 export function useCaptureSession(): CaptureSession {

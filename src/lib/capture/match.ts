@@ -29,21 +29,44 @@ export function deviceFit(target: Pick<CaptureTarget, 'deviceLabel' | 'platform'
 
 const FIT_RANK: Record<DeviceFit, number> = { 'same-model': 0, 'same-platform': 1, other: 2 };
 
+export interface DeviceChoice {
+  /**
+   * Phones count. Off wherever Capture chooses by itself: a phone on the desk
+   * is someone's phone, and a tidy changes its status bar.
+   */
+  phones?: boolean;
+  /** A device of the other platform counts, last. Off for an iPhone frame that must not get an Android screen. */
+  otherPlatform?: boolean;
+}
+
 /**
  * The running device that suits the frame best, or null when none runs. A
  * tie keeps the order the devices came in.
  */
 export function bestRunningDevice(
   target: Pick<CaptureTarget, 'deviceLabel' | 'platform'> | null,
-  devices: CaptureDevice[]
+  devices: CaptureDevice[],
+  { phones = true, otherPlatform = true }: DeviceChoice = {}
 ): CaptureDevice | null {
-  const running = devices.filter((device) => device.state === 'running');
+  const running = devices.filter((device) => device.state === 'running' && (phones || device.kind !== 'phone'));
   if (!target) return running[0] ?? null;
   let best: CaptureDevice | null = null;
   for (const device of running) {
-    if (!best || FIT_RANK[deviceFit(target, device)] < FIT_RANK[deviceFit(target, best)]) best = device;
+    const fit = deviceFit(target, device);
+    if (fit === 'other' && !otherPlatform) continue;
+    if (!best || FIT_RANK[fit] < FIT_RANK[deviceFit(target, best)]) best = device;
   }
   return best;
+}
+
+/**
+ * How a phone is connected, for telling one phone on USB and Wi-Fi at once
+ * apart: two entries with the same name. Null for a simulator or emulator.
+ */
+export function phoneConnection(device: Pick<CaptureDevice, 'kind' | 'id'>): 'usb' | 'wifi' | null {
+  if (device.kind !== 'phone') return null;
+  // Wireless debugging names a phone by its mDNS service or by ip:port.
+  return /\._adb-tls-connect\._tcp$/.test(device.id) || /:\d+$/.test(device.id) ? 'wifi' : 'usb';
 }
 
 /** The simulator model with the frame's own name, for making one the Mac lacks. */

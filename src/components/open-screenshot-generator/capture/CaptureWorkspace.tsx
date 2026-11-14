@@ -8,8 +8,8 @@
 // frames by language (CaptureGrid). Two ways to fill it:
 //
 //   - By hand: choose a cell, go to the screen on the device, take it. With
-//     "Next frame" on, the next cell in the row is chosen, so clicking through
-//     the app and pressing Take fills a whole row.
+//     "Go to the next frame" on, the next cell in the row is chosen, so
+//     clicking through the app and pressing Take fills a whole row.
 //   - On its own: a frame that knows how to reach its screen (the app's first
 //     screen, or a link) can be taken in every language. Each screenshot then
 //     starts from a fresh launch in that language, waits until the screen
@@ -52,7 +52,7 @@ import { useToast } from '@/hooks/use-toast';
 import * as device$ from '@/lib/capture/desktop';
 import { captureCells, captureTargets, cellKey, type CaptureCell, type CaptureTarget } from '@/lib/capture/frames';
 import { appLanguageFor } from '@/lib/capture/locales';
-import { bestRunningDevice, deviceFit, modelForFrame, shapeDifference, SHAPE_WARNING } from '@/lib/capture/match';
+import { bestRunningDevice, deviceFit, modelForFrame, phoneConnection, shapeDifference, SHAPE_WARNING } from '@/lib/capture/match';
 import type { ClipPlacement, ShotPlacement } from '@/lib/capture/place';
 import { pause, waitUntilStill } from '@/lib/capture/settle';
 import { getCaptureSession, updateCaptureSession, useCaptureSession, type Appearance } from '@/lib/capture/session';
@@ -61,7 +61,7 @@ import type { CaptureApp, CaptureDevice, CaptureDevices, CapturedShot } from '@/
 import { isTauri, openExternal } from '@/lib/desktop';
 import { getBaseLocale, getProjectLocales } from '@/lib/i18n/localization';
 import { localeName } from '@/lib/i18n/locales';
-import { saveMedia } from '@/lib/mediaStore';
+import { deleteMedia, saveMedia } from '@/lib/mediaStore';
 import { useThumbnail } from '@/lib/capture/thumbnails';
 import type { ArtboardState, CaptureScreen } from '@/types/artboard';
 import { cn } from '@/lib/utils';
@@ -71,6 +71,8 @@ import { LiveView } from './LiveView';
 
 const DESKTOP_URL = 'https://openscrgen.app';
 const DESKTOP_ONLY = 'Needs the desktop app';
+/** Android's screenrecord stops by itself after 3 minutes (Capture sets no --time-limit). */
+const ANDROID_RECORD_LIMIT = 180_000;
 
 /** A frame to choose, from whoever switched to Capture. A new nonce chooses again. */
 export interface CaptureRequest {
@@ -109,12 +111,18 @@ export interface CaptureWorkspaceProps {
 }
 
 const STATE_TEXT: Record<CaptureDevice['state'], string> = {
-  running: 'Running',
-  starting: 'Starting',
+  running: 'Ready',
+  starting: 'Starting up',
   off: 'Off',
-  unauthorized: 'Waiting for your OK on the phone',
-  offline: 'Not answering',
+  unauthorized: 'Not allowed yet',
+  offline: 'Not responding',
 };
+
+/** What a device is, beside its name in the picker. */
+function deviceKind(device: CaptureDevice): string {
+  if (device.kind === 'phone') return phoneConnection(device) === 'wifi' ? 'Phone on Wi-Fi' : 'Phone on USB';
+  return device.platform === 'android' ? 'Virtual device' : device.os;
+}
 
 function deviceValue(device: Pick<CaptureDevice, 'platform' | 'id'>): string {
   return `${device.platform}|${device.id}`;
@@ -164,7 +172,7 @@ function ShotThumb({ shot, onClick, reason }: { shot: CapturedShot; onClick: () 
       <button
         type="button"
         onClick={onClick}
-        title={`${shot.deviceName}${shot.language ? `, ${localeName(shot.language)}` : ''}, ${time}. Click to put it in the chosen frame`}
+        title={`${shot.deviceName}${shot.language ? `, ${localeName(shot.language)}` : ''}, ${time}. Click to put it in the selected frame`}
         className="w-14 shrink-0 overflow-hidden rounded-lg border bg-muted hover:ring-2 hover:ring-primary"
         style={{ aspectRatio: shot.width && shot.height ? shot.width / shot.height : 0.46 }}
       >
@@ -238,11 +246,19 @@ export function CaptureWorkspace({
 
   // ---- devices --------------------------------------------------------------
   const [devices, setDevices] = useState<CaptureDevices | null>(null);
+  const devicesRef = useRef(devices);
+  devicesRef.current = devices;
   const [listError, setListError] = useState<string | null>(null);
   const [starting, setStarting] = useState<string[]>([]);
   const startingRef = useRef(starting);
   startingRef.current = starting;
-  const all = useMemo(() => (devices ? [...devices.ios.devices, ...devices.android.devices] : []), [devices]);
+  const all = useMemo(() => {
+    const listed = devices ? [...devices.ios.devices, ...devices.android.devices] : [];
+    const picked = session.device;
+    // A picked device that dropped out of the list stays in it, not
+    // answering, so the picker still says which device is picked.
+    return picked?.state === 'offline' && !listed.some((candidate) => sameDevice(candidate, picked)) ? [...listed, picked] : listed;
+  }, [devices, session.device]);
   const device = useMemo(
     () => (session.device ? all.find((candidate) => sameDevice(candidate, session.device)) ?? null : null),
     [all, session.device]
@@ -265,13 +281,20 @@ export function CaptureWorkspace({
     }
   }, []);
 
-  const refresh = useCallback(async () => {
-    if (!isTauri()) return;
+  // Every device listed this sitting. A picked device that drops out of one
+  // listing is kept; one remembered from another sitting is not.
+  const seenRef = useRef(new Set<string>());
+
+  const refresh = useCallback(async (): Promise<CaptureDevices | null> => {
+    if (!isTauri()) return null;
     try {
-      const listed = await device$.listDevices();
+      const fetched = await device$.listDevices();
+      // adb did not answer: the Android devices are unknown, not gone.
+      const listed = fetched.android.error && devicesRef.current ? { ...fetched, android: devicesRef.current.android } : fetched;
       setDevices(listed);
-      setListError(null);
+      setListError(fetched.android.error ?? null);
       const everything = [...listed.ios.devices, ...listed.android.devices];
+      everything.forEach((candidate) => seenRef.current.add(deviceValue(candidate)));
       const picked = getCaptureSession().device;
       // An emulator that was off is listed as `avd:<name>`; once it runs it
       // has an adb serial instead, under the same name.
@@ -287,8 +310,18 @@ export function CaptureWorkspace({
         if (!picked || !sameDevice(fresh, picked) || fresh.state !== picked.state || fresh.name !== picked.name || fresh.os !== picked.os) {
           updateCaptureSession({ device: fresh });
         }
+      } else if (picked && seenRef.current.has(deviceValue(picked))) {
+        // The picked device dropped out of the list, and Capture never moves
+        // to another one by itself. An emulator that stopped is picked again
+        // under its AVD, off, so Start shows; anything else stays picked, not
+        // answering, until it is back or the user picks another.
+        const avd = picked.kind === 'emulator' ? everything.find((candidate) => candidate.id.startsWith('avd:') && candidate.name === picked.name) : undefined;
+        if (avd) updateCaptureSession({ device: avd });
+        else if (picked.state !== 'offline') updateCaptureSession({ device: { ...picked, state: 'offline' } });
       } else {
-        const best = bestRunningDevice(selectedTargetRef.current, everything);
+        // Nothing picked this sitting: a running simulator or emulator. Never
+        // a phone, which is someone's phone, and a tidy changes its status bar.
+        const best = bestRunningDevice(selectedTargetRef.current, everything, { phones: false });
         if (!sameDevice(best, picked)) updateCaptureSession({ device: best });
       }
       // None of the user's apps was on the device last time: look again, so an
@@ -296,8 +329,10 @@ export function CaptureWorkspace({
       const now = getCaptureSession().device;
       if (now?.state === 'running' && appsRef.current?.length === 0) void loadApps(now);
       setStarting((ids) => ids.filter((id) => everything.some((candidate) => candidate.id === id && candidate.state !== 'running')));
+      return listed;
     } catch (error) {
       setListError(message(error));
+      return null;
     }
   }, [loadApps]);
 
@@ -306,8 +341,12 @@ export function CaptureWorkspace({
     let stopped = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const tick = async () => {
-      await refresh();
-      if (!stopped) timer = setTimeout(tick, startingRef.current.length > 0 ? 2000 : 5000);
+      const listed = await refresh();
+      // Quicker while a device starts, so Running shows soon after it has.
+      const booting =
+        startingRef.current.length > 0 ||
+        !!listed && [...listed.ios.devices, ...listed.android.devices].some((candidate) => candidate.state === 'starting');
+      if (!stopped) timer = setTimeout(tick, booting ? 2000 : 5000);
     };
     void tick();
     return () => {
@@ -376,8 +415,20 @@ export function CaptureWorkspace({
   // ---- switches -------------------------------------------------------------
   useEffect(() => {
     if (!running || !active) return;
-    const work = session.tidy ? ensureTidy(running) : untidy(running);
-    work.catch((error) => toast({ title: 'The status bar did not change', description: message(error) }));
+    const target = running;
+    const wanted = session.tidy;
+    let gone = false;
+    const work = () => (wanted ? ensureTidy(target) : untidy(target));
+    // Twice, a few seconds apart: a device that has only just started can
+    // still turn the first one down.
+    work()
+      .catch(() => new Promise((resolve) => setTimeout(resolve, 3000)).then(() => (gone ? undefined : work())))
+      .catch((error) => {
+        if (!gone) toast({ title: 'The status bar did not change', description: message(error) });
+      });
+    return () => {
+      gone = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runningKey, session.tidy, active]);
 
@@ -387,13 +438,16 @@ export function CaptureWorkspace({
     try {
       await device$.setAppearance(running.platform, running.id, appearance === 'dark');
     } catch (error) {
-      toast({ title: 'Light or dark did not change', description: message(error) });
+      toast({ title: 'Light or dark mode did not change', description: message(error) });
     }
   };
 
   // ---- taking ---------------------------------------------------------------
   const [busy, setBusy] = useState<string | null>(null);
+  // About the last screenshot or recording: cleared when another device or
+  // frame is chosen, so it never describes a frame it is not about.
   const [note, setNote] = useState<string | null>(null);
+  useEffect(() => setNote(null), [runningKey]);
   const [flashKey, setFlashKey] = useState<string | null>(null);
   const [workingKey, setWorkingKey] = useState<string | null>(null);
   const [pending, setPending] = useState<Map<string, string>>(() => new Map());
@@ -433,19 +487,19 @@ export function CaptureWorkspace({
   const shapeNote = (target: CaptureTarget, width: number, height: number, from: string): string | null => {
     const difference = shapeDifference(target.screenAspect, width, height);
     if (difference === null || difference < SHAPE_WARNING) return null;
-    return `The ${from} screen is a different shape from the ${target.deviceLabel} frame, so some of the screenshot is cut off. A simulator or emulator of the same model fits exactly.`;
+    return `The screen of ${from} is a different shape from this ${target.deviceLabel} frame, so the edges of the screenshot are cut off. A virtual ${target.deviceLabel} fits exactly.`;
   };
 
   const place = (placements: ShotPlacement[], detail: string): boolean => {
     const result = onPlaceShots(placements, detail);
     if (!result) {
-      toast({ title: 'The screenshots did not go into the project', description: 'The editor was busy. They are under Taken this session.' });
+      toast({ title: 'The screenshots did not go into the project', description: 'The editor was busy. They are under Recent screenshots.' });
       return false;
     }
     if (result.missed > 0) {
       toast({
         title: result.missed === 1 ? 'One screenshot found no frame' : `${result.missed} screenshots found no frame`,
-        description: 'The frame was deleted or is hidden in that language. The screenshots are under Taken this session.',
+        description: 'The frame was deleted or is hidden in that language. The screenshots are under Recent screenshots.',
       });
     }
     return result.missed < placements.length;
@@ -464,7 +518,7 @@ export function CaptureWorkspace({
       if (getProjectId() !== projectId) {
         toast({
           title: 'The screenshot did not go into the project',
-          description: 'Another project is open now. The screenshot is under Taken this session.',
+          description: 'Another project is open now. The screenshot is under Recent screenshots.',
         });
         return;
       }
@@ -524,17 +578,35 @@ export function CaptureWorkspace({
 
   const stopRecording = async () => {
     if (!recording) return;
-    const { device: from, key, projectId, frame, title } = recording;
+    const { device: from, key, projectId, frame, title, startedAt } = recording;
+    // What the user recorded: up to Stop, and at most Android's 3 minutes.
+    const recorded = Math.min(Date.now() - startedAt, from.platform === 'android' ? ANDROID_RECORD_LIMIT : Infinity) / 1000;
     setRecording(null);
     setBusy('Saving the recording');
+    setNote(null);
     try {
       const blob = await device$.stopRecording(from.platform, from.id);
       const { id, probe } = await saveMedia(blob, `${from.name} recording.mp4`);
+      // Android writes a frame only when the screen changes, so a screen that
+      // stood still comes back as one picture with no length.
+      if (from.platform === 'android' && probe.duration < 0.5) {
+        await deleteMedia(id).catch(() => undefined);
+        toast({
+          title: 'The recording was not used',
+          description: 'Nothing moved on the screen while Capture recorded. Use your app on the device during the recording.',
+        });
+        return;
+      }
       const outcome = await onPlaceClip(
         projectId,
         { ...frame, mediaId: id, width: probe.width, height: probe.height, duration: probe.duration },
         title
       );
+      if (outcome.placed && from.platform === 'android' && recorded - probe.duration > 1) {
+        setNote(
+          `The recording is ${probe.duration.toFixed(1)} seconds long, not ${recorded.toFixed(1)}. Android records only while something on the screen moves, and nothing moved at the end.`
+        );
+      }
       if (outcome.placed && outcome.projectName === null) flash(key);
       else if (outcome.placed) {
         toast({ title: `The recording went into ${outcome.projectName}`, description: 'That project was open when you clicked Record.' });
@@ -614,14 +686,16 @@ export function CaptureWorkspace({
         if (getProjectId() !== projectId) {
           toast({
             title: 'The screenshots did not go into the project',
-            description: 'Another project is open now. The screenshots are under Taken this session.',
+            description: 'Another project is open now. The screenshots are under Recent screenshots.',
           });
         } else if (place(placements, placements.length === 1 ? '1 screen' : `${placements.length} screens`)) {
           toast({
             title: placements.length === 1 ? 'Took 1 screenshot' : `Took ${placements.length} screenshots`,
             description:
               moving > 0
-                ? `${moving === 1 ? 'One screen' : `${moving} screens`} kept moving and ${moving === 1 ? 'was' : 'were'} taken anyway. Check the grid.`
+                ? moving === 1
+                  ? 'One screen was still moving when Capture took it. Check it in the grid.'
+                  : `${moving} screens were still moving when Capture took them. Check them in the grid.`
                 : undefined,
           });
         }
@@ -646,37 +720,40 @@ export function CaptureWorkspace({
   const deviceReason = !desktop ? DESKTOP_ONLY : !running ? 'Start a device first' : null;
   const cellReason = !selected ? 'Choose a frame in the grid first' : selected.hidden ? `${frameTitle(selected.target)} is hidden in ${localeName(selected.locale)}` : null;
   const busyReason = run ? 'Wait for Capture to finish, or stop it' : busy ? 'Wait for the last step to finish' : null;
-  const takeReason = firstReason(deviceReason, cellReason, selected?.target.kind === 'recording' ? 'This frame plays a recording. Use Record' : null, busyReason, recording ? 'Stop the recording first' : null);
+  const takeReason = firstReason(deviceReason, cellReason, selected?.target.kind === 'recording' ? 'This frame holds a recording. Click Record' : null, busyReason, recording ? 'Stop the recording first' : null);
   const recordReason = firstReason(deviceReason, cellReason, busyReason);
   const appReason = firstReason(deviceReason, !appId ? 'Choose your app first' : null, busyReason, recording ? 'Stop the recording first' : null);
   const everyReason = firstReason(
     appReason,
     cellReason,
-    selected?.target.kind === 'recording' ? 'Recordings are taken one at a time' : null,
-    selected && !selected.target.screen ? 'Set how Capture gets to this screen first, with the button above its column' : null
+    selected?.target.kind === 'recording' ? 'Recordings are made one at a time' : null,
+    selected && !selected.target.screen ? 'First tell Capture how to find this screen: click the button next to its name in the grid' : null
   );
   const everythingReason = firstReason(
     appReason,
-    targets.some((target) => target.kind === 'screenshot' && target.screen) ? null : 'Set how Capture gets to at least one screen first'
+    targets.some((target) => target.kind === 'screenshot' && target.screen) ? null : 'First tell Capture how to find at least one screen'
   );
   const screenReason = !desktop ? DESKTOP_ONLY : null;
-  const shotReason = firstReason(cellReason, selected?.target.kind === 'recording' ? 'This frame plays a recording' : null, working ? 'Wait for Capture to finish' : null);
+  const shotReason = firstReason(cellReason, selected?.target.kind === 'recording' ? 'This frame holds a recording' : null, working ? 'Wait for Capture to finish' : null);
 
   const missingNotes: string[] = [];
   if (desktop && devices) {
     const wantsIos = targets.some((target) => target.platform === 'ios');
     const wantsAndroid = targets.some((target) => target.platform === 'android');
-    if (devices.ios.missing === 'xcode') missingNotes.push('For iPhone and iPad screenshots, install Xcode from the Mac App Store. Xcode comes with the iPhone Simulator.');
-    if (devices.ios.missing === 'mac' && wantsIos) missingNotes.push('The iPhone Simulator needs a Mac with Xcode.');
+    if (devices.ios.missing === 'xcode') missingNotes.push('For iPhone and iPad screenshots, install Xcode from the Mac App Store. Xcode comes with virtual iPhones and iPads.');
+    if (devices.ios.missing === 'mac' && wantsIos) missingNotes.push('Virtual iPhones need a Mac with Xcode. On this computer, Capture works with Android.');
     if (devices.android.missing === 'sdk' && (wantsAndroid || !wantsIos)) {
-      missingNotes.push('For Android screenshots, install Android Studio and make an emulator in it, or connect a phone with USB debugging on.');
+      missingNotes.push('For Android screenshots, install Android Studio. Then add a virtual device in it, or connect your phone with USB debugging on.');
     }
   }
 
   const iosDevices = all.filter((candidate) => candidate.platform === 'ios');
   const androidDevices = all.filter((candidate) => candidate.platform === 'android');
   const fit = selectedTarget && running ? deviceFit(selectedTarget, running) : null;
-  const elapsed = recording ? formatClock(Date.now() - recording.startedAt) : null;
+  const recordingMs = recording ? Date.now() - recording.startedAt : 0;
+  // Android stops recording by itself at 3 minutes, and the clock with it.
+  const recordingEnded = recording?.device.platform === 'android' && recordingMs >= ANDROID_RECORD_LIMIT;
+  const elapsed = recording ? formatClock(recordingEnded ? ANDROID_RECORD_LIMIT : recordingMs) : null;
   const liveAspect = selectedTarget?.screenAspect ?? 0.46;
 
   return (
@@ -689,7 +766,7 @@ export function CaptureWorkspace({
           <h1 id="capture-view-title" className="text-sm font-semibold">
             Capture
           </h1>
-          <p className="truncate text-xs text-muted-foreground">Screenshots of your app from a simulator or emulator, straight into your artboards</p>
+          <p className="truncate text-xs text-muted-foreground">Take screenshots of your app and put them straight into your artboards</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={onBackToEditor}>
@@ -705,7 +782,7 @@ export function CaptureWorkspace({
               <div className="space-y-3 rounded-lg border bg-muted/40 p-4 text-sm">
                 <p className="font-medium">Capture needs the desktop app</p>
                 <p className="text-xs text-muted-foreground">
-                  The desktop app takes screenshots from the iPhone Simulator on a Mac, and from Android emulators and phones on Mac, Windows and Linux.
+                  The desktop app takes screenshots of your app on Android phones and virtual Android devices on Mac, Windows and Linux, and on virtual iPhones on a Mac.
                 </p>
                 <Button size="sm" className="gap-1.5" onClick={() => void openExternal(DESKTOP_URL)}>
                   <DownloadIcon className="h-3.5 w-3.5" />
@@ -717,7 +794,7 @@ export function CaptureWorkspace({
 
           <Section title="Device">
             <div className="flex items-center gap-1.5">
-              <Gate block reason={!desktop ? DESKTOP_ONLY : all.length === 0 ? 'No simulator or emulator found yet' : run ? 'Wait for Capture to finish, or stop it' : null}>
+              <Gate block reason={!desktop ? DESKTOP_ONLY : all.length === 0 ? 'No devices found yet' : run ? 'Wait for Capture to finish, or stop it' : null}>
                 <Select value={device ? deviceValue(device) : ''} onValueChange={pickDevice}>
                   <SelectTrigger className="h-9 min-w-0 flex-1 text-sm" aria-label="Device">
                     <SelectValue placeholder="Choose a device" />
@@ -725,12 +802,12 @@ export function CaptureWorkspace({
                   <SelectContent>
                     {iosDevices.length > 0 && (
                       <SelectGroup>
-                        <SelectLabel className="text-xs">iPhone and iPad simulators</SelectLabel>
+                        <SelectLabel className="text-xs">Virtual iPhones and iPads</SelectLabel>
                         {iosDevices.map((candidate) => (
                           <SelectItem key={deviceValue(candidate)} value={deviceValue(candidate)} className="text-sm">
                             {candidate.name}
                             <span className="ml-1.5 text-xs text-muted-foreground">
-                              {candidate.os}, {STATE_TEXT[candidate.state]}
+                              {deviceKind(candidate)}, {STATE_TEXT[candidate.state]}
                             </span>
                           </SelectItem>
                         ))}
@@ -743,7 +820,7 @@ export function CaptureWorkspace({
                           <SelectItem key={deviceValue(candidate)} value={deviceValue(candidate)} className="text-sm">
                             {candidate.name}
                             <span className="ml-1.5 text-xs text-muted-foreground">
-                              {candidate.kind === 'phone' ? 'Phone' : candidate.os}, {STATE_TEXT[candidate.state]}
+                              {deviceKind(candidate)}, {STATE_TEXT[candidate.state]}
                             </span>
                           </SelectItem>
                         ))}
@@ -771,7 +848,7 @@ export function CaptureWorkspace({
             {device && (
               <p className="flex items-center gap-1.5 text-xs text-muted-foreground" data-testid="capture-device-state">
                 <CircleIcon className={cn('h-2 w-2', device.state === 'running' ? 'fill-green-500 text-green-500' : 'fill-muted-foreground/40 text-muted-foreground/40')} />
-                {starting.includes(device.id) && device.state !== 'running' ? 'Starting' : STATE_TEXT[device.state]}
+                {starting.includes(device.id) && device.state !== 'running' ? STATE_TEXT.starting : STATE_TEXT[device.state]}
                 {device.os && device.state === 'running' ? `, ${device.os}` : null}
               </p>
             )}
@@ -782,22 +859,22 @@ export function CaptureWorkspace({
               </Button>
             )}
             {device?.state === 'unauthorized' && (
-              <p className="text-xs text-muted-foreground">Unlock the phone and allow USB debugging for this computer.</p>
+              <p className="text-xs text-muted-foreground">Unlock the phone, and tap Allow when it asks about USB debugging.</p>
             )}
             {wantedModel && !hasWantedSimulator && desktop && (
               <div className="space-y-1.5 rounded-lg border border-dashed p-3">
                 <p className="text-xs text-muted-foreground">
-                  The frame is {withArticle(wantedModel.name)}. A simulator of the same model fits the frame exactly.
+                  This frame is {withArticle(wantedModel.name)}. A virtual {wantedModel.name} fits it exactly.
                 </p>
                 <Button size="sm" variant="outline" className="w-full gap-1.5" disabled={making} onClick={() => void makeSimulator()}>
                   {making ? <Loader2Icon className="h-3.5 w-3.5 animate-spin" /> : <PlusIcon className="h-3.5 w-3.5" />}
-                  Make {withArticle(wantedModel.name)} simulator
+                  Add a virtual {wantedModel.name}
                 </Button>
               </div>
             )}
             {fit === 'other' && selectedTarget && (
               <p className="text-xs text-muted-foreground">
-                The frame is {withArticle(selectedTarget.deviceLabel)}, but {running?.name} runs {running?.platform === 'ios' ? 'iOS' : 'Android'}.
+                This frame is {withArticle(selectedTarget.deviceLabel)}, but {running?.name} runs {running?.platform === 'ios' ? 'iOS' : 'Android'}.
               </p>
             )}
             {missingNotes.map((text) => (
@@ -806,7 +883,11 @@ export function CaptureWorkspace({
               </p>
             ))}
             {desktop && devices && all.length === 0 && missingNotes.length === 0 && (
-              <p className="text-xs text-muted-foreground">No simulators or emulators yet. Make one in Xcode or Android Studio, and the new device shows up here.</p>
+              <p className="text-xs text-muted-foreground">
+                {devices.ios.missing === 'mac'
+                  ? 'No devices found yet. Add a virtual device in Android Studio, or connect an Android phone with USB debugging on, and it shows up here.'
+                  : 'No devices found yet. Add a virtual device in Xcode or Android Studio, or connect an Android phone with USB debugging on, and it shows up here.'}
+              </p>
             )}
             {listError && <p className="text-xs text-destructive">{listError}</p>}
           </Section>
@@ -818,12 +899,18 @@ export function CaptureWorkspace({
             aspect={liveAspect}
             emptyText={
               !desktop
-                ? 'The screen of your simulator or emulator shows here'
+                ? "Your device's screen shows here"
                 : running
-                  ? `Waiting for the screen of ${running.name}`
-                  : device
-                    ? `Start ${device.name} to see its screen here`
-                    : 'Choose a device to see its screen here'
+                  ? `Loading the screen of ${running.name}`
+                  : !device
+                    ? 'Choose a device to see its screen here'
+                    : device.state === 'starting' || starting.includes(device.id)
+                      ? `${device.name} is starting up`
+                      : device.state === 'offline'
+                        ? `${device.name} is not responding`
+                        : device.state === 'unauthorized'
+                          ? `Tap Allow on ${device.name}`
+                          : `Start ${device.name} to see its screen here`
             }
             onTake={selectedTarget?.kind === 'recording' ? undefined : () => void takeOne()}
             takeReason={takeReason}
@@ -834,12 +921,16 @@ export function CaptureWorkspace({
             {recording ? (
               <Button className="w-full gap-2" variant="destructive" onClick={() => void stopRecording()}>
                 <SquareIcon className="h-4 w-4" />
-                Stop and use the recording {elapsed}
+                Stop recording {elapsed}
               </Button>
             ) : selectedTarget?.kind === 'recording' ? (
               <Gate block reason={recordReason}>
                 <Button className="w-full gap-2" onClick={() => void startRecording()}>
-                  {busy === 'Starting the recording' ? <Loader2Icon className="h-4 w-4 animate-spin" /> : <CircleIcon className="h-4 w-4 fill-current" />}
+                  {busy === 'Starting the recording' || busy === 'Saving the recording' ? (
+                    <Loader2Icon className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <CircleIcon className="h-4 w-4 fill-current" />
+                  )}
                   Record
                 </Button>
               </Gate>
@@ -853,18 +944,29 @@ export function CaptureWorkspace({
             )}
             {recording ? (
               <p className="text-center text-xs text-muted-foreground" data-testid="capture-target">
-                Goes into {recording.title}
+                The recording goes into {recording.title}
               </p>
             ) : (
               selected && (
                 <p className="text-center text-xs text-muted-foreground" data-testid="capture-target">
-                  Goes into {frameTitle(selected.target)}, {localeName(selected.locale)}
+                  The {selected.target.kind === 'recording' ? 'recording' : 'screenshot'} goes into {frameTitle(selected.target)}, {localeName(selected.locale)}
                 </p>
               )
             )}
             {appLocale && selected && appLocale !== selected.locale && !run && (
               <p className="text-center text-xs text-muted-foreground">
-                Your app shows {localeName(appLocale)} now. Click Open in {localeName(selected.locale)} in the grid first.
+                Your app is in {localeName(appLocale)} right now. Click Open app in the {localeName(selected.locale)} row first.
+              </p>
+            )}
+            {busy === 'Saving the recording' && (
+              // An emulator's encoder can take seconds to catch up after Stop.
+              <p className="text-center text-xs text-muted-foreground" role="status">
+                Saving the recording
+              </p>
+            )}
+            {recordingEnded && (
+              <p className="rounded-md bg-muted p-2 text-xs text-muted-foreground">
+                Android records 3 minutes at most. Click Stop recording to keep those 3 minutes.
               </p>
             )}
             {note && <p className="rounded-md bg-muted p-2 text-xs text-muted-foreground">{note}</p>}
@@ -895,14 +997,16 @@ export function CaptureWorkspace({
             </Gate>
             {running && apps && apps.length === 0 && (
               <p className="text-xs text-muted-foreground">
-                None of your apps is on {running.name} yet. Run your app on {running.name} once from {running.platform === 'ios' ? 'Xcode' : 'Android Studio'}, then choose your app here.
+                {running.platform === 'ios'
+                  ? `Your app is not on ${running.name} yet. Run it on ${running.name} once from Xcode, then choose it here.`
+                  : `Your app is not on ${running.name} yet. Install it on ${running.name}, then choose it here.`}
               </p>
             )}
             {app && (
               <p className="text-xs text-muted-foreground">
                 {running?.platform === 'ios'
-                  ? 'Capture opens your app with the launch argument -OSGScreenshots YES. Your app can read -OSGScreenshots to show sample content.'
-                  : 'Capture opens your app with the intent extra osg_screenshots set to true. Your app can read osg_screenshots to show sample content.'}
+                  ? 'For developers: Capture opens your app with the launch argument -OSGScreenshots YES, so your app can show example content.'
+                  : 'For developers: Capture opens your app with the intent extra osg_screenshots set to true, so your app can show example content.'}
               </p>
             )}
           </Section>
@@ -911,18 +1015,21 @@ export function CaptureWorkspace({
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-0.5">
                 <Label htmlFor="capture-tidy" className="text-sm">
-                  Tidy status bar
+                  Clean status bar
                 </Label>
-                <p className="text-xs text-muted-foreground">9:41, full signal and a full battery</p>
+                <p className="text-xs text-muted-foreground">Shows 9:41, full signal and a full battery</p>
+                {running?.kind === 'phone' && session.tidy && (
+                  <p className="text-xs text-muted-foreground">Some phones keep their real time and battery</p>
+                )}
               </div>
               <Switch id="capture-tidy" checked={session.tidy} onCheckedChange={(tidy) => updateCaptureSession({ tidy })} disabled={!desktop} />
             </div>
             <div className="space-y-1">
-              <p className="text-sm">Light or dark</p>
-              <div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1" role="radiogroup" aria-label="Light or dark">
+              <p className="text-sm">Light or dark mode</p>
+              <div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1" role="radiogroup" aria-label="Light or dark mode">
                 {(
                   [
-                    { value: 'as-set', label: 'As is', icon: SmartphoneIcon },
+                    { value: 'as-set', label: 'No change', icon: SmartphoneIcon },
                     { value: 'light', label: 'Light', icon: SunIcon },
                     { value: 'dark', label: 'Dark', icon: MoonIcon },
                   ] as const
@@ -948,9 +1055,9 @@ export function CaptureWorkspace({
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-0.5">
                 <Label htmlFor="capture-advance" className="text-sm">
-                  Next frame after each screenshot
+                  Go to the next frame
                 </Label>
-                <p className="text-xs text-muted-foreground">Fill a row while you go through your app</p>
+                <p className="text-xs text-muted-foreground">After each screenshot, so you can fill a row while you go through your app</p>
               </div>
               <Switch id="capture-advance" checked={session.advance} onCheckedChange={(advance) => updateCaptureSession({ advance })} />
             </div>
@@ -961,7 +1068,7 @@ export function CaptureWorkspace({
           {noProject ? (
             <div className="m-auto max-w-sm space-y-3 text-center">
               <p className="text-sm font-medium">Open a project first</p>
-              <p className="text-xs text-muted-foreground">Capture fills the phone frames of the project open in the editor.</p>
+              <p className="text-xs text-muted-foreground">Capture puts screenshots into the phone frames of the project open in the editor.</p>
               <Button size="sm" onClick={onBackToEditor}>
                 Back to the editor
               </Button>
@@ -982,16 +1089,16 @@ export function CaptureWorkspace({
                     variant="outline"
                     size="sm"
                     className="gap-1.5"
-                    onClick={() => selectedTarget && void runJobs(everyLanguageJobs(selectedTarget), `${frameTitle(selectedTarget)} in every language`)}
+                    onClick={() => selectedTarget && void runJobs(everyLanguageJobs(selectedTarget), `${frameTitle(selectedTarget)} in all languages`)}
                   >
                     <LanguagesIcon className="h-3.5 w-3.5" />
-                    This screen in every language
+                    Take this screen in all languages
                   </Button>
                 </Gate>
                 <Gate reason={everythingReason}>
-                  <Button size="sm" variant="outline" className="gap-1.5" onClick={() => void runJobs(everythingJobs(), 'Every screen in every language')}>
+                  <Button size="sm" variant="outline" className="gap-1.5" onClick={() => void runJobs(everythingJobs(), 'All screens in all languages')}>
                     <WandSparklesIcon className="h-3.5 w-3.5" />
-                    Every screen in every language
+                    Take all screens in all languages
                   </Button>
                 </Gate>
                 {locales.length === 1 && (
@@ -1030,7 +1137,11 @@ export function CaptureWorkspace({
                 selectedKey={selectedKey}
                 flashKey={flashKey}
                 appLocale={appLocale}
-                onSelect={(key) => !run && setSelectedKey(key)}
+                onSelect={(key) => {
+                  if (run) return;
+                  setSelectedKey(key);
+                  setNote(null);
+                }}
                 onOpenInLanguage={(locale) => void openInLanguage(locale)}
                 openReason={appReason}
                 onSetScreen={(target, screen) => onSetScreen(target.boardId, target.elementId, screen)}
@@ -1039,13 +1150,13 @@ export function CaptureWorkspace({
 
               {locales.length === 1 && (
                 <p className="text-xs text-muted-foreground">
-                  This project has one language. Click Add languages to take each screen in more languages.
+                  This project has one language. Click Add languages to take your screens in more languages.
                 </p>
               )}
 
-              <Section title="Taken this session">
+              <Section title="Recent screenshots">
                 {session.shots.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">Screenshots you take show here, so you can put one in another frame too.</p>
+                  <p className="text-xs text-muted-foreground">Screenshots you take show here. Click one to put it in the selected frame.</p>
                 ) : (
                   <div className="flex gap-2 overflow-x-auto pb-1">
                     {session.shots.map((shot) => (

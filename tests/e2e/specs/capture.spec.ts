@@ -18,7 +18,7 @@ import { put, waitForProject, type StoredProject } from '../fixtures/db';
 test.use({ actionTimeout: 30_000 });
 test.describe.configure({ timeout: 180_000 });
 
-const CAPTURE_BUTTON = 'Capture: screenshots of your app from a simulator or emulator';
+const CAPTURE_BUTTON = 'Capture: screenshots of your app';
 const GERMAN = 'de-DE';
 
 const SIMULATOR = {
@@ -31,6 +31,8 @@ const SIMULATOR = {
   model: 'com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro-Max',
 };
 const ONE_SIMULATOR = { ios: { devices: [SIMULATOR], models: [] }, android: { devices: [], models: [] } };
+const PHONE = { id: 'YPKRA6VS754L6XTO', platform: 'android', kind: 'phone', name: 'M2006C3LG', state: 'running', os: 'Android 11' };
+const EMULATOR = { id: 'emulator-5554', platform: 'android', kind: 'emulator', name: 'Pixel 9 Pro API 35', state: 'running', os: 'Android 15' };
 const APPS = [{ id: 'com.example.notes', name: 'Notes Pro', running: true }];
 
 /** Whether this browser can put a Blob into IndexedDB (see history-versions.spec.ts). */
@@ -249,14 +251,14 @@ test.describe('capture', () => {
     await expect(app.exportButton).toBeHidden();
     // One column for the one frame, one row for the base language.
     await expect(view.locator('[data-capture-cell]')).toHaveCount(1);
-    await expect(view.getByText('Base', { exact: true })).toBeVisible();
+    await expect(view.getByText('Main language', { exact: true })).toBeVisible();
 
     const take = view.getByRole('button', { name: 'Take screenshot', exact: true });
     await expect(take).toBeDisabled();
     if (isDesktop) {
       // The test runtime lists no device, so the device picker and Take wait for one.
       await expect(gateOf(take)).toHaveAttribute('data-gated-reason', 'Start a device first');
-      await expect(view.getByText(/^No simulators or emulators yet/)).toBeVisible();
+      await expect(view.getByText(/^No devices found yet/)).toBeVisible();
       await expect.poll(async () => (await tauri.callsTo('abs_capture_devices')).length).toBeGreaterThan(0);
       // Nothing was taken or changed on a device just by looking.
       expect(await tauri.callsTo('abs_capture_screenshot')).toHaveLength(0);
@@ -276,7 +278,7 @@ test.describe('capture', () => {
     await projectWithPhone(app);
     const button = page.getByTestId('capture-from-device');
     await expect(button).toBeVisible();
-    await expect(button).toContainText('From Simulator');
+    await expect(button).toContainText('Screenshot from device');
     if (!isDesktop) {
       await expect(button).toBeDisabled();
       await expect(gateOf(button)).toHaveAttribute('data-gated-reason', 'Needs the desktop app');
@@ -301,7 +303,7 @@ test.describe('capture', () => {
 
     const view = await openCapture(page);
     // The running simulator is picked on its own, and its status bar tidied.
-    await expect(view.getByTestId('capture-device-state')).toContainText('Running');
+    await expect(view.getByTestId('capture-device-state')).toContainText('Ready');
     await expect.poll(async () => (await tauri.callsTo('abs_capture_tidy_status_bar')).map((call) => call.args.tidy)).toEqual([true]);
     // Its screen shows live beside the grid, from small previews.
     await expect(view.getByTestId('capture-live-view').locator('img')).toBeVisible();
@@ -318,7 +320,7 @@ test.describe('capture', () => {
     expect(shots).toHaveLength(1);
     expect(shots[0].args).toMatchObject({ platform: 'ios', id: SIMULATOR.id });
     // The screenshot is listed for reuse in another frame.
-    await expect(view.getByTitle(/^iPhone 17 Pro Max, .*Click to put it in the chosen frame$/)).toHaveCount(1);
+    await expect(view.getByTitle(/^iPhone 17 Pro Max, .*Click to put it in the selected frame$/)).toHaveCount(1);
     expect(await tauri.unhandled()).toEqual([]);
   });
 
@@ -331,18 +333,18 @@ test.describe('capture', () => {
     await addLanguage(page, GERMAN, 'German');
 
     const view = await openCapture(page);
-    await expect(view.getByTestId('capture-device-state')).toContainText('Running');
-    const every = view.getByRole('button', { name: 'This screen in every language', exact: true });
+    await expect(view.getByTestId('capture-device-state')).toContainText('Ready');
+    const every = view.getByRole('button', { name: 'Take this screen in all languages', exact: true });
     // Until Capture knows how to reach the screen, it can only be taken by hand.
-    await expect(gateOf(every)).toHaveAttribute('data-gated-reason', /^Set how Capture gets to this screen first/);
+    await expect(gateOf(every)).toHaveAttribute('data-gated-reason', /^First tell Capture how to find this screen/);
 
-    await view.getByRole('button', { name: /^How Capture gets to / }).click();
-    await page.getByRole('radio', { name: 'A link that opens the screen' }).click();
+    await view.getByRole('button', { name: /^How Capture finds / }).click();
+    await page.getByRole('radio', { name: 'A link opens it' }).click();
     const save = page.getByRole('button', { name: 'Save', exact: true });
     // Not a link without a scheme.
-    await page.getByRole('textbox', { name: 'Link that opens the screen' }).fill('settings');
+    await page.getByRole('textbox', { name: 'Link to this screen' }).fill('settings');
     await expect(save).toBeDisabled();
-    await page.getByRole('textbox', { name: 'Link that opens the screen' }).fill('notes://settings');
+    await page.getByRole('textbox', { name: 'Link to this screen' }).fill('notes://settings');
     await save.click();
     await waitForProject(page, (project) => phoneOf(project).phone.captureScreen?.link === 'notes://settings');
 
@@ -404,7 +406,7 @@ test.describe('capture', () => {
     await page.evaluate(() => (window as unknown as { __E2E_TAURI__: { config: { held: string[] } } }).__E2E_TAURI__.config.held.push('abs_capture_record_start'));
 
     const view = await openCapture(page);
-    await expect(view.getByTestId('capture-device-state')).toContainText('Running');
+    await expect(view.getByTestId('capture-device-state')).toContainText('Ready');
     await frameCell(view, VIDEO_ID).click();
     const goesInto = await view.getByTestId('capture-target').innerText();
     const record = view.getByRole('button', { name: 'Record', exact: true });
@@ -413,7 +415,7 @@ test.describe('capture', () => {
     await expect(record).toBeDisabled();
     await expect.poll(async () => (await tauri.callsTo('abs_capture_record_start')).length).toBe(1);
     await releaseCommands(page);
-    const stop = view.getByRole('button', { name: /^Stop and use the recording/ });
+    const stop = view.getByRole('button', { name: /^Stop recording/ });
     await expect(stop).toBeVisible();
 
     // A screenshot frame chosen while it records keeps Stop, and the recording's frame.
@@ -436,10 +438,10 @@ test.describe('capture', () => {
     await tauri.setResponse('__recordMovie', true);
 
     let view = await openCapture(page);
-    await expect(view.getByTestId('capture-device-state')).toContainText('Running');
+    await expect(view.getByTestId('capture-device-state')).toContainText('Ready');
     await frameCell(view, VIDEO_ID).click();
     await view.getByRole('button', { name: 'Record', exact: true }).click();
-    const stop = view.getByRole('button', { name: /^Stop and use the recording/ });
+    const stop = view.getByRole('button', { name: /^Stop recording/ });
     await expect(stop).toBeVisible();
 
     // Beta has the same frame ids as Alpha, and opens in a new tab while Alpha's recording runs.
@@ -460,7 +462,7 @@ test.describe('capture', () => {
     expect(await tauri.unhandled()).toEqual([]);
   });
 
-  test('From Simulator takes the running simulator straight into the selected frame', async ({ app, page, isDesktop, tauri }) => {
+  test('Screenshot from device takes the running simulator straight into the selected frame', async ({ app, page, isDesktop, tauri }) => {
     test.skip(!isDesktop, 'Taking a screenshot needs the desktop app');
     test.skip(!(await canStoreBlobsInIndexedDb(page)), NO_BLOBS);
     await tauri.setResponse('abs_capture_devices', ONE_SIMULATOR);
@@ -470,6 +472,32 @@ test.describe('capture', () => {
     await waitForProject(page, (project) => !!phoneOf(project).phone.screenshotSrc?.startsWith('asset:'));
     // The editor stayed in front: the shortcut does not open Capture.
     await expect(page.getByTestId('capture-view')).toHaveCount(0);
+    expect(await tauri.unhandled()).toEqual([]);
+  });
+
+  test('Screenshot from device is off for an iPhone frame on a computer without the iPhone Simulator', async ({ app, page, isDesktop, tauri }) => {
+    test.skip(!isDesktop, 'On the web every Capture control is off already');
+    // Windows: no iPhone Simulator, an Android emulator running.
+    await tauri.setResponse('abs_capture_devices', { ios: { missing: 'mac', devices: [], models: [] }, android: { devices: [EMULATOR], models: [] } });
+    await projectWithPhone(app);
+    const button = page.getByTestId('capture-from-device');
+    await expect(button).toContainText('Screenshot from device');
+    await expect(button).toBeDisabled();
+    await expect(gateOf(button)).toHaveAttribute('data-gated-reason', 'Virtual iPhones need a Mac with Xcode');
+    expect(await tauri.callsTo('abs_capture_screenshot')).toHaveLength(0);
+    expect(await tauri.unhandled()).toEqual([]);
+  });
+
+  test('Capture picks a running emulator by itself, and leaves a phone alone until the user picks it', async ({ app, page, isDesktop, tauri }) => {
+    test.skip(!isDesktop, 'Capture lists devices in the desktop app only');
+    // adb lists the phone first.
+    await tauri.setResponse('abs_capture_devices', { ios: { devices: [], models: [] }, android: { devices: [PHONE, EMULATOR], models: [] } });
+    await projectWithPhone(app);
+    const view = await openCapture(page);
+    await expect(view.getByRole('combobox', { name: 'Device' })).toContainText('Pixel 9 Pro API 35');
+    await expect(view.getByTestId('capture-device-state')).toContainText('Ready');
+    // Only the emulator's status bar was tidied; the phone was never touched.
+    await expect.poll(async () => (await tauri.callsTo('abs_capture_tidy_status_bar')).map((call) => call.args.id)).toEqual(['emulator-5554']);
     expect(await tauri.unhandled()).toEqual([]);
   });
 });
