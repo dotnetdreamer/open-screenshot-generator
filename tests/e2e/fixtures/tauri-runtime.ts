@@ -582,6 +582,69 @@ export function tauriInitScript(config: TauriMockConfig): string {
       case 'abs_update_flushed':
         return null;
 
+      // -- Capture (src-tauri/src/device_capture.rs) ----------------------
+      // No simulator, emulator or phone until a spec lists some through
+      // config.responses. A screenshot is drawn here, at the size a spec puts
+      // in config.responses.__captureSize (an iPhone 17 Pro Max's 1320 x 2868
+      // when unset), in a colour and with a number that change per call, so
+      // a spec can tell two screenshots apart. With responses.__captureHold
+      // set, a full screenshot waits for releaseCommands(), so a spec can edit
+      // while one is being taken. A recording comes out as a short WebM drawn
+      // here when responses.__recordMovie is set, and as an error otherwise.
+      case 'abs_capture_devices':
+        return { ios: { devices: [], models: [] }, android: { devices: [], models: [] } };
+      case 'abs_capture_apps':
+        return [];
+      case 'abs_capture_start_device':
+      case 'abs_capture_tidy_status_bar':
+      case 'abs_capture_appearance':
+      case 'abs_capture_launch':
+      case 'abs_capture_record_start':
+        return null;
+      case 'abs_capture_create_simulator':
+        return '00000000-0000-4000-8000-000000000000';
+      case 'abs_capture_screenshot': {
+        if (!args.preview && state.config.responses.__captureHold) {
+          await new Promise((resolve) => state.commandsHeld.push({ cmd, id: args.id, release: resolve, stop: resolve }));
+        }
+        const size = state.config.responses.__captureSize || { width: 1320, height: 2868 };
+        const scale = args.preview ? 0.25 : 1;
+        state.captures = (state.captures || 0) + (args.preview ? 0 : 1);
+        const canvas = new OffscreenCanvas(Math.round(size.width * scale), Math.round(size.height * scale));
+        const context = canvas.getContext('2d');
+        context.fillStyle = 'hsl(' + ((state.captures * 67) % 360) + ', 70%, 55%)';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.fillStyle = '#ffffff';
+        context.font = Math.round(160 * scale) + 'px sans-serif';
+        context.fillText('Capture ' + state.captures, 80 * scale, 400 * scale);
+        const blob = await canvas.convertToBlob({ type: args.preview ? 'image/jpeg' : 'image/png' });
+        return await blob.arrayBuffer();
+      }
+      case 'abs_capture_record_stop': {
+        if (!state.config.responses.__recordMovie) throw new Error('The test runtime records nothing');
+        const canvas = document.createElement('canvas');
+        canvas.width = 132;
+        canvas.height = 286;
+        const context = canvas.getContext('2d');
+        const recorder = new MediaRecorder(canvas.captureStream(15), { mimeType: 'video/webm' });
+        const chunks = [];
+        recorder.ondataavailable = (event) => {
+          if (event.data.size) chunks.push(event.data);
+        };
+        const stopped = new Promise((resolve) => {
+          recorder.onstop = resolve;
+        });
+        recorder.start();
+        for (let frame = 0; frame < 8; frame += 1) {
+          context.fillStyle = 'hsl(' + frame * 40 + ', 70%, 55%)';
+          context.fillRect(0, 0, canvas.width, canvas.height);
+          await new Promise((resolve) => setTimeout(resolve, 60));
+        }
+        recorder.stop();
+        await stopped;
+        return await new Blob(chunks, { type: 'video/webm' }).arrayBuffer();
+      }
+
       // -- dialog plugin ---------------------------------------------------
       case 'plugin:dialog|save': {
         const chosen = state.config.savePath;

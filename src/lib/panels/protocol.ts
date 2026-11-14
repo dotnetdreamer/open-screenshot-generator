@@ -152,6 +152,8 @@ export type DockIntent =
   | { name: 'updateElementById'; elementId: string; updates: Partial<ArtboardElement> }
   | { name: 'studioLive'; elementId: string; state: StudioLiveState | null; reason?: StudioLiveEnd }
   | { name: 'translateElement'; elementId: string }
+  /** A screenshot from the running simulator or emulator into this frame, or Capture opened on it. */
+  | { name: 'captureScreenshot'; elementId: string }
   | { name: 'updateArtboardDetails'; updates: Partial<ArtboardState>; scope?: 'board' | 'all' }
   | { name: 'resetLocaleField'; field: LocalizableField }
   | { name: 'toggleLocaleDetach'; keys: DetachableKey[]; detach: boolean }

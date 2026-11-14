@@ -23,6 +23,12 @@ In the desktop app, Competitors now follows Google Play apps too. Paste the Goog
 
 Follow up to 10 competing apps on the App Store, and see their screenshots, rating, version and price in each country. Growth shows your screenshots next to the competitors' screenshots, the way App Store search shows the apps. The project open in the editor shows there too, so you can compare new screenshots before you upload the new screenshots. Growth checks the competing apps twice a day and tells you when one of the apps changes its screenshots, with the old and the new screenshots side by side. Competitors uses Apple's public App Store lookup, which needs no key, so Competitors also works in the web version. Read [Competitors](docs/GROWTH.md#competitors) in the Growth guide.
 
+### 13 November 2026: Capture, screenshots straight from your app
+
+Click **Capture** (the camera) on the bar at the left to take screenshots of your app on the iPhone Simulator, an Android emulator or an Android phone. The screenshot goes straight into a phone frame of your project, in the language you choose, with the status bar at 9:41 and a full battery. The screen of the device shows live beside your frames.
+
+Tell Capture how to get to each screen, and Capture opens your app in every language of your project and takes every screen in every language for you. Capture also records the screen for preview videos, and the Claude Code and Codex agents can take the screenshots too. Read the [Capture guide](docs/CAPTURE.md).
+
 ### 12 November 2026: Growth, your App Store and Google Play numbers beside your screenshots
 
 Click **Growth** on the bar at the left to see how your app is doing in the App Store and on Google Play: downloads, ratings, reviews and your store page. Growth uses the same keys as the screenshot upload: your App Store Connect API key and your Google Play service account key.
@@ -55,6 +61,7 @@ You can also:
 - Choose from 101 templates for app screenshots, Apple Watch, Mac, preview videos, and Google Play feature graphics.
 - Make one layout for several languages and edit each language's text and screenshots.
 - Make preview videos from a screen recording.
+- Take screenshots of your app straight from the iPhone Simulator or an Android emulator, in every language, in the desktop app.
 - Ask the AI agent to pick a template, place screenshots, and draft text.
 - Save versions of your project, share a copy, or invite others to edit with you.
 - Upload finished screenshots to App Store Connect or Google Play from the desktop app.
@@ -91,6 +98,7 @@ Both versions use the same editor. The desktop app adds features that need acces
 | Coding agent design tools | With the [web relay](infra/vps/mcp-relay/README.md) or CLI | Built in MCP server |
 | Save to your own Google Drive or GitHub account | Yes | Yes |
 | Upload screenshots directly to App Store Connect or Google Play | No | Yes |
+| Capture: screenshots and recordings from the iPhone Simulator, Android emulators and phones | No | Yes |
 | Growth: App Store and Google Play numbers, reviews, store page checks, results of new screenshots | Empty screens only | Yes |
 | Growth: competitors' screenshots, ratings, versions and prices in each country, with alerts for new screenshots | App Store apps | App Store and Google Play apps |
 

@@ -70,6 +70,8 @@ const LABELS: Record<string, ToolLabel> = {
   get_preview_timeline: { running: 'Reading the timeline...', done: 'Read the timeline' },
   upload_recording: { running: 'Storing a recording...', done: 'Stored a recording' },
   list_recordings: { running: 'Listing recordings...', done: 'Listed recordings' },
+  list_capture_devices: { running: 'Looking for simulators and emulators...', done: 'Looked for simulators and emulators' },
+  capture_screenshot: { running: 'Taking a screenshot of your app...', done: 'Took a screenshot of your app', error: 'Could not take a screenshot of your app' },
   list_locales: { running: 'Checking languages...', done: 'Checked languages' },
   set_locale: { running: 'Switching language...', done: 'Switched language' },
   set_localized_text: { running: 'Writing a translation...', done: 'Wrote a translation' },

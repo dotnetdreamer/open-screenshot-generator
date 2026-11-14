@@ -1,6 +1,7 @@
 mod claude_code;
 mod code_folders;
 mod codex;
+mod device_capture;
 mod devtools;
 mod mcp_server;
 mod migrate;
@@ -48,11 +49,13 @@ pub fn run() {
         .manage(codex::CodexState::default())
         .manage(oauth::OauthState::default())
         .manage(webview_crash::WebviewCrashState::default())
+        .manage(device_capture::CaptureState::default())
         // A reload of the editor must not strand a Claude Code or Codex
         // process that was still starting for the page it replaced.
         .on_page_load(|webview, payload| {
             claude_code::on_page_load(webview, payload);
             codex::on_page_load(webview, payload);
+            device_capture::on_page_load(webview, payload);
         });
 
     // On macOS, the OS kills WKWebView WebContent processes under memory
@@ -112,6 +115,16 @@ pub fn run() {
             updater::abs_update_check,
             updater::abs_update_install,
             updater::abs_update_flushed,
+            device_capture::abs_capture_devices,
+            device_capture::abs_capture_start_device,
+            device_capture::abs_capture_create_simulator,
+            device_capture::abs_capture_apps,
+            device_capture::abs_capture_tidy_status_bar,
+            device_capture::abs_capture_appearance,
+            device_capture::abs_capture_launch,
+            device_capture::abs_capture_screenshot,
+            device_capture::abs_capture_record_start,
+            device_capture::abs_capture_record_stop,
         ])
         .setup(|app| {
             // Settings first: it manages the state the other modules read.
@@ -154,12 +167,15 @@ pub fn run() {
             tauri::RunEvent::WindowEvent { label, event: tauri::WindowEvent::Destroyed, .. } => {
                 claude_code::stop_window_prompts(app, &label);
                 codex::stop_window_prompts(app, &label);
+                device_capture::stop_window(app, &label);
             }
             // The editor window's own Destroyed hook usually gets there first;
             // this covers quitting the app outright (Cmd+Q on macOS).
             tauri::RunEvent::Exit => {
                 claude_code::kill_all(app);
                 codex::kill_all(app);
+                // Recordings stop, and the status bars Capture tidied come back.
+                device_capture::stop_all(app);
             }
             _ => {}
         });

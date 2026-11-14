@@ -290,6 +290,15 @@ export interface DeviceFrameElementProps extends BaseElement {
   screenshotRect?: { left: number; top: number; width: number; height: number };
   naturalScreenshotWidth?: number;
   naturalScreenshotHeight?: number;
+  /**
+   * How Capture (src/lib/capture/) reaches the screen this frame shows in the
+   * user's app, so it can take that screen in every language on its own: `{}`
+   * is the screen the app opens on, `{ link }` the screen a link opens once
+   * the app is open. Unset means the user goes to the screen by hand. Written
+   * on the base element only, since the way to a screen is the same in every
+   * language.
+   */
+  captureScreen?: CaptureScreen;
   styleType?: DeviceStyleType;
   matrix3d?: string; // Custom CSS matrix3d transform
   pose3d?: Device3DPose; // Pose preset when styleType is '3d-left' / '3d-right'
@@ -546,6 +555,12 @@ export interface ProjectLocalization {
  * for both. Specs and Apple's safe areas live in src/lib/creative/specs.ts.
  */
 export type CreativeAssetKind = 'header' | 'search' | 'universal';
+
+/** See DeviceFrameElementProps.captureScreen. */
+export interface CaptureScreen {
+  /** A link the app opens, such as `myapp://settings`. Absent: the screen the app opens on. */
+  link?: string;
+}
 
 export interface ArtboardState {
   id: string;
