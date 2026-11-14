@@ -68,10 +68,10 @@ import { checkListing } from '@/lib/growth/listingChecks';
 import { EMPTY_GROWTH_DATA } from '@/lib/growth/loadData';
 import { completeThrough, defaultWindow, indexRecords } from '@/lib/growth/metrics';
 import { getGrowthSettings, useGrowthSettings } from '@/lib/growth/settings';
-import { metaKeys, syncApp } from '@/lib/growth/sync';
+import { isSyncing, metaKeys, syncApp } from '@/lib/growth/sync';
 import { bucketFromUri } from '@/lib/growth/play';
 import { syncPlayApp } from '@/lib/growth/playSync';
-import { STORE_WORDS, isPlayApp, playAppId, storeOf } from '@/lib/growth/stores';
+import { STORE_WORDS, isPlayApp, playAppId, storeOf, type GrowthStore } from '@/lib/growth/stores';
 import { dueForAutoSync, forgetAutoSync, noteAutoSync } from '@/lib/growth/autoSync';
 import { appsListKey, markInsightsSeen } from '@/lib/growth/monitor';
 import type { GrowthApp, SyncProgress, SyncStatus } from '@/lib/growth/types';
@@ -174,6 +174,11 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
   // its feed states and its Stop belong to the app it is reading.
   const [syncs, setSyncs] = useState<Record<string, { progress: SyncProgress | null; status: SyncStatus | null }>>({});
   const controllers = useRef(new Map<string, AbortController>());
+  // Apps that owe a sync since Setup changed what a sync reads (syncAfterSetup).
+  // Kept per app until a sync that began after the change, not until the app
+  // on screen changes: a sync carries on when another app is picked.
+  const owed = useRef(new Set<string>());
+  const latestRunOwed = useRef<() => void>(() => undefined);
   // Ticks every ten minutes while the view shows, so Growth left on screen
   // all day still syncs when its numbers get old. With the editor in front,
   // the background monitor does that instead (monitor.ts).
@@ -324,6 +329,9 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
     // A sync the background monitor started is joined (syncApp hands back the
     // one running), so the header shows it rather than a Refresh that does nothing.
     if (controllers.current.has(id)) return;
+    // A sync that starts now reads the settings as they are, and pays what
+    // the app owed. One joined began earlier, so the debt stays for after it.
+    if (!isSyncing(id)) owed.current.delete(id);
     const stop = new AbortController();
     controllers.current.set(id, stop);
     const patch = (value: { progress?: SyncProgress | null; status?: SyncStatus | null }) =>
@@ -351,8 +359,37 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
           return next;
         });
         reload();
+        // The latest runOwed, which reads the app on screen now. A stopped
+        // sync leaves its debt for the next one.
+        if (!stop.signal.aborted) latestRunOwed.current();
       });
   }, [desktop, picked, ascApp, apps, reload]);
+
+  // The app on screen syncs if it owes one: at once, or when the sync under
+  // way ends (its finally calls this again), since that one began earlier.
+  const runOwed = useCallback(() => {
+    if (picked && owed.current.has(picked.id)) runSync();
+  }, [picked, runSync]);
+  latestRunOwed.current = runOwed;
+
+  // Setup saved a key, the vendor number or the reports address, so every app
+  // of that store owes a sync that reads it. A vendor number saved during one
+  // app's first sync, with another app picked before that sync ended, left
+  // the first at "Add your vendor number" until the next refresh, hours later.
+  const syncAfterSetup = useCallback(
+    (changed: GrowthStore) => {
+      const playPackageNow = getStoreCredentials().playstore?.packageName.trim();
+      const ids = changed === 'playstore' ? (playPackageNow ? [playAppId(playPackageNow)] : []) : apps.map((entry) => entry.id);
+      for (const id of ids) owed.current.add(id);
+      runOwed();
+    },
+    [apps, runOwed]
+  );
+
+  // An app that owes a sync pays it when it shows again.
+  useEffect(() => {
+    if (active) runOwed();
+  }, [active, runOwed]);
 
   // Sync when the last one is older than the setting says: on showing, and
   // again whenever the numbers age past it with the view on screen. The
@@ -635,7 +672,7 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
               {tab === 'timeline' && <GrowthTimeline />}
               {tab === 'reports' && <GrowthReports />}
               {tab === 'ask' && <GrowthAsk />}
-              {tab === 'connect' && <GrowthConnect desktop={desktop} onSync={runSync} />}
+              {tab === 'connect' && <GrowthConnect desktop={desktop} onSync={syncAfterSetup} />}
             </GrowthProvider>
           )}
         </main>

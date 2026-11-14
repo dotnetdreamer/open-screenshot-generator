@@ -20,6 +20,7 @@ import {
   completeThrough,
   covers,
   dailySeries,
+  dayValues,
   feedStarts,
   indexRecords,
   latestDay,
@@ -68,7 +69,8 @@ import {
 import { pageCuts, pdfString, writePdf } from '@/lib/growth/reportPdf';
 import { dueForAutoSync, forgetAutoSync, noteAutoSync, resetAutoSync } from '@/lib/growth/autoSync';
 import { rebaseChanges, withoutApplied } from '@/lib/growth/listingDrafts';
-import { readSince } from '@/lib/growth/sync';
+import { analyticsCoverage, instanceDays, readSince, snapshotDue } from '@/lib/growth/sync';
+import { formatPerDay } from '@/lib/growth/format';
 import { noteAppleClock } from '@/lib/publish/appStoreConnect';
 import { plainProse } from '@/lib/growth/ai';
 import { FreeProviderError, runFreeProvider } from '@/lib/ai/freeProviders';
@@ -193,6 +195,170 @@ test('the downloads report counts first-time downloads, redownloads and product 
   assert.equal(day.territories.DE.redownloads, 5);
   assert.equal(day.sources['web-referrer']?.redownloads, 5);
   assert.equal(day.territories.US.redownloads, undefined, 'updates are not downloads');
+});
+
+test('a day an analytics file lists with nothing counted is a zero of that report, not a day for Sales and Trends', () => {
+  // Shaped like a real Ludo Wala day (November 2026): auto-updates only, and
+  // another app's first-time download that must not count.
+  const downloads = [
+    DOWNLOADS.split('\n')[0],
+    ['2026-03-06', 'Juniper', '111', 'Auto-update', '2.4', 'iPhone', 'iOS 19.1', 'App Store search', 'Product page', 'No', 'US', '7'].join('\t'),
+    ['2026-03-06', 'Juniper', '222', 'First-time download', '2.4', 'iPhone', 'iOS 19.1', 'App Store search', 'Product page', 'No', 'US', '9'].join('\t'),
+  ].join('\n');
+  const batch = parseDownloadsReport(downloads, { appId: '111' });
+  assert.deepEqual(Array.from(batch.keys()), ['2026-03-06'], 'the day the file covers is there');
+  assert.deepEqual(batch.get('2026-03-06'), emptyFeedDay(), 'with nothing counted: updates are not downloads, and the other app is left out');
+
+  // Sales and Trends counted two units that day. The day is App Analytics' now, which said none.
+  const sales = { territories: { US: { units: 2, updates: 7 } }, sources: {}, devices: {} };
+  let record = mergeFeed(undefined, '111', '2026-03-06', 'sales', sales, 1);
+  assert.equal(dayValues(record, '2026-03-06').downloads, 2, 'before App Analytics reports the day, Sales and Trends answers');
+  record = mergeFeed(record, '111', '2026-03-06', 'downloads', batch.get('2026-03-06')!, 2);
+  assert.equal(dayValues(record, '2026-03-06').downloads, 0);
+  assert.equal(dayValues(record, '2026-03-06').firstDownloads, 0);
+  assert.equal(dayValues(record, '2026-03-06').updates, 7, 'updates still come from Sales and Trends');
+  // And the newest such day no longer holds every window back to the day before.
+  const before = mergeFeed(
+    mergeFeed(undefined, '111', '2026-03-05', 'sales', { territories: { US: { units: 1 } }, sources: {}, devices: {} }, 1),
+    '111',
+    '2026-03-05',
+    'downloads',
+    { territories: { US: { firstDownloads: 1 } }, sources: {}, devices: {} },
+    1
+  );
+  assert.equal(completeThrough([before, record]), '2026-03-06');
+
+  const taps = [ENGAGEMENT.split('\n')[0], ['2026-03-06', 'Juniper', '111', 'Tap', 'Product page', 'App Store search', 'Get', 'iPhone', 'iOS 19.1', 'US', '3', '3'].join('\t')].join('\n');
+  assert.deepEqual(Array.from(parseEngagementReport(taps, { appId: '111' }).keys()), ['2026-03-06'], 'a day with only taps was reported too');
+});
+
+test('an analytics file covers its own days, quiet ones too, and never the days between two files', () => {
+  // The rows of Ludo Wala's downloads snapshot of November 2026 around the two
+  // days it has none for, Oct 31 and Nov 1, which were quiet.
+  const snapshot = instanceDays('2026-11-12', true, ['2026-10-29', '2026-10-30', '2026-11-02', '2026-11-12']);
+  assert.deepEqual(snapshot, dayRange('2026-10-29', '2026-11-12'));
+  assert.ok(snapshot.includes('2026-10-31') && snapshot.includes('2026-11-01'));
+  assert.deepEqual(instanceDays('2026-11-12', true, ['2026-11-05', '2026-10-01']).at(-1), '2026-11-12', 'a snapshot reaches its processing date, quiet last days and all');
+  assert.deepEqual(instanceDays('2026-11-12', true, []), [], 'an empty snapshot says nothing about any day');
+
+  // The daily files of the same week: two days of downloads, three of engagement.
+  assert.deepEqual(instanceDays('2026-11-13', false, ['2026-11-11', '2026-11-12']), ['2026-11-11', '2026-11-12']);
+  assert.deepEqual(instanceDays('2026-11-13', false, ['2026-11-12', '2026-11-10']), ['2026-11-10', '2026-11-11', '2026-11-12'], 'a quiet day among its recent ones');
+  assert.deepEqual(instanceDays('2026-11-13', false, []), ['2026-11-12'], 'a daily file with no rows still answers for the day before its processing date');
+  assert.deepEqual(instanceDays('2026-11-13', false, ['2026-11-13']), ['2026-11-12', '2026-11-13']);
+  assert.deepEqual(
+    instanceDays('2026-11-13', false, ['2026-11-12', '2026-10-20']),
+    ['2026-10-20', '2026-11-12'],
+    'a correction for an old date stands alone: the weeks before it are not this file\'s'
+  );
+  assert.deepEqual(instanceDays('', false, ['2026-11-12']), ['2026-11-12'], 'without a processing date, only the dates it has rows for');
+});
+
+test('a day no analytics file covered is missing, not a zero, and Growth asks Apple for a snapshot about once a month', () => {
+  const day = (date: string, feeds: Partial<Record<'engagement' | 'downloads' | 'sales', number>>, territories = {}) => ({
+    key: `111|${date}`,
+    appId: '111',
+    date,
+    territories,
+    sources: {},
+    devices: {},
+    feeds,
+  });
+  const records = [
+    day('2026-03-01', { sales: 1, downloads: 1, engagement: 1 }),
+    day('2026-03-02', { sales: 1, downloads: 1, engagement: 1 }),
+    // Apple deleted the files of these days before a sync read them.
+    day('2026-03-03', { sales: 1 }, { US: { units: 9 } }),
+    day('2026-03-04', { sales: 1, engagement: 1 }),
+    day('2026-03-05', { sales: 1, downloads: 1, engagement: 1 }),
+    day('2026-03-06', { sales: 1, engagement: 1 }),
+    day('2026-03-07', { sales: 1 }),
+  ];
+  assert.deepEqual(analyticsCoverage(records), {
+    newest: '2026-03-06',
+    missing: ['2026-03-03', '2026-03-04'],
+    byReport: { engagement: ['2026-03-03'], downloads: ['2026-03-03', '2026-03-04'] },
+  });
+  assert.equal(dayValues(records[2], '2026-03-03').downloads, 9, 'the downloads Sales and Trends saw on a missing day are kept');
+  assert.deepEqual(analyticsCoverage([day('2026-03-01', { sales: 1 })]), { newest: null, missing: [], byReport: { engagement: [], downloads: [] } });
+
+  const now = Date.parse('2026-12-20T12:00:00Z');
+  const daysAgo = (days: number) => now - days * 86_400_000;
+  const both = { engagement: true, downloads: true } as const;
+  assert.equal(snapshotDue({}, 0, now), true, 'no snapshot read and none asked for');
+  assert.equal(snapshotDue({ snapshotAskedAt: daysAgo(2) }, 0, now), false, 'one asked for two days ago is on its way');
+  assert.equal(snapshotDue({ snapshotRead: both }, 0, now), false, 'nothing missing');
+  assert.equal(snapshotDue({ snapshotRead: { downloads: true } }, 0, now), true, 'the other report\'s snapshot never came');
+  assert.equal(snapshotDue({ snapshotRead: both }, 2, now), true);
+  assert.equal(snapshotDue({ snapshotRead: both, snapshotAskedAt: daysAgo(30) }, 2, now), false, 'Apple makes one about every 31 days');
+  assert.equal(snapshotDue({ snapshotRead: both, snapshotAskedAt: daysAgo(31) }, 2, now), true);
+  assert.equal(snapshotDue({ snapshotRead: both, snapshotAskedAt: daysAgo(1), snapshotRefused: true }, 2, now), true, 'a key that may not ask tries again a day later');
+});
+
+test('the overview an agent reads names the days no analytics file covered, and compares a number only as far back as its history reaches', () => {
+  const T = '2026-03-31';
+  const at = (back: number) => addDays(T, -back);
+  type Feed = 'engagement' | 'downloads' | 'sales';
+  const day = (back: number, feeds: Feed[]) => ({
+    key: `111|${at(back)}`,
+    appId: '111',
+    date: at(back),
+    territories: { US: { impressions: 100, uniqueImpressions: 80, pageViews: 20, uniquePageViews: 16, firstDownloads: 4, pageDownloads: 2, units: 5 } },
+    sources: {},
+    feeds: Object.fromEntries(feeds.map((feed) => [feed, 1])) as Partial<Record<Feed, number>>,
+  });
+  // Downloads and Sales and Trends go back 20 days, impressions only 10, so
+  // the earlier of the two 7-day windows (13 to 7 days back) starts before
+  // the impressions do.
+  const records = (gaps: Record<number, Feed[]> = {}) =>
+    Array.from({ length: 21 }, (_, back) =>
+      day(back, gaps[back] ?? (back > 10 ? ['downloads', 'sales'] : ['engagement', 'downloads', 'sales']))
+    );
+  const digestOf = (list: ReturnType<typeof records>) =>
+    buildDigest({
+      appId: '111',
+      appName: 'Juniper',
+      records: list,
+      reviews: [],
+      ratings: [],
+      events: [],
+      insights: [],
+      listing: null,
+      listingIssues: [],
+      days: 7,
+      today: addDays(T, 2),
+    });
+  const missingNotes = (digest: ReturnType<typeof digestOf>) => digest.notes.filter((note) => note.startsWith('App Analytics has no'));
+
+  const whole = digestOf(records());
+  assert.equal(whole.dataCompleteThrough, T);
+  const totals = whole.totals as { previous: Record<string, unknown>; change: Record<string, string> };
+  assert.equal(totals.previous.impressions, null, 'as on the Overview, impressions that start partway through the earlier window are not compared');
+  assert.equal(totals.previous.conversionRate, null);
+  assert.ok(!('impressions' in totals.change));
+  assert.equal(totals.previous.firstTimeDownloads, 28, 'downloads reach back over the whole earlier window');
+  assert.ok('firstTimeDownloads' in totals.change);
+  assert.deepEqual(missingNotes(whole), []);
+
+  // Apple deleted the files of two days before a sync read them, and the
+  // downloads of a third, which Sales and Trends has not reported either. A
+  // gap before the earlier window plays no part in the comparison.
+  const gapped = digestOf(records({ 4: ['sales'], 3: ['sales'], 1: ['engagement'], 18: ['sales'] }));
+  assert.deepEqual(missingNotes(gapped), [
+    `App Analytics has no impressions or page views for 2 days in these windows (${at(4)} to ${at(3)}). Impressions, page views and conversion leave those days out, so a change across them may not be real.`,
+    `App Analytics has no downloads for 3 days in these windows (${at(4)} to ${at(3)}, ${at(1)}). First-time downloads come from Sales and Trends on the days it has, and the product page conversion rate leaves all of them out.`,
+  ]);
+  const covered = digestOf(records({ 4: ['sales'], 3: ['sales'] }));
+  assert.match(missingNotes(covered)[1], /on those days come from Sales and Trends instead/);
+});
+
+test('a daily average keeps a decimal below ten, so 2.3 and 1.9 a day do not both read as 2', () => {
+  assert.equal(formatPerDay(2.3), '2.3');
+  assert.equal(formatPerDay(1.93), '1.9');
+  assert.equal(formatPerDay(2), '2');
+  assert.equal(formatPerDay(9.96), '10');
+  assert.equal(formatPerDay(12.4), '12');
+  assert.equal(formatPerDay(null), 'n/a');
 });
 
 test('report names and source labels resolve to what the feature reads', () => {
@@ -416,6 +582,25 @@ test('the sample app produces the insights the feature promises', () => {
   for (const insight of insights) {
     assert.ok(!/[–—]/.test(insight.title + insight.body), `no dashes in "${insight.title}"`);
   }
+});
+
+test('a period that starts before the app\'s first number says where the numbers start, and owes only the days after', () => {
+  // An app out since August 23 (Ludo Wala, November 2026), with one day inside its numbers missing.
+  const records = dayRange('2026-08-23', '2026-11-12')
+    .filter((date) => date !== '2026-10-05')
+    .map((date) => mergeFeed(undefined, '111', date, 'sales', { territories: { US: { units: 2 } }, sources: {}, devices: {} }, 1));
+  const year = buildReport({ appName: 'Juniper', records, reviews: [], events: [], period: 'year', window: { from: '2026-01-01', to: '2026-11-12' } });
+  assert.equal(year.numbersFrom, 'Aug 23, 2026');
+  assert.equal(year.missingDays, 1, 'not the 234 days before the app had numbers');
+  const markdown = reportMarkdown(year);
+  assert.ok(markdown.includes('Your numbers start on Aug 23, 2026.'));
+  assert.ok(markdown.includes('Apple has not sent the numbers for 1 day of this period yet.'));
+  assert.ok(reportFacts(year).includes('The numbers start on Aug 23, 2026'));
+  assert.ok(reportFacts(year).includes('1 day in the period has no data yet.'));
+
+  const october = buildReport({ appName: 'Juniper', records, reviews: [], events: [], period: 'month', window: { from: '2026-10-01', to: '2026-10-31' } });
+  assert.equal(october.numbersFrom, null, 'a period inside the numbers says nothing about where they start');
+  assert.equal(october.missingDays, 1);
 });
 
 test('the digest and the reports read the same figures', () => {

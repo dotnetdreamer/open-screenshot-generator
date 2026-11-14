@@ -24,6 +24,8 @@ function utcDay(offset: number): string {
 const DAY = utcDay(-3);
 const [Y, M, D] = DAY.split('-');
 const US_DAY = `${M}/${D}/${Y}`;
+/** DAY as the status lines print it (formatDay with the year). */
+const DAY_LABEL = `${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][Number(M) - 1]} ${Number(D)}, ${Y}`;
 
 // Shaped like Apple's .p8, curve parameters and all: WebKit refuses to
 // import that shape as it stands, and a key Node wrote would hide it.
@@ -51,12 +53,29 @@ const ENGAGEMENT = tsv([
   [DAY, 'Pebble Notes', APP, 'Page view', 'Product page', 'App Store search', '', 'iPhone', 'iOS 19.1', 'US', '120', '100'],
 ]);
 
-const DOWNLOADS = tsv([
-  ['Date', 'App Name', 'App Apple Identifier', 'Download Type', 'App Version', 'Device', 'Platform Version', 'Source Type', 'Page Type', 'Pre-Order', 'Territory', 'Counts'],
+const SALES_HEADER = ['Provider', 'Provider Country', 'SKU', 'Developer', 'Title', 'Version', 'Product Type Identifier', 'Units', 'Developer Proceeds', 'Begin Date', 'End Date', 'Customer Currency', 'Country Code', 'Currency of Proceeds', 'Apple Identifier', 'Customer Price', 'Promo Code', 'Parent Identifier'];
+
+/** A Sales and Trends day with `units` first-time downloads of the app. */
+function salesDay(day: string, units: number): string {
+  const [y, m, d] = day.split('-');
+  const us = `${m}/${d}/${y}`;
+  return tsv([SALES_HEADER, ['APPLE', 'US', 'PEBBLE', 'Pebble Co', 'Pebble Notes', '3.0', '1F', String(units), '0', us, us, 'USD', 'US', 'USD', APP, '0', '', '']]);
+}
+
+const DOWNLOADS_HEADER = ['Date', 'App Name', 'App Apple Identifier', 'Download Type', 'App Version', 'Device', 'Platform Version', 'Source Type', 'Page Type', 'Pre-Order', 'Territory', 'Counts'];
+
+/** One App Downloads row: `count` downloads of `type` on `day`, from App Store search in the US. */
+function downloadsRow(day: string, type: string, count: number): string[] {
+  return [day, 'Pebble Notes', APP, type, '3.0', 'iPhone', 'iOS 19.1', 'App Store search', 'Product page', 'No', 'US', String(count)];
+}
+
+const DOWNLOADS_ROWS = [
   [DAY, 'Pebble Notes', APP, 'First-time download', '3.0', 'iPhone', 'iOS 19.1', 'App Store search', 'Product page', 'No', 'US', '30'],
   [DAY, 'Pebble Notes', APP, 'First-time download', '3.0', 'iPhone', 'iOS 19.1', 'App Store search', 'No Page', 'No', 'US', '10'],
   [DAY, 'Pebble Notes', APP, 'Redownload', '3.0', 'iPad', 'iPadOS 19.1', 'Web referrer', 'Product page', 'No', 'DE', '5'],
-]);
+];
+
+const DOWNLOADS = tsv([DOWNLOADS_HEADER, ...DOWNLOADS_ROWS]);
 
 const json = (value: unknown) => JSON.stringify(value);
 
@@ -157,6 +176,12 @@ const RULES: TauriHttpRule[] = [
     }),
   },
   { match: `^GET ${API}/v1/analyticsReportRequests/request-snapshot/reports`, body: json({ data: [] }) },
+  // A second snapshot within a month: what Apple answers (developer forums, thread 759773).
+  {
+    match: `^POST ${API}/v1/analyticsReportRequests$`,
+    status: 409,
+    body: json({ errors: [{ status: '409', code: 'STATE_ERROR', title: 'The request cannot be fulfilled because of the state of another resource.', detail: 'You already have such an entity' }] }),
+  },
   {
     match: `^GET ${API}/v1/analyticsReports/report-engagement/instances`,
     body: json({ data: [{ type: 'analyticsReportInstances', id: 'instance-engagement', attributes: { granularity: 'DAILY', processingDate: DAY } }] }),
@@ -197,16 +222,16 @@ const RULES: TauriHttpRule[] = [
 
 test.use({ tauriConfig: { http: RULES } });
 
-async function connect(page: Page) {
+async function connect(page: Page, options: { vendor?: boolean } = {}) {
   await page.evaluate(
-    ({ key }) => {
+    ({ key, vendor }) => {
       localStorage.setItem(
         'open-screenshot-generator.store-credentials',
         JSON.stringify({ appstore: { issuerId: '69a6de70-0000-47e3-e053-5b8c7c11a4d1', keyId: 'ABCD123456', privateKey: key } })
       );
-      localStorage.setItem('open-screenshot-generator.growth', JSON.stringify({ vendorNumber: '85012345', historyDays: 30 }));
+      localStorage.setItem('open-screenshot-generator.growth', JSON.stringify({ ...(vendor ? { vendorNumber: '85012345' } : {}), historyDays: 30 }));
     },
-    { key: PRIVATE_KEY }
+    { key: PRIVATE_KEY, vendor: options.vendor ?? true }
   );
 }
 
@@ -216,6 +241,25 @@ async function syncOnce(page: Page) {
   await section(view, 'Setup').click();
   await expect(view.getByText('1,234 ratings in 1 country')).toBeVisible({ timeout: 90_000 });
   return view;
+}
+
+/** One value of the Growth database's meta table, as the app stored it. */
+function storedMeta<T>(page: Page, key: string): Promise<T | undefined> {
+  return page.evaluate(async (wanted) => {
+    const open = indexedDB.open('OpenScreenshotGeneratorGrowth');
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      open.onsuccess = () => resolve(open.result);
+      open.onerror = () => reject(open.error);
+    });
+    const request = db.transaction('meta', 'readonly').objectStore('meta').get(wanted);
+    const row = await new Promise<{ value: unknown } | undefined>((resolve) => (request.onsuccess = () => resolve(request.result)));
+    db.close();
+    return row?.value;
+  }, key) as Promise<T | undefined>;
+}
+
+function httpLog(page: Page) {
+  return page.evaluate(() => (window as any).__E2E_TAURI__.httpRequests as Array<{ method: string; url: string; body: string | null }>);
 }
 
 let mcpCalls = 0;
@@ -253,7 +297,8 @@ test.describe('growth sync', () => {
     await expect(view.getByText('Version 3.1, 1 language')).toBeVisible();
     await expect(view.getByText('2 written reviews')).toBeVisible();
     await expect(view.getByText('30 days of sales')).toBeVisible();
-    await expect(view.getByText(`Loaded up to ${DAY}`)).toBeVisible();
+    // The newest day the analytics files hold, not an instance's processing date.
+    await expect(view.getByText(`Numbers up to ${DAY_LABEL}`)).toBeVisible();
     // The saved vendor number is in its box, not only its look-alike placeholder.
     await expect(view.getByRole('textbox', { name: 'Vendor number' })).toHaveValue('85012345');
     await expect(view.getByRole('button', { name: 'Save', exact: true }).first()).toBeDisabled();
@@ -428,6 +473,241 @@ test.describe('growth sync', () => {
       await expect(view.getByRole('button', { name: 'Refresh', exact: true })).toBeVisible({ timeout: 60_000 });
       await page.evaluate(() => (window as any).__E2E_TAURI__.releaseHttp());
       expect(await salesCount()).toBe(33);
+    });
+  });
+
+  test.describe('while the first sync after the key is still running', () => {
+    // The reviews, the sync's second feed, wait until the test lets them through.
+    const reviews = RULES.find((rule) => rule.match.startsWith(`^GET ${API}/v1/apps/${APP}/customerReviews`))!;
+    test.use({ tauriConfig: { http: [{ ...reviews, hold: true }, ...RULES] } });
+
+    test('a vendor number saved under Setup is read by a sync that follows, not dropped', async ({ app, page }) => {
+      // Setup in the order it reads: the key first, so a sync starts without
+      // the vendor number, which is typed while that sync runs.
+      await connect(page, { vendor: false });
+      await app.goto();
+      await app.dismissStartDialog();
+      const view = await openGrowth(page);
+      const held = () => page.evaluate(() => (window as any).__E2E_TAURI__.httpHeld.length as number);
+      await expect.poll(held, { timeout: 30_000 }).toBe(1);
+
+      await section(view, 'Setup').click();
+      await view.getByRole('textbox', { name: 'Vendor number' }).fill('85012345');
+      await view.getByRole('button', { name: 'Save', exact: true }).first().click();
+
+      const salesRequests = () =>
+        page.evaluate(() => ((window as any).__E2E_TAURI__.httpRequests as Array<{ url: string }>).filter((request) => request.url.includes('/v1/salesReports')).length);
+      // Let every held answer through, the second sync's too, until Sales and Trends has loaded.
+      await expect
+        .poll(
+          async () => {
+            await page.evaluate(() => (window as any).__E2E_TAURI__.releaseHttp());
+            return view.getByText('30 days of sales').isVisible();
+          },
+          { timeout: 90_000 }
+        )
+        .toBe(true);
+      expect(await salesRequests()).toBeGreaterThan(0);
+      await expect(view.getByText('Add your vendor number to see downloads, purchases and earnings')).toHaveCount(0);
+    });
+  });
+
+  test.describe('with two apps, while the first sync of the first one is still running', () => {
+    // The first app's reviews wait until the test lets them through.
+    const reviews = RULES.find((rule) => rule.match.startsWith(`^GET ${API}/v1/apps/${APP}/customerReviews`))!;
+    test.use({
+      tauriConfig: {
+        http: [
+          {
+            match: `^GET ${API}/v1/apps\\?`,
+            body: json({
+              data: [
+                { type: 'apps', id: APP, attributes: { name: 'Pebble Notes', bundleId: 'com.example.pebble', sku: 'PEBBLE', primaryLocale: 'en-US' } },
+                { type: 'apps', id: '3333333333', attributes: { name: 'Pebble Sketch', bundleId: 'com.example.sketch', sku: 'SKETCH', primaryLocale: 'en-US' } },
+              ],
+            }),
+          },
+          { ...reviews, hold: true },
+          ...RULES,
+        ],
+      },
+    });
+
+    test('a vendor number saved then reaches that app when it shows again, after another app was picked', async ({ app, page }) => {
+      await connect(page, { vendor: false });
+      await app.goto();
+      await app.dismissStartDialog();
+      const view = await openGrowth(page);
+      await expect(view.getByRole('combobox', { name: 'App' })).toContainText('Pebble Notes');
+      const held = () => page.evaluate(() => (window as any).__E2E_TAURI__.httpHeld.length as number);
+      await expect.poll(held, { timeout: 30_000 }).toBe(1);
+
+      await section(view, 'Setup').click();
+      await view.getByRole('textbox', { name: 'Vendor number' }).fill('85012345');
+      await view.getByRole('button', { name: 'Save', exact: true }).first().click();
+
+      // Another app is picked while the first one's sync, begun without the
+      // vendor number, is still waiting on Apple. Then that sync ends.
+      await view.getByRole('combobox', { name: 'App' }).click();
+      await page.getByRole('option', { name: 'Pebble Sketch' }).click();
+      await expect(view.getByRole('combobox', { name: 'App' })).toContainText('Pebble Sketch');
+      await expect
+        .poll(
+          async () => {
+            await page.evaluate(() => (window as any).__E2E_TAURI__.releaseHttp());
+            return storedMeta<number>(page, `sync:last:${APP}`);
+          },
+          { timeout: 90_000 }
+        )
+        .toBeGreaterThan(0);
+
+      // Back on the first app, the refresh Setup asked for runs.
+      await view.getByRole('combobox', { name: 'App' }).click();
+      await page.getByRole('option', { name: 'Pebble Notes' }).click();
+      await expect
+        .poll(
+          async () => {
+            await page.evaluate(() => (window as any).__E2E_TAURI__.releaseHttp());
+            return view.getByText('30 days of sales').isVisible();
+          },
+          { timeout: 90_000 }
+        )
+        .toBe(true);
+      await expect(view.getByText('Add your vendor number to see downloads, purchases and earnings')).toHaveCount(0);
+    });
+  });
+
+  test.describe('when Apple deleted the analytics files of the weeks between two syncs', () => {
+    // Apple keeps an analytics file 35 days. The snapshot was read long ago
+    // and ends 40 days back; the daily files after it are gone, and only the
+    // newest one is left. The weeks between belong to no file, and Sales and
+    // Trends saw 9 downloads in them.
+    const SNAPSHOT_DAY = utcDay(-40);
+    const QUIET_DAY = utcDay(-10);
+    const SNAPSHOT = tsv([DOWNLOADS_HEADER, downloadsRow(utcDay(-45), 'First-time download', 3), downloadsRow(utcDay(-41), 'First-time download', 2)]);
+    test.use({
+      tauriConfig: {
+        http: [
+          {
+            match: `^GET ${API}/v1/analyticsReportRequests/request-snapshot/reports`,
+            body: json({ data: [{ type: 'analyticsReports', id: 'report-downloads-snapshot', attributes: { name: 'App Downloads Standard', category: 'APP_STORE_COMMERCE' } }] }),
+          },
+          {
+            match: `^GET ${API}/v1/analyticsReports/report-downloads-snapshot/instances`,
+            body: json({ data: [{ type: 'analyticsReportInstances', id: 'instance-downloads-snapshot', attributes: { granularity: 'DAILY', processingDate: SNAPSHOT_DAY } }] }),
+          },
+          {
+            match: `^GET ${API}/v1/analyticsReportInstances/instance-downloads-snapshot/segments`,
+            body: json({ data: [{ type: 'analyticsReportSegments', id: 'segment-3', attributes: { url: 'https://reports.example-storage.com/snapshot.csv.gz?X-Amz-Signature=ghi', sizeInBytes: 200 } }] }),
+          },
+          { match: '^GET https://reports\\.example-storage\\.com/snapshot\\.csv\\.gz', headers: { 'content-type': 'application/octet-stream' }, bodyBase64: gzipBase64(SNAPSHOT) },
+          { match: `^GET ${API}/v1/salesReports\\?.*reportDate%5D=${QUIET_DAY}`, headers: { 'content-type': 'application/a-gzip' }, bodyBase64: gzipBase64(salesDay(QUIET_DAY, 9)) },
+          {
+            match: `^POST ${API}/v1/analyticsReportRequests$`,
+            status: 201,
+            body: json({ data: { type: 'analyticsReportRequests', id: 'request-snapshot-2', attributes: { accessType: 'ONE_TIME_SNAPSHOT', stoppedDueToInactivity: false } } }),
+          },
+          ...RULES,
+        ],
+      },
+    });
+
+    test('those days count what Sales and Trends saw, and Growth asks Apple for a new snapshot once', async ({ app, page, tauri }) => {
+      await connect(page);
+      await app.goto();
+      await app.dismissStartDialog();
+      const view = await syncOnce(page);
+
+      // 40 from App Analytics on DAY, and the 9 that only Sales and Trends saw.
+      await section(view, 'Overview').click();
+      await expect(view.getByRole('button', { name: /^New downloads 49/ })).toBeVisible();
+
+      // 35 days from the snapshot's end to the newest file's first day.
+      await section(view, 'Setup').click();
+      await expect(view.getByText(`Numbers up to ${DAY_LABEL}. 35 days are missing, and Growth asked Apple for them again`)).toBeVisible();
+      const asked = async () =>
+        (await httpLog(page)).filter((request) => request.method === 'POST' && request.url.endsWith('/v1/analyticsReportRequests'));
+      expect(await asked()).toHaveLength(1);
+      expect(JSON.parse((await asked())[0].body!).data).toEqual({
+        type: 'analyticsReportRequests',
+        attributes: { accessType: 'ONE_TIME_SNAPSHOT' },
+        relationships: { app: { data: { type: 'apps', id: APP } } },
+      });
+
+      // A refresh inside the month waits for that snapshot instead of asking again.
+      const before = (await storedMeta<number>(page, `sync:last:${APP}`)) ?? 0;
+      await view.getByRole('button', { name: 'Refresh', exact: true }).click();
+      await expect.poll(async () => (await storedMeta<number>(page, `sync:last:${APP}`)) ?? 0, { timeout: 60_000 }).toBeGreaterThan(before);
+      expect(await asked()).toHaveLength(1);
+
+      // The agent's overview names those days, so it does not read them as a drop.
+      await backToEditor(page);
+      const overview = await mcpCall(tauri, 'get_store_overview', {}, true);
+      expect(overview.isError, overview.text).toBe(false);
+      expect(JSON.parse(overview.text).notes).toContainEqual(expect.stringMatching(/^App Analytics has no downloads for 35 days in these windows \(/));
+    });
+  });
+
+  test.describe('with analytics read before quiet days were kept', () => {
+    // The downloads file also holds a day with only an auto-update, on which
+    // Sales and Trends counted 3 downloads.
+    const UPDATE_DAY = utcDay(-5);
+    const WITH_UPDATE_DAY = tsv([DOWNLOADS_HEADER, ...DOWNLOADS_ROWS, downloadsRow(UPDATE_DAY, 'Auto-update', 4)]);
+    test.use({
+      tauriConfig: {
+        http: [
+          { match: '^GET https://reports\\.example-storage\\.com/downloads\\.csv\\.gz', headers: { 'content-type': 'application/octet-stream' }, bodyBase64: gzipBase64(WITH_UPDATE_DAY) },
+          { match: `^GET ${API}/v1/salesReports\\?.*reportDate%5D=${UPDATE_DAY}`, headers: { 'content-type': 'application/a-gzip' }, bodyBase64: gzipBase64(salesDay(UPDATE_DAY, 3)) },
+          ...RULES,
+        ],
+      },
+    });
+
+    test('the next sync reads those files again, so the headline adds up to the sources', async ({ app, page }) => {
+      await connect(page);
+      await app.goto();
+      await app.dismissStartDialog();
+      const view = await syncOnce(page);
+
+      // What an earlier version stored: no downloads entry for the day with
+      // only an auto-update, the file marked read, no import version.
+      await page.evaluate(
+        async ({ appId, day }) => {
+          const open = indexedDB.open('OpenScreenshotGeneratorGrowth');
+          const db = await new Promise<IDBDatabase>((resolve, reject) => {
+            open.onsuccess = () => resolve(open.result);
+            open.onerror = () => reject(open.error);
+          });
+          const tx = db.transaction(['days', 'meta'], 'readwrite');
+          const days = tx.objectStore('days');
+          const get = days.get(`${appId}|${day}`);
+          const record = await new Promise<{ feeds: Record<string, number> }>((resolve) => (get.onsuccess = () => resolve(get.result)));
+          delete record.feeds.downloads;
+          days.put(record);
+          tx.objectStore('meta').delete(`analytics:version:${appId}`);
+          await new Promise((resolve) => (tx.oncomplete = resolve));
+          db.close();
+        },
+        { appId: APP, day: UPDATE_DAY }
+      );
+      const filesRead = async () => (await httpLog(page)).filter((request) => request.url.startsWith('https://reports.example-storage.com/')).length;
+      expect(await filesRead()).toBe(2);
+
+      const before = (await storedMeta<number>(page, `sync:last:${APP}`)) ?? 0;
+      await view.getByRole('button', { name: 'Refresh', exact: true }).click();
+      await expect.poll(async () => (await storedMeta<number>(page, `sync:last:${APP}`)) ?? 0, { timeout: 60_000 }).toBeGreaterThan(before);
+      expect(await filesRead(), 'both files are read again').toBe(4);
+
+      // App Analytics' 40 alone, as the source breakdown adds up: the
+      // auto-update day is a zero of that report, not 3 from Sales and Trends.
+      await section(view, 'Overview').click();
+      await expect(view.getByRole('button', { name: /^New downloads 40/ })).toBeVisible();
+
+      // Read once more, the files are not fetched again.
+      const again = (await storedMeta<number>(page, `sync:last:${APP}`)) ?? 0;
+      await view.getByRole('button', { name: 'Refresh', exact: true }).click();
+      await expect.poll(async () => (await storedMeta<number>(page, `sync:last:${APP}`)) ?? 0, { timeout: 60_000 }).toBeGreaterThan(again);
+      expect(await filesRead()).toBe(4);
     });
   });
 

@@ -21,6 +21,13 @@
 // impressions are the sum of its Impression rows. "Unique Counts" are summed
 // the same way, which counts a device that saw the app in two storefronts
 // twice; App Store Connect's own totals do the same per breakdown.
+//
+// A day with rows in a file is a day the report covers, even when none of its
+// rows are counted here: a small app's day often has auto-updates and no
+// first-time download. That day is a zero, so the parsers still give it an
+// entry. Without one, the overview would take that day's downloads from Sales
+// and Trends (dayValues), which counts them another way, and the newest such
+// day would hold every window back (completeThrough).
 
 import { normalizeDay } from './dates';
 import { columnIndex, numberCell, parseDelimited } from './delimited';
@@ -125,6 +132,7 @@ export function parseEngagementReport(text: string, options: ParseOptions = {}):
     if (!keep(row)) continue;
     const date = normalizeDay(row[col.date]);
     if (!date) continue;
+    feedDayFor(batch, date);
     const event = (row[col.event] ?? '').trim().toLowerCase();
     const counts = numberCell(row[col.counts]);
     const unique = col.unique >= 0 ? numberCell(row[col.unique]) : 0;
@@ -165,6 +173,7 @@ export function parseDownloadsReport(text: string, options: ParseOptions = {}): 
     if (!keep(row)) continue;
     const date = normalizeDay(row[col.date]);
     if (!date) continue;
+    feedDayFor(batch, date);
     const type = (row[col.type] ?? '').trim().toLowerCase();
     const counts = numberCell(row[col.counts]);
     let add: Counts | null = null;

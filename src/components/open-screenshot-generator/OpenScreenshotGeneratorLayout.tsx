@@ -12756,7 +12756,8 @@ const generateRandomProjectName = (): string => {
                       revealDockTab('agent');
                       if (isMobileViewport) setIsMobileDockOpen(true);
                       await claudeAgent.send({
-                        text: `${question}\n\nRead my App Store numbers with the store tools first (get_store_overview, then the others as needed).`,
+                        // The store tools read the app Growth shows, a Google Play app too.
+                        text: `${question}\n\nRead the numbers of the app open in Growth with the store tools first (get_store_overview, then the others as needed).`,
                       });
                     })().catch((error) =>
                       toast({

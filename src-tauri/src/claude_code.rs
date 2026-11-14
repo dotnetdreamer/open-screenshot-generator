@@ -3229,21 +3229,17 @@ mod tests {
     #[test]
     fn a_one_shot_run_answers_through_stdin_and_stops_at_its_deadline() {
         let runs = PromptRuns::default();
-        #[cfg(unix)]
-        {
-            let mut cat = Command::new("cat");
-            cat.stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
-            let ticket = runs.begin("cat", "main").unwrap();
-            match run_once(cat, "echoed".into(), Duration::from_secs(10), &ticket).unwrap() {
-                OnceOutcome::Exited(captured) => assert_eq!(captured.stdout, "echoed"),
-                _ => panic!("cat did not answer"),
-            }
-            drop(ticket);
-            let ticket = runs.begin("sleep", "main").unwrap();
-            let started = Instant::now();
-            assert!(matches!(run_once(sleeper(), String::new(), Duration::from_millis(300), &ticket).unwrap(), OnceOutcome::TimedOut));
-            assert!(started.elapsed() < Duration::from_secs(5));
+        let ticket = runs.begin("cat", "main").unwrap();
+        match run_once(echoer(), "echoed".into(), Duration::from_secs(10), &ticket).unwrap() {
+            OnceOutcome::Exited(captured) => assert_eq!(captured.stdout.trim_end(), "echoed"),
+            _ => panic!("the echo did not answer"),
         }
+        drop(ticket);
+        let ticket = runs.begin("sleep", "main").unwrap();
+        let started = Instant::now();
+        assert!(matches!(run_once(sleeper(), String::new(), Duration::from_millis(300), &ticket).unwrap(), OnceOutcome::TimedOut));
+        assert!(started.elapsed() < Duration::from_secs(5));
+        drop(ticket);
         assert!(runs.is_empty(), "a finished run leaves nothing behind");
 
         let counter = AtomicUsize::new(0);
@@ -3254,18 +3250,44 @@ mod tests {
         assert!(claim_prompt_slot(&counter).is_some());
     }
 
-    /// A process that runs until it is killed, leading its own group as the
-    /// prompt commands do.
-    #[cfg(unix)]
+    /// A process that writes back what it reads on stdin.
+    fn echoer() -> Command {
+        #[cfg(unix)]
+        let mut echo = Command::new("cat");
+        // sort.exe, by its full path: Git for Windows puts its own sort first on PATH.
+        #[cfg(windows)]
+        let mut echo = Command::new(
+            std::env::var_os("SystemRoot").map(|root| PathBuf::from(root).join("System32").join("sort.exe")).unwrap_or_else(|| "sort".into()),
+        );
+        echo.stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
+        hide_console(&mut echo);
+        echo
+    }
+
+    /// A process that runs until it is killed, started the way the prompt
+    /// commands are: leading its own group on Unix, and on Windows a shell with
+    /// a child of its own, the shape of an npm shim that kill_tree has to end
+    /// whole.
     fn sleeper() -> Command {
-        use std::os::unix::process::CommandExt;
-        let mut sleeper = Command::new("sleep");
-        sleeper.arg("30").stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
-        sleeper.process_group(0);
+        #[cfg(unix)]
+        let mut sleeper = {
+            use std::os::unix::process::CommandExt;
+            let mut sleeper = Command::new("sleep");
+            sleeper.arg("30");
+            sleeper.process_group(0);
+            sleeper
+        };
+        #[cfg(windows)]
+        let mut sleeper = {
+            let mut sleeper = Command::new("cmd");
+            sleeper.args(["/d", "/c", "ping -n 30 127.0.0.1"]);
+            sleeper
+        };
+        sleeper.stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
+        hide_console(&mut sleeper);
         sleeper
     }
 
-    #[cfg(unix)]
     #[test]
     fn stop_kills_the_prompt_it_was_pressed_for_and_no_other() {
         let runs = PromptRuns::default();
@@ -3307,7 +3329,6 @@ mod tests {
         assert!(runs.begin("early", "editor-other").is_some());
     }
 
-    #[cfg(unix)]
     #[test]
     fn a_window_that_goes_takes_its_own_prompts_and_no_other() {
         let runs = PromptRuns::default();

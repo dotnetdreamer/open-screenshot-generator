@@ -1994,8 +1994,19 @@ pub fn register<R: Runtime>(app: &AppHandle<R>) {
 mod tests {
     use super::*;
 
+    /// A fresh folder per call. Named from a counter, never from an Instant's
+    /// debug text, whose colons and braces Windows refuses in a folder name.
     fn temp_dir(name: &str) -> PathBuf {
-        let dir = std::env::temp_dir().join(format!("osg-codex-{name}-{}-{:?}", std::process::id(), Instant::now()));
+        static NEXT: AtomicU64 = AtomicU64::new(0);
+        let stamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|elapsed| elapsed.as_nanos())
+            .unwrap_or_default();
+        let dir = std::env::temp_dir().join(format!(
+            "osg-codex-{name}-{}-{stamp}-{}",
+            std::process::id(),
+            NEXT.fetch_add(1, Ordering::SeqCst)
+        ));
         std::fs::create_dir_all(&dir).unwrap();
         dir
     }
