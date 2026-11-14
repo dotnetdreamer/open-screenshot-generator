@@ -20,8 +20,10 @@
 // button, says so through onRivalChangesFound, which is what the editor's
 // alert listens to (useRivalWatch.ts).
 
-import { deleteMeta, readMeta, readMetaWithPrefix, writeMeta } from './db';
-import { PlayPageUnreadable, canReadGooglePlay, fetchPlayStorefront } from './playPage';
+import { deleteMeta, deleteRatingDays, readMeta, readMetaWithPrefix, writeMeta } from './db';
+import { PlayPageUnreadable, canReadGooglePlay, fetchPlayPage } from './playPage';
+import { forgetPublicReviews, savePublicReviews, type PublicReview } from './publicReviews';
+import { recordRatings, todaysReadings } from './ratingHistory';
 import {
   DEFAULT_RIVAL_COUNTRIES,
   MAX_RIVAL_COUNTRIES,
@@ -311,6 +313,8 @@ async function forgetUnfollowed(appIds: string[]): Promise<void> {
   const mentioned = new Set(lists.flatMap((list) => [...list.rivals.map((rival) => rival.id), ownAppId(list)]));
   const gone = appIds.filter((id) => !mentioned.has(id));
   await deleteMeta(gone.flatMap((id) => [rivalKeys.app(id), rivalKeys.changes(id)]));
+  await forgetPublicReviews(gone);
+  await deleteRatingDays(gone);
   if (gone.length) announce('data');
 }
 
@@ -534,13 +538,16 @@ async function runCheck(owner: string, signal: AbortSignal, first?: string, only
         }
       }
       let playGaps = 0;
+      const playReviews = new Map<string, PublicReview[]>();
       for (const id of play.ids) {
         if (play.stopped) {
           playGaps += 1;
           continue;
         }
         try {
-          answers.set(id, await fetchPlayStorefront(packageOf(id)!, territory, { signal }));
+          const page = await fetchPlayPage(packageOf(id)!, territory, { signal });
+          answers.set(id, page?.storefront ?? null);
+          if (page && page.reviews.length > 0) playReviews.set(id, page.reviews);
           play.inARow = 0;
           play.answered += 1;
         } catch (error) {
@@ -569,6 +576,24 @@ async function runCheck(owner: string, signal: AbortSignal, first?: string, only
       }
       if (answers.size > 0) {
         await Promise.all(Array.from(answers.keys()).map((id) => writeMeta(rivalKeys.app(id), { ...snapshots.get(id)!, checkedAt: now })));
+        // Each answer is also a day in the app's ratings history, and a Google
+        // Play page brings the reviews it shows first.
+        for (const [id, next] of answers) {
+          if (next?.rating === null || next?.rating === undefined) continue;
+          await recordRatings(
+            id,
+            todaysReadings({
+              [territory]: {
+                average: next.rating,
+                count: next.ratingCount,
+                ...(next.stars ? { stars: next.stars } : {}),
+                ...(next.version ? { version: next.version } : {}),
+                at: now,
+              },
+            })
+          );
+        }
+        for (const [id, reviews] of playReviews) await savePublicReviews(id, territory, reviews, { pages: 1, complete: true, newest: true });
         announce('data');
       }
       setChecking({ owner, done: index + 1, total: countries.length });

@@ -72,7 +72,7 @@ export interface TopicCount {
   low: number;
 }
 
-export function topicCounts(reviews: StoreReview[]): TopicCount[] {
+export function topicCounts(reviews: Array<Pick<StoreReview, 'title' | 'body' | 'rating'>>): TopicCount[] {
   const counts = new Map<ReviewTopic, TopicCount>();
   for (const review of reviews) {
     for (const topic of topicsOf(review)) {

@@ -23,7 +23,7 @@ import { dayRange, monthStart, normalizeDay } from './dates';
 import { bucket, emptyFeedDay, feedDayFor, type FeedBatch } from './records';
 import { playLanguageTag, splitReviewText } from './play';
 import { territoryCode, UNKNOWN_TERRITORY } from './territories';
-import type { SourceType, StoreReview, TerritoryRating } from './types';
+import type { RatingPoint, SourceType, StoreReview, TerritoryRating } from './types';
 
 export type PlayReportKind = 'installs' | 'visits-country' | 'visits-source' | 'ratings-overview' | 'ratings-country' | 'reviews';
 
@@ -271,6 +271,33 @@ export function parseRatingsReport(text: string, appId: string, checkedAt: numbe
     count: 0,
     checkedAt,
   }));
+}
+
+/**
+ * Every day of a ratings file, for the ratings history (ratingHistory.ts):
+ * the average of all ratings ("Total Average Rating") and of the ratings
+ * given that day ("Daily Average Rating"), per country, or for the whole app
+ * (`ZZ`) from the overview file. No counts: the files have none.
+ */
+export function parseRatingsHistory(text: string, checkedAt: number): Map<string, Record<string, RatingPoint>> {
+  const { header, rows } = parseCsv(text);
+  const date = columnIndex(header, 'Date');
+  const total = columnIndex(header, 'Total Average Rating');
+  const daily = columnIndex(header, 'Daily Average Rating');
+  const country = columnIndex(header, 'Country', 'Country/Region', 'Country / Region');
+  const out = new Map<string, Record<string, RatingPoint>>();
+  if (date < 0 || total < 0) return out;
+  for (const row of rows) {
+    const day = normalizeDay(cell(row, date));
+    const average = ratingCell(cell(row, total));
+    if (!day || average === null) continue;
+    const territory = country >= 0 ? territoryOf(cell(row, country)) : UNKNOWN_TERRITORY;
+    const dayAverage = daily >= 0 ? ratingCell(cell(row, daily)) : null;
+    const points = out.get(day) ?? {};
+    points[territory] = { average, count: null, ...(dayAverage !== null ? { dayAverage } : {}), at: checkedAt };
+    out.set(day, points);
+  }
+  return out;
 }
 
 /** The review id inside a review's link, which is the id the Reviews API uses. */

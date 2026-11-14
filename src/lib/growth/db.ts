@@ -11,7 +11,7 @@
 // this window: a second editor window reads the database when it opens Growth.
 
 import Dexie, { type Table } from 'dexie';
-import type { DayRecord, ListingSnapshot, StoreReview, TerritoryRating, TimelineEvent } from './types';
+import type { DayRecord, ListingSnapshot, RatingDay, ReviewMark, StoreReview, TerritoryRating, TimelineEvent } from './types';
 
 export interface MetaRow {
   key: string;
@@ -25,6 +25,8 @@ class GrowthDatabase extends Dexie {
   events!: Table<TimelineEvent, string>;
   listings!: Table<ListingSnapshot, string>;
   meta!: Table<MetaRow, string>;
+  ratingDays!: Table<RatingDay, string>;
+  reviewMarks!: Table<ReviewMark, string>;
 
   constructor() {
     super('OpenScreenshotGeneratorGrowth');
@@ -35,6 +37,12 @@ class GrowthDatabase extends Dexie {
       events: 'id, appId, [appId+date]',
       listings: 'appId',
       meta: 'key',
+    });
+    // The ratings history (ratingHistory.ts) and what the user did with each
+    // review (reviewInbox.ts).
+    this.version(2).stores({
+      ratingDays: 'key, appId, [appId+date]',
+      reviewMarks: 'id, appId',
     });
   }
 }
@@ -94,6 +102,80 @@ export async function writeRatings(ratings: TerritoryRating[]): Promise<void> {
   await db().ratings.bulkPut(ratings);
 }
 
+/** Every day of ratings stored for an app, oldest first. */
+export async function readRatingDays(appId: string): Promise<RatingDay[]> {
+  return db().ratingDays.where('[appId+date]').between([appId, Dexie.minKey], [appId, Dexie.maxKey]).toArray();
+}
+
+export async function readRatingDay(appId: string, date: string): Promise<RatingDay | undefined> {
+  return db().ratingDays.get(`${appId}|${date}`);
+}
+
+export async function writeRatingDays(rows: RatingDay[]): Promise<void> {
+  if (rows.length === 0) return;
+  await db().ratingDays.bulkPut(rows);
+}
+
+/**
+ * Read a day of ratings, change it and write it back as one transaction, so
+ * two reads of the same day (a sweep, and a competitors check in another
+ * window) cannot write over each other.
+ */
+export async function updateRatingDays(appId: string, dates: string[], change: (date: string, row: RatingDay | undefined) => RatingDay | null): Promise<void> {
+  if (dates.length === 0) return;
+  const database = db();
+  await database.transaction('rw', database.ratingDays, async () => {
+    for (const date of dates) {
+      const next = change(date, await database.ratingDays.get(`${appId}|${date}`));
+      if (next) await database.ratingDays.put(next);
+    }
+  });
+}
+
+/** Forget the ratings history of apps, for competitors no list follows any more. */
+export async function deleteRatingDays(appIds: string[]): Promise<void> {
+  if (appIds.length === 0) return;
+  await db().ratingDays.where('appId').anyOf(appIds).delete();
+}
+
+export async function readReviewMarks(appIds: string[]): Promise<ReviewMark[]> {
+  if (appIds.length === 0) return [];
+  return db().reviewMarks.where('appId').anyOf(appIds).toArray();
+}
+
+/** Change the marks of some reviews in one go: `change` gets the stored mark, or none, and answers the new one, or null to delete it. */
+export async function updateReviewMarks(
+  reviews: Array<{ id: string; appId: string }>,
+  change: (mark: ReviewMark | undefined, review: { id: string; appId: string }) => ReviewMark | null
+): Promise<void> {
+  if (reviews.length === 0) return;
+  const database = db();
+  await database.transaction('rw', database.reviewMarks, async () => {
+    for (const review of reviews) {
+      const next = change(await database.reviewMarks.get(review.id), review);
+      if (next) await database.reviewMarks.put(next);
+      else await database.reviewMarks.delete(review.id);
+    }
+  });
+  for (const appId of new Set(reviews.map((review) => review.appId))) announceGrowthChange(appId);
+}
+
+/** Take a tag off every review that has it, for deleting the tag. */
+export async function dropTagEverywhere(tagId: string): Promise<void> {
+  const database = db();
+  const touched = new Set<string>();
+  await database.transaction('rw', database.reviewMarks, async () => {
+    const marks = await database.reviewMarks.filter((mark) => mark.tags.includes(tagId)).toArray();
+    for (const mark of marks) {
+      touched.add(mark.appId);
+      const tags = mark.tags.filter((id) => id !== tagId);
+      if (tags.length === 0 && !mark.doneAt) await database.reviewMarks.delete(mark.id);
+      else await database.reviewMarks.put({ ...mark, tags, updatedAt: Date.now() });
+    }
+  });
+  for (const appId of touched) announceGrowthChange(appId);
+}
+
 export async function readEvents(appId: string): Promise<TimelineEvent[]> {
   const rows = await db().events.where('appId').equals(appId).toArray();
   return rows.sort((a, b) => a.date.localeCompare(b.date));
@@ -146,6 +228,8 @@ export async function readMetaWithPrefix<T>(prefix: string): Promise<Array<{ key
  * Forget what a sync can fetch again, for "Remove this app's data". Timeline
  * entries the editor or the user wrote are kept: no sync can bring back the
  * record of when a screenshot set was uploaded, or a campaign someone typed in.
+ * The ratings history and the review marks stay for the same reason: the
+ * stores keep no history of ratings, and tags are the user's own work.
  */
 export async function clearApp(appId: string): Promise<void> {
   const database = db();

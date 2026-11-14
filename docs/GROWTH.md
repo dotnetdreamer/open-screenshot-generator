@@ -4,7 +4,8 @@ Growth shows how your app is doing in the App Store and on Google Play, in the s
 
 - Did my new screenshots bring more downloads?
 - In which countries do people download my app?
-- What do people write in their reviews?
+- What do people write in their reviews, and how is my star rating moving?
+- What do people like and dislike about my app, and about my competitors' apps?
 - What on my store page costs me downloads?
 - What do my competitors show in each country, and when do my competitors change their screenshots?
 
@@ -74,6 +75,8 @@ When you ask the Claude Code or Codex agent instead, the agent reads your number
 
 Competitors asks Apple's public App Store lookup about the apps you follow and about your own app, by their App Store ids, in the countries you check. The lookup needs no key and no account. In the desktop app, Competitors also opens the public Google Play page of each Google Play app you follow, and of your own Google Play app, in the countries you check, the way a web browser opens the pages. Opening the pages needs no key and no account.
 
+For the stars of your ratings on Google Play, the desktop app opens your app's public Google Play page, the page anyone sees in a web browser. For **Competitor reviews**, Growth reads the public reviews of the apps you follow: the App Store's list of reviews, which needs no key, and the reviews on each Google Play page. When you add a Slack webhook, Growth posts the stars, the title and the start of each new review to your Slack channel, and nothing else.
+
 To read your Google Play store page, Growth opens a draft of the store page in Play Console, reads the draft and deletes the draft again. The draft changes nothing on Google Play. Google allows one open draft per service account, so Growth waits while a screenshot upload to Google Play is running.
 
 ## Which AI Growth uses
@@ -86,7 +89,9 @@ The AI buttons work in every editor window, also in a tab that you moved into a 
 
 ## Checking while you work
 
-While the desktop app is open, Growth keeps checking your apps, also while you work in the editor. Growth refreshes each app you refreshed in Growth before, one app at a time, when the numbers are older than your setting. When Growth finds a change, such as a lower download rate, a falling rating or a new record, a message tells you, and the Growth button shows the number of new insights.
+While the desktop app is open, Growth keeps checking your apps, also while you work in the editor. Growth refreshes each app you refreshed in Growth before, one app at a time, when the numbers are older than your setting. When Growth finds a change, such as a lower download rate, a falling rating or a new record, a message tells you, and the Growth button shows the number of new insights. New reviews get a message too (see Replies under [Ratings and reviews](#ratings-and-reviews)).
+
+Growth starts its record of your ratings the first time it reads them, so keep the desktop app open now and then: each day Growth refreshes adds a day to the record.
 
 To turn the checking off, go to **Setup** and turn off **Keep refreshing while you edit**. Growth cannot check while the app is closed.
 
@@ -98,9 +103,7 @@ Competitors checks the apps you follow twice a day while the editor is open, in 
 
 **Insights.** Cards about what changed and what to do next. For example: your app was seen more or less often, Apple probably featured your app, a country where your store page is not in the main language, complaints that come up again and again in reviews, a lower rating after a new version, or problems on your store page. Each card has a button for the next step. Hide a card when you are done with the card. If the same change still shows the next week, a new card appears.
 
-**Reviews.** All written reviews. Filter the reviews by stars, country, topic, or by whether you replied. To answer a review, click **Reply**. With an AI set up, **Suggest a reply** writes a draft in the reviewer's language, from the review, your app's description and the style of your earlier replies. Growth sends nothing until you click **Send reply**. Apple checks every reply before the reply shows under the review.
-
-On Google Play, a review shows the reviewer's language instead of the country, and you filter the reviews by language. A reply can have up to 350 characters, and Google Play shows the reply right away. Google lets you delete a reply only in Play Console, so Growth has no **Delete** button for Google Play replies. To change a reply, click **Edit**.
+**Ratings and reviews.** Five sections of their own, under **Ratings and reviews** on the left. See [Ratings and reviews](#ratings-and-reviews) below.
 
 **Store page.** Your app's name, subtitle, keywords, promotional text, description and what's new, in every language, with Apple's character limits. The checks on the right find wasted keyword space (spaces after commas, repeated words, and words already in your name or subtitle), a subtitle that repeats the name, text that is not translated, and languages without their own screenshots. Many checks have a **Fix** button.
 
@@ -117,6 +120,68 @@ A Google Play store page has a title (30 characters), a short description (80 ch
 **Reports.** A weekly, monthly or yearly report. The report compares your numbers with the period before, and shows your top countries, how people found your app, your reviews and your events. The newest yearly report covers the year so far, next to the same days of the year before. Reports for older years come after the newest yearly report. Growth only compares a number when Growth has the number for the whole period before, and the report names the numbers Growth could not compare. With an AI set up, **Write summary** adds a few sentences about what changed and what to do next. Save the report as PDF, Markdown or text, or copy the report.
 
 **Ask AI.** Where Growth opens. The assistant sets Growth up for you (see Set up Growth with Ask AI), and answers questions about your numbers. The AI you chose answers from the data on your computer. If you use the Claude Code or Codex agent, **Ask the agent** sends the question to the agent instead. The agent can then change your screenshots in the same chat.
+
+## Ratings and reviews
+
+### Ratings
+
+Your star rating over time, your new ratings, and the rating in every country. Pick a country at the top, or click a country in the table.
+
+- **All ratings** shows your average rating and how many ratings you have, day by day. Click **Compare with** to draw the apps you follow on Competitors beside yours, up to 3 at a time.
+- **New ratings** shows the ratings people gave each day, week or month, split by stars. A grey part is new ratings whose stars Growth can't tell.
+- **Written reviews** shows the reviews with text, split by stars. The stores send every written review, so this chart goes back to your first review.
+
+The App Store and Google Play don't keep a history of your rating. They only say what your rating is now. So Growth keeps its own record, from the first day it reads your ratings, and each refresh adds a day. New ratings are the difference between two days. Growth needs two days to show new ratings, and a day Growth didn't refresh adds its new ratings to the next day it did.
+
+Where the numbers come from:
+
+- **App Store:** Apple says how many ratings your app has in each country and their average, but not how many ratings have each number of stars. Growth works out the average of the new ratings from the two averages, except when an app has many ratings and only a few new ones: Apple rounds the average, and the rounding is then bigger than the change. **Ratings by stars** shows the stars of your written reviews instead.
+- **Google Play:** your monthly report files give your average rating for every day, and the average of the ratings people gave that day. The files don't say how many ratings there are. The desktop app reads your Google Play page in your 3 busiest countries twice a day, for the number of ratings and how many have each number of stars. With those, Growth knows the stars of each new rating.
+
+**By version** shows the new ratings while each version was on sale. On Google Play, it shows your written reviews of each version.
+
+### Reviews
+
+Every written review, with the ones that still need you first.
+
+- **To do** has the reviews without a reply. **Replied** has the ones you answered, also replies Apple is still checking. **Done** has the reviews you marked done because they need no answer. **All reviews** has every review.
+- With more than one app, click **Every app** to see the reviews of all your apps in one list, from the App Store and Google Play. Each reply goes to the right store.
+- Filter the reviews by stars, country (or language on Google Play), version, tag, topic and date, or search the text of the reviews and your replies. **Stars changed** shows only the reviews whose stars changed.
+- Click **Tag** on a review to add your own labels, such as Bug or Feature request. Tags are the same for all your apps.
+- Click **Done** on a review that needs no answer. It leaves To do. **Back to To do** puts it back.
+- Tick reviews to tag them, mark them done or export them together.
+- **Export CSV** saves the reviews on the list as a spreadsheet file, with the stars, the text, your reply, the tags and the topics.
+
+To answer a review, click **Reply**. With an AI set up, **Suggest a reply** writes a draft in the reviewer's language, from the review, your app's description and the style of your earlier replies. Pick how the reply sounds: friendly, formal or short. **Templates** fills in a reply you saved before. Growth sends nothing until you click **Send reply**. Apple checks every reply before the reply shows under the review.
+
+People can change their stars at any time, and many do after a reply. When a refresh finds new stars on a review, the review says so, for example **Changed from 2 to 4 stars after your reply**.
+
+Keys: **J** and **K** move between reviews. **R** opens the reply box. **E** marks a review done. **X** ticks a review. **/** jumps to the search.
+
+On Google Play, a review shows the reviewer's language instead of the country, and you filter the reviews by language. A reply can have up to 350 characters, and Google Play shows the reply right away. Google lets you delete a reply only in Play Console, so Growth has no **Delete** button for Google Play replies. To change a reply, click **Edit**.
+
+### Review summary
+
+What people like, what they dislike and what they ask for, in your app or in an app you follow on Competitors. Pick the app, the country, how far back and which stars, then click **Write summary**. The summary needs an AI (see Which AI Growth uses).
+
+The AI reads the newest reviews, up to 200, and sorts them into themes. Growth then counts the reviews in each theme and shows two of them in the reviewers' own words, so every count is a count of real reviews. Which reviews fit a theme is the AI's call: open a theme to read the reviews behind it. For your own app, **Open the reviews in Reviews** shows them in the inbox.
+
+For your app, the summary also suggests **Lines for your screenshots** from what people like. For an app you follow, it lists **What people miss** in that app, which your screenshots could show if your app has it. Growth keeps your last 12 summaries for each app, so you can compare a new summary with the one before.
+
+### Competitor reviews
+
+What people say about the apps you follow on Competitors, in each country you check. The screen shows the app's rating, its ratings by stars, and what people complain about in the 1 and 2 star reviews, next to your own app's complaints. **Summarize with AI** opens the review summary for that app.
+
+- **App Store:** Apple shows anyone the newest 500 reviews of an app in each country. Growth reads 50 at a time, and **Show more** reads 50 more. The stars on the screen are those of the reviews Growth read.
+- **Google Play:** Google doesn't let programs read all the reviews of other apps. An app's Google Play page shows 20 reviews that Google picks, some of them old. Growth keeps those 20 each time it checks your competitors.
+
+### Replies
+
+How you answer reviews, in the time you pick at the top: how many reviews got a reply, how long a reply took, how many reviews are waiting, and how many people changed their stars after your reply. Below are your **Reply templates** and your **Tags**, and the alerts for new reviews.
+
+In a template, write `{name}` for the reviewer's name and `{app}` for your app's name. Growth fills them in when you use the template.
+
+**Alerts for new reviews:** Growth looks for new reviews each time it refreshes your numbers, also while you work in the editor. A message tells you about every new review, or only about 1 and 2 star reviews, or about none. In the desktop app, Growth can also post new reviews to a Slack channel. In Slack, add the app Incoming Webhooks to your workspace, pick the channel, copy the Webhook URL and paste the URL under **Also post them to Slack**. **Send a test message** checks that the URL works.
 
 ## Competitors
 

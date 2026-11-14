@@ -25,7 +25,8 @@ import { checkListing } from './listingChecks';
 import { loadGrowthData, type GrowthData } from './loadData';
 import { getGrowthSettings } from './settings';
 import { metaKeys, syncApp } from './sync';
-import type { GrowthApp, Insight } from './types';
+import { takeUntoldReviews } from './reviewAlerts';
+import type { GrowthApp, Insight, StoreReview } from './types';
 import type { AppStoreCredentials, PlayCredentials } from '@/lib/publish/types';
 
 export const insightsSeenKey = (appId: string) => `insights:seen:${appId}`;
@@ -91,6 +92,8 @@ export interface MonitorFinding {
   app: GrowthApp;
   /** Notable insights not seen yet, most important first. */
   fresh: Insight[];
+  /** New reviews the user wants to hear about (reviewAlerts.ts), newest first. */
+  reviews: StoreReview[];
 }
 
 export interface MonitorPassOptions {
@@ -189,7 +192,8 @@ export async function runMonitorPass(options: MonitorPassOptions): Promise<Monit
       if (options.signal?.aborted) break;
     }
     const fresh = await unseenInsights(app.id, appInsights(app.id, await loadGrowthData(app)));
-    if (fresh.length > 0) findings.push({ app, fresh });
+    const reviews = await takeUntoldReviews(app.id);
+    if (fresh.length > 0 || reviews.length > 0) findings.push({ app, fresh, reviews });
   }
   return findings;
 }

@@ -296,8 +296,6 @@ test.describe('growth', () => {
     test('with no Claude Code or Codex and no AI set up, the AI buttons say how to get one', async ({ page }) => {
       const view = await openGrowth(page);
       await section(view, 'Reviews').click();
-      await view.getByRole('combobox', { name: 'Filter by reply' }).click();
-      await page.getByRole('option', { name: 'Needs a reply' }).click();
       const review = view.locator('[data-review-id]').filter({ hasText: 'Crashes on launch' });
       await review.getByRole('button', { name: 'Reply' }).click();
 
@@ -321,9 +319,9 @@ test.describe('growth', () => {
         await section(view, 'Setup').click();
         await expect(view.getByTestId('growth-ai-writer-status')).toHaveText('Using Claude Code (Max plan)');
 
+        // The inbox opens on To do, the reviews without a reply.
         await section(view, 'Reviews').click();
-        await view.getByRole('combobox', { name: 'Filter by reply' }).click();
-        await page.getByRole('option', { name: 'Needs a reply' }).click();
+        await expect(view.getByRole('button', { name: /^To do/ })).toHaveAttribute('aria-pressed', 'true');
         const review = view.locator('[data-review-id]').filter({ hasText: 'Crashes on launch' });
         await review.getByRole('button', { name: 'Reply' }).click();
         await review.getByRole('button', { name: 'Suggest a reply' }).click();
@@ -444,8 +442,6 @@ test.describe('growth', () => {
       test('a reply still being suggested when the user leaves the Reviews stops its Claude Code run', async ({ page, tauri }) => {
         const view = await openGrowth(page);
         await section(view, 'Reviews').click();
-        await view.getByRole('combobox', { name: 'Filter by reply' }).click();
-        await page.getByRole('option', { name: 'Needs a reply' }).click();
         const review = view.locator('[data-review-id]').filter({ hasText: 'Crashes on launch' });
         await review.getByRole('button', { name: 'Reply' }).click();
         await review.getByRole('button', { name: 'Suggest a reply' }).click();

@@ -166,6 +166,94 @@ export interface StoreReview {
   /** Google Play only: the app version the reviewer had. */
   appVersion?: string;
   response?: ReviewResponse;
+  /**
+   * Every time a refresh found the stars changed, oldest first. A reviewer
+   * can change a rating at any time, and often does after a reply. The
+   * stores send only the rating as it is now, so each sync carries this list
+   * over from the stored review (`carryReviewHistory` in reviewInbox.ts).
+   */
+  ratingChanges?: RatingChange[];
+}
+
+export interface RatingChange {
+  from: number;
+  to: number;
+  /** When the new rating was written, as the store dates the review, or when a refresh first saw it, in ms. */
+  at: number;
+}
+
+/** Ratings per star: one star first, five stars last. */
+export type StarCounts = [number, number, number, number, number];
+
+/**
+ * One country's star rating as one read found it. `average` and `count` are
+ * every rating the store shows there; `stars` comes from the Google Play page
+ * (playPage.ts), which only the desktop app can read.
+ */
+export interface RatingPoint {
+  average: number;
+  /** Null where the store gives an average only: Google Play's report files. */
+  count: number | null;
+  stars?: StarCounts;
+  /** App Store: the version on sale that day, and its own ratings. */
+  version?: string;
+  versionAverage?: number;
+  versionCount?: number;
+  /** Google Play's report files: the average of the ratings given on that day. */
+  dayAverage?: number;
+  /** When it was read, in ms. */
+  at: number;
+}
+
+/**
+ * One app's ratings on one day, by country. The App Store and Google Play
+ * only say what a rating is now, so Growth keeps a row for every day a
+ * refresh read the ratings (ratingHistory.ts), and new ratings are the
+ * difference between two days. Google Play's report files are the exception:
+ * they have a row for every day, with an average and no count.
+ */
+export interface RatingDay {
+  /** `${appId}|${date}` */
+  key: string;
+  appId: string;
+  date: DayString;
+  /** By territory. `ZZ` is the whole app, where the store gives one figure for all countries. */
+  territories: Record<string, RatingPoint>;
+}
+
+/**
+ * What the user did with a review in Growth: its tags, and whether it needs
+ * no reply. Kept in a table of its own because a refresh writes reviews
+ * whole, and anything on the review row would go with the next one.
+ */
+export interface ReviewMark {
+  /** The review's id. */
+  id: string;
+  appId: string;
+  /** Tag ids (ReviewTag). */
+  tags: string[];
+  /** When the user marked the review done without a reply, in ms. */
+  doneAt?: number;
+  updatedAt: number;
+}
+
+/** A label the user puts on reviews, such as Bug or Feature request. */
+export interface ReviewTag {
+  id: string;
+  name: string;
+  /** One of TAG_COLORS (reviewInbox.ts). */
+  color: string;
+}
+
+/** A reply the user saved to start from again. */
+export interface ReplyTemplate {
+  id: string;
+  name: string;
+  /** May hold {name} for the reviewer's name and {app} for the app's name. */
+  body: string;
+  createdAt: number;
+  /** How many replies started from it, for the order in the menu. */
+  uses: number;
 }
 
 export interface ReviewResponse {
