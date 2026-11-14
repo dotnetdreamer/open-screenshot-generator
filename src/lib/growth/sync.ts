@@ -722,11 +722,18 @@ export function instanceDays(processingDate: string, snapshot: boolean, rowDates
 /**
  * The newest day App Analytics covers, and the days between each report's
  * first and newest that no file has covered: deleted before a sync read
- * them, or never sent. Exported for tests.
+ * them, or never sent. `byReport` keeps the two reports apart for the digest,
+ * because Sales and Trends can stand in for a missing downloads day and
+ * nothing stands in for a missing impressions day.
  */
-export function analyticsCoverage(records: DayRecord[]): { newest: DayString | null; missing: DayString[] } {
+export function analyticsCoverage(records: DayRecord[]): {
+  newest: DayString | null;
+  missing: DayString[];
+  byReport: Record<AnalyticsReportKind, DayString[]>;
+} {
   const byDate = indexRecords(records);
   const missing = new Set<DayString>();
+  const byReport: Record<AnalyticsReportKind, DayString[]> = { engagement: [], downloads: [] };
   let newest: DayString | null = null;
   for (const feed of ['engagement', 'downloads'] as const) {
     const days = records.filter((record) => record.feeds[feed] !== undefined).map((record) => record.date).sort();
@@ -734,10 +741,12 @@ export function analyticsCoverage(records: DayRecord[]): { newest: DayString | n
     const last = days[days.length - 1];
     if (!newest || last > newest) newest = last;
     for (const date of dayRange(days[0], last)) {
-      if (byDate.get(date)?.feeds[feed] === undefined) missing.add(date);
+      if (byDate.get(date)?.feeds[feed] !== undefined) continue;
+      missing.add(date);
+      byReport[feed].push(date);
     }
   }
-  return { newest, missing: [...missing].sort() };
+  return { newest, missing: [...missing].sort(), byReport };
 }
 
 /**

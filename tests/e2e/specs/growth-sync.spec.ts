@@ -612,7 +612,7 @@ test.describe('growth sync', () => {
       },
     });
 
-    test('those days count what Sales and Trends saw, and Growth asks Apple for a new snapshot once', async ({ app, page }) => {
+    test('those days count what Sales and Trends saw, and Growth asks Apple for a new snapshot once', async ({ app, page, tauri }) => {
       await connect(page);
       await app.goto();
       await app.dismissStartDialog();
@@ -639,6 +639,12 @@ test.describe('growth sync', () => {
       await view.getByRole('button', { name: 'Refresh', exact: true }).click();
       await expect.poll(async () => (await storedMeta<number>(page, `sync:last:${APP}`)) ?? 0, { timeout: 60_000 }).toBeGreaterThan(before);
       expect(await asked()).toHaveLength(1);
+
+      // The agent's overview names those days, so it does not read them as a drop.
+      await backToEditor(page);
+      const overview = await mcpCall(tauri, 'get_store_overview', {}, true);
+      expect(overview.isError, overview.text).toBe(false);
+      expect(JSON.parse(overview.text).notes).toContainEqual(expect.stringMatching(/^App Analytics has no downloads for 35 days in these windows \(/));
     });
   });
 

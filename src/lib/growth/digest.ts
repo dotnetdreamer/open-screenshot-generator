@@ -9,26 +9,32 @@
 // is left out: it adds nothing to an answer and is the one personal detail in
 // the data.
 
-import { addDays, formatWindow, type DayWindow } from './dates';
+import { addDays, formatWindow, inWindow, type DayWindow } from './dates';
+import { plural } from './format';
 import { formatChange, eventImpact } from './impact';
 import {
   byTerritory,
   bySource,
   compareWindows,
   completeThrough,
+  covers,
+  feedStarts,
   indexRecords,
   proceedsCurrency,
   relativeChange,
+  type MetricId,
   type Totals,
 } from './metrics';
 import { ratingSummary } from './ratings';
 import { REVIEW_TOPIC_LABELS, averageRating, reviewDay, reviewsIn, topicCounts, unansweredLow } from './reviewTopics';
 import { STORE_WORDS, storeOf, type GrowthStore } from './stores';
+import { analyticsCoverage } from './sync';
 import { territoryName } from './territories';
 import {
   EVENT_KIND_LABELS,
   sourceLabel,
   type DayRecord,
+  type DayString,
   type Insight,
   type ListingIssue,
   type ListingSnapshot,
@@ -84,6 +90,67 @@ function totalsSummary(totals: Totals, currency: string, store: GrowthStore) {
   };
 }
 
+/**
+ * The metric behind each number of totalsSummary. A number stands beside the
+ * period before only when its history reaches back over all of that period,
+ * as on the Overview (covers). One that starts partway through would read as
+ * a leap to the model, as it would to a person.
+ */
+const SUMMARY_METRICS: Partial<Record<string, MetricId>> = {
+  impressions: 'impressions',
+  productPageViews: 'pageViews',
+  firstTimeDownloads: 'downloads',
+  redownloads: 'redownloads',
+  conversionRate: 'conversion',
+  productPageConversionRate: 'pageConversion',
+  inAppPurchases: 'iapUnits',
+  proceeds: 'proceeds',
+  storeListingVisitors: 'pageViews',
+  storeListingAcquisitions: 'pageConversion',
+  downloadRate: 'pageConversion',
+  newDownloads: 'downloads',
+  updates: 'updates',
+};
+
+/** Sorted days as ranges, such as "2026-10-21 to 2026-10-30, 2026-11-03". */
+function dayRanges(days: DayString[], most = 6): string {
+  const ranges: Array<[DayString, DayString]> = [];
+  for (const day of days) {
+    const last = ranges[ranges.length - 1];
+    if (last && day === addDays(last[1], 1)) last[1] = day;
+    else ranges.push([day, day]);
+  }
+  const text = ranges.map(([from, to]) => (from === to ? from : `${from} to ${to}`));
+  return text.length > most ? `${text.slice(0, most).join(', ')} and ${text.length - most} more` : text.join(', ');
+}
+
+/**
+ * The days inside the compared windows that no App Analytics file covered
+ * (analyticsCoverage in sync.ts). Their impressions are not zeros, they are
+ * unknown, and without a note a model reads the gap as a drop.
+ */
+function missingAnalyticsNotes(records: DayRecord[], byDate: Map<DayString, DayRecord>, span: DayWindow): string[] {
+  const { byReport } = analyticsCoverage(records);
+  const notes: string[] = [];
+  const unseen = byReport.engagement.filter((day) => inWindow(day, span));
+  if (unseen.length > 0) {
+    notes.push(
+      `App Analytics has no impressions or page views for ${plural(unseen.length, 'day')} in these windows (${dayRanges(unseen)}). Impressions, page views and conversion leave those days out, so a change across them may not be real.`
+    );
+  }
+  const unsent = byReport.downloads.filter((day) => inWindow(day, span));
+  if (unsent.length > 0) {
+    const stoodIn = unsent.every((day) => byDate.get(day)?.feeds.sales !== undefined);
+    notes.push(
+      `App Analytics has no downloads for ${plural(unsent.length, 'day')} in these windows (${dayRanges(unsent)}). ` +
+        (stoodIn
+          ? 'First-time downloads on those days come from Sales and Trends instead, and the product page conversion rate leaves them out.'
+          : 'First-time downloads come from Sales and Trends on the days it has, and the product page conversion rate leaves all of them out.')
+    );
+  }
+  return notes;
+}
+
 export function buildDigest(input: DigestInput) {
   const store = storeOf(input.appId);
   const play = store === 'playstore';
@@ -100,7 +167,13 @@ export function buildDigest(input: DigestInput) {
     const { current, previous, previousWindow } = compareWindows(byDate, window);
     const currency = proceedsCurrency(current, previous);
     const now = totalsSummary(current, currency, store);
-    const then = totalsSummary(previous, currency, store);
+    const starts = feedStarts(input.records);
+    const then: Record<string, unknown> = Object.fromEntries(
+      Object.entries(totalsSummary(previous, currency, store)).map(([key, value]) => {
+        const metric = SUMMARY_METRICS[key];
+        return [key, metric && !covers(starts, metric, previousWindow) ? null : value];
+      })
+    );
     totals = {
       window: `${window.from} to ${window.to} (${formatWindow(window)})`,
       previousWindow: `${previousWindow.from} to ${previousWindow.to}`,
@@ -119,6 +192,7 @@ export function buildDigest(input: DigestInput) {
     } else {
       if (!current.hasEngagement) notes.push('No App Analytics data: impressions, page views and conversion are unknown.');
       if (!current.hasSales) notes.push('No Sales and Trends data: proceeds and in-app purchases are unknown.');
+      notes.push(...missingAnalyticsNotes(input.records, byDate, { from: previousWindow.from, to: window.to }));
     }
     territories = byTerritory(byDate, window)
       .slice(0, 12)

@@ -26,7 +26,7 @@ When the numbers arrive:
 
 - **Store page, reviews and ratings:** in a few seconds.
 - **Downloads, purchases and earnings** (Apple's Sales and Trends): in a few minutes, for up to a year back. Apple adds each day's numbers the next morning, Pacific time.
-- **Times seen, page visits and download rate** (Apple's App Analytics): Apple first has to turn on App Analytics for your app. Apple turns on App Analytics when an API key with the Admin role asks, and Growth asks the first time you refresh with an Admin key. The first numbers take a day or two. After the first numbers, each day's numbers arrive a day or two later.
+- **Times seen, page visits and download rate** (Apple's App Analytics): Apple first has to turn on App Analytics for your app. Apple turns on App Analytics when an API key with the Admin role asks, and Growth asks the first time you refresh with an Admin key. The first numbers take a day or two. After the first numbers, each day's numbers arrive a day or two later. Apple keeps each App Analytics file for 35 days, so after a longer break between refreshes some days can be missing. Setup then says how many, and Growth asks Apple for those days again with an Admin key, at most once a month. Until those days arrive, their downloads come from Sales and Trends, and times seen and page visits leave them out.
 
 Apple does not accept an API key when your computer's clock is more than about two minutes ahead. Growth and the screenshot upload use Apple's time instead, so a wrong clock on your computer does not stop Growth or the upload.
 

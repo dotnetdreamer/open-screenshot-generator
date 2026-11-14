@@ -2792,7 +2792,7 @@ const TOOLS: ToolDef[] = [
   ...storeTool({
     name: 'get_store_overview',
     description:
-      "The App Store or Google Play picture for the user's app, as the Growth window shows it: the last N days against the N before (impressions, product page views, first-time downloads, conversion rate, proceeds on the App Store; store listing visitors, acquisitions, the download rate, new downloads and updates on Google Play), the top storefronts, how people find the app, star ratings, recent reviews and their topics, the timeline (releases, and screenshot uploads with the conversion before and after each went live), the insight cards, and the listing with its problems. Call this first for any question about downloads, conversion, reviews, markets or whether new screenshots worked. Pass appId to pick an app (otherwise the one the Growth window last showed; otherApps lists the rest). app.store says which store the app is in.",
+      "The App Store or Google Play picture for the user's app, as the Growth window shows it: the last N days against the N before (impressions, product page views, first-time downloads, conversion rate, proceeds on the App Store; store listing visitors, acquisitions, the download rate, new downloads and updates on Google Play), the top storefronts, how people find the app, star ratings, recent reviews and their topics, the timeline (releases, and screenshot uploads with the conversion before and after each went live), the insight cards, and the listing with its problems. Call this first for any question about downloads, conversion, reviews, markets or whether new screenshots worked. Pass appId to pick an app (otherwise the one the Growth window last showed; otherApps lists the rest). app.store says which store the app is in, and notes says what the numbers leave out.",
     properties: {
       appId: { type: 'string', description: 'App Store Connect app id, play: and a Google Play package name, a bundle id or package name, or the app name. Optional.' },
       days: { type: 'number', description: 'Days to compare, 7 to 365. Default 28.' },
@@ -2802,7 +2802,7 @@ const TOOLS: ToolDef[] = [
   ...storeTool({
     name: 'get_store_metrics',
     description:
-      'One metric by day, week or month, optionally for one storefront or one source. Metrics: impressions, pageViews, downloads (first-time), conversion (downloads per unique impression), pageConversion (product page downloads per unique page view), redownloads, updates, iapUnits, proceeds. A Google Play app has pageViews (store listing visitors), pageConversion (its download rate: acquisitions per visitor), downloads and updates only. Days with no report yet are null.',
+      'One metric by day, week or month, optionally for one storefront or one source. Metrics: impressions, pageViews, downloads (first-time), conversion (downloads per unique impression), pageConversion (product page downloads per unique page view), redownloads, updates, iapUnits, proceeds. A Google Play app has pageViews (store listing visitors), pageConversion (its download rate: acquisitions per visitor), downloads and updates only. Days no report covers are null, and missingDays counts them.',
     properties: {
       appId: { type: 'string', description: 'Optional, see get_store_overview.' },
       metric: { type: 'string', enum: ['impressions', 'pageViews', 'downloads', 'conversion', 'pageConversion', 'redownloads', 'updates', 'iapUnits', 'proceeds'] },

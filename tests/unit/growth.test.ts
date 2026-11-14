@@ -274,9 +274,13 @@ test('a day no analytics file covered is missing, not a zero, and Growth asks Ap
     day('2026-03-06', { sales: 1, engagement: 1 }),
     day('2026-03-07', { sales: 1 }),
   ];
-  assert.deepEqual(analyticsCoverage(records), { newest: '2026-03-06', missing: ['2026-03-03', '2026-03-04'] });
+  assert.deepEqual(analyticsCoverage(records), {
+    newest: '2026-03-06',
+    missing: ['2026-03-03', '2026-03-04'],
+    byReport: { engagement: ['2026-03-03'], downloads: ['2026-03-03', '2026-03-04'] },
+  });
   assert.equal(dayValues(records[2], '2026-03-03').downloads, 9, 'the downloads Sales and Trends saw on a missing day are kept');
-  assert.deepEqual(analyticsCoverage([day('2026-03-01', { sales: 1 })]), { newest: null, missing: [] });
+  assert.deepEqual(analyticsCoverage([day('2026-03-01', { sales: 1 })]), { newest: null, missing: [], byReport: { engagement: [], downloads: [] } });
 
   const now = Date.parse('2026-12-20T12:00:00Z');
   const daysAgo = (days: number) => now - days * 86_400_000;
@@ -289,6 +293,63 @@ test('a day no analytics file covered is missing, not a zero, and Growth asks Ap
   assert.equal(snapshotDue({ snapshotRead: both, snapshotAskedAt: daysAgo(30) }, 2, now), false, 'Apple makes one about every 31 days');
   assert.equal(snapshotDue({ snapshotRead: both, snapshotAskedAt: daysAgo(31) }, 2, now), true);
   assert.equal(snapshotDue({ snapshotRead: both, snapshotAskedAt: daysAgo(1), snapshotRefused: true }, 2, now), true, 'a key that may not ask tries again a day later');
+});
+
+test('the overview an agent reads names the days no analytics file covered, and compares a number only as far back as its history reaches', () => {
+  const T = '2026-03-31';
+  const at = (back: number) => addDays(T, -back);
+  type Feed = 'engagement' | 'downloads' | 'sales';
+  const day = (back: number, feeds: Feed[]) => ({
+    key: `111|${at(back)}`,
+    appId: '111',
+    date: at(back),
+    territories: { US: { impressions: 100, uniqueImpressions: 80, pageViews: 20, uniquePageViews: 16, firstDownloads: 4, pageDownloads: 2, units: 5 } },
+    sources: {},
+    feeds: Object.fromEntries(feeds.map((feed) => [feed, 1])) as Partial<Record<Feed, number>>,
+  });
+  // Downloads and Sales and Trends go back 20 days, impressions only 10, so
+  // the earlier of the two 7-day windows (13 to 7 days back) starts before
+  // the impressions do.
+  const records = (gaps: Record<number, Feed[]> = {}) =>
+    Array.from({ length: 21 }, (_, back) =>
+      day(back, gaps[back] ?? (back > 10 ? ['downloads', 'sales'] : ['engagement', 'downloads', 'sales']))
+    );
+  const digestOf = (list: ReturnType<typeof records>) =>
+    buildDigest({
+      appId: '111',
+      appName: 'Juniper',
+      records: list,
+      reviews: [],
+      ratings: [],
+      events: [],
+      insights: [],
+      listing: null,
+      listingIssues: [],
+      days: 7,
+      today: addDays(T, 2),
+    });
+  const missingNotes = (digest: ReturnType<typeof digestOf>) => digest.notes.filter((note) => note.startsWith('App Analytics has no'));
+
+  const whole = digestOf(records());
+  assert.equal(whole.dataCompleteThrough, T);
+  const totals = whole.totals as { previous: Record<string, unknown>; change: Record<string, string> };
+  assert.equal(totals.previous.impressions, null, 'as on the Overview, impressions that start partway through the earlier window are not compared');
+  assert.equal(totals.previous.conversionRate, null);
+  assert.ok(!('impressions' in totals.change));
+  assert.equal(totals.previous.firstTimeDownloads, 28, 'downloads reach back over the whole earlier window');
+  assert.ok('firstTimeDownloads' in totals.change);
+  assert.deepEqual(missingNotes(whole), []);
+
+  // Apple deleted the files of two days before a sync read them, and the
+  // downloads of a third, which Sales and Trends has not reported either. A
+  // gap before the earlier window plays no part in the comparison.
+  const gapped = digestOf(records({ 4: ['sales'], 3: ['sales'], 1: ['engagement'], 18: ['sales'] }));
+  assert.deepEqual(missingNotes(gapped), [
+    `App Analytics has no impressions or page views for 2 days in these windows (${at(4)} to ${at(3)}). Impressions, page views and conversion leave those days out, so a change across them may not be real.`,
+    `App Analytics has no downloads for 3 days in these windows (${at(4)} to ${at(3)}, ${at(1)}). First-time downloads come from Sales and Trends on the days it has, and the product page conversion rate leaves all of them out.`,
+  ]);
+  const covered = digestOf(records({ 4: ['sales'], 3: ['sales'] }));
+  assert.match(missingNotes(covered)[1], /on those days come from Sales and Trends instead/);
 });
 
 test('a daily average keeps a decimal below ten, so 2.3 and 1.9 a day do not both read as 2', () => {
