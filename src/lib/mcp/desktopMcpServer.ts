@@ -19,6 +19,18 @@
 import { withBasePath } from '@/lib/basePath';
 import { isTauri } from '@/lib/desktop';
 import {
+  launchApp as launchCaptureApp,
+  listApps as listCaptureApps,
+  listDevices as listCaptureDevices,
+  takeScreenshot as takeDeviceScreenshot,
+} from '@/lib/capture/desktop';
+import { captureTargets } from '@/lib/capture/frames';
+import { appLanguageFor } from '@/lib/capture/locales';
+import { bestRunningDevice, shapeDifference, SHAPE_WARNING } from '@/lib/capture/match';
+import { waitUntilStill } from '@/lib/capture/settle';
+import { ensureTidy, shootDevice } from '@/lib/capture/shoot';
+import type { CaptureApp } from '@/lib/capture/types';
+import {
   STORE_DATA_REFUSAL,
   mayReadStoreData,
   storeEvents,
@@ -561,6 +573,24 @@ export interface McpDesignApi {
   setLocaleOverride(input: LocaleOverrideInput): McpLocaleOverrideResult;
   /** Hand a language's overrides back to the shared design, at any scope. */
   resetLocaleOverrides(input: LocaleResetInput): McpLocaleResetResult;
+
+  // -- Capture (desktop): screenshots of the user's app from a device ---------
+
+  /**
+   * Put a screenshot already in the media table (`asset:<id>`) into a device
+   * frame, in one language or the base one. capture_screenshot calls it once
+   * the picture is taken. Throws a short sentence the agent can act on.
+   */
+  placeCapturedScreenshot(input: {
+    artboardId?: string | null;
+    elementId: string;
+    locale?: string | null;
+    ref: string;
+    width: number;
+    height: number;
+    /** Shown in History beside "Capture Screenshot": the device's name. */
+    detail: string;
+  }): { artboardId: string; elementId: string; locale: string | null };
 
   // -- The Claude Code agent's code folders (desktop) --------------------------
 
@@ -1576,6 +1606,142 @@ const TOOLS: ToolDef[] = [
     description: 'Every screen recording stored by upload_recording, newest first, with its media id, size and duration.',
     inputSchema: { type: 'object', properties: {} },
     run: async () => textResult({ recordings: await listRecordings() }),
+  },
+
+  // -- Capture (desktop): screenshots of the user's app from a device -------
+  {
+    name: 'list_capture_devices',
+    description:
+      'The iPhone and iPad simulators, Android emulators and Android phones the desktop app can take screenshots from, each with its id, name, OS and state ("running", "off", "starting", "unauthorized", "offline"). Pass device (the id of a running one) to also list the apps the user installed on it, the one open now first. Desktop app only. A device that is off has to be started by the user, from Capture or from Xcode or Android Studio.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        device: { type: 'string', description: 'A running device id from this list, to also list its apps.' },
+      },
+    },
+    run: async (args) => {
+      if (!isTauri()) return { ...textResult('list_capture_devices needs the desktop app, which reaches the Simulator and adb.'), isError: true };
+      try {
+        const listed = await listCaptureDevices();
+        const all = [...listed.ios.devices, ...listed.android.devices];
+        let apps: CaptureApp[] | undefined;
+        if (args.device) {
+          const device = all.find((candidate) => candidate.id === String(args.device));
+          if (!device) {
+            return { ...textResult(`No device "${args.device}". The devices: ${all.map((candidate) => candidate.id).join(', ') || 'none'}.`), isError: true };
+          }
+          if (device.state !== 'running') return { ...textResult(`${device.name} is ${device.state}. Ask the user to start it.`), isError: true };
+          apps = await listCaptureApps(device.platform, device.id);
+        }
+        return textResult({
+          ios: listed.ios,
+          android: listed.android,
+          ...(apps ? { apps } : {}),
+          next: 'capture_screenshot { elementId, device, app, locale } puts a screenshot of the running app into a device frame, in that language.',
+        });
+      } catch (error) {
+        return { ...textResult(error instanceof Error ? error.message : String(error)), isError: true };
+      }
+    },
+  },
+  {
+    name: 'capture_screenshot',
+    description:
+      "Take a screenshot of the user's app on a running simulator, emulator or phone (list_capture_devices) and put it into a device frame. With app, the app is opened from the start first, in locale's language when locale is given, and the screenshot waits until the screen stops moving; screenUrl names the screen to open, a link with the app's own scheme such as myapp://settings: Android opens it with a VIEW intent, iOS gets it as the launch argument -OSGLink for the app to open itself (iOS asks before it opens a link from outside, and the screenshot would be of that question). Without app the screen is taken as it is. locale also picks which language of the project the frame gets the screenshot in; leave it out for the base language. The status bar shows 9:41 with full bars unless tidyStatusBar is false. Without elementId the screenshot is only stored, and its asset ref returned for update_element. Answers the ref, the size, and a warning when the screen is a different shape from the frame (some of it is then cut off: a simulator of the frame's own model fits exactly). Desktop app only.",
+    inputSchema: {
+      type: 'object',
+      properties: {
+        elementId: { type: 'string', description: 'A device element (a screenshot frame) to put the screenshot into.' },
+        artboardId: { type: 'string', description: 'The artboard holding elementId. Found from elementId when left out.' },
+        device: { type: 'string', description: 'A device id from list_capture_devices. Defaults to the running device that suits the frame best.' },
+        app: { type: 'string', description: 'Bundle id (iOS) or package name (Android) to open from the start first.' },
+        locale: { type: 'string', description: "A project language code (list_locales): the frame's language, and the language the app opens in." },
+        screenUrl: { type: 'string', description: 'The screen to open, as a link with the app scheme such as myapp://settings. On iOS the app reads it from -OSGLink. Needs app.' },
+        tidyStatusBar: { type: 'boolean', description: 'Draw the status bar at 9:41 with full signal and battery. Default true.' },
+      },
+    },
+    run: async (args, api) => {
+      if (!isTauri()) return { ...textResult('capture_screenshot needs the desktop app, which reaches the Simulator and adb.'), isError: true };
+      try {
+        const elementId = args.elementId ? String(args.elementId) : null;
+        const locale = args.locale ? String(args.locale) : null;
+        const boards = api
+          .listArtboards()
+          .map((summary) => api.getArtboard(summary.id))
+          .filter((board): board is ArtboardState & { active: boolean } => !!board);
+        const target = elementId ? captureTargets(boards).find((candidate) => candidate.elementId === elementId) ?? null : null;
+        if (elementId && !target) return { ...textResult(`"${elementId}" is not a device frame on any artboard.`), isError: true };
+        if (target?.kind === 'recording') {
+          return { ...textResult(`"${elementId}" plays a recording; capture_screenshot fills screenshot frames (device elements).`), isError: true };
+        }
+        const listed = await listCaptureDevices();
+        const all = [...listed.ios.devices, ...listed.android.devices];
+        const device = args.device ? all.find((candidate) => candidate.id === String(args.device)) ?? null : bestRunningDevice(target, all);
+        if (!device) {
+          return {
+            ...textResult(
+              args.device
+                ? `No device "${args.device}". Call list_capture_devices.`
+                : 'No simulator, emulator or phone is running. Ask the user to start one, then call list_capture_devices.'
+            ),
+            isError: true,
+          };
+        }
+        if (device.state !== 'running') return { ...textResult(`${device.name} is ${device.state}. Ask the user to start it.`), isError: true };
+        const app = args.app ? String(args.app) : null;
+        const link = args.screenUrl ? String(args.screenUrl) : null;
+        if (link && !app) return { ...textResult('screenUrl needs app: the app opens on that screen.'), isError: true };
+        const tidy = args.tidyStatusBar !== false;
+        const warnings: string[] = [];
+        if (app) {
+          await ensureTidy(device, tidy);
+          await launchCaptureApp(device.platform, device.id, app, locale ? appLanguageFor(locale, device.platform) : null, link);
+          const preview = () => takeDeviceScreenshot(device.platform, device.id, true);
+          if (!(await waitUntilStill(preview, { minMs: 1000, maxMs: 15_000 }))) {
+            warnings.push('The screen kept moving for 15 seconds and was taken anyway.');
+          }
+        }
+        const shot = await shootDevice(device, locale, tidy);
+        const difference = target ? shapeDifference(target.screenAspect, shot.width, shot.height) : null;
+        if (target && difference !== null && difference >= SHAPE_WARNING) {
+          warnings.push(
+            `${device.name} has a different screen shape from the ${target.deviceLabel} frame, so some of the screenshot is cut off. A simulator of the frame's model fits exactly.`
+          );
+        }
+        let placed: ReturnType<McpDesignApi['placeCapturedScreenshot']> | null = null;
+        if (elementId) {
+          try {
+            placed = api.placeCapturedScreenshot({
+              artboardId: args.artboardId ? String(args.artboardId) : target?.boardId,
+              elementId,
+              locale,
+              ref: shot.ref,
+              width: shot.width,
+              height: shot.height,
+              detail: device.name,
+            });
+          } catch (error) {
+            // The screenshot is stored either way, so the ref is not lost with the frame.
+            const reason = error instanceof Error ? error.message : String(error);
+            return {
+              ...textResult(`${reason} The screenshot is stored as ${shot.ref}; update_element { elementId, screenshotSrc: "${shot.ref}" } puts it in a frame.`),
+              isError: true,
+            };
+          }
+        }
+        return textResult({
+          ref: shot.ref,
+          width: shot.width,
+          height: shot.height,
+          device: { id: device.id, name: device.name, platform: device.platform },
+          placed,
+          ...(warnings.length ? { warnings } : {}),
+          ...(placed ? {} : { next: `Put it in a frame with update_element { elementId, screenshotSrc: "${shot.ref}" }.` }),
+        });
+      } catch (error) {
+        return { ...textResult(error instanceof Error ? error.message : String(error)), isError: true };
+      }
+    },
   },
 
   {
@@ -3203,6 +3369,9 @@ const SLOW_TOOLS = new Set([
   'translate_locales',
   // Same, when it was asked to draft the languages it just added.
   'add_locales',
+  // Opens the user's app, waits up to 15s for its screen to settle, then takes
+  // a full size screenshot from the Simulator or adb.
+  'capture_screenshot',
 ]);
 
 function toolNameOf(message: JsonRpcMessage): string | undefined {
@@ -3261,6 +3430,8 @@ function withWatchdog(work: Promise<unknown>, message: JsonRpcMessage, receivedA
  */
 const READ_ONLY_TOOLS = new Set([
   'list_artboards',
+  // Asks the desktop app which devices run; changes nothing on them.
+  'list_capture_devices',
   'get_artboard',
   'measure_element',
   'list_preview_scenes',

@@ -2,7 +2,8 @@
 
 // The strip down the left edge of the window that switches between the app's
 // views, the way VS Code's activity bar does: the editor, where the screenshots
-// are made, and Growth, where their numbers come back.
+// are made, Capture, where they are taken from the app running in a simulator
+// or emulator, and Growth, where their numbers come back.
 //
 // A new view is one entry in ACTIVITIES and one branch where the layout draws
 // the views (OpenScreenshotGeneratorLayout.tsx, `activity`). The editor stays
@@ -14,10 +15,10 @@
 // keeps Accounts and Manage. Those are `actions`: buttons with no view.
 
 import React from 'react';
-import { PenToolIcon, TrendingUpIcon } from 'lucide-react';
+import { CameraIcon, PenToolIcon, TrendingUpIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type ActivityId = 'editor' | 'growth';
+export type ActivityId = 'editor' | 'capture' | 'growth';
 
 export interface Activity {
   id: ActivityId;
@@ -28,6 +29,7 @@ export interface Activity {
 
 export const ACTIVITIES: Activity[] = [
   { id: 'editor', label: 'Editor', icon: PenToolIcon },
+  { id: 'capture', label: 'Capture: screenshots of your app from a simulator or emulator', icon: CameraIcon },
   { id: 'growth', label: 'Growth: downloads, reviews and your store page', icon: TrendingUpIcon },
 ];
 

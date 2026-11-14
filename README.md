@@ -15,6 +15,12 @@ https://github.com/user-attachments/assets/92348435-668f-4a58-b0be-0b939841150d
 
 ## What's new
 
+### 13 November 2026: Capture, screenshots straight from your app
+
+Click **Capture** (the camera) on the bar at the left to take screenshots of your app on the iPhone Simulator, an Android emulator or an Android phone. The screenshot goes straight into a phone frame of your project, in the language you choose, with the status bar at 9:41 and a full battery. The screen of the device shows live beside your frames.
+
+Tell Capture how to get to each screen, and Capture opens your app in every language of your project and takes every screen in every language for you. Capture also records the screen for preview videos, and the Claude Code and Codex agents can take the screenshots too. Read the [Capture guide](docs/CAPTURE.md).
+
 ### 12 November 2026: Growth, your App Store numbers beside your screenshots
 
 Click **Growth** on the bar at the left to see how your app is doing in the App Store: downloads, ratings, reviews and your store page. Growth uses the same App Store Connect API key as the screenshot upload.
@@ -45,6 +51,7 @@ You can also:
 - Choose from 101 templates for app screenshots, Apple Watch, Mac, preview videos, and Google Play feature graphics.
 - Make one layout for several languages and edit each language's text and screenshots.
 - Make preview videos from a screen recording.
+- Take screenshots of your app straight from the iPhone Simulator or an Android emulator, in every language, in the desktop app.
 - Ask the AI agent to pick a template, place screenshots, and draft text.
 - Save versions of your project, share a copy, or invite others to edit with you.
 - Upload finished screenshots to App Store Connect or Google Play from the desktop app.
@@ -81,6 +88,7 @@ Both versions use the same editor. The desktop app adds features that need acces
 | Coding agent design tools | With the [web relay](infra/vps/mcp-relay/README.md) or CLI | Built in MCP server |
 | Save to your own Google Drive or GitHub account | Yes | Yes |
 | Upload screenshots directly to App Store Connect or Google Play | No | Yes |
+| Capture: screenshots and recordings from the iPhone Simulator, Android emulators and phones | No | Yes |
 | Growth: App Store numbers, reviews, store page checks, results of new screenshots | Empty screens only | Yes |
 
 ## Command line and coding agents

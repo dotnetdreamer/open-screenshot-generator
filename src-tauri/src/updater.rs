@@ -439,12 +439,15 @@ fn publish<R: Runtime>(app: &AppHandle<R>) -> Snapshot {
     snapshot
 }
 
-/// The Claude Code and Codex processes are children of this one. A normal quit
-/// stops them from the run loop's Exit event, which an update skips: on Windows
-/// the plugin ends the process itself, and elsewhere the app restarts.
+/// The Claude Code and Codex processes, and Capture's screen recordings, are
+/// children of this one. A normal quit stops them from the run loop's Exit
+/// event, which an update skips: on Windows the plugin ends the process itself,
+/// and elsewhere the app restarts. Capture also puts back the status bars it
+/// tidied.
 fn stop_agents<R: Runtime>(app: &AppHandle<R>) {
     crate::claude_code::kill_all(app);
     crate::codex::kill_all(app);
+    crate::device_capture::stop_all(app);
 }
 
 #[tauri::command]

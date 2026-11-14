@@ -35,7 +35,7 @@ import { TranslationTableDialog } from './TranslationTableDialog';
 import { translateText, detectLanguage, isTranslationEnabled, AUTO_DETECT } from '@/services/translation';
 import { Logo } from './Logo';
 import { GithubMark, REPO_URL } from './GithubLink';
-import type { ArtboardState, ElementLocaleOverride, ElementSelectModifiers, ElementType, Point, ProjectLocalization, ShapeType, DeviceType, ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, VideoElementProps, VideoDeviceElementProps, GestureElementProps, GestureType, Project, Size } from '@/types/artboard';
+import type { ArtboardState, CaptureScreen, ElementLocaleOverride, ElementSelectModifiers, ElementType, Point, ProjectLocalization, ShapeType, DeviceType, ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, VideoElementProps, VideoDeviceElementProps, GestureElementProps, GestureType, Project, Size } from '@/types/artboard';
 // The locale overlay. `artboards` always means the whole base document; one
 // language is a projection of it, derived per render and never stored.
 import { getLocaleDef, localeLabel, localeName } from '@/lib/i18n/locales';
@@ -197,6 +197,10 @@ import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
 import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, scaleElementsToCanvas, DEVICE_FORMAT_PRESETS, type DeviceFormat, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 import { PublishDialog } from './publish/PublishDialog';
 import { GrowthWorkspace, type GrowthRequest } from './growth/GrowthWorkspace';
+import { CaptureWorkspace, type CaptureRequest, type ClipOutcome } from './capture/CaptureWorkspace';
+import { captureTargets } from '@/lib/capture/frames';
+import { placeClip, placeShots, type ClipPlacement, type ShotPlacement } from '@/lib/capture/place';
+import { deviceForQuickCapture, shootDevice } from '@/lib/capture/shoot';
 import { ActivityBar, type ActivityId } from './ActivityBar';
 import { getGrowthSettings, setGrowthSettings } from '@/lib/growth/settings';
 import { useGrowthMonitor } from '@/lib/growth/useGrowthMonitor';
@@ -1597,6 +1601,17 @@ export function OpenScreenshotGeneratorLayout() {
     if (tab) setGrowthRequest((current) => ({ tab, nonce: (current?.nonce ?? 0) + 1 }));
     setActivity('growth');
   }, []);
+  // Capture: screenshots of the user's app from a simulator or emulator
+  // (src/lib/capture). Mounted on its first visit and kept, like Growth, so
+  // a run of screenshots goes on while the editor is in front. A request
+  // chooses a frame, as the Properties panel's From Simulator button does.
+  const [captureMounted, setCaptureMounted] = useState(false);
+  const [captureRequest, setCaptureRequest] = useState<CaptureRequest | null>(null);
+  const showCapture = useCallback((frame?: Omit<CaptureRequest, 'nonce'>) => {
+    setCaptureMounted(true);
+    if (frame) setCaptureRequest((current) => ({ ...frame, nonce: (current?.nonce ?? 0) + 1 }));
+    setActivity('capture');
+  }, []);
   // While the desktop app runs, Growth keeps the apps synced there fresh and
   // says when something new turns up (src/lib/growth/monitor.ts). The main
   // window only: a tab window would sync the same apps a second time.
@@ -1629,6 +1644,7 @@ export function OpenScreenshotGeneratorLayout() {
   const selectActivity = useCallback(
     (next: ActivityId) => {
       if (next !== 'growth') {
+        if (next === 'capture') setCaptureMounted(true);
         setActivity(next);
         return;
       }
@@ -8847,6 +8863,130 @@ export function OpenScreenshotGeneratorLayout() {
     ]
   );
 
+  // ---- Capture (src/lib/capture) ------------------------------------------
+  // Everything Capture puts into the project commits here, on the base
+  // document through handleArtboardsUpdate, so it is one undo step and the
+  // editor stays the only writer. The ref, because a run commits after many
+  // awaits, when this render's handler is stale.
+  const handleCapturePlaceShots = useCallback(
+    (placements: ShotPlacement[], detail: string): { missed: number } | null => {
+      const { artboards: next, missed } = placeShots(artboardsRef.current, placements);
+      if (missed === placements.length) return { missed };
+      const committed = handleArtboardsUpdateRef.current(next, {
+        label: placements.length === 1 ? 'Capture Screenshot' : 'Capture Screenshots',
+        icon: 'image',
+        detail,
+        mergeKey: null,
+      });
+      return committed ? { missed } : null;
+    },
+    []
+  );
+  // A recording goes into the project it was started in, which may not be the
+  // one open when it stops: then into that project's tab in the background,
+  // and nowhere once the tab is closed. Through a ref, because the recording
+  // stops seconds after the click on Stop, when that render is out of date.
+  const placeClipRef = useRef<(projectId: string | null, placement: ClipPlacement, detail: string) => Promise<ClipOutcome>>(
+    async () => ({ placed: false, reason: 'busy' })
+  );
+  placeClipRef.current = async (projectId, placement, detail) => {
+    const change: HistoryChange = { label: 'Capture Recording', icon: 'image', detail, mergeKey: null };
+    if (projectId === activeProjectIdRef.current) {
+      const { artboards: next, missed } = placeClip(artboardsRef.current, placement);
+      if (missed > 0) return { placed: false, reason: 'missed' };
+      return handleArtboardsUpdateRef.current(next, change) ? { placed: true, projectName: null } : { placed: false, reason: 'busy' };
+    }
+    if (!projectId || !projectTabs.has(projectId)) return { placed: false, reason: 'closed' };
+    let missed = false;
+    const landed = await editProjectAnywhere(projectId, change, (boards) => {
+      const placed = placeClip(boards, placement);
+      if (placed.missed > 0) {
+        missed = true;
+        return null;
+      }
+      return { boards: placed.artboards, result: true };
+    });
+    if (landed) return { placed: true, projectName: projectNameOf(projectId) };
+    return { placed: false, reason: missed ? 'missed' : 'busy' };
+  };
+  const handleCapturePlaceClip = useCallback(
+    (projectId: string | null, placement: ClipPlacement, detail: string) => placeClipRef.current(projectId, placement, detail),
+    []
+  );
+  // How Capture reaches a frame's screen is the same in every language, so it
+  // is written on the base element, never through a language's view.
+  const handleSetCaptureScreen = useCallback((boardId: string, elementId: string, screen: CaptureScreen | undefined) => {
+    const base = artboardsRef.current;
+    let boardName = '';
+    let changed = false;
+    const next = base.map((board) => {
+      if (board.id !== boardId) return board;
+      const elements = board.elements.map((element) => {
+        if (element.id !== elementId || element.type !== 'device') return element;
+        changed = true;
+        boardName = board.name;
+        const { captureScreen: _previous, ...rest } = element;
+        return screen ? { ...rest, captureScreen: screen } : rest;
+      });
+      return { ...board, elements };
+    });
+    if (!changed) return;
+    handleArtboardsUpdateRef.current(next, { label: 'Set Capture Screen', icon: 'device', detail: boardName, mergeKey: null });
+  }, []);
+  // The Properties panel's From Simulator button. With a device running, the
+  // screenshot goes straight into the frame in the language on the canvas;
+  // a recording frame, or no device running, opens Capture on the frame.
+  const handleCaptureScreenshot = useCallback(
+    async (elementId: string) => {
+      const target = captureTargets(artboardsRef.current).find((candidate) => candidate.elementId === elementId) ?? null;
+      if (!target) return;
+      const frame = { boardId: target.boardId, elementId, locale: activeLocaleRef.current };
+      if (!isTauri() || target.kind === 'recording') {
+        showCapture(frame);
+        return;
+      }
+      try {
+        const projectId = activeProjectIdRef.current;
+        const device = await deviceForQuickCapture(target);
+        if (!device) {
+          showCapture(frame);
+          return;
+        }
+        const shot = await shootDevice(device, null);
+        // The frame ids of a copied project match, so the check is by project.
+        if (activeProjectIdRef.current !== projectId) {
+          toast({
+            title: 'The screenshot did not go into the frame',
+            description: 'Another project was opened meanwhile. The screenshot is in Capture.',
+          });
+          return;
+        }
+        const result = handleCapturePlaceShots([{ ...frame, ref: shot.ref, width: shot.width, height: shot.height }], device.name);
+        if (!result || result.missed > 0) {
+          toast({
+            title: 'The screenshot did not go into the frame',
+            description: result ? 'The frame was deleted or is hidden in this language. The screenshot is in Capture.' : 'The editor was busy. The screenshot is in Capture.',
+          });
+          return;
+        }
+        toast({
+          title: `Screenshot from ${device.name}`,
+          action: (
+            <ToastAction altText="Open Capture" onClick={() => showCapture(frame)}>
+              Open Capture
+            </ToastAction>
+          ),
+        });
+      } catch (error) {
+        toast({
+          title: 'The screenshot was not taken',
+          description: error instanceof Error ? error.message : 'The device did not answer.',
+        });
+      }
+    },
+    [handleCapturePlaceShots, showCapture, toast]
+  );
+
   // Not memoized on purpose: nearly every one of these is recreated per render
   // anyway, so a dependency list here would only be a lie. useDockHost keeps it
   // in a ref, so its identity does not cost anything.
@@ -8855,6 +8995,7 @@ export function OpenScreenshotGeneratorLayout() {
     onUpdateElementById: handleUpdateElementById,
     onStudioLive: updateStudioLive,
     onTranslateElement: handleTranslateTextElement,
+    onCaptureScreenshot: (elementId) => void handleCaptureScreenshot(elementId),
     onUpdateArtboardDetails: handleUpdateArtboardDetails,
     onResetLocaleField: handleResetLocaleField,
     onToggleLocaleDetach: handleToggleLocaleDetach,
@@ -11417,6 +11558,40 @@ const generateRandomProjectName = (): string => {
       return applied.result;
     },
 
+    // capture_screenshot calls this once the device has answered, seconds after
+    // its call began, on the api of the render it began in. So it reads the
+    // newest document and commits through the newest handleArtboardsUpdate:
+    // edits made while the app opened and settled stay. Another project
+    // opened meanwhile stops it before anything is written.
+    placeCapturedScreenshot: (input) => {
+      if (activeProjectIdRef.current !== activeProjectId) {
+        throw new Error('Another project was opened while the screenshot was taken, so it went into no frame.');
+      }
+      const newest = artboardsRef.current;
+      const board = input.artboardId
+        ? newest.find((candidate) => candidate.id === input.artboardId)
+        : newest.find((candidate) => candidate.elements.some((element) => element.id === input.elementId));
+      if (!board) throw new Error(input.artboardId ? `No artboard "${input.artboardId}" in this project.` : `No element "${input.elementId}" in this project.`);
+      const element = board.elements.find((candidate) => candidate.id === input.elementId);
+      if (!element) throw new Error(`No element "${input.elementId}" on artboard "${board.name}".`);
+      if (element.type !== 'device') {
+        throw new Error(`"${input.elementId}" is ${element.type === 'video-device' ? 'a video-device, which plays a recording' : `a ${element.type}`}. A screenshot goes into a device element.`);
+      }
+      const locale = !input.locale || input.locale === getBaseLocale(newest) ? null : input.locale;
+      const { artboards: next, missed } = placeShots(newest, [
+        { boardId: board.id, elementId: element.id, locale, ref: input.ref, width: input.width, height: input.height },
+      ]);
+      if (missed > 0) {
+        throw new Error(
+          locale && getProjectLocales(newest).some((entry) => entry.code === locale)
+            ? `"${input.elementId}" is hidden in ${locale}, so it cannot show a screenshot there.`
+            : `This project has no language "${locale}".`
+        );
+      }
+      commitForTool(next, namedChange('Capture Screenshot', 'image', input.detail), handleArtboardsUpdateRef.current);
+      return { artboardId: board.id, elementId: element.id, locale };
+    },
+
     // The Claude Code agent's code folders. Rust reads the picture and checks
     // the path; the store knows whether the process can read a folder now, and
     // whether the chat's agent ever could.
@@ -12732,6 +12907,25 @@ const generateRandomProjectName = (): string => {
                 handleActivateTab(projectId);
               });
             }}
+          />
+        </div>
+      )}
+      {captureMounted && (
+        <div className={cn('fixed inset-0 z-30 md:left-12', activity !== 'capture' && 'hidden')}>
+          <CaptureWorkspace
+            active={activity === 'capture'}
+            artboards={artboards}
+            canvasLocale={activeLocale}
+            request={captureRequest}
+            getProjectId={() => activeProjectIdRef.current}
+            onPlaceShots={handleCapturePlaceShots}
+            onPlaceClip={handleCapturePlaceClip}
+            onSetScreen={handleSetCaptureScreen}
+            onOpenLanguages={() => {
+              setActivity('editor');
+              setIsLanguageManagerOpen(true);
+            }}
+            onBackToEditor={() => setActivity('editor')}
           />
         </div>
       )}

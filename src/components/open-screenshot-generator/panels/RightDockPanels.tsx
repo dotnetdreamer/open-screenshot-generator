@@ -57,6 +57,8 @@ export interface DockHandlers {
   onUpdateElementById: (elementId: string, updates: Partial<ArtboardElement>) => void;
   onStudioLive?: StudioLiveHandler;
   onTranslateElement: (elementId: string) => void;
+  /** Take a screenshot from the running simulator or emulator into this frame, or open Capture on it. */
+  onCaptureScreenshot: (elementId: string) => void;
   onUpdateArtboardDetails: (updates: Partial<ArtboardState>, scope?: 'board' | 'all') => void;
   onResetLocaleField: (field: LocalizableField) => void;
   onToggleLocaleDetach: (keys: DetachableKey[], detach: boolean) => void;
@@ -235,6 +237,7 @@ export function RightDockPanels({
               onUpdateElementById={handlers.onUpdateElementById}
               onStudioLive={handlers.onStudioLive}
               onTranslateElement={handlers.onTranslateElement}
+              onCaptureScreenshot={handlers.onCaptureScreenshot}
               activeArtboardDetails={data.activeArtboardDetails}
               onUpdateArtboardDetails={handlers.onUpdateArtboardDetails}
               activeLocale={data.activeLocale}

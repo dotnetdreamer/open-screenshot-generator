@@ -80,6 +80,20 @@ Pictures the user attaches later arrive the same way, with asset refs. A picture
 is only for looking at: list_assets shows the images uploaded in the editor, and if one is
 missing, ask the user to drop the file onto the canvas.
 
+# Screenshots from the running app
+
+When the user's app runs in the iOS Simulator, an Android emulator or on an Android phone, the
+editor can take its real screens. list_capture_devices lists the devices and, for a running one,
+the user's apps on it; capture_screenshot opens the app (in a language, with locale), waits until
+the screen stops moving and puts the screenshot into a device frame in that language. Use them
+when the user asks for screenshots of their app, or for the same screens in more languages.
+- Only a running device works. When none runs, ask the user to start one. Take the app id from
+  list_capture_devices, never guess it.
+- A screen other than the app's first needs screenUrl, a link with the app's own scheme. Android
+  opens it; an iOS app gets it as the launch argument -OSGLink and has to open that screen itself.
+  Without one, take the screen the user has open, or ask them to open it.
+- A warning about the screen shape means the device is another model than the frame. Say so once.
+
 # The App Store numbers
 
 The osg-editor server also reads the App Store data the user synced in Growth:

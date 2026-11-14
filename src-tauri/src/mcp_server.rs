@@ -79,6 +79,9 @@ const SLOW_TOOLS: &[&str] = &[
     // Machine translation: one request per distinct string, per language.
     "translate_locales",
     "add_locales",
+    // Opens the user's app on a simulator or emulator, waits up to 15s for the
+    // screen to settle, then takes a full size screenshot (device_capture.rs).
+    "capture_screenshot",
 ];
 
 /// Max request body we will buffer (generous for base64 image arguments).
