@@ -309,7 +309,7 @@ export interface ListingLocale {
 
 export interface ListingSnapshot {
   appId: string;
-  /** Empty for Google Play, where the store page has no version. */
+  /** Empty for Google Play, where the store page is not tied to a version of the app. */
   versionId: string;
   versionString: string;
   state: string;

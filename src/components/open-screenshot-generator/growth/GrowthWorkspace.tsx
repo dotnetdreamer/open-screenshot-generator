@@ -20,6 +20,8 @@
 // Only real apps are shown. Without one (the web build, which cannot reach the
 // stores, or the desktop app before a key is connected) every screen is
 // there and empty, and each action is disabled with the reason (`blocked`).
+// Competitors is the exception: it reads Apple's public lookup, which needs
+// no key, so it works everywhere, and Growth opens on it when there is no key.
 //
 // The view stays mounted once opened, so the section, its filters and a sync
 // under way are still there after a visit to the editor. What only counts
@@ -32,6 +34,7 @@ import {
   BotIcon,
   CalendarClockIcon,
   ExternalLinkIcon,
+  EyeIcon,
   FileTextIcon,
   GlobeIcon,
   LayoutDashboardIcon,
@@ -73,9 +76,13 @@ import { dueForAutoSync, forgetAutoSync, noteAutoSync } from '@/lib/growth/autoS
 import { appsListKey, markInsightsSeen } from '@/lib/growth/monitor';
 import type { GrowthApp, SyncProgress, SyncStatus } from '@/lib/growth/types';
 import { useGrowthData } from '@/lib/growth/useGrowthData';
+import { isScreenshotChange } from '@/lib/growth/rivals';
+import { RIVAL_NEWS_DAYS } from '@/lib/growth/rivalWatch';
+import { useRivals } from '@/lib/growth/useRivals';
 import { getStoreCredentials, isStorePublishingAvailable, useStoreCredentials } from '@/lib/publish';
 import { cn } from '@/lib/utils';
 import { GrowthAsk } from './GrowthAsk';
+import { GrowthCompetitors } from './GrowthCompetitors';
 import { GrowthConnect } from './GrowthConnect';
 import { GrowthInsights } from './GrowthInsights';
 import { GrowthListing } from './GrowthListing';
@@ -83,7 +90,7 @@ import { GrowthMarkets } from './GrowthMarkets';
 import { GrowthOverview } from './GrowthOverview';
 import { GrowthReports } from './GrowthReports';
 import { GrowthReviews } from './GrowthReviews';
-import { Gated, GrowthProvider, StoreImage, type GrowthTab, type GrowthTabOptions, type GrowthView } from './GrowthShared';
+import { Gated, GrowthProvider, StoreImage, type GrowthTab, type GrowthTabOptions, type GrowthView, type OpenProject } from './GrowthShared';
 import { GrowthTimeline } from './GrowthTimeline';
 
 const DESKTOP_URL = 'https://openscrgen.app';
@@ -103,6 +110,7 @@ const NAV: Array<{ tab: GrowthTab; label: string; icon: React.ComponentType<{ cl
   { tab: 'insights', label: 'Insights', icon: LightbulbIcon },
   { tab: 'reviews', label: 'Reviews', icon: MessageSquareIcon },
   { tab: 'listing', label: 'Store page', icon: TypeIcon },
+  { tab: 'competitors', label: 'Competitors', icon: EyeIcon },
   { tab: 'markets', label: 'Countries', icon: GlobeIcon },
   { tab: 'timeline', label: 'Timeline', icon: CalendarClockIcon },
   { tab: 'reports', label: 'Reports', icon: FileTextIcon },
@@ -131,9 +139,11 @@ export interface GrowthWorkspaceProps {
   agentUnavailable?: string;
   /** Open a saved project, from a screenshots event on the timeline. */
   onOpenProject?: (projectId: string) => void;
+  /** The project open in the editor, for Competitors to show beside the apps followed. */
+  openProject?: () => OpenProject | null;
 }
 
-export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskAgent, agentUnavailable, onOpenProject }: GrowthWorkspaceProps) {
+export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskAgent, agentUnavailable, onOpenProject, openProject }: GrowthWorkspaceProps) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const desktop = mounted && isStorePublishingAvailable();
@@ -146,7 +156,14 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
   // Null until the account's apps have been asked for with this key.
   const [appsListed, setAppsListed] = useState<string | null>(null);
   const [appsError, setAppsError] = useState<string | null>(null);
-  const [tab, setTab] = useState<GrowthTab>(request?.tab ?? 'overview');
+  // Growth mounts on its first visit, in the browser only, so the keys can be
+  // read here. With no store key (always so in the web build) Competitors is
+  // the one section with something to show, so Growth opens there.
+  const [tab, setTab] = useState<GrowthTab>(() => {
+    if (request?.tab) return request.tab;
+    const keys = getStoreCredentials();
+    return !isStorePublishingAvailable() || (!keys.appstore && !keys.playstore) ? 'competitors' : 'overview';
+  });
   const [tabOptions, setTabOptions] = useState<GrowthTabOptions>(request?.options ?? {});
   // Bumped on every navigation, so going to the tab already open with new
   // options (a filter from an insight card) starts that screen afresh.
@@ -264,6 +281,12 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
   const store = picked ? storeOf(picked.id) : 'appstore';
   const words = STORE_WORDS[store];
   const anyApps = apps.length > 0 || !!playApp;
+
+  // Competitors follow the app on show. Until the apps have loaded there is
+  // no telling which app that is, so no list is read before then.
+  const appKnown = mounted && (!!picked || !desktop || (!key && !playApp) || !!appsError || appsListed === keyId);
+  const rivalOwner = picked?.id ?? '';
+  const rivals = useRivals(appKnown ? rivalOwner : null);
 
   const loadedData = useGrowthData(picked);
   // With no app there is nothing to wait for: the screens draw empty at once.
@@ -398,6 +421,7 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
 
   const view: GrowthView = {
     app,
+    active,
     store,
     words,
     data: { ...data, status },
@@ -432,12 +456,19 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
     onAskAgent,
     agentUnavailable,
     onOpenProject,
+    rivalOwner,
+    rivals,
+    openProject,
   };
 
   const badge = (target: GrowthTab): number => {
     if (target === 'insights') return insights.filter((insight) => insight.tone === 'problem' || insight.tone === 'warning').length;
     if (target === 'reviews') return data.reviews.filter((review) => review.rating <= 2 && !review.response).length;
     if (target === 'listing') return listingIssues.filter((issue) => issue.severity !== 'tip').length;
+    if (target === 'competitors') {
+      const since = Date.now() - RIVAL_NEWS_DAYS * 86_400_000;
+      return rivals.changes.filter((change) => isScreenshotChange(change) && change.foundAt >= since && !rivals.seen.has(change.id)).length;
+    }
     return 0;
   };
 
@@ -536,7 +567,7 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
         )}
       </header>
 
-      {mounted && !picked && (
+      {mounted && !picked && tab !== 'competitors' && (
         <div className="flex flex-wrap items-center gap-2 border-b bg-muted/50 px-4 py-2 text-xs" role="status" data-testid="growth-no-app">
           <span className="min-w-0 flex-1">{appReason}.</span>
           {!desktop ? (
@@ -599,6 +630,7 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
               {tab === 'insights' && <GrowthInsights />}
               {tab === 'reviews' && <GrowthReviews />}
               {tab === 'listing' && <GrowthListing />}
+              {tab === 'competitors' && <GrowthCompetitors />}
               {tab === 'markets' && <GrowthMarkets />}
               {tab === 'timeline' && <GrowthTimeline />}
               {tab === 'reports' && <GrowthReports />}

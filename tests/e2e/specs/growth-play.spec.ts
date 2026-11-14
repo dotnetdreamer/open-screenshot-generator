@@ -2,6 +2,7 @@ import { generateKeyPairSync } from 'node:crypto';
 import { test, expect, type Page } from '../fixtures/test';
 import type { TauriHttpRule } from '../fixtures/tauri-runtime';
 import type { TauriHarness } from '../fixtures/tauri';
+import { FakeAppStore, playListing, playShot, type PlayListing } from '../helpers/appStore';
 import { TEST_ACCOUNT_RULES, TEST_APP, TEST_KEY, backToEditor, openGrowth, section } from '../helpers/growth';
 
 // Growth for a Google Play app on the desktop build, against answers shaped
@@ -526,5 +527,52 @@ test.describe('a Google Play upload from the editor', () => {
     await expect(hero).toContainText('Not on Google Play yet');
     await expect(hero).toContainText('Google Play holds the new screenshots until you send the changes for review in Play Console');
     await expect(hero.getByLabel('Day the new screenshots went live')).toBeVisible();
+  });
+});
+
+test.describe('growth on Google Play, next to competitors', () => {
+  test('Competitors reads the app\'s own Google Play page with the apps it follows, in each country', async ({ app, page }) => {
+    // Google Play pages come from FakeAppStore, before this file's rules for the API and the reports.
+    const store = new FakeAppStore(page, true, RULES);
+    const own = (overrides: Partial<PlayListing> = {}) =>
+      playListing({ packageName: PACKAGE, name: 'Pebble Notes', developer: 'Pebble Labs', rating: 4.6, ratingCount: 210, screenshots: [playShot('pebble-1'), playShot('pebble-2')], ...overrides });
+    const rival = (overrides: Partial<PlayListing> = {}) =>
+      playListing({ packageName: 'com.rival.notes', name: 'Rival Notes', developer: 'Rival Labs', rating: 3.9, ratingCount: 5400, screenshots: [1, 2, 3].map((n) => playShot(`rival-${n}`)), ...overrides });
+    await connect(page);
+    await app.goto();
+    await store.install();
+    await store.showOnPlay('US', [own(), rival()]);
+    await store.showOnPlay('DE', [own({ rating: 4.1 }), rival({ rating: 3.5 })]);
+    await app.dismissStartDialog();
+
+    const view = await syncOnce(page);
+    await section(view, 'Competitors').click();
+    const screen = page.getByTestId('growth-competitors');
+    // The United States and Germany only: each country is a page per app.
+    // The list can still be taking in the app's busiest countries when it is first read, so it is read again until it settles.
+    const countryList = screen.getByTestId('growth-competitor-country-list');
+    await expect(async () => {
+      for (const name of (await countryList.getByRole('listitem').allTextContents()).map((text) => text.trim())) {
+        if (name !== 'United States' && name !== 'Germany') await countryList.getByRole('button', { name: `Stop checking ${name}` }).click();
+      }
+      await expect(countryList.getByRole('listitem')).toHaveText(['United States', 'Germany'], { timeout: 2_000 });
+    }).toPass({ timeout: 30_000 });
+
+    await screen.getByRole('textbox', { name: 'Find an app to follow' }).fill('https://play.google.com/store/apps/details?id=com.rival.notes');
+    await screen.getByRole('list', { name: 'Apps found' }).getByRole('button', { name: 'Follow Rival Notes', exact: true }).click();
+    await expect(screen.getByTestId('growth-competitors-checked')).toContainText('Checked just now', { timeout: 30_000 });
+
+    // The app's own page is read with the competitor's, in each country.
+    const asked = (await store.playRequests()).map((url) => `${url.searchParams.get('id')} ${url.searchParams.get('gl')}`);
+    expect(asked).toEqual(expect.arrayContaining([`${PACKAGE} US`, `${PACKAGE} DE`, 'com.rival.notes US', 'com.rival.notes DE']));
+    const rows = screen.getByTestId('growth-competitor-compare').getByTestId('growth-competitor-row');
+    const yours = rows.filter({ hasText: 'You' }).first();
+    await expect(yours).toHaveAttribute('data-app-name', 'Pebble Notes');
+    // The two screenshots of the store page, not the four of the Growth refresh.
+    await expect(yours.getByRole('img', { name: /^Pebble Notes, screenshot/ })).toHaveCount(2);
+    await expect(rows.filter({ hasText: 'Rival Notes' }).getByRole('img', { name: /^Rival Notes, screenshot/ })).toHaveCount(3);
+    const germany = screen.getByTestId('growth-competitor-countries').getByRole('row', { name: /^Germany/ });
+    await expect(germany).toContainText('4.1 (210)');
+    await expect(germany).toContainText('3.5 (5,400)');
   });
 });

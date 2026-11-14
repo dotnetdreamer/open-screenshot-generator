@@ -53,7 +53,7 @@ import {
   writeRatings,
   writeReviews,
 } from './db';
-import { RATING_PACE_MS, lookupApp, type LookupResult } from './itunes';
+import { lookupApp, type LookupResult } from './itunes';
 import { byTerritory, indexRecords } from './metrics';
 import { emptyFeedDay, mergeFeed, type FeedBatch } from './records';
 import { parseSalesReport } from './salesReport';
@@ -645,7 +645,7 @@ async function syncRatings(options: SyncOptions, setProgress: (value: SyncProgre
   let failuresInARow = 0;
   setProgress({ label: 'ratings', done: 0, total: storefronts.length });
   for (const [index, territory] of storefronts.entries()) {
-    if (index > 0) await new Promise((resolve) => setTimeout(resolve, RATING_PACE_MS));
+    // lookupApp waits its turn (RATING_PACE_MS apart, shared with the competitors check).
     try {
       const result = await lookupApp(appId, territory, options.signal);
       if (result) {

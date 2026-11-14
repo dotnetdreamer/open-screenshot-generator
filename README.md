@@ -15,6 +15,14 @@ https://github.com/user-attachments/assets/92348435-668f-4a58-b0be-0b939841150d
 
 ## What's new
 
+### 14 November 2026: Google Play competitors in the desktop app
+
+In the desktop app, Competitors now follows Google Play apps too. Paste the Google Play link of an app, and Growth reads the app's public Google Play page in each country you check: the rating, the price, the version when the page shows one, the day of the last update and the screenshots. Growth tells you when a Google Play app changes its screenshots, the same way as for an App Store app. A Google Play app in Growth is compared with its own Google Play page too. The web version cannot read Google Play pages, so the web version follows App Store apps only. Read [Competitors](docs/GROWTH.md#competitors) in the Growth guide.
+
+### 13 November 2026: Watch your competitors in Growth
+
+Follow up to 10 competing apps on the App Store, and see their screenshots, rating, version and price in each country. Growth shows your screenshots next to the competitors' screenshots, the way App Store search shows the apps. The project open in the editor shows there too, so you can compare new screenshots before you upload the new screenshots. Growth checks the competing apps twice a day and tells you when one of the apps changes its screenshots, with the old and the new screenshots side by side. Competitors uses Apple's public App Store lookup, which needs no key, so Competitors also works in the web version. Read [Competitors](docs/GROWTH.md#competitors) in the Growth guide.
+
 ### 12 November 2026: Growth, your App Store and Google Play numbers beside your screenshots
 
 Click **Growth** on the bar at the left to see how your app is doing in the App Store and on Google Play: downloads, ratings, reviews and your store page. Growth uses the same keys as the screenshot upload: your App Store Connect API key and your Google Play service account key.
@@ -84,6 +92,7 @@ Both versions use the same editor. The desktop app adds features that need acces
 | Save to your own Google Drive or GitHub account | Yes | Yes |
 | Upload screenshots directly to App Store Connect or Google Play | No | Yes |
 | Growth: App Store and Google Play numbers, reviews, store page checks, results of new screenshots | Empty screens only | Yes |
+| Growth: competitors' screenshots, ratings, versions and prices in each country, with alerts for new screenshots | App Store apps | App Store and Google Play apps |
 
 ## Command line and coding agents
 

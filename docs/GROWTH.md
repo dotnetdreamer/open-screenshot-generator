@@ -6,10 +6,11 @@ Growth shows how your app is doing in the App Store and on Google Play, in the s
 - In which countries do people download my app?
 - What do people write in their reviews?
 - What on my store page costs me downloads?
+- What do my competitors show in each country, and when do my competitors change their screenshots?
 
 To open Growth, click the Growth button (an arrow going up) on the bar at the left of the window. After you upload screenshots to App Store Connect, you can also click **See results in Growth**. The pen button above the Growth button takes you back to the editor, just as you left the editor.
 
-Growth works in the desktop app only. In the web version, and in the desktop app before you add a key, every screen of Growth is empty. Buttons that need your app are turned off. Point at a button to see why the button is off.
+Growth works in the desktop app only, except **Competitors**. Competitors needs no key, so Competitors also works in the web version. In the web version, and in the desktop app before you add a key, Growth opens on Competitors, and every other screen of Growth is empty. Buttons that need your app are turned off. Point at a button to see why the button is off.
 
 At the top of Growth, pick the app. With both keys, the list shows your App Store apps and your Google Play app in two groups.
 
@@ -56,6 +57,8 @@ The one exception is AI. When you ask the AI to write a reply, store page text o
 
 When you ask the Claude Code or Codex agent instead, the agent reads your numbers itself and sends the numbers to Anthropic or OpenAI with the rest of the chat.
 
+Competitors asks Apple's public App Store lookup about the apps you follow and about your own app, by their App Store ids, in the countries you check. The lookup needs no key and no account. In the desktop app, Competitors also opens the public Google Play page of each Google Play app you follow, and of your own Google Play app, in the countries you check, the way a web browser opens the pages. Opening the pages needs no key and no account.
+
 To read your Google Play store page, Growth opens a draft of the store page in Play Console, reads the draft and deletes the draft again. The draft changes nothing on Google Play. Google allows one open draft per service account, so Growth waits while a screenshot upload to Google Play is running.
 
 ## Which AI Growth uses
@@ -71,6 +74,8 @@ The AI buttons work in every editor window, also in a tab that you moved into a 
 While the desktop app is open, Growth keeps checking your apps, also while you work in the editor. Growth refreshes each app you refreshed in Growth before, one app at a time, when the numbers are older than your setting. When Growth finds a change, such as a lower download rate, a falling rating or a new record, a message tells you, and the Growth button shows the number of new insights.
 
 To turn the checking off, go to **Setup** and turn off **Keep refreshing while you edit**. Growth cannot check while the app is closed.
+
+Competitors checks the apps you follow twice a day while the editor is open, in the desktop app and in the web version (see [Competitors](#competitors)).
 
 ## The sections of Growth
 
@@ -88,6 +93,8 @@ Every edit, fix and AI suggestion goes to **Changes to apply**. Nothing changes 
 
 A Google Play store page has a title (30 characters), a short description (80 characters) and a full description (4,000 characters). You can change every field at any time. **Apply in Play Console** sends all your changes together. Google checks the changes before people see the changes, which can take up to a week. When Google does not send the changes for review on its own, send the changes for review in Play Console. The checks for Google Play include words that Google's rules do not allow in a title, such as best, #1 or free, and a missing short description.
 
+**Competitors.** Apps you follow on the App Store, and in the desktop app on Google Play, with their screenshots, rating, version and price in each country, next to your own screenshots. See [Competitors](#competitors) below.
+
 **Countries.** Every country with its times seen, page visits, download rate, downloads and earnings, and the main language of the App Store in that country. For a Google Play app, the table has no times seen and no earnings. Growth takes the main language from its own list, not from Apple. People whose phone is set to another App Store language see the App Store in their phone's language instead. When your store page does not have the main language of a country, **Translate screenshots** opens your project's languages with the missing language ticked.
 
 **Timeline.** Everything that happened to your app, on one chart: new versions and screenshot uploads, which Growth adds by itself, store page changes, and events you add yourself, such as an ad campaign or a price change. A screenshot upload shows the project the screenshots came from. Each event shows what your numbers did around the event.
@@ -95,6 +102,31 @@ A Google Play store page has a title (30 characters), a short description (80 ch
 **Reports.** A weekly, monthly or yearly report. The report compares your numbers with the period before, and shows your top countries, how people found your app, your reviews and your events. The newest yearly report covers the year so far, next to the same days of the year before. Reports for older years come after the newest yearly report. Growth only compares a number when Growth has the number for the whole period before, and the report names the numbers Growth could not compare. With an AI set up, **Write summary** adds a few sentences about what changed and what to do next. Save the report as PDF, Markdown or text, or copy the report.
 
 **Ask AI.** Ask questions about your numbers. The AI you chose answers from the data on your computer. If you use the Claude Code or Codex agent, **Ask the agent** sends the question to the agent instead. The agent can then change your screenshots in the same chat.
+
+## Competitors
+
+Follow up to 10 apps on the App Store, and in the desktop app on Google Play too. Under **Follow an app**, type the name of an App Store app, or paste the link of an app on the App Store or on Google Play, then click **Follow**. To stop following an app, click the cross on the app.
+
+Growth reads App Store apps from Apple's public App Store lookup, the same lookup the screenshot import uses. The lookup needs no key and no account, so Competitors works in the web version too. Growth reads a Google Play app from the app's public page on Google Play, the page anyone sees in a web browser. Google does not let programs search Google Play, so a Google Play app needs its link. Only the desktop app can read Google Play pages, so in the web version Competitors follows App Store apps only.
+
+**Screenshots in a country.** Pick a country at the top. **Search results** shows the first three screenshots of every app, the way store search shows the apps. **All screenshots** shows every screenshot. Switch between **iPhone** and **iPad** at the top. With a Google Play app in the list, the switch says **Phone** and **Tablet**. Google Play shows the screenshots for every device in one list, so a Google Play app shows all its screenshots under **Phone**. Your own screenshots come first:
+
+- With an App Store app in Growth, Growth looks up your app together with the apps you follow.
+- With a Google Play app in Growth, Growth reads your app's Google Play page together with the apps you follow. Until the first check, your phone screenshots come from your Google Play key.
+- In the web version, and without a key, name your app under **Your app**. In the desktop app, your app can be on the App Store or on Google Play.
+- The project open in the editor shows as **Open project**, in the language on screen in the editor. So you can see your new screenshots next to the competitors' screenshots before you upload the new screenshots. Growth draws up to 6 3D frames in 3D, as the store preview in the editor does, and draws the rest flat.
+
+**In each country.** A table with every country you check and every app: the rating and the number of ratings, the price, the version, or the number of screenshots. Some Google Play pages show no version number, so for those apps Growth shows the day of the last update instead. Google Play gives each country its own rating. **Own set** marks a country where an app shows other screenshots than in the first country of your list. Click a country to see the screenshots in that country.
+
+**Countries to check.** A new list starts with your busiest countries, then the big App Store countries. You can check up to 20 countries. Each country is one look at the App Store, and Apple allows about 20 looks a minute. So a check of 8 countries takes about half a minute. Each Google Play app adds one look at Google Play in each country, and Growth waits 2 seconds between two Google Play pages. When you follow an app on a list that Growth checked in the last 12 hours, Growth looks up only the new app.
+
+**What changed.** Growth checks the apps you follow twice a day while the editor is open, in the desktop app and in the web version. Growth compares each check with the check before. Growth lists new screenshots, new versions with what is new in each version, new names, new icons and new prices. For a Google Play app whose page shows no version number, Growth lists a new update day with what is new in the update. When an app you follow changes its screenshots, a message tells you, and the Growth button shows the number of new screenshot changes. Click **Compare** in the message, or **Show before and after** on the change, to see the old and the new screenshots. **Compare with yours** shows the new screenshots next to your screenshots. Click **Check now** to check right away.
+
+Apple's servers can answer with a copy from up to a day earlier, so Growth can see a change up to a day late. A copy from before a change can also answer after the change. So Growth skips an answer about an older version, and counts a new price only after two checks show the new price. Growth cannot check while the app or the web page is closed.
+
+When the App Store or Google Play does not answer in some countries, Competitors says so, and Growth asks that store again about an hour later.
+
+Google has no public service for Google Play pages, so Growth reads the pages the way a web browser does. If Google changes how the pages are built, Growth may not find the screenshots, the name or the icon. Then Growth says that Growth could not read the Google Play pages, and still checks the App Store apps. Other changes to the pages can leave a detail such as the rating empty without a message. A developer can test other screenshots with a store listing experiment on Google Play. Growth may then see one set in one check and the other set in the next check, and report a change each time.
 
 ## How Growth checks if new screenshots worked
 
@@ -108,7 +140,7 @@ Growth compares the weeks before and after the release. Growth does not run a co
 
 ### On Google Play
 
-When you upload screenshots to Google Play from Open Screenshot Generator, Growth saves the day and the project the screenshots came from. Google Play has no versions on the store page: Google checks the new screenshots, often in a few days and sometimes in a week, and then shows the new screenshots. Google does not tell apps when the new screenshots went live. So Growth counts from the upload day. If Google took longer, set **Day the new screenshots went live** on the Overview, and Growth counts from that day instead.
+When you upload screenshots to Google Play from Open Screenshot Generator, Growth saves the day and the project the screenshots came from. On Google Play, new screenshots do not wait for a new version of the app: Google checks the new screenshots, often in a few days and sometimes in a week, and then shows the new screenshots. Google does not tell apps when the new screenshots went live. So Growth counts from the upload day. If Google took longer, set **Day the new screenshots went live** on the Overview, and Growth counts from that day instead.
 
 Sometimes Google Play does not send new screenshots for review on its own, for example after Google rejected an earlier change. Then the new screenshots wait in Play Console until you send the changes for review. The Overview says **Not on Google Play yet**, and Growth waits until you set the day the new screenshots went live. With managed publishing in Play Console, set the day you published the changes.
 

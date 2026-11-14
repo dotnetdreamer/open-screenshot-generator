@@ -208,7 +208,8 @@ export function GrowthListing() {
       if (applied.length > 0) {
         // A change shows on the store when the version it was written to
         // does, so only an edit to the live version counts from today.
-        // Google Play has no versions; a change Play holds for review waits.
+        // On Google Play the store page is not tied to a version of the app; a
+        // change Play holds for review waits.
         await recordListingChange({
           appId: view.app.id,
           fields: Array.from(new Set(applied.map((change) => labelOf(change.field).toLowerCase()))),

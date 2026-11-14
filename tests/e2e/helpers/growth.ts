@@ -145,53 +145,88 @@ export const TEST_APP = SAMPLE_APP;
  * The app reads the key once, so reload (`app.goto()`) afterwards.
  */
 export async function connectTestAccount(page: Page): Promise<void> {
-  const rows = {
+  await page.evaluate(
+    ({ key, appId }) => {
+      localStorage.setItem(
+        'open-screenshot-generator.store-credentials',
+        JSON.stringify({ appstore: { issuerId: '69a6de70-0000-47e3-e053-5b8c7c11a4d1', keyId: 'ABCD123456', privateKey: key } })
+      );
+      localStorage.setItem('open-screenshot-generator.growth', JSON.stringify({ appId, vendorNumber: '85012345' }));
+    },
+    { key: TEST_KEY, appId: SAMPLE_APP.id }
+  );
+  await putGrowthRows(page, {
     days: sampleRecords(),
     reviews: sampleReviews(),
     ratings: sampleRatings(),
     events: sampleEvents(),
     listings: [sampleListing()],
     meta: [{ key: `sync:last:${SAMPLE_APP.id}`, value: Date.now() }],
-  };
-  await page.evaluate(
-    async ({ key, appId, rows }) => {
-      localStorage.setItem(
-        'open-screenshot-generator.store-credentials',
-        JSON.stringify({ appstore: { issuerId: '69a6de70-0000-47e3-e053-5b8c7c11a4d1', keyId: 'ABCD123456', privateKey: key } })
-      );
-      localStorage.setItem('open-screenshot-generator.growth', JSON.stringify({ appId, vendorNumber: '85012345' }));
-      // Dexie's version 1 is IndexedDB's version 10. When the app has not
-      // opened the database yet, it is made here with the stores and indexes
-      // src/lib/growth/db.ts declares, so Dexie opens it as its own.
-      const open = indexedDB.open('OpenScreenshotGeneratorGrowth', 10);
-      open.onupgradeneeded = () => {
-        const db = open.result;
-        const store = (name: string, keyPath: string, indexes: Array<[string, string | string[]]>) => {
-          const created = db.createObjectStore(name, { keyPath });
-          for (const [index, path] of indexes) created.createIndex(index, path);
-        };
-        store('days', 'key', [['appId', 'appId'], ['[appId+date]', ['appId', 'date']]]);
-        store('reviews', 'id', [['appId', 'appId'], ['[appId+createdDate]', ['appId', 'createdDate']]]);
-        store('ratings', 'key', [['appId', 'appId']]);
-        store('events', 'id', [['appId', 'appId'], ['[appId+date]', ['appId', 'date']]]);
-        store('listings', 'appId', []);
-        store('meta', 'key', []);
+  });
+}
+
+/** Rows to put in the growth database, by table. */
+export type GrowthRows = Partial<Record<'days' | 'reviews' | 'ratings' | 'events' | 'listings' | 'meta', unknown[]>>;
+
+/**
+ * Write rows straight into the growth database. The app reads the database
+ * when Growth opens, so put rows in before that, or reload (`app.goto()`).
+ */
+export async function putGrowthRows(page: Page, rows: GrowthRows): Promise<void> {
+  await page.evaluate(async (rows) => {
+    // Dexie's version 1 is IndexedDB's version 10. When the app has not
+    // opened the database yet, it is made here with the stores and indexes
+    // src/lib/growth/db.ts declares, so Dexie opens it as its own; when it
+    // has, the version the app made is opened as it is.
+    const exists = (await indexedDB.databases()).some((database) => database.name === 'OpenScreenshotGeneratorGrowth');
+    const open = exists ? indexedDB.open('OpenScreenshotGeneratorGrowth') : indexedDB.open('OpenScreenshotGeneratorGrowth', 10);
+    open.onupgradeneeded = () => {
+      const db = open.result;
+      const store = (name: string, keyPath: string, indexes: Array<[string, string | string[]]>) => {
+        const created = db.createObjectStore(name, { keyPath });
+        for (const [index, path] of indexes) created.createIndex(index, path);
       };
-      const db = await new Promise<IDBDatabase>((resolve, reject) => {
-        open.onsuccess = () => resolve(open.result);
-        open.onerror = () => reject(open.error);
+      store('days', 'key', [['appId', 'appId'], ['[appId+date]', ['appId', 'date']]]);
+      store('reviews', 'id', [['appId', 'appId'], ['[appId+createdDate]', ['appId', 'createdDate']]]);
+      store('ratings', 'key', [['appId', 'appId']]);
+      store('events', 'id', [['appId', 'appId'], ['[appId+date]', ['appId', 'date']]]);
+      store('listings', 'appId', []);
+      store('meta', 'key', []);
+    };
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      open.onsuccess = () => resolve(open.result);
+      open.onerror = () => reject(open.error);
+    });
+    const names = Object.keys(rows) as Array<keyof typeof rows>;
+    const tx = db.transaction(names, 'readwrite');
+    for (const name of names) for (const row of rows[name] ?? []) tx.objectStore(name).put(row);
+    await new Promise<void>((resolve, reject) => {
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+  }, rows);
+}
+
+/** One meta row of the growth database, or undefined. */
+export async function growthMeta<T>(page: Page, key: string): Promise<T | undefined> {
+  return page.evaluate(async (key) => {
+    const open = indexedDB.open('OpenScreenshotGeneratorGrowth');
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      open.onsuccess = () => resolve(open.result);
+      open.onerror = () => reject(open.error);
+    });
+    try {
+      const request = db.transaction('meta').objectStore('meta').get(key);
+      const row = await new Promise<{ value: unknown } | undefined>((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result as { value: unknown } | undefined);
+        request.onerror = () => reject(request.error);
       });
-      const names = Object.keys(rows) as Array<keyof typeof rows>;
-      const tx = db.transaction(names, 'readwrite');
-      for (const name of names) for (const row of rows[name] as unknown[]) tx.objectStore(name).put(row);
-      await new Promise<void>((resolve, reject) => {
-        tx.oncomplete = () => resolve();
-        tx.onerror = () => reject(tx.error);
-      });
+      return row?.value as T | undefined;
+    } finally {
       db.close();
-    },
-    { key: TEST_KEY, appId: SAMPLE_APP.id, rows }
-  );
+    }
+  }, key) as Promise<T | undefined>;
 }
 
 /** The keys of the growth database's meta rows that start with `prefix`, such as the report summaries kept. */

@@ -131,6 +131,11 @@ export async function writeMeta(key: string, value: unknown): Promise<void> {
   await db().meta.put({ key, value });
 }
 
+export async function deleteMeta(keys: string[]): Promise<void> {
+  if (keys.length === 0) return;
+  await db().meta.bulkDelete(keys);
+}
+
 /** Every meta row whose key starts with `prefix`, such as each app's last sync time. */
 export async function readMetaWithPrefix<T>(prefix: string): Promise<Array<{ key: string; value: T }>> {
   const rows = await db().meta.where('key').startsWith(prefix).toArray();
@@ -154,10 +159,12 @@ export async function clearApp(appId: string): Promise<void> {
     // 1234 with it), and the record of which Sales and Trends days were
     // fetched: that list is per vendor, and left behind it would make the next
     // sync skip every day whose rows were just deleted.
+    // Competitors (`rivals:` keys) stay: the apps followed are the user's
+    // choice, and what those apps showed before cannot be fetched again.
     const own = new RegExp(`:${appId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(:|$)`);
     const keys = (await database.meta.toCollection().primaryKeys())
       .map(String)
-      .filter((key) => own.test(key) || key.startsWith('sales:days:'));
+      .filter((key) => !key.startsWith('rivals:') && (own.test(key) || key.startsWith('sales:days:')));
     await database.meta.bulkDelete(keys);
   });
   announceGrowthChange(appId);

@@ -17,9 +17,10 @@ import {
 // Growth is one of the views on the activity bar. With no app (the web build,
 // which cannot reach App Store Connect, or the desktop app before a key is
 // connected) every section is there and empty, and each action says why it
-// cannot run. On the desktop the rest runs on a connected test account whose
-// numbers are written straight into the growth database from
-// tests/fixtures/growthSample.ts; growth-sync.spec.ts covers the sync itself.
+// cannot run; Competitors, which needs no key, has a spec of its own. On the
+// desktop the rest runs on a connected test account whose numbers are written
+// straight into the growth database from tests/fixtures/growthSample.ts;
+// growth-sync.spec.ts covers the sync itself.
 
 const EMPTY_SECTIONS: Array<[string, string]> = [
   ['Overview', 'No numbers for your app yet'],
@@ -84,6 +85,11 @@ test.describe('growth', () => {
     );
     expect(pressLands, 'the spot where Export was belongs to Growth').toBe(true);
 
+    // With no key Growth opens on Competitors, the one section that needs
+    // none (growth-competitors.spec.ts), so it gives no reason to wait.
+    await expect(section(view, 'Competitors')).toHaveAttribute('aria-current', 'page');
+    await expect(view.getByTestId('growth-no-app')).toHaveCount(0);
+    await section(view, 'Overview').click();
     const reason = isDesktop
       ? 'Add your App Store Connect API key or Google Play service account key under Setup first'
       : 'Growth works in the desktop app only';

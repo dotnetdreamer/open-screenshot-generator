@@ -23,11 +23,11 @@
 // until that version is released, so a screenshots event is measured from the
 // release of the version it was uploaded to (liveDateFor), not from the upload.
 //
-// Google Play has no versions on the store page: new screenshots go live once
-// Google has checked them, usually within days of the upload, so they are
-// measured from the upload day. A Google Play app has no impressions either,
-// so its rate is the store listing conversion rate (`pageConversion`): of the
-// people who opened the page, how many installed.
+// On Google Play the store page is not tied to a version of the app: new
+// screenshots go live once Google has checked them, usually within days of
+// the upload, so they are measured from the upload day. A Google Play app has
+// no impressions either, so its rate is the store listing conversion rate
+// (`pageConversion`): of the people who opened the page, how many installed.
 
 import { addDays, daysBetween, formatDay, type DayWindow } from './dates';
 import { dailySeries, relativeChange, totalsFor, type Totals } from './metrics';

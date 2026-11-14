@@ -2,7 +2,7 @@
 
 // Small pieces every Growth screen uses: the delta chip, the stat tile, the
 // tone icon, the empty state, and the context that hands each screen the
-// app, its data and the ways back to the editor.
+// app, its data, the competitors it follows and the ways back to the editor.
 
 import React, { createContext, useContext } from 'react';
 import {
@@ -21,6 +21,8 @@ import type { GrowthData } from '@/lib/growth/useGrowthData';
 import type { DayRecord, DayString, GrowthApp, Insight, InsightTone, ListingIssue } from '@/lib/growth/types';
 import type { GrowthStore, StoreWords } from '@/lib/growth/stores';
 import type { AppStoreCredentials, PlayCredentials } from '@/lib/publish/types';
+import type { RivalsData } from '@/lib/growth/useRivals';
+import type { ArtboardState } from '@/types/artboard';
 import { formatChange } from '@/lib/growth/impact';
 import { useStoreImage } from '@/lib/growth/storeImages';
 
@@ -29,6 +31,7 @@ export type GrowthTab =
   | 'insights'
   | 'reviews'
   | 'listing'
+  | 'competitors'
   | 'markets'
   | 'timeline'
   | 'reports'
@@ -48,10 +51,23 @@ export interface GrowthTabOptions {
   eventId?: string;
   /** Ask: start with this question. */
   question?: string;
+  /** Competitors: open on this change, with its before and after showing. */
+  rivalChange?: string;
+}
+
+/** The project open in the editor, as Competitors shows it beside the apps followed. */
+export interface OpenProject {
+  name: string;
+  /** In the language on screen. */
+  artboards: ArtboardState[];
+  /** The language on screen, null for the base language. */
+  language: string | null;
 }
 
 export interface GrowthView {
   app: GrowthApp;
+  /** True while Growth is the view on screen. */
+  active: boolean;
   /** The store the app is in, and the words for it ("App Store", "Apple"; "Google Play", "Google"). */
   store: GrowthStore;
   words: StoreWords;
@@ -91,6 +107,18 @@ export interface GrowthView {
   /** Why the agent cannot take a question here, when onAskAgent is unset. */
   agentUnavailable?: string;
   onOpenProject?: (projectId: string) => void;
+  /**
+   * Competitors: the apps followed for this app, or for no app (an empty
+   * owner) in the web build and on a desktop with no store key.
+   */
+  rivalOwner: string;
+  rivals: RivalsData & { reload: () => void };
+  /**
+   * The project open in the editor, read when asked so an edit does not
+   * redraw Growth: its artboards in the language on screen, which is null for
+   * the base language.
+   */
+  openProject?: () => OpenProject | null;
 }
 
 const GrowthContext = createContext<GrowthView | null>(null);

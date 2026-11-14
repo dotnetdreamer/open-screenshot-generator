@@ -8,6 +8,7 @@
 // storefronts first.
 
 import { bridgeFetch } from '@/lib/account/transport';
+import { pause } from './http';
 
 export interface LookupResult {
   name: string;
@@ -25,8 +26,23 @@ export interface LookupResult {
   storeUrl: string | null;
 }
 
-/** Spacing between lookups during a sweep: 20 a minute. */
+/** Spacing between lookups: 20 a minute. */
 export const RATING_PACE_MS = 3_100;
+
+let nextTurnAt = 0;
+
+/**
+ * Wait for this window's next turn at the lookup service. The ratings sweep
+ * and the competitors check (rivalWatch.ts) both ask Apple, and they can run
+ * at the same time, so they take turns here and keep to 20 a minute together.
+ * The first lookup after a quiet spell goes at once.
+ */
+export async function lookupTurn(signal?: AbortSignal): Promise<void> {
+  const now = Date.now();
+  const at = Math.max(now, nextTurnAt);
+  nextTurnAt = at + RATING_PACE_MS;
+  if (at > now) await pause(at - now, signal);
+}
 
 function numberOrNull(value: unknown): number | null {
   const parsed = Number(value);
@@ -63,6 +79,7 @@ export async function lookupApp(appId: string, territory: string, signal?: Abort
   // request: each one is small, and the desktop HTTP plugin keeps listeners on
   // a signal after the request has finished.
   if (signal?.aborted) throw new DOMException('The sync was stopped', 'AbortError');
+  await lookupTurn(signal);
   const doFetch = await bridgeFetch();
   const url = `https://itunes.apple.com/lookup?id=${encodeURIComponent(appId)}&country=${territory.toLowerCase()}&entity=software`;
   const response = await doFetch(url, { method: 'GET' });

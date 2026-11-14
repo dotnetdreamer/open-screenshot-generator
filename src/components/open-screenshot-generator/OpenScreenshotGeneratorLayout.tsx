@@ -200,7 +200,9 @@ import { GrowthWorkspace, type GrowthRequest } from './growth/GrowthWorkspace';
 import { ActivityBar, type ActivityId } from './ActivityBar';
 import { getGrowthSettings, setGrowthSettings } from '@/lib/growth/settings';
 import { useGrowthMonitor } from '@/lib/growth/useGrowthMonitor';
-import type { GrowthTab } from './growth/GrowthShared';
+import { storeOf } from '@/lib/growth/stores';
+import { useRivalWatch } from '@/lib/growth/useRivalWatch';
+import type { GrowthTab, GrowthTabOptions } from './growth/GrowthShared';
 import { localeForAppleLocale, localeForPlayLanguage } from '@/lib/publish/storeTargets';
 import { ProjectNameField } from './ProjectNameField';
 import {
@@ -1592,9 +1594,9 @@ export function OpenScreenshotGeneratorLayout() {
   // picks the section, as the upload dialog's "see how they sell" does.
   const [growthMounted, setGrowthMounted] = useState(false);
   const [growthRequest, setGrowthRequest] = useState<GrowthRequest | null>(null);
-  const showGrowth = useCallback((tab?: GrowthTab) => {
+  const showGrowth = useCallback((tab?: GrowthTab, options?: GrowthTabOptions) => {
     setGrowthMounted(true);
-    if (tab) setGrowthRequest((current) => ({ tab, nonce: (current?.nonce ?? 0) + 1 }));
+    if (tab) setGrowthRequest((current) => ({ tab, options, nonce: (current?.nonce ?? 0) + 1 }));
     setActivity('growth');
   }, []);
   // While the desktop app runs, Growth keeps the apps synced there fresh and
@@ -1626,23 +1628,60 @@ export function OpenScreenshotGeneratorLayout() {
       });
     },
   });
+  // The apps followed under Growth's Competitors are checked twice a day,
+  // in the web build too (src/lib/growth/rivalWatch.ts), and new screenshots
+  // of one of them are announced here. The main window only, like the monitor.
+  const openCompetitors = useCallback(
+    (owner: string, changeId?: string) => {
+      if (owner && getGrowthSettings().appId !== owner) setGrowthSettings({ appId: owner });
+      showGrowth('competitors', changeId ? { rivalChange: changeId } : undefined);
+    },
+    [showGrowth]
+  );
+  const rivalWatch = useRivalWatch({
+    enabled: !isSecondaryWindow,
+    onFound: (news) => {
+      const [first] = news;
+      // Google Play shows one set for every device; the App Store one per device.
+      const device = storeOf(first.change.appId) === 'playstore' ? 'Google Play' : first.change.kind === 'ipad-screenshots' ? 'iPad' : 'iPhone';
+      const names = Array.from(new Set(news.map((item) => item.name || 'A competitor')));
+      const title =
+        names.length > 1
+          ? `${names.length} competitors changed their screenshots`
+          : news.length === 1
+            ? `${names[0]} changed its ${device} screenshots`
+            : `${names[0]} changed its screenshots`;
+      toast({
+        title,
+        description: names.length === 1 ? 'See the new screenshots next to yours in Growth.' : `${names.join(', ')}. See the new screenshots next to yours in Growth.`,
+        action: (
+          <ToastAction altText="Compare the new screenshots with yours" onClick={() => openCompetitors(first.owner, first.change.id)}>
+            Compare
+          </ToastAction>
+        ),
+      });
+    },
+  });
   const selectActivity = useCallback(
     (next: ActivityId) => {
       if (next !== 'growth') {
         setActivity(next);
         return;
       }
-      // With new insights waiting, Growth opens on them, in an app that has some.
+      // With new insights waiting, Growth opens on them, in an app that has
+      // some; with new competitor screenshots, on Competitors.
       if (growthMonitor.appIds.length > 0) {
         if (!growthMonitor.appIds.includes(getGrowthSettings().appId ?? '')) {
           setGrowthSettings({ appId: growthMonitor.appIds[0] });
         }
         showGrowth('insights');
+      } else if (rivalWatch.news.length > 0) {
+        openCompetitors(rivalWatch.news[0].owner);
       } else {
         showGrowth();
       }
     },
-    [growthMonitor.appIds, showGrowth]
+    [growthMonitor.appIds, rivalWatch.news, openCompetitors, showGrowth]
   );
   // Languages the Growth window asked for, ticked when the language manager opens.
   const [languagePreselect, setLanguagePreselect] = useState<string[] | undefined>(undefined);
@@ -11473,7 +11512,7 @@ const generateRandomProjectName = (): string => {
       <ActivityBar
         active={activity}
         onSelect={selectActivity}
-        badges={{ growth: growthMonitor.unseen }}
+        badges={{ growth: growthMonitor.unseen + rivalWatch.unseen }}
         actions={
           HAS_DISCOVER
             ? [
@@ -12671,6 +12710,12 @@ const generateRandomProjectName = (): string => {
           <GrowthWorkspace
             active={activity === 'growth'}
             request={growthRequest}
+            // The language on screen, as the canvas and the store preview show the project.
+            openProject={() => ({
+              name: projectNameRef.current,
+              artboards: projectArtboards(artboardsRef.current, activeLocaleRef.current),
+              language: activeLocaleRef.current,
+            })}
             onPublish={() => {
               setActivity('editor');
               setIsPublishDialogOpen(true);
