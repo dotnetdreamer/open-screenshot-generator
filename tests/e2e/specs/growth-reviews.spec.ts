@@ -139,6 +139,17 @@ async function followRival(page: Page) {
   });
 }
 
+/**
+ * Growth on the test account's app. Until App Store Connect lists the
+ * account's apps Growth shows no app, and the section on screen starts again
+ * when the app arrives, so nothing is pressed before then.
+ */
+async function openApp(page: Page) {
+  const view = await openGrowth(page);
+  await expect(view.getByRole('combobox', { name: 'App' })).toContainText(TEST_APP.name);
+  return view;
+}
+
 async function httpRequests(page: Page): Promise<Array<{ method: string; url: string; body: string | null }>> {
   return page.evaluate(() => (window as unknown as { __E2E_TAURI__: { httpRequests: Array<{ method: string; url: string; body: string | null }> } }).__E2E_TAURI__.httpRequests);
 }
@@ -178,7 +189,7 @@ test.describe('growth ratings and reviews', () => {
     });
 
     test('Ratings shows the record Growth keeps: new ratings by stars, the countries and the version', async ({ page, tauri }) => {
-      const view = await openGrowth(page);
+      const view = await openApp(page);
       await section(view, 'Ratings').click();
       const ratings = view.getByTestId('growth-ratings');
       // The average of every country, weighted by its ratings.
@@ -209,7 +220,7 @@ test.describe('growth ratings and reviews', () => {
     });
 
     test('the inbox: the keys, a tag, and a review marked done, which outlast a reload', async ({ app, page }) => {
-      let view = await openGrowth(page);
+      let view = await openApp(page);
       await section(view, 'Reviews').click();
       const tabs = view.getByRole('group', { name: 'Show reviews' });
       const toDo = tabs.getByRole('button', { name: /^To do/ });
@@ -239,7 +250,7 @@ test.describe('growth ratings and reviews', () => {
 
       await app.goto();
       await app.dismissStartDialog();
-      view = await openGrowth(page);
+      view = await openApp(page);
       await section(view, 'Reviews').click();
       await expect(view.locator(`[data-review-id="${CRASH.id}"]`)).toHaveCount(0);
       await view.getByRole('group', { name: 'Show reviews' }).getByRole('button', { name: /^Done/ }).click();
@@ -250,7 +261,7 @@ test.describe('growth ratings and reviews', () => {
     });
 
     test('a template from Replies fills a reply with the reviewer’s name, and counts its use', async ({ page }) => {
-      const view = await openGrowth(page);
+      const view = await openApp(page);
       await section(view, 'Replies').click();
       await view.getByRole('button', { name: 'New template' }).click();
       await view.getByRole('textbox', { name: 'Template name' }).fill('Crash fix');
@@ -291,7 +302,7 @@ test.describe('growth ratings and reviews', () => {
       });
       await app.goto();
       await app.dismissStartDialog();
-      const view = await openGrowth(page);
+      const view = await openApp(page);
       await section(view, 'Reviews').click();
       await expect(view.locator('[data-review-id="gp:pebble-1"]')).toHaveCount(0);
       await view.getByRole('group', { name: 'Which apps' }).getByRole('button', { name: 'Every app' }).click();
@@ -316,7 +327,7 @@ test.describe('growth ratings and reviews', () => {
       });
       await app.goto();
       await app.dismissStartDialog();
-      const view = await openGrowth(page);
+      const view = await openApp(page);
       await section(view, 'Reviews').click();
       await view.getByRole('group', { name: 'Show reviews' }).getByRole('button', { name: /^All reviews/ }).click();
       await view.getByRole('button', { name: 'Stars changed' }).click();
@@ -327,7 +338,7 @@ test.describe('growth ratings and reviews', () => {
     });
 
     test('Export CSV saves the reviews on the list as a file', async ({ page, tauri }) => {
-      const view = await openGrowth(page);
+      const view = await openApp(page);
       await section(view, 'Reviews').click();
       await view.getByRole('button', { name: 'Export CSV' }).first().click();
       const [file] = await tauri.waitForFiles(1);
@@ -339,7 +350,7 @@ test.describe('growth ratings and reviews', () => {
       await followRival(page);
       await app.goto();
       await app.dismissStartDialog();
-      const view = await openGrowth(page);
+      const view = await openApp(page);
       await section(view, 'Competitor reviews').click();
       const screen = view.getByTestId('growth-rival-reviews');
       for (const entry of RIVAL_REVIEWS) await expect(screen.locator(`[data-rival-review="${entry.id}"]`)).toContainText(entry.body);
@@ -355,7 +366,7 @@ test.describe('growth ratings and reviews', () => {
     });
 
     test('Slack gets a test message from Replies, as JSON text', async ({ page }) => {
-      const view = await openGrowth(page);
+      const view = await openApp(page);
       await section(view, 'Replies').click();
       const alerts = view.getByTestId('growth-alerts');
       await alerts.getByRole('textbox').fill('https://example.com/not-slack');
@@ -390,7 +401,7 @@ test.describe('growth ratings and reviews', () => {
             ideas: ['Streaks that keep you going'],
           })
         );
-        const view = await openGrowth(page);
+        const view = await openApp(page);
         await section(view, 'Review summary').click();
         await view.getByRole('button', { name: 'Write summary' }).click();
         const card = view.getByTestId('growth-review-summary-card');
