@@ -81,6 +81,15 @@ export interface TauriMockConfig {
    * Every request is kept in `window.__E2E_TAURI__.httpRequests`.
    */
   http: TauriHttpRule[];
+  /**
+   * The Growth browser (growth_browser.rs) is a hidden frame here. Its pages
+   * come from this map by address, and `growthDriver`, the bundled driver
+   * (src/lib/growth/setup/driver.ts), runs inside each one. A page hands over
+   * a key file the way Rust does, with
+   * parent.__E2E_TAURI__.emitFromBackend('abs-growth-browser', ...).
+   */
+  growthPages: Record<string, string>;
+  growthDriver: string;
 }
 
 export interface TauriHttpRule {
@@ -108,6 +117,8 @@ export const DEFAULT_TAURI_CONFIG: TauriMockConfig = {
   held: [],
   errors: {},
   http: [],
+  growthPages: {},
+  growthDriver: '',
 };
 
 /**
@@ -154,6 +165,8 @@ export function tauriInitScript(config: TauriMockConfig): string {
       held.forEach((release) => release());
       return held.length;
     },
+    /** The Growth browser's frame: where it is, where it was placed, and whether it shows. */
+    growthBrowser: { open: false, url: null, visits: [], bounds: null, visible: false, placements: [] },
     /** Answers of commands in config.held, waiting for releaseCommands(). */
     commandsHeld: [],
     /** Send every held command answer. Returns how many there were. */
@@ -331,6 +344,33 @@ export function tauriInitScript(config: TauriMockConfig): string {
     return null;
   };
 
+  // The Growth browser's stand-in: a frame off screen, rendered (so the
+  // driver sees the page as laid out) and hidden from the page's own tree.
+  function growthLoad(url) {
+    let frame = document.getElementById('__e2e_growth_browser');
+    if (!frame) {
+      frame = document.createElement('iframe');
+      frame.id = '__e2e_growth_browser';
+      frame.setAttribute('aria-hidden', 'true');
+      frame.tabIndex = -1;
+      frame.style.cssText = 'position:fixed;left:-5000px;top:0;width:1200px;height:900px;border:0;';
+      document.documentElement.appendChild(frame);
+    }
+    state.growthBrowser.open = true;
+    state.growthBrowser.url = url;
+    state.growthBrowser.visits.push(url);
+    state.emitFromBackend('abs-growth-browser', { type: 'page', phase: 'started', url });
+    frame.onload = () => {
+      frame.contentWindow.__osgDriverInFrame = true;
+      const script = frame.contentDocument.createElement('script');
+      script.textContent = state.config.growthDriver || '';
+      frame.contentDocument.documentElement.appendChild(script);
+      state.emitFromBackend('abs-growth-browser', { type: 'title', title: frame.contentDocument.title });
+      state.emitFromBackend('abs-growth-browser', { type: 'page', phase: 'finished', url });
+    };
+    frame.srcdoc = (state.config.growthPages || {})[url] || '<!doctype html><title>Not found</title><h1>Nothing at ' + url + '</h1>';
+  }
+
   // ---- argument sanitising ----------------------------------------------
   // page.evaluate() has to be able to return the call log, so nothing that
   // fails structured clone may enter it. Binary bodies become a byte count.
@@ -433,7 +473,11 @@ export function tauriInitScript(config: TauriMockConfig): string {
       throw new Error(state.config.errors[cmd]);
     }
     if (Object.prototype.hasOwnProperty.call(state.config.responses, cmd)) {
-      const answer = state.config.responses[cmd];
+      let answer = state.config.responses[cmd];
+      // { __sequence: [a, b, c] } answers a, then b, then c, and c from then on.
+      if (answer && typeof answer === 'object' && Array.isArray(answer.__sequence)) {
+        answer = answer.__sequence.length > 1 ? answer.__sequence.shift() : answer.__sequence[0];
+      }
       if ((state.config.held || []).includes(cmd)) {
         return new Promise((resolve, reject) => {
           state.commandsHeld.push({ cmd, id: args.id, release: () => resolve(answer), stop: (message) => reject(new Error(message)) });
@@ -644,6 +688,40 @@ export function tauriInitScript(config: TauriMockConfig): string {
         await stopped;
         return await new Blob(chunks, { type: 'video/webm' }).arrayBuffer();
       }
+
+      // -- the Growth browser (growth_browser.rs) ---------------------------
+      case 'abs_growth_browser_open':
+        state.growthBrowser.bounds = args.bounds;
+        state.growthBrowser.visible = args.visible;
+        growthLoad(args.url);
+        return { embedded: true };
+      case 'abs_growth_browser_go':
+        growthLoad(args.url);
+        return null;
+      case 'abs_growth_browser_place':
+        state.growthBrowser.bounds = args.bounds;
+        state.growthBrowser.visible = args.visible;
+        state.growthBrowser.placements.push(args.visible);
+        return null;
+      case 'abs_growth_browser_nav':
+        if (args.action === 'reload' && state.growthBrowser.url) growthLoad(state.growthBrowser.url);
+        return null;
+      case 'abs_growth_browser_allow':
+        return null;
+      case 'abs_growth_browser_run': {
+        const frame = document.getElementById('__e2e_growth_browser');
+        const driver = frame && frame.contentWindow && frame.contentWindow.__osgGrowthDriver;
+        return driver ? driver.run(JSON.parse(args.command)) : '';
+      }
+      case 'abs_growth_browser_close': {
+        const frame = document.getElementById('__e2e_growth_browser');
+        if (frame) frame.remove();
+        state.growthBrowser.open = false;
+        state.growthBrowser.url = null;
+        return null;
+      }
+      case 'abs_growth_browser_info':
+        return { open: state.growthBrowser.open, mine: state.growthBrowser.open, url: state.growthBrowser.url };
 
       // -- dialog plugin ---------------------------------------------------
       case 'plugin:dialog|save': {

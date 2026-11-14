@@ -10,9 +10,24 @@ Growth shows how your app is doing in the App Store and on Google Play, in the s
 
 To open Growth, click the Growth button (an arrow going up) on the bar at the left of the window. After you upload screenshots to App Store Connect, you can also click **See results in Growth**. The pen button above the Growth button takes you back to the editor, just as you left the editor.
 
-Growth works in the desktop app only, except **Competitors**. Competitors needs no key, so Competitors also works in the web version. In the web version, and in the desktop app before you add a key, Growth opens on Competitors, and every other screen of Growth is empty. Buttons that need your app are turned off. Point at a button to see why the button is off.
+Growth works in the desktop app only, except **Competitors**. Competitors needs no key, so Competitors also works in the web version. Growth opens on **Ask AI**. In the web version, and in the desktop app before you add a key, every other screen of Growth is empty. Buttons that need your app are turned off. Point at a button to see why the button is off.
 
 At the top of Growth, pick the app. With both keys, the list shows your App Store apps and your Google Play app in two groups.
+
+## Set up Growth with Ask AI
+
+The quickest way to set up Growth is to let the assistant in **Ask AI** do it for you.
+
+1. Pick where your app is: **App Store**, **Google Play** or **Both**.
+2. A browser opens next to the chat, on App Store Connect or Google Cloud. Sign in there yourself with your email, your password and the code sent to your phone. Passkeys don't work in this browser.
+3. The assistant goes through the pages for you. It makes the API key or the service account key, and it finds your vendor number and your report files. Before anything changes in your account, like making a key or inviting the service account, the chat asks **Can I press...?**, or **Can I choose...?** for an option in a list. Click **Yes, press it**, or click **I'll press it myself** and press it in the browser.
+4. When the key file downloads, Growth saves it for you. The key file stays on your computer, and the AI never sees the key, not even when a page shows it.
+
+The assistant only opens App Store Connect, Google Cloud and Play Console. It never deletes, removes or turns anything off, and it doesn't touch payments or agreements. On a sign-in page it doesn't type or click anything, and it never reads your password or the codes you type. If you'd rather do it yourself, click **I'd rather set it up myself**, or use **Setup** as described below.
+
+The card at the top of the chat shows what's connected and what's left. Click a part that's left, like **Vendor number**, and the assistant sets up that part. Already have a key file? Click **Add a key file** under the chat, or drop the file on the chat.
+
+After setup, ask about your numbers in the same chat. Ask AI uses the same AI as the rest of Growth (see Which AI Growth uses).
 
 ## Set up Growth for the App Store
 
@@ -101,7 +116,7 @@ A Google Play store page has a title (30 characters), a short description (80 ch
 
 **Reports.** A weekly, monthly or yearly report. The report compares your numbers with the period before, and shows your top countries, how people found your app, your reviews and your events. The newest yearly report covers the year so far, next to the same days of the year before. Reports for older years come after the newest yearly report. Growth only compares a number when Growth has the number for the whole period before, and the report names the numbers Growth could not compare. With an AI set up, **Write summary** adds a few sentences about what changed and what to do next. Save the report as PDF, Markdown or text, or copy the report.
 
-**Ask AI.** Ask questions about your numbers. The AI you chose answers from the data on your computer. If you use the Claude Code or Codex agent, **Ask the agent** sends the question to the agent instead. The agent can then change your screenshots in the same chat.
+**Ask AI.** Where Growth opens. The assistant sets Growth up for you (see Set up Growth with Ask AI), and answers questions about your numbers. The AI you chose answers from the data on your computer. If you use the Claude Code or Codex agent, **Ask the agent** sends the question to the agent instead. The agent can then change your screenshots in the same chat.
 
 ## Competitors
 

@@ -18,7 +18,7 @@ import {
 import { cn } from '@/lib/utils';
 import type { DayWindow } from '@/lib/growth/dates';
 import type { GrowthData } from '@/lib/growth/useGrowthData';
-import type { DayRecord, DayString, GrowthApp, Insight, InsightTone, ListingIssue } from '@/lib/growth/types';
+import type { DayRecord, DayString, GrowthApp, Insight, InsightTone, ListingIssue, SyncProgress } from '@/lib/growth/types';
 import type { GrowthStore, StoreWords } from '@/lib/growth/stores';
 import type { AppStoreCredentials, PlayCredentials } from '@/lib/publish/types';
 import type { RivalsData } from '@/lib/growth/useRivals';
@@ -97,6 +97,17 @@ export interface GrowthView {
   };
   aiAvailable: boolean;
   aiLabel: string | null;
+  /** The AI that writes now, null when none can. */
+  aiInUse: 'claude' | 'codex' | 'panel' | null;
+  /** The Ask AI assistant (setup/assistant.ts), which needs no app: setting one up is its first job. */
+  assistant: {
+    /** Why the assistant cannot answer now, null when it can. */
+    reason: string | null;
+    syncing: boolean;
+    progress: SyncProgress | null;
+    /** Apple turned the saved key away, in Apple's words. */
+    appleAppsError: string | null;
+  };
   tabOptions: GrowthTabOptions;
   goTo: (tab: GrowthTab, options?: GrowthTabOptions) => void;
   dismissInsight: (id: string) => void;

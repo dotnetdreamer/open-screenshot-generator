@@ -3,6 +3,7 @@ mod code_folders;
 mod codex;
 mod device_capture;
 mod devtools;
+mod growth_browser;
 mod mcp_server;
 mod migrate;
 mod oauth;
@@ -50,9 +51,17 @@ pub fn run() {
         .manage(oauth::OauthState::default())
         .manage(webview_crash::WebviewCrashState::default())
         .manage(device_capture::CaptureState::default())
+        .manage(growth_browser::GrowthBrowserState::default())
         // A reload of the editor must not strand a Claude Code or Codex
         // process that was still starting for the page it replaced.
         .on_page_load(|webview, payload| {
+            // The Growth browser lives inside an editor window, so its pages
+            // would read as that window's: they must not stop the window's
+            // prompts, recordings or agent start.
+            if webview.label() == growth_browser::LABEL {
+                return;
+            }
+            growth_browser::on_page_load(webview, payload.event() == tauri::webview::PageLoadEvent::Started);
             claude_code::on_page_load(webview, payload);
             codex::on_page_load(webview, payload);
             device_capture::on_page_load(webview, payload);
@@ -125,6 +134,14 @@ pub fn run() {
             device_capture::abs_capture_screenshot,
             device_capture::abs_capture_record_start,
             device_capture::abs_capture_record_stop,
+            growth_browser::abs_growth_browser_open,
+            growth_browser::abs_growth_browser_place,
+            growth_browser::abs_growth_browser_go,
+            growth_browser::abs_growth_browser_nav,
+            growth_browser::abs_growth_browser_allow,
+            growth_browser::abs_growth_browser_run,
+            growth_browser::abs_growth_browser_close,
+            growth_browser::abs_growth_browser_info,
         ])
         .setup(|app| {
             // Settings first: it manages the state the other modules read.
@@ -168,6 +185,7 @@ pub fn run() {
                 claude_code::stop_window_prompts(app, &label);
                 codex::stop_window_prompts(app, &label);
                 device_capture::stop_window(app, &label);
+                growth_browser::window_closed(app, &label);
             }
             // The editor window's own Destroyed hook usually gets there first;
             // this covers quitting the app outright (Cmd+Q on macOS).

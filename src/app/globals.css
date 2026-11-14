@@ -70,6 +70,9 @@ body {
     --growth-highlight: 17 82% 56%;
     --growth-good: 120 100% 19%;
     --growth-bad: 0 61% 52%;
+    /* The Ask AI assistant: its avatar, its cards, and the ring it draws
+       around a control in the Growth browser (driver.ts uses the same violet). */
+    --growth-assistant: 252 100% 66%;
   }
 
   /* Dark editor chrome. Same roles as the light palette above, same slate blue
@@ -133,6 +136,7 @@ body {
     --growth-highlight: 17 70% 50%;
     --growth-good: 120 86% 34%;
     --growth-bad: 0 61% 52%;
+    --growth-assistant: 252 100% 74%;
   }
 
   /* The tokens alone are not enough: an artboard also has to opt out of the
@@ -528,4 +532,37 @@ html.palette-dragging [data-sidebar="sidebar"][data-mobile="true"] {
    screen there. */
 html[data-osg-panel] [data-editor-chrome-skeleton] {
   display: none;
+}
+
+/* While the Growth browser shows beside the Ask AI chat, a native view covers
+   the right of the window and anything drawn there would sit under it. The
+   toasts move to the top left, over Growth's header, where they cover none of
+   the chat's buttons (GrowthBrowserPane.tsx sets the attribute). */
+html[data-growth-browser] [data-toast-viewport] {
+  top: 0;
+  bottom: auto;
+  left: 3rem;
+  right: auto;
+}
+
+/* The Growth browser's status line while the Ask AI assistant works. */
+.growth-shimmer {
+  background: linear-gradient(90deg, transparent 0%, hsl(var(--growth-assistant) / 0.1) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: growth-shimmer 1.8s linear infinite;
+}
+
+@keyframes growth-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .growth-shimmer {
+    animation: none;
+  }
 }

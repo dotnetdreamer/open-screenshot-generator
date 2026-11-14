@@ -20,6 +20,7 @@ import {
   MonitorDownIcon,
   OctagonAlertIcon,
   SettingsIcon,
+  SparklesIcon,
   Trash2Icon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -46,7 +47,7 @@ const DESKTOP_URL = 'https://openscrgen.app';
 const VENDOR_URL = 'https://appstoreconnect.apple.com/itc/payments_and_financial_reports';
 const PLAY_CONSOLE_URL = 'https://play.google.com/console';
 
-const FEEDS: Record<GrowthStore, Array<{ feed: GrowthFeed; label: string; needs: string }>> = {
+export const FEEDS: Record<GrowthStore, Array<{ feed: GrowthFeed; label: string; needs: string }>> = {
   appstore: [
     { feed: 'listing', label: 'Store page', needs: 'Needs a key with the Admin, App Manager or Marketing role' },
     { feed: 'reviews', label: 'Reviews and replies', needs: 'Needs a key with the Admin, App Manager or Customer Support role' },
@@ -77,7 +78,7 @@ const STATE_ICON: Record<FeedState, React.ComponentType<{ className?: string }>>
   error: OctagonAlertIcon,
 };
 
-const STATE_LABEL: Record<FeedState, string> = {
+export const STATE_LABEL: Record<FeedState, string> = {
   idle: 'Not loaded yet',
   syncing: 'Refreshing',
   ok: 'Up to date',
@@ -298,6 +299,21 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
 
   return (
     <div className="space-y-4">
+      {desktop && (
+        <Panel className="flex flex-wrap items-center gap-3 border-[hsl(var(--growth-assistant))]/30 bg-[hsl(var(--growth-assistant))]/5">
+          <SparklesIcon className="h-5 w-5 shrink-0 text-[hsl(var(--growth-assistant))]" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium">Let the assistant do this for you</p>
+            <p className="text-xs text-muted-foreground">
+              Ask AI opens App Store Connect and Google Play beside the chat, finds your keys and numbers, and fills this page in. You
+              sign in yourself and say yes to every change.
+            </p>
+          </div>
+          <Button size="sm" onClick={() => view.goTo('ask')}>
+            Set up with AI
+          </Button>
+        </Panel>
+      )}
       {!desktop && (
         <Panel className="flex flex-col items-start gap-3">
           <MonitorDownIcon className="h-6 w-6 text-muted-foreground" />

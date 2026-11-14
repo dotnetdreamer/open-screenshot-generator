@@ -21,6 +21,7 @@ The rest of this page is for people building or changing the desktop app. It use
 | `public/splash.html` | The splash screen itself: one self-contained file, no network and no IPC |
 | `src-tauri/src/web_session.rs` | Embedded-webview assistant sessions ("the chromium part"): open/drive/relay the provider windows |
 | `src-tauri/assistant/agent.js` | Built bundle of `src/lib/ai/webAssistantAgent.ts`, injected into the provider windows (run `build:assistant-agent`) |
+| `src-tauri/growth-browser/driver.js` | Built bundle of `src/lib/growth/setup/driver.ts`, injected into the Growth browser beside Ask AI (run `build:growth-browser`, which `build:assistant-agent` also runs) |
 | `src-tauri/src/claude_code.rs` | The Claude Code agent: finds the `claude` CLI, runs it headless on the user's Claude plan, relays its output to the editor window |
 | `src/lib/claudeCode/` | The agent's session store, stream reducer and brief; the Agent tab in the dock renders from it |
 | `src-tauri/src/codex.rs` | The Codex agent: finds the `codex` CLI, runs `codex app-server` in a Codex home of its own on the user's ChatGPT plan, speaks its protocol and relays the conversation to the editor window |

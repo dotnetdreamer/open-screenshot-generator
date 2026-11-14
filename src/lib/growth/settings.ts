@@ -43,6 +43,8 @@ export interface GrowthSettings {
    * automatic takes Claude Code, then Codex, then the AI panel's provider.
    */
   aiWriter?: 'auto' | 'claude' | 'codex' | 'panel';
+  /** The stores the user told the Ask AI assistant their app is on, so setup shows only those. */
+  setupStores?: Array<'appstore' | 'playstore'>;
 }
 
 const DEFAULTS: Required<Pick<GrowthSettings, 'shareWithClients' | 'refreshHours' | 'historyDays' | 'monitor'>> = {

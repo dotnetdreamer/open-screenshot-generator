@@ -104,6 +104,13 @@ export function growthAiLabel(): string | null {
   return pickWriter()?.label ?? null;
 }
 
+/** Which AI writes now, for the Ask AI switch. Null when none can. */
+export function growthAiInUse(): AgentWriter | 'panel' | null {
+  const writer = pickWriter();
+  if (!writer) return null;
+  return writer.kind === 'agent' ? writer.agent : 'panel';
+}
+
 /** Why no AI can write now, for the disabled buttons. Null when one can. */
 export function growthAiUnavailableReason(): string | null {
   if (pickWriter()) return null;
@@ -135,6 +142,15 @@ async function runGrowthPrompt(request: { system: string; user: string; signal?:
     });
   }
   return runAiPrompt(request);
+}
+
+/**
+ * One turn of the Ask AI assistant (setup/assistant.ts). The assistant's
+ * actions are named in its answer and run by the page, so the AI still gets
+ * one prompt and no tools.
+ */
+export function runAssistantTurn(request: { system: string; user: string; signal?: AbortSignal }): Promise<string> {
+  return runGrowthPrompt(request);
 }
 
 function fence(label: string, text: string): string {

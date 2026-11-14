@@ -30,7 +30,7 @@ const EMPTY_SECTIONS: Array<[string, string]> = [
   ['Countries', 'No numbers by country yet'],
   ['Timeline', 'Nothing on the timeline yet'],
   ['Reports', 'No report yet'],
-  ['Ask AI', 'Ask about your app'],
+  ['Ask AI', "Let's connect your stores"],
 ];
 
 /** abs_claude_detect for a Claude Code signed in on a Max plan (ClaudeDetection). */
@@ -85,9 +85,9 @@ test.describe('growth', () => {
     );
     expect(pressLands, 'the spot where Export was belongs to Growth').toBe(true);
 
-    // With no key Growth opens on Competitors, the one section that needs
-    // none (growth-competitors.spec.ts), so it gives no reason to wait.
-    await expect(section(view, 'Competitors')).toHaveAttribute('aria-current', 'page');
+    // Growth opens on Ask AI, whose assistant does the setup, so it gives no
+    // reason to wait (growth-assistant.spec.ts).
+    await expect(section(view, 'Ask AI')).toHaveAttribute('aria-current', 'page');
     await expect(view.getByTestId('growth-no-app')).toHaveCount(0);
     await section(view, 'Overview').click();
     const reason = isDesktop
@@ -103,9 +103,14 @@ test.describe('growth', () => {
       await expect(section(view, name)).toHaveAttribute('aria-current', 'page');
       await expect(view.getByText(empty, { exact: true })).toBeVisible();
     }
-    const ask = view.getByRole('button', { name: 'Ask', exact: true });
-    await expect(ask).toBeDisabled();
-    await expect(gateOf(ask)).toHaveAttribute('data-gated-reason', reason);
+    // The assistant needs no app, only the desktop app and an AI: none is
+    // signed in here.
+    const send = view.getByRole('button', { name: 'Send', exact: true });
+    await expect(send).toBeDisabled();
+    await expect(gateOf(send)).toHaveAttribute(
+      'data-gated-reason',
+      isDesktop ? /sign in to Claude Code or Codex, or add a provider in the AI panel|Looking for Claude Code and Codex/ : reason
+    );
     await expect(gateOf(view.getByRole('button', { name: 'Ask the agent' }))).toHaveAttribute('data-gated-reason', reason);
 
     await section(view, 'Timeline').click();
@@ -180,11 +185,13 @@ test.describe('growth', () => {
       await app.startBlankProject();
     });
 
-    test('Growth opens on the app, and the overview measures the new screenshots', async ({ page }) => {
+    test('Growth opens on Ask AI for the app, and the overview measures the new screenshots', async ({ page }) => {
       const view = await openGrowth(page);
       await expect(view.getByRole('combobox', { name: 'App' })).toContainText(TEST_APP.name);
       await expect(view.getByTestId('growth-no-app')).toHaveCount(0);
       await expect(view.getByRole('button', { name: 'Refresh', exact: true })).toBeEnabled();
+      await expect(section(view, 'Ask AI')).toHaveAttribute('aria-current', 'page');
+      await section(view, 'Overview').click();
 
       const impact = view.getByTestId('growth-impact');
       await expect(impact).toContainText('Did the new screenshots work?');
@@ -454,9 +461,9 @@ test.describe('growth', () => {
       test('Stop ends the Claude Code run it was pressed for, and the next question runs on its own', async ({ page, tauri }) => {
         const view = await openGrowth(page);
         await section(view, 'Ask AI').click();
-        const question = view.getByRole('textbox', { name: 'Your question' });
+        const question = view.getByRole('textbox', { name: 'Your message' });
         await question.fill('Why did downloads drop?');
-        await view.getByRole('button', { name: 'Ask', exact: true }).click();
+        await view.getByRole('button', { name: 'Send', exact: true }).click();
         const first = await tauri.waitForCall('abs_claude_prompt');
         await view.getByRole('button', { name: 'Stop', exact: true }).click();
 
@@ -466,7 +473,7 @@ test.describe('growth', () => {
         expect(await releaseHeldCommands(page)).toBe(0);
 
         await question.fill('And conversion?');
-        await view.getByRole('button', { name: 'Ask', exact: true }).click();
+        await view.getByRole('button', { name: 'Send', exact: true }).click();
         await expect.poll(async () => (await tauri.callsTo('abs_claude_prompt')).length).toBe(2);
         const second = (await tauri.callsTo('abs_claude_prompt'))[1];
         expect(second.args.id).not.toBe(first.args.id);

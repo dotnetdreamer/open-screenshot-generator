@@ -15,7 +15,9 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = [] }
+# `unstable` is what lets a window hold a second webview (Window::add_child):
+# the browser beside Growth's Ask AI conversation (growth_browser.rs).
+tauri = { version = "2", features = ["unstable"] }
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-http = "2"

@@ -49,6 +49,13 @@ function competitors(page: Page) {
   return page.getByTestId('growth-competitors');
 }
 
+/** Growth opens on Ask AI: Competitors is one click on. */
+async function openCompetitors(page: Page) {
+  const view = await openGrowth(page);
+  await section(view, 'Competitors').click();
+  return view;
+}
+
 /** Open a template from the App Screenshots tab of the start dialog. */
 async function openTemplate(app: import('../helpers/editor').Editor, name: string) {
   await app.startDialog.getByRole('tab', { name: /App Screenshots/ }).click();
@@ -91,7 +98,7 @@ test.describe('growth competitors', () => {
     await store.searchFinds([king(), you()]);
     await app.startBlankProject();
 
-    const view = await openGrowth(page);
+    const view = await openCompetitors(page);
     await expect(section(view, 'Competitors')).toHaveAttribute('aria-current', 'page');
     // Nothing on this screen waits for a key, so the reason the others give is not shown.
     await expect(view.getByTestId('growth-no-app')).toHaveCount(0);
@@ -170,7 +177,7 @@ test.describe('growth competitors', () => {
     await page.reload({ waitUntil: 'domcontentloaded' });
     await app.waitForBoot();
     await store.install();
-    await openGrowth(page);
+    await openCompetitors(page);
     await expect(competitors(page).getByTestId('growth-competitor-row').filter({ hasText: 'Ludo King' })).toBeVisible();
     const kept = await growthMeta<{ countries: Record<string, { version: string } | null> }>(page, `rivals:app:${KING_ID}`);
     expect(Object.keys(kept?.countries ?? {}).sort()).toEqual(['DE', 'JP', 'US']);
@@ -223,7 +230,7 @@ test.describe('growth competitors', () => {
     await store.holdLookups();
 
     // Opening the screen checks a list that is due; the editor comes back in front while Apple answers.
-    await openGrowth(page);
+    await openCompetitors(page);
     await expect(competitors(page).getByRole('status')).toContainText('Checking');
     await backToEditor(page);
     await store.releaseLookups();
@@ -256,7 +263,7 @@ test.describe('growth competitors', () => {
     // Seen stays seen.
     await page.reload({ waitUntil: 'domcontentloaded' });
     await app.waitForBoot();
-    await viewButton(page, GROWTH_BUTTON).click();
+    await openCompetitors(page);
     await expect(competitors(page).locator('[data-rival-change]').first()).toBeVisible();
     await expect(competitors(page).getByTestId('growth-change-new')).toHaveCount(0);
   });
@@ -266,7 +273,7 @@ test.describe('growth competitors', () => {
     const store = new FakeAppStore(page, isDesktop);
     await store.install();
     await app.startBlankProject();
-    await openGrowth(page);
+    await openCompetitors(page);
     const screen = competitors(page);
     await screen.getByRole('textbox', { name: 'Find an app to follow' }).fill('https://play.google.com/store/apps/details?id=com.ludo.king');
     await expect(
@@ -288,7 +295,7 @@ test.describe('growth competitors', () => {
     await store.showOnPlay('DE', [kingPlay({ rating: 3.73, currency: 'EUR' })]);
     await app.startBlankProject();
 
-    await openGrowth(page);
+    await openCompetitors(page);
     const screen = competitors(page);
     await expect(screen.getByRole('textbox', { name: 'Find an app to follow' })).toHaveAttribute('placeholder', 'App name or store link');
     // Two countries keep the test short: each one is a page per Google Play app.
@@ -397,7 +404,7 @@ test.describe('growth competitors', () => {
     });
     await app.startBlankProject();
 
-    await openGrowth(page);
+    await openCompetitors(page);
     const screen = competitors(page);
     await expect(screen.getByTestId('growth-competitors-checked')).toContainText('Checked just now', { timeout: 30_000 });
     await expect(screen.getByTestId('growth-competitors-trouble')).toHaveText(['Google Play did not answer in 1 country in the last check. Growth tries again in an hour']);
@@ -420,7 +427,7 @@ test.describe('growth competitors', () => {
     expect(playAsked.sort()).toEqual(['DE', 'US']);
     expect(await lookups(), 'the App Store answered everywhere, so it is not asked again').toBe(appleBefore);
     expect((await growthMeta<StoredList>(page, 'rivals:list:'))?.checkedAt, 'the next whole check comes when it would have').toBe(checked?.checkedAt);
-    await openGrowth(page);
+    await openCompetitors(page);
     await expect(competitors(page).getByTestId('growth-competitors-checked')).toBeVisible();
     await expect(competitors(page).getByTestId('growth-competitors-trouble')).toHaveCount(0);
   });
@@ -505,7 +512,7 @@ test.describe('growth competitors', () => {
     await page.getByRole('menuitemcheckbox', { name: /Deutsch/ }).click();
     await expect(page.getByText('Guten Morgen E2E').first()).toBeVisible({ timeout: 20_000 });
 
-    await openGrowth(page);
+    await openCompetitors(page);
     const compare = competitors(page).getByTestId('growth-competitor-compare');
     await compare.getByRole('button', { name: 'All screenshots' }).click();
     const projectRow = compare.getByTestId('growth-competitor-project');
@@ -522,7 +529,7 @@ test.describe('growth competitors', () => {
     await putGrowthRows(page, { meta: [unownedList(['US'], Date.now())] });
     await openTemplate(app, 'Verda Eco');
 
-    await openGrowth(page);
+    await openCompetitors(page);
     const compare = competitors(page).getByTestId('growth-competitor-compare');
     const projectRow = compare.getByTestId('growth-competitor-project');
     await compare.getByRole('button', { name: 'All screenshots' }).click();
@@ -565,9 +572,9 @@ test.describe('growth competitors', () => {
       await store.install();
       await app.startBlankProject();
 
-      // With a key, Growth opens on the overview.
+      // With a key, Growth opens on Ask AI too.
       const view = await openGrowth(page);
-      await expect(section(view, 'Overview')).toHaveAttribute('aria-current', 'page');
+      await expect(section(view, 'Ask AI')).toHaveAttribute('aria-current', 'page');
       await section(view, 'Competitors').click();
       const screen = competitors(page);
       await expect(screen.getByTestId('growth-competitors-checked')).toContainText('Checked just now', { timeout: 30_000 });

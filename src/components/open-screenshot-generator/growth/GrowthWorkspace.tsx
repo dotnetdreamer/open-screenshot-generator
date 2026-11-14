@@ -21,7 +21,12 @@
 // stores, or the desktop app before a key is connected) every screen is
 // there and empty, and each action is disabled with the reason (`blocked`).
 // Competitors is the exception: it reads Apple's public lookup, which needs
-// no key, so it works everywhere, and Growth opens on it when there is no key.
+// no key, so it works everywhere.
+//
+// Growth opens on Ask AI, whose assistant sets Growth up in a browser beside
+// the chat and answers questions about the numbers (setup/assistant.ts). This
+// view hands the assistant what it knows and can do (`configureAssistant`):
+// the keys and settings, saving them, and a refresh it can wait for.
 //
 // The view stays mounted once opened, so the section, its filters and a sync
 // under way are still there after a visit to the editor. What only counts
@@ -58,16 +63,25 @@ import {
 } from '@/components/ui/select';
 import { openExternal } from '@/lib/desktop';
 import { track } from '@/lib/analytics';
-import { growthAiLabel, growthAiUnavailableReason, isGrowthAiAvailable, onGrowthAiChange } from '@/lib/growth/ai';
+import {
+  growthAiInUse,
+  growthAiLabel,
+  growthAiUnavailableReason,
+  isGrowthAiAvailable,
+  onGrowthAiChange,
+  runAssistantTurn,
+} from '@/lib/growth/ai';
 import { listApps, type AscApp } from '@/lib/growth/asc';
 import { addDays, formatWindow, today } from '@/lib/growth/dates';
 import { onGrowthChange, readMeta, writeMeta } from '@/lib/growth/db';
+import { buildDigest } from '@/lib/growth/digest';
 import { formatAgo } from '@/lib/growth/format';
 import { buildInsights } from '@/lib/growth/insights';
 import { checkListing } from '@/lib/growth/listingChecks';
 import { EMPTY_GROWTH_DATA } from '@/lib/growth/loadData';
 import { completeThrough, defaultWindow, indexRecords } from '@/lib/growth/metrics';
-import { getGrowthSettings, useGrowthSettings } from '@/lib/growth/settings';
+import { getGrowthSettings, setGrowthSettings, useGrowthSettings } from '@/lib/growth/settings';
+import { configureAssistant, useAssistantNeedsYou, type RefreshResult } from '@/lib/growth/setup/assistant';
 import { isSyncing, metaKeys, syncApp } from '@/lib/growth/sync';
 import { bucketFromUri } from '@/lib/growth/play';
 import { syncPlayApp } from '@/lib/growth/playSync';
@@ -79,11 +93,20 @@ import { useGrowthData } from '@/lib/growth/useGrowthData';
 import { isScreenshotChange } from '@/lib/growth/rivals';
 import { RIVAL_NEWS_DAYS } from '@/lib/growth/rivalWatch';
 import { useRivals } from '@/lib/growth/useRivals';
-import { getStoreCredentials, isStorePublishingAvailable, useStoreCredentials } from '@/lib/publish';
+import {
+  forgetAppStoreToken,
+  forgetPlayToken,
+  getStoreCredentials,
+  isStorePublishingAvailable,
+  serviceAccountEmail,
+  setAppStoreCredentials,
+  setPlayCredentials,
+  useStoreCredentials,
+} from '@/lib/publish';
 import { cn } from '@/lib/utils';
 import { GrowthAsk } from './GrowthAsk';
 import { GrowthCompetitors } from './GrowthCompetitors';
-import { GrowthConnect } from './GrowthConnect';
+import { FEEDS, GrowthConnect, STATE_LABEL } from './GrowthConnect';
 import { GrowthInsights } from './GrowthInsights';
 import { GrowthListing } from './GrowthListing';
 import { GrowthMarkets } from './GrowthMarkets';
@@ -106,6 +129,7 @@ const RANGES = [
 ];
 
 const NAV: Array<{ tab: GrowthTab; label: string; icon: React.ComponentType<{ className?: string }> }> = [
+  { tab: 'ask', label: 'Ask AI', icon: BotIcon },
   { tab: 'overview', label: 'Overview', icon: LayoutDashboardIcon },
   { tab: 'insights', label: 'Insights', icon: LightbulbIcon },
   { tab: 'reviews', label: 'Reviews', icon: MessageSquareIcon },
@@ -114,7 +138,6 @@ const NAV: Array<{ tab: GrowthTab; label: string; icon: React.ComponentType<{ cl
   { tab: 'markets', label: 'Countries', icon: GlobeIcon },
   { tab: 'timeline', label: 'Timeline', icon: CalendarClockIcon },
   { tab: 'reports', label: 'Reports', icon: FileTextIcon },
-  { tab: 'ask', label: 'Ask AI', icon: BotIcon },
   { tab: 'connect', label: 'Setup', icon: PlugIcon },
 ];
 
@@ -156,14 +179,9 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
   // Null until the account's apps have been asked for with this key.
   const [appsListed, setAppsListed] = useState<string | null>(null);
   const [appsError, setAppsError] = useState<string | null>(null);
-  // Growth mounts on its first visit, in the browser only, so the keys can be
-  // read here. With no store key (always so in the web build) Competitors is
-  // the one section with something to show, so Growth opens there.
-  const [tab, setTab] = useState<GrowthTab>(() => {
-    if (request?.tab) return request.tab;
-    const keys = getStoreCredentials();
-    return !isStorePublishingAvailable() || (!keys.appstore && !keys.playstore) ? 'competitors' : 'overview';
-  });
+  // Ask AI first: with nothing set up its assistant does the setup, and
+  // afterwards it answers questions about the numbers.
+  const [tab, setTab] = useState<GrowthTab>(() => request?.tab ?? 'ask');
   const [tabOptions, setTabOptions] = useState<GrowthTabOptions>(request?.options ?? {});
   // Bumped on every navigation, so going to the tab already open with new
   // options (a filter from an insight card) starts that screen afresh.
@@ -174,6 +192,8 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
   // its feed states and its Stop belong to the app it is reading.
   const [syncs, setSyncs] = useState<Record<string, { progress: SyncProgress | null; status: SyncStatus | null }>>({});
   const controllers = useRef(new Map<string, AbortController>());
+  // The sync running per app in this view, for the assistant to wait on.
+  const syncWork = useRef(new Map<string, Promise<SyncStatus>>());
   // Apps that owe a sync since Setup changed what a sync reads (syncAfterSetup).
   // Kept per app until a sync that began after the change, not until the app
   // on screen changes: a sync carries on when another app is picked.
@@ -317,18 +337,18 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
               ? 'Loading your apps from App Store Connect'
               : 'Your App Store Connect account has no apps yet';
 
-  const runSync = useCallback(() => {
+  const runSync = useCallback((): Promise<SyncStatus> | undefined => {
     // Read at call time rather than from the render: a key saved a moment ago
     // under Setup is in the store before this component re-renders.
     const latest = getStoreCredentials();
-    if (!desktop || !picked) return;
+    if (!desktop || !picked) return undefined;
     const id = picked.id;
     const play = isPlayApp(id);
     const playCredentials = play && latest.playstore && playAppId(latest.playstore.packageName) === id ? latest.playstore : null;
-    if (play ? !playCredentials : !latest.appstore || !ascApp) return;
+    if (play ? !playCredentials : !latest.appstore || !ascApp) return undefined;
     // A sync the background monitor started is joined (syncApp hands back the
     // one running), so the header shows it rather than a Refresh that does nothing.
-    if (controllers.current.has(id)) return;
+    if (controllers.current.has(id)) return syncWork.current.get(id);
     // A sync that starts now reads the settings as they are, and pays what
     // the app owed. One joined began earlier, so the debt stays for after it.
     if (!isSyncing(id)) owed.current.delete(id);
@@ -347,9 +367,11 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
     const work = playCredentials
       ? syncPlayApp({ ...callbacks, credentials: playCredentials, app: picked, bucket: bucketFromUri(current.playReportsUri) })
       : syncApp({ ...callbacks, credentials: latest.appstore!, app: ascApp!, allApps: apps, vendorNumber: current.vendorNumber });
+    syncWork.current.set(id, work);
     void work
       .catch((error) => console.error('Growth sync failed', error))
       .finally(() => {
+        if (syncWork.current.get(id) === work) syncWork.current.delete(id);
         // Stopped before it finished: the next look may try again at once.
         if (stop.signal.aborted) forgetAutoSync(id);
         controllers.current.delete(id);
@@ -363,12 +385,13 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
         // sync leaves its debt for the next one.
         if (!stop.signal.aborted) latestRunOwed.current();
       });
+    return work;
   }, [desktop, picked, ascApp, apps, reload]);
 
   // The app on screen syncs if it owes one: at once, or when the sync under
   // way ends (its finally calls this again), since that one began earlier.
   const runOwed = useCallback(() => {
-    if (picked && owed.current.has(picked.id)) runSync();
+    if (picked && owed.current.has(picked.id)) void runSync();
   }, [picked, runSync]);
   latestRunOwed.current = runOwed;
 
@@ -399,7 +422,7 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
     if (!active || !data.loaded || !picked || (!ascApp && !isPlayApp(picked.id))) return;
     if (!dueForAutoSync(picked.id, data.lastSync, settings.refreshHours)) return;
     noteAutoSync(picked.id);
-    runSync();
+    void runSync();
   }, [active, data.loaded, data.lastSync, picked, ascApp, settings.refreshHours, runSync, staleCheck]);
 
   // Syncs carry on with the editor in front, and stop when the view goes
@@ -445,16 +468,137 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
   const [aiAvailable, setAiAvailable] = useState(false);
   const [aiLabel, setAiLabel] = useState<string | null>(null);
   const [aiReason, setAiReason] = useState<string | null>(null);
+  const [aiInUse, setAiInUse] = useState<GrowthView['aiInUse']>(null);
   useEffect(() => {
     if (!active) return;
     const refresh = () => {
       setAiAvailable(isGrowthAiAvailable());
       setAiLabel(growthAiLabel());
       setAiReason(growthAiUnavailableReason());
+      setAiInUse(growthAiInUse());
     };
     refresh();
     return onGrowthAiChange(refresh);
   }, [active]);
+
+  // The Ask AI assistant needs no app: setting one up is its first job.
+  const assistantReason: string | null = !mounted
+    ? 'Loading'
+    : !desktop
+      ? 'Growth works in the desktop app only'
+      : aiAvailable
+        ? null
+        : aiReason ?? 'Set up an AI first';
+
+  // What the assistant reads when it runs, which can be long after this
+  // render: the newest of everything, through a ref.
+  const latestForAssistant = useRef({ picked, apps, appsError, appsListed, keyId, appReason, runSync, syncAfterSetup, data, insights, listingIssues, syncing });
+  latestForAssistant.current = { picked, apps, appsError, appsListed, keyId, appReason, runSync, syncAfterSetup, data, insights, listingIssues, syncing };
+  // The numbers the assistant answers from, worked out when it asks and kept
+  // until the data changes.
+  const digestCache = useRef<{ records: unknown; reviews: unknown; insights: unknown; digest: unknown } | null>(null);
+
+  useEffect(() => {
+    const latest = () => latestForAssistant.current;
+    const linesFor = (appId: string, status: SyncStatus): string[] => {
+      const store = storeOf(appId);
+      return FEEDS[store].map(({ feed, label }) => {
+        const entry = status[feed];
+        const state = STATE_LABEL[entry.state].replace('{owner}', STORE_WORDS[store].owner);
+        return entry.message ? `${label}: ${state}. ${entry.message}` : `${label}: ${state}`;
+      });
+    };
+    configureAssistant({
+      reason: assistantReason,
+      facts: () => {
+        const now = latest();
+        const keys = getStoreCredentials();
+        const settingsNow = getGrowthSettings();
+        return {
+          appleKey: keys.appstore ? { keyId: keys.appstore.keyId, issuerId: keys.appstore.issuerId } : null,
+          appleApps: {
+            names: now.apps.map((entry) => entry.name),
+            error: now.appsError,
+            loading: !!keys.appstore && now.appsListed !== now.keyId && !now.appsError,
+          },
+          vendorNumber: settingsNow.vendorNumber ?? null,
+          playKey: keys.playstore ? { email: serviceAccountEmail(keys.playstore), packageName: keys.playstore.packageName } : null,
+          reportsUri: settingsNow.playReportsUri ?? null,
+          stores: settingsNow.setupStores?.length ? settingsNow.setupStores : null,
+          lastRefresh:
+            now.picked && now.data.lastSync ? { appName: now.picked.name, lines: linesFor(now.picked.id, now.data.status) } : null,
+          refreshing: now.syncing,
+        };
+      },
+      numbers: () => {
+        const now = latest();
+        const app = now.picked;
+        if (!app || !now.data.loaded || (now.data.records.length === 0 && now.data.reviews.length === 0 && !now.data.listing)) return null;
+        const cached = digestCache.current;
+        if (!cached || cached.records !== now.data.records || cached.reviews !== now.data.reviews || cached.insights !== now.insights) {
+          const digest = buildDigest({
+            appId: app.id,
+            appName: app.name,
+            records: now.data.records,
+            reviews: now.data.reviews,
+            ratings: now.data.ratings,
+            events: now.data.events,
+            insights: now.insights,
+            listing: now.data.listing,
+            listingIssues: now.listingIssues,
+            today: today(),
+          });
+          digestCache.current = { records: now.data.records, reviews: now.data.reviews, insights: now.insights, digest };
+        }
+        return { digest: digestCache.current!.digest, appName: app.name };
+      },
+      ask: (system, user, signal) => runAssistantTurn({ system, user, signal }),
+      saveAppleKey: (value) => {
+        const before = getStoreCredentials().appstore;
+        if (before) forgetAppStoreToken(before);
+        setAppStoreCredentials(value);
+        latest().syncAfterSetup('appstore');
+      },
+      saveVendorNumber: (value) => {
+        setGrowthSettings({ vendorNumber: value });
+        latest().syncAfterSetup('appstore');
+      },
+      savePlayKey: (value) => {
+        const before = getStoreCredentials().playstore;
+        if (before) forgetPlayToken(before);
+        setPlayCredentials(value);
+        setGrowthSettings({ appId: playAppId(value.packageName) });
+        latest().syncAfterSetup('playstore');
+      },
+      setPlayPackage: (packageName) => {
+        const before = getStoreCredentials().playstore;
+        if (!before) return;
+        setPlayCredentials({ ...before, packageName });
+        setGrowthSettings({ appId: playAppId(packageName) });
+        latest().syncAfterSetup('playstore');
+      },
+      saveReportsUri: (value) => {
+        setGrowthSettings({ playReportsUri: value });
+        latest().syncAfterSetup('playstore');
+      },
+      setStores: (stores) => setGrowthSettings({ setupStores: stores }),
+      refresh: async (): Promise<RefreshResult> => {
+        // A key saved a moment ago has no app until Apple's list arrives.
+        const until = Date.now() + 30_000;
+        while (!latest().picked && Date.now() < until) await new Promise((resolve) => setTimeout(resolve, 500));
+        const now = latest();
+        const app = now.picked;
+        if (!app) throw new Error(now.appReason ?? 'There is no app to refresh yet');
+        const work = now.runSync();
+        if (!work) throw new Error(now.appReason ?? `${app.name} cannot be refreshed yet`);
+        const status = await work;
+        return { appName: app.name, lines: linesFor(app.id, status) };
+      },
+    });
+  });
+
+  // The Ask AI button counts the assistant waiting for the user.
+  const assistantNeedsYou = useAssistantNeedsYou();
 
   const view: GrowthView = {
     app,
@@ -478,6 +622,13 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
     },
     aiAvailable: aiAvailable && !appReason,
     aiLabel,
+    aiInUse,
+    assistant: {
+      reason: assistantReason,
+      syncing,
+      progress,
+      appleAppsError: key ? appsError : null,
+    },
     tabOptions,
     goTo,
     dismissInsight: (id) => {
@@ -499,6 +650,7 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
   };
 
   const badge = (target: GrowthTab): number => {
+    if (target === 'ask') return assistantNeedsYou && tab !== 'ask' ? 1 : 0;
     if (target === 'insights') return insights.filter((insight) => insight.tone === 'problem' || insight.tone === 'warning').length;
     if (target === 'reviews') return data.reviews.filter((review) => review.rating <= 2 && !review.response).length;
     if (target === 'listing') return listingIssues.filter((issue) => issue.severity !== 'tip').length;
@@ -604,7 +756,7 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
         )}
       </header>
 
-      {mounted && !picked && tab !== 'competitors' && (
+      {mounted && !picked && tab !== 'competitors' && tab !== 'ask' && (
         <div className="flex flex-wrap items-center gap-2 border-b bg-muted/50 px-4 py-2 text-xs" role="status" data-testid="growth-no-app">
           <span className="min-w-0 flex-1">{appReason}.</span>
           {!desktop ? (
@@ -655,7 +807,12 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
           })}
         </nav>
 
-        <main className="min-h-0 flex-1 overflow-y-auto p-4" key={`${app.id}:${tab}:${navEpoch}`}>
+        <main
+          className={cn('min-h-0 flex-1', tab === 'ask' ? 'overflow-hidden' : 'overflow-y-auto p-4')}
+          // Ask AI keeps nothing per app, so a key that brings the first app
+          // does not start the screen again.
+          key={tab === 'ask' ? `ask:${navEpoch}` : `${app.id}:${tab}:${navEpoch}`}
+        >
           {!data.loaded ? (
             <p className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2Icon className="h-4 w-4 animate-spin" />
