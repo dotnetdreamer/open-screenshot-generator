@@ -5,11 +5,10 @@
 // like that language's store page. A cell shows what the frame holds in that
 // language, and a click chooses it as the place for the next screenshot.
 
-import React, { useEffect, useState } from 'react';
+import React, { useId, useState } from 'react';
 import { EyeOffIcon, FilmIcon, Link2Icon, Loader2Icon, PlayIcon, RouteIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cellKey, type CaptureCell, type CaptureTarget } from '@/lib/capture/frames';
@@ -19,6 +18,7 @@ import { useMediaUrl } from '@/lib/mediaStore';
 import type { CaptureScreen } from '@/types/artboard';
 import { cn } from '@/lib/utils';
 import { Gated } from '../growth/GrowthShared';
+import { InfoTip } from './InfoTip';
 
 const CELL_WIDTH = 96;
 
@@ -59,9 +59,30 @@ export function frameTitle(target: CaptureTarget): string {
 }
 
 function screenSummary(screen: CaptureScreen | undefined): string {
-  if (!screen) return 'You go to it yourself';
-  return screen.link ? `Opens ${screen.link}` : 'The first screen of the app';
+  if (!screen) return 'You open this screen yourself';
+  return screen.link ? `Opens with ${screen.link}` : 'First screen of your app';
 }
+
+type ScreenMode = 'start' | 'link' | 'hand';
+
+/** The three answers, each with when to pick it and what happens then. */
+const SCREEN_CHOICES: ReadonlyArray<{ mode: ScreenMode; title: string; hint: string }> = [
+  {
+    mode: 'start',
+    title: 'The first screen of my app',
+    hint: 'Choose this if the screenshot shows what people see right after they open your app. Capture takes it in every language for you.',
+  },
+  {
+    mode: 'link',
+    title: 'A screen with a link',
+    hint: 'Choose this if your app can open the screen from a link, like myapp://settings. Capture takes it in every language for you. Not sure? Ask your developer.',
+  },
+  {
+    mode: 'hand',
+    title: "Another screen, I'll go there myself",
+    hint: 'Choose this for any other screen, like one you can only reach by tapping around in your app. You take the screenshot in each language yourself.',
+  },
+];
 
 function ScreenRoute({
   target,
@@ -73,23 +94,28 @@ function ScreenRoute({
   onSave: (screen: CaptureScreen | undefined) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [mode, setMode] = useState<'hand' | 'start' | 'link'>('hand');
+  const [mode, setMode] = useState<ScreenMode>('hand');
   const [link, setLink] = useState('');
-  useEffect(() => {
-    if (!open) return;
-    setMode(!target.screen ? 'hand' : target.screen.link ? 'link' : 'start');
-    setLink(target.screen?.link ?? '');
-  }, [open, target.screen]);
+  const uid = useId();
+  // The saved answer is read as the popover opens, so its first render, and
+  // the focus that goes with it, already show the right answer.
+  const openChange = (next: boolean) => {
+    if (next) {
+      setMode(!target.screen ? 'hand' : target.screen.link ? 'link' : 'start');
+      setLink(target.screen?.link ?? '');
+    }
+    setOpen(next);
+  };
   const linkOk = /^[A-Za-z][A-Za-z0-9+.-]*:\S+$/.test(link.trim());
   const set = !!target.screen;
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={openChange}>
       <Gated reason={reason}>
         <PopoverTrigger asChild>
           <button
             type="button"
-            title={`How Capture finds this screen: ${screenSummary(target.screen)}`}
-            aria-label={`How Capture finds ${frameTitle(target)}`}
+            title={`${screenSummary(target.screen)}. Click to change`}
+            aria-label={`Choose the screen for ${frameTitle(target)}`}
             className={cn(
               'flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground',
               set && 'text-primary'
@@ -99,25 +125,45 @@ function ScreenRoute({
           </button>
         </PopoverTrigger>
       </Gated>
-      <PopoverContent align="start" className="w-80 space-y-3">
-        <div className="space-y-1">
-          <p className="text-sm font-medium">How should Capture find this screen?</p>
-          <p className="text-xs text-muted-foreground">
-            Tell Capture how to find this screen, and it can take the screenshots in all languages for you.
-          </p>
+      <PopoverContent
+        align="start"
+        className="w-96 space-y-3"
+        // Focus starts on the chosen answer. The popover's own choice would be its
+        // first button, the (i), and focus there opens its tooltip over the answers.
+        // A saved link is the exception: its box takes the focus as it appears.
+        onOpenAutoFocus={(event) => {
+          event.preventDefault();
+          (event.currentTarget as HTMLElement).querySelector<HTMLElement>('[role="radio"][aria-checked="true"]')?.focus();
+        }}
+      >
+        <div className="flex items-start gap-1.5">
+          <p className="flex-1 text-sm font-medium">Which screen goes in this frame?</p>
+          <InfoTip label="How Capture takes every language">
+            <p>Capture restarts your app in each language, opens the screen, waits until nothing is moving, and takes the screenshot.</p>
+            <p>All the new screenshots go in together, so one undo takes them all back out.</p>
+          </InfoTip>
         </div>
-        <RadioGroup value={mode} onValueChange={(value) => setMode(value as typeof mode)} className="gap-2">
-          <Label className="flex items-center gap-2 text-sm font-normal">
-            <RadioGroupItem value="hand" />
-            I&apos;ll go to it myself
-          </Label>
-          <Label className="flex items-center gap-2 text-sm font-normal">
-            <RadioGroupItem value="start" />
-            It&apos;s the first screen of the app
-          </Label>
-          <Label className="flex items-center gap-2 text-sm font-normal">
-            <RadioGroupItem value="link" />A link opens it
-          </Label>
+        <RadioGroup value={mode} onValueChange={(value) => setMode(value as ScreenMode)} className="gap-3">
+          {/* The whole row picks the answer. The radio is named by the title alone and
+              described by the line under it. */}
+          {SCREEN_CHOICES.map((choice) => (
+            <label key={choice.mode} className="flex cursor-pointer items-start gap-2">
+              <RadioGroupItem
+                value={choice.mode}
+                aria-labelledby={`${uid}-${choice.mode}`}
+                aria-describedby={`${uid}-${choice.mode}-hint`}
+                className="mt-0.5"
+              />
+              <span className="space-y-0.5">
+                <span id={`${uid}-${choice.mode}`} className="block text-sm leading-snug">
+                  {choice.title}
+                </span>
+                <span id={`${uid}-${choice.mode}-hint`} className="block text-xs text-muted-foreground">
+                  {choice.hint}
+                </span>
+              </span>
+            </label>
+          ))}
         </RadioGroup>
         {mode === 'link' && (
           <div className="space-y-1">
@@ -130,10 +176,20 @@ function ScreenRoute({
               autoFocus
             />
             <p className="text-xs text-muted-foreground">
-              {target.platform === 'android'
-                ? 'Capture opens this link in your app'
-                : 'On iPhone, your app has to support this. For developers: Capture passes the link as the launch argument -OSGLink, and your app goes to that screen.'}
+              {link.trim() && !linkOk ? 'A link looks like myapp://settings' : 'Paste the link that opens this screen. Not sure? Ask your developer.'}
             </p>
+            {target.platform === 'ios' && (
+              <div className="flex items-start gap-1">
+                <p className="flex-1 text-xs text-muted-foreground">On iPhone and iPad, your app needs a few lines of code before Capture can open links</p>
+                <InfoTip label="For developers: links on iPhone and iPad">
+                  <p>iPhone asks before it opens a link from another app, and Capture can&apos;t tap Open.</p>
+                  <p>
+                    So Capture hands the link to your app when your app starts, as -OSGLink. Read the link with
+                    UserDefaults.standard.string(forKey: &quot;OSGLink&quot;) and open the screen, the same way your onOpenURL does.
+                  </p>
+                </InfoTip>
+              </div>
+            )}
           </div>
         )}
         <div className="flex justify-end gap-2">
@@ -206,7 +262,9 @@ export function CaptureGrid({
             {targets.map((target) => (
               <th key={target.key} scope="col" className="align-bottom font-normal">
                 <div className="flex items-end gap-0.5" style={{ width: CELL_WIDTH }}>
-                  <span className="min-w-0 flex-1 truncate text-left text-xs font-medium" title={frameTitle(target)}>
+                  {/* The whole name, on as many lines as it needs: two artboards
+                      can share the start of their names. */}
+                  <span className="min-w-0 flex-1 break-words text-left text-xs font-medium leading-snug" data-testid="capture-frame-name">
                     {frameTitle(target)}
                   </span>
                   {target.kind === 'screenshot' && (

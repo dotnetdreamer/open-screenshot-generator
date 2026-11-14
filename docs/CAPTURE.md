@@ -32,9 +32,14 @@ Every screenshot you take is under **Recent screenshots** until you close the ap
 
 ## Every screen in every language
 
-1. Under **Your app**, choose your app.
-2. Next to each frame's name in the grid, click the small button and tell Capture how to find the screen: **It's the first screen of the app**, or **A link opens it**, such as `myapp://settings`.
-3. Click **Take this screen in all languages** for one frame, or **Take all screens in all languages** for every frame Capture can find.
+1. Start a device. Under **Your app**, choose your app. The list shows the apps on the device, so it stays off until a device is running.
+2. Next to each frame's name in the grid, click the small icon and choose which screen goes in the frame:
+   - **The first screen of my app**: for what people see right after they open your app. Capture takes it in every language for you.
+   - **A screen with a link**: for a screen your app can open from a link, such as `myapp://settings`. Capture takes it in every language for you. Not sure if your app has links? Ask your developer.
+   - **Another screen, I'll go there myself**: for any other screen, like one you can only reach by tapping around in your app. You take that frame in each language by hand.
+3. Click **Take this screen in all languages** for one frame, or **Take all screens in all languages** for every frame set to the first screen or a screen with a link.
+
+Point at an (i) next to **Your app**, a setting or the screen question to read more about it.
 
 For each screenshot, Capture opens your app from the start in the language, waits until the screen stops moving, and then takes the screenshot. All the screenshots go into the project as one step, so one undo takes them all out again.
 

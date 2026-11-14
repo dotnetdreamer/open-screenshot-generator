@@ -67,6 +67,7 @@ import type { ArtboardState, CaptureScreen } from '@/types/artboard';
 import { cn } from '@/lib/utils';
 import { firstReason } from '../growth/GrowthShared';
 import { CaptureGrid, frameTitle } from './CaptureGrid';
+import { InfoTip } from './InfoTip';
 import { LiveView } from './LiveView';
 
 const DESKTOP_URL = 'https://openscrgen.app';
@@ -185,10 +186,16 @@ function ShotThumb({ shot, onClick, reason }: { shot: CapturedShot; onClick: () 
   );
 }
 
-function Section({ title, children, className }: { title?: string; children: React.ReactNode; className?: string }) {
+/** `info` sits beside the title, outside the heading, so the heading's name stays the title alone. */
+function Section({ title, info, children, className }: { title?: string; info?: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
     <section className={cn('space-y-2', className)}>
-      {title && <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</h2>}
+      {title && (
+        <div className="flex items-center gap-1">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{title}</h2>
+          {info}
+        </div>
+      )}
       {children}
     </section>
   );
@@ -727,11 +734,15 @@ export function CaptureWorkspace({
     appReason,
     cellReason,
     selected?.target.kind === 'recording' ? 'Recordings are made one at a time' : null,
-    selected && !selected.target.screen ? 'First tell Capture how to find this screen: click the button next to its name in the grid' : null
+    selected && !selected.target.screen
+      ? "First click the icon next to the frame's name and choose the first screen or a screen with a link"
+      : null
   );
   const everythingReason = firstReason(
     appReason,
-    targets.some((target) => target.kind === 'screenshot' && target.screen) ? null : 'First tell Capture how to find at least one screen'
+    targets.some((target) => target.kind === 'screenshot' && target.screen)
+      ? null
+      : "First click the icon next to a frame's name and choose the first screen or a screen with a link"
   );
   const screenReason = !desktop ? DESKTOP_ONLY : null;
   const shotReason = firstReason(cellReason, selected?.target.kind === 'recording' ? 'This frame holds a recording' : null, working ? 'Wait for Capture to finish' : null);
@@ -972,7 +983,16 @@ export function CaptureWorkspace({
             {note && <p className="rounded-md bg-muted p-2 text-xs text-muted-foreground">{note}</p>}
           </Section>
 
-          <Section title="Your app">
+          <Section
+            title="Your app"
+            info={
+              <InfoTip label="More about choosing your app">
+                <p>Choose your app so Capture can open it in each language for you.</p>
+                <p>Your app shows up in the list once it&apos;s on the device you started.</p>
+                <p>Only taking one screenshot at a time? You don&apos;t need to choose an app.</p>
+              </InfoTip>
+            }
+          >
             <Gate block reason={firstReason(deviceReason, apps && apps.length === 0 ? 'None of your apps is on this device yet' : null)}>
               <Select
                 value={appId ?? ''}
@@ -995,11 +1015,17 @@ export function CaptureWorkspace({
                 </SelectContent>
               </Select>
             </Gate>
+            {/* Said on screen, not only when pointed at: the list is off until a device runs. */}
+            {desktop && !running && (
+              <p className="text-xs text-muted-foreground" data-testid="capture-app-waits">
+                Start a device first to see your apps
+              </p>
+            )}
             {running && apps && apps.length === 0 && (
               <p className="text-xs text-muted-foreground">
                 {running.platform === 'ios'
-                  ? `Your app is not on ${running.name} yet. Run it on ${running.name} once from Xcode, then choose it here.`
-                  : `Your app is not on ${running.name} yet. Install it on ${running.name}, then choose it here.`}
+                  ? `Your app isn't on ${running.name} yet. Run your app on ${running.name} once from Xcode, and it shows up here.`
+                  : `Your app isn't on ${running.name} yet. Install your app on ${running.name}, and it shows up here.`}
               </p>
             )}
             {app && (
@@ -1014,9 +1040,16 @@ export function CaptureWorkspace({
           <Section title="Settings">
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-0.5">
-                <Label htmlFor="capture-tidy" className="text-sm">
-                  Clean status bar
-                </Label>
+                <div className="flex items-center gap-1">
+                  <Label htmlFor="capture-tidy" className="text-sm">
+                    Clean status bar
+                  </Label>
+                  <InfoTip label="More about the clean status bar">
+                    <p>Makes the bar at the top of the screen look tidy: 9:41, full signal, full Wi-Fi and a full battery, like in Apple&apos;s own screenshots.</p>
+                    <p>Turn the switch off to get the real time and battery back.</p>
+                    <p>Some phones won&apos;t let Capture change the status bar.</p>
+                  </InfoTip>
+                </div>
                 <p className="text-xs text-muted-foreground">Shows 9:41, full signal and a full battery</p>
                 {running?.kind === 'phone' && session.tidy && (
                   <p className="text-xs text-muted-foreground">Some phones keep their real time and battery</p>
@@ -1025,7 +1058,13 @@ export function CaptureWorkspace({
               <Switch id="capture-tidy" checked={session.tidy} onCheckedChange={(tidy) => updateCaptureSession({ tidy })} disabled={!desktop} />
             </div>
             <div className="space-y-1">
-              <p className="text-sm">Light or dark mode</p>
+              <div className="flex items-center gap-1">
+                <p className="text-sm">Light or dark mode</p>
+                <InfoTip label="More about light or dark mode">
+                  <p>Switches the whole device to light or dark, not just your app.</p>
+                  <p>No change leaves the device the way it is.</p>
+                </InfoTip>
+              </div>
               <div className="grid grid-cols-3 gap-1 rounded-md bg-muted p-1" role="radiogroup" aria-label="Light or dark mode">
                 {(
                   [
@@ -1054,10 +1093,19 @@ export function CaptureWorkspace({
             </div>
             <div className="flex items-start justify-between gap-3">
               <div className="space-y-0.5">
-                <Label htmlFor="capture-advance" className="text-sm">
-                  Go to the next frame
-                </Label>
-                <p className="text-xs text-muted-foreground">After each screenshot, so you can fill a row while you go through your app</p>
+                <div className="flex items-center gap-1">
+                  <Label htmlFor="capture-advance" className="text-sm">
+                    Go to the next frame
+                  </Label>
+                  <InfoTip label="More about going to the next frame">
+                    <p>Each row of the grid is one language.</p>
+                    <p>
+                      With the switch on, you can fill a row in one go: take a screenshot, go to the next screen in your app, and take the next one.
+                      Capture moves along the row for you.
+                    </p>
+                  </InfoTip>
+                </div>
+                <p className="text-xs text-muted-foreground">After each screenshot, Capture moves on to the next frame</p>
               </div>
               <Switch id="capture-advance" checked={session.advance} onCheckedChange={(advance) => updateCaptureSession({ advance })} />
             </div>
@@ -1150,13 +1198,13 @@ export function CaptureWorkspace({
 
               {locales.length === 1 && (
                 <p className="text-xs text-muted-foreground">
-                  This project has one language. Click Add languages to take your screens in more languages.
+                  Your project has one language so far. Click Add languages to take screenshots in more languages.
                 </p>
               )}
 
               <Section title="Recent screenshots">
                 {session.shots.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">Screenshots you take show here. Click one to put it in the selected frame.</p>
+                  <p className="text-xs text-muted-foreground">Your screenshots show up here. Click one to put it in the selected frame.</p>
                 ) : (
                   <div className="flex gap-2 overflow-x-auto pb-1">
                     {session.shots.map((shot) => (

@@ -252,6 +252,18 @@ test.describe('capture', () => {
     // One column for the one frame, one row for the base language.
     await expect(view.locator('[data-capture-cell]')).toHaveCount(1);
     await expect(view.getByText('Main language', { exact: true })).toBeVisible();
+    // The frame's whole name shows, on as many lines as it needs, not cut off at the column's width.
+    const name = view.getByTestId('capture-frame-name');
+    await expect(name).toHaveText('Blank Artboard');
+    const fit = await name.evaluate((element) => {
+      const fits = element.scrollWidth <= element.clientWidth;
+      // On one line the same name is too wide for the column, so the check above is not passing on a short name.
+      element.style.whiteSpace = 'nowrap';
+      const oneLineTooWide = element.scrollWidth > element.clientWidth;
+      element.style.whiteSpace = '';
+      return { fits, oneLineTooWide };
+    });
+    expect(fit).toEqual({ fits: true, oneLineTooWide: true });
 
     const take = view.getByRole('button', { name: 'Take screenshot', exact: true });
     await expect(take).toBeDisabled();
@@ -259,6 +271,10 @@ test.describe('capture', () => {
       // The test runtime lists no device, so the device picker and Take wait for one.
       await expect(gateOf(take)).toHaveAttribute('data-gated-reason', 'Start a device first');
       await expect(view.getByText(/^No devices found yet/)).toBeVisible();
+      // The app list is off too, and says why on screen; its (i) says what the list is for.
+      await expect(view.getByTestId('capture-app-waits')).toHaveText('Start a device first to see your apps');
+      await view.getByRole('button', { name: 'More about choosing your app', exact: true }).hover();
+      await expect(page.getByRole('tooltip')).toContainText("Your app shows up in the list once it's on the device you started.");
       await expect.poll(async () => (await tauri.callsTo('abs_capture_devices')).length).toBeGreaterThan(0);
       // Nothing was taken or changed on a device just by looking.
       expect(await tauri.callsTo('abs_capture_screenshot')).toHaveLength(0);
@@ -336,14 +352,29 @@ test.describe('capture', () => {
     await expect(view.getByTestId('capture-device-state')).toContainText('Ready');
     const every = view.getByRole('button', { name: 'Take this screen in all languages', exact: true });
     // Until Capture knows how to reach the screen, it can only be taken by hand.
-    await expect(gateOf(every)).toHaveAttribute('data-gated-reason', /^First tell Capture how to find this screen/);
+    await expect(gateOf(every)).toHaveAttribute('data-gated-reason', /^First click the icon next to the frame's name/);
 
-    await view.getByRole('button', { name: /^How Capture finds / }).click();
-    await page.getByRole('radio', { name: 'A link opens it' }).click();
+    await view.getByRole('button', { name: /^Choose the screen for / }).click();
+    // The chooser opens on the saved answer, with no tooltip opened by itself over the answers.
+    await expect(page.getByRole('radio', { name: "Another screen, I'll go there myself", exact: true })).toBeFocused();
+    await expect(page.getByRole('tooltip')).toHaveCount(0);
+    // Each answer says under it when to pick it and what happens then, and the (i) says what a run in every language does.
+    await expect(page.getByRole('radio', { name: 'The first screen of my app', exact: true })).toHaveAccessibleDescription(
+      /^Choose this if the screenshot shows what people see right after they open your app\. Capture takes it in every language for you\.$/
+    );
+    await expect(page.getByRole('radio', { name: "Another screen, I'll go there myself", exact: true })).toHaveAccessibleDescription(
+      /^Choose this for any other screen.*You take the screenshot in each language yourself\.$/
+    );
+    await page.getByRole('button', { name: 'How Capture takes every language', exact: true }).hover();
+    await expect(page.getByRole('tooltip')).toContainText('Capture restarts your app in each language');
+    // A click on the text under an answer picks that answer too.
+    await page.getByText(/^Choose this if your app can open the screen from a link/).click();
+    await expect(page.getByRole('radio', { name: 'A screen with a link', exact: true })).toBeChecked();
     const save = page.getByRole('button', { name: 'Save', exact: true });
-    // Not a link without a scheme.
+    // Not a link without a scheme, and the chooser says what a link looks like.
     await page.getByRole('textbox', { name: 'Link to this screen' }).fill('settings');
     await expect(save).toBeDisabled();
+    await expect(page.getByText('A link looks like myapp://settings', { exact: true })).toBeVisible();
     await page.getByRole('textbox', { name: 'Link to this screen' }).fill('notes://settings');
     await save.click();
     await waitForProject(page, (project) => phoneOf(project).phone.captureScreen?.link === 'notes://settings');
