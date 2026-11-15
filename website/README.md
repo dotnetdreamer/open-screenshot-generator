@@ -10,6 +10,10 @@ CSS and JavaScript, with no build step or bundler
   hero preview and film dialog
 - `css/main.css` serves the other landing and legal pages. The homepage no longer
   loads `js/main.js` or `js/film.js`
+- `app-ratings-and-reviews.html` is the page for Growth's ratings and reviews in
+  the desktop app. It uses the homepage's `css/home.css`, `css/hero.css` and
+  `js/home.js`, plus `css/ratings-reviews.css` for its screenshot frames and
+  close-up cards
 - `privacy.html` and `terms.html` are the legal pages
 - `assets/img/` holds real exports and screenshots from the app. The homepage adds
   PNG copies from `docs/` and `public/` alongside the existing WebP imagery
@@ -102,6 +106,13 @@ of the corresponding screenshots in `docs/`. Its three `showcase-*.png` files
 copy the Kassa, Scrappi and Pixara exports from `public/data/projects/previews/`;
 `example-finance-screen.png` comes from the Kassa template's app screens in
 `public/data/projects/`
+
+The ratings and reviews page uses `reviews-*.webp` and `og-ratings-reviews.png`.
+They are captures of Growth in the desktop build (WebKit, dark theme, with the
+e2e Tauri mock) showing the made up Juniper app from
+`tests/fixtures/growthSample.ts`, an invented competitor and reply drafts
+written for the capture. The page labels every one of them as an example. Each
+full window image comes in a 1x and a 2x width for `srcset`
 
 To refresh imagery, export from the app or capture new shots with the
 `app-screenshots` skill, then update the matching files in `assets/img/`.

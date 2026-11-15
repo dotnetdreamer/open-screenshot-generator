@@ -161,6 +161,9 @@ export function TranslationTableDialog({
   // translate run, never by the prop: re-reading `artboards` mid-session would
   // throw away everything typed so far.
   const [source, setSource] = useState<ArtboardState[]>(artboards);
+  // The document as this session opened it. What a machine run has written
+  // since is unsaved work too, so it counts toward Save.
+  const [opened, setOpened] = useState<ArtboardState[]>(artboards);
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<RowFilter>('all');
   const [localeFilter, setLocaleFilter] = useState<string>('all');
@@ -177,6 +180,7 @@ export function TranslationTableDialog({
   useEffect(() => {
     if (!open) return;
     setSource(artboards);
+    setOpened(artboards);
     setEdits({});
     setCollapsed({});
     setReview(null);
@@ -253,6 +257,27 @@ export function TranslationTableDialog({
   );
 
   const editedCount = Object.keys(edits).length;
+
+  // Strings a machine run wrote this session and nobody has typed over since.
+  // Without them a session that only ran Translate empty had nothing to save,
+  // and closing the table threw the whole run away.
+  const machineCount = useMemo(() => {
+    if (source === opened) return 0;
+    const before = new Map(opened.map((board) => [board.id, board]));
+    let count = 0;
+    for (const board of source) {
+      const was = before.get(board.id);
+      for (const el of localizableTextElements(board)) {
+        for (const locale of allLocales) {
+          if (edits[cellKey(board.id, el.id, locale)] !== undefined) continue;
+          const prev = was?.localized?.[locale]?.[el.id]?.content ?? '';
+          const next = board.localized?.[locale]?.[el.id]?.content ?? '';
+          if (prev !== next) count++;
+        }
+      }
+    }
+    return count;
+  }, [opened, source, allLocales, edits]);
 
   const buildDraft = useCallback(() => {
     const writes: LocaleTextWrite[] = Object.entries(edits).map(([key, value]) => {
@@ -398,7 +423,7 @@ export function TranslationTableDialog({
 
   const handleSave = () => {
     const { artboards: next, writes } = buildDraft();
-    onSave(next, writes.length);
+    onSave(next, writes.length + machineCount);
     onOpenChange(false);
   };
 
@@ -725,9 +750,13 @@ export function TranslationTableDialog({
           <p className="text-xs text-muted-foreground">
             {review
               ? 'Nothing is written until you apply, and nothing is saved until you save'
-              : editedCount > 0
-                ? `${editedCount} ${editedCount === 1 ? 'string' : 'strings'} edited, saved as one step`
-                : 'Amber rule means the base string changed after that translation was written'}
+              : machineCount > 0
+                ? `${machineCount} ${machineCount === 1 ? 'string' : 'strings'} translated${
+                    editedCount > 0 ? ` and ${editedCount} edited` : ''
+                  }, press Save to keep them`
+                : editedCount > 0
+                  ? `${editedCount} ${editedCount === 1 ? 'string' : 'strings'} edited, saved as one step`
+                  : 'Amber rule means the base string changed after that translation was written'}
           </p>
           <div className="flex items-center gap-2">
             {review ? (
@@ -744,7 +773,7 @@ export function TranslationTableDialog({
                 <Button variant="outline" onClick={() => onOpenChange(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleSave} disabled={editedCount === 0}>
+                <Button onClick={handleSave} disabled={editedCount === 0 && machineCount === 0}>
                   Save
                 </Button>
               </>

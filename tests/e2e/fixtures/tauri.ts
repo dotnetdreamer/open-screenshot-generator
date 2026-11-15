@@ -126,6 +126,15 @@ export class TauriHarness {
     }, { cmd, message });
   }
 
+  /** Let a command answer again after setError. */
+  async clearError(cmd: string): Promise<void> {
+    if (!this.enabled) return;
+    await this.page.evaluate((name) => {
+      const state = (window as unknown as { __E2E_TAURI__?: { config: { errors: Record<string, string> } } }).__E2E_TAURI__;
+      if (state) delete state.config.errors[name];
+    }, cmd);
+  }
+
   /** Deliver an event as though the Rust side had emitted it. */
   async emitFromBackend(event: string, payload: unknown): Promise<void> {
     if (!this.enabled) return;

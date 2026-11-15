@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '../fixtures/test';
-import { waitForProject } from '../fixtures/db';
+import { put, waitForProject } from '../fixtures/db';
 
 /**
  * Localization: adding languages, viewing one, and filling its strings in by
@@ -229,6 +229,219 @@ test.describe('the translations table', () => {
       const file = await download;
       expect(file.suggestedFilename()).toMatch(/\.csv$/);
     }
+  });
+});
+
+test.describe("translating with the user's own AI", () => {
+  /** What Claude Code's detect answers when it is signed in on a Max plan (ClaudeDetection). */
+  const CLAUDE_READY = {
+    found: true,
+    path: '/Users/e2e/.local/bin/claude',
+    version: '2.1.285 (Claude Code)',
+    loggedIn: true,
+    authMethod: 'claude.ai',
+    subscriptionType: 'max',
+  };
+  const GERMAN_COPY = 'Jeden Tag ein bisschen';
+  const OVERWRITTEN = 'Überschrieben';
+  // Every prompt gets this answer. A run asks for s1 first, and s2 only when
+  // it sends a second string; an id nobody asked for is dropped.
+  test.use({
+    tauriConfig: {
+      responses: {
+        abs_claude_detect: CLAUDE_READY,
+        abs_claude_prompt: JSON.stringify({ s1: GERMAN_COPY, s2: OVERWRITTEN }),
+      },
+    },
+  });
+
+  test('Claude Code fills in a new language, and the free translator is never asked', async ({
+    app,
+    page,
+    tauri,
+    isDesktop,
+  }) => {
+    test.skip(!isDesktop, 'Claude Code runs in the desktop app');
+    // Our translation server, wherever this build points it. A user with an
+    // AI of their own never sends it anything, not even a /health probe.
+    const serverRequests: string[] = [];
+    await page.route(
+      (url) => /\/(translate|detect|health)$/.test(url.pathname),
+      async (route) => {
+        serverRequests.push(route.request().url());
+        await route.abort();
+      }
+    );
+    await openProjectWithText(app);
+
+    await openLanguageMenu(page);
+    await page.getByRole('menuitem', { name: /Add language|Manage languages/ }).first().click();
+    const dialog = page.getByRole('dialog').filter({ hasText: 'Languages' });
+    await expect(dialog).toBeVisible({ timeout: 15_000 });
+    await dialog.getByRole('textbox', { name: 'Search languages' }).fill('German');
+    await dialog.locator(`#locale-${GERMAN}`).click();
+    const seed = dialog.getByLabel('Fill in machine translations to start from');
+    await expect(seed).toBeEnabled({ timeout: 15_000 });
+    if ((await seed.getAttribute('aria-checked')) !== 'true') await seed.click();
+    await dialog.getByRole('button', { name: /^(Add \d+ languages?|Save languages)$/ }).click();
+
+    const prompt = await tauri.waitForCall('abs_claude_prompt', 30_000);
+    expect(String(prompt.args.system)).toContain('into German (Deutsch, de-DE)');
+    expect(String(prompt.args.prompt)).toContain('"s1":');
+    const project = await waitForProject(
+      page,
+      (stored) => JSON.stringify(stored.projectData).includes(GERMAN_COPY),
+      30_000
+    );
+    expect(JSON.stringify(project.projectData)).toContain('"origin":"auto"');
+    expect(serverRequests).toEqual([]);
+    expect(await tauri.unhandled()).toEqual([]);
+  });
+
+  test("translating one text leaves another artboard's typed German alone, in a project that came in with a repeated id", async ({
+    app,
+    page,
+    tauri,
+    isDesktop,
+  }) => {
+    test.skip(!isDesktop, 'Claude Code runs in the desktop app');
+    // Opening a project gives a repeated id a fresh one (ensureUniqueElementIds)
+    // and moves its translations with it; the button also names its artboard.
+    // The second artboard's German is typed by a person, and this button
+    // includes typed copy.
+    const TYPED = 'Keine Serie reißt ab';
+    const localization = { baseLocale: 'en-US', locales: [{ code: GERMAN }] };
+    const board = (id: string, x: number, content: string, extra: Record<string, unknown> = {}) => ({
+      id,
+      name: id,
+      position: { x, y: 50 },
+      size: { width: 1290, height: 2796 },
+      backgroundColor: '#ffffff',
+      zoom: 1,
+      localization,
+      elements: [
+        {
+          id: 'shared-headline',
+          type: 'text',
+          name: 'Headline',
+          position: { x: 100, y: 300 },
+          size: { width: 1090, height: 300 },
+          rotation: 0,
+          scale: 1,
+          content,
+          fontSize: 30,
+          color: '#111111',
+          fontFamily: 'Inter',
+          fontWeight: '700',
+          textAlign: 'center',
+        },
+      ],
+      ...extra,
+    });
+    const projectId = 'proj_shared_ids';
+    await expect(app.startDialog).toBeVisible();
+    await expect
+      .poll(
+        () =>
+          page.evaluate(
+            () =>
+              new Promise<boolean>((resolve) => {
+                const open = indexedDB.open('ProjectDatabase');
+                open.onerror = () => resolve(false);
+                open.onsuccess = () => {
+                  const has = open.result.objectStoreNames.contains('projects');
+                  open.result.close();
+                  resolve(has);
+                };
+              })
+          ),
+        { timeout: 30_000 }
+      )
+      .toBe(true);
+    await put(page, 'projects', {
+      id: projectId,
+      name: 'Shared ids',
+      timestamp: new Date('2026-11-14T10:00:00.000Z'),
+      projectData: [
+        board('ab_first', 50, 'Track every habit'),
+        board('ab_second', 1500, 'Never break a streak', {
+          localized: { [GERMAN]: { 'shared-headline': { content: TYPED, origin: 'manual' } } },
+        }),
+      ],
+    });
+    await app.goto(`/?projectId=${projectId}`);
+    await expect(app.board(0).locator('[data-element-id="shared-headline"]')).toBeVisible({ timeout: 30_000 });
+
+    await openLanguageMenu(page);
+    await page.getByRole('menuitemcheckbox', { name: /Deutsch/ }).click();
+    await app.board(0).locator('[data-element-id="shared-headline"]').click();
+    await page.getByRole('button', { name: 'Translate this text' }).click();
+
+    const prompt = await tauri.waitForCall('abs_claude_prompt', 30_000);
+    expect(String(prompt.args.prompt)).toContain('Track every habit');
+    expect(String(prompt.args.prompt)).not.toContain('Never break a streak');
+    const stored = await waitForProject(
+      page,
+      (candidate) => candidate.id === projectId && JSON.stringify(candidate.projectData).includes(GERMAN_COPY),
+      30_000
+    );
+    const [first, second] = stored.projectData as Array<{
+      elements: Array<{ id: string; type: string }>;
+      localized?: Record<string, Record<string, { content?: string; origin?: string }>>;
+    }>;
+    expect(first.localized?.[GERMAN]?.['shared-headline']?.content).toBe(GERMAN_COPY);
+    const renamed = second.elements.find((element) => element.type === 'text')!.id;
+    expect(renamed).not.toBe('shared-headline');
+    expect(second.localized?.[GERMAN]?.[renamed]).toEqual({ content: TYPED, origin: 'manual' });
+    expect(JSON.stringify(stored.projectData)).not.toContain(OVERWRITTEN);
+  });
+
+  test("the translations table saves what Translate empty wrote, with nothing typed by hand", async ({
+    app,
+    page,
+    tauri,
+    isDesktop,
+  }) => {
+    test.skip(!isDesktop, 'Claude Code runs in the desktop app');
+    // The table holds a machine run until Save, and Save used to count only
+    // what was typed, so a run on its own could not be saved at all.
+    await openProjectWithText(app);
+    await openLanguageMenu(page);
+    await page.getByRole('menuitem', { name: /Add language|Manage languages/ }).first().click();
+    const manager = page.getByRole('dialog').filter({ hasText: 'Languages' });
+    await expect(manager).toBeVisible({ timeout: 15_000 });
+    await manager.getByRole('textbox', { name: 'Search languages' }).fill('German');
+    await manager.locator(`#locale-${GERMAN}`).click();
+    // Off, and only once it can be on: the switch turns on by itself when the
+    // look for Claude Code lands, and German would then arrive translated.
+    const seed = manager.getByLabel('Fill in machine translations to start from');
+    await expect(seed).toBeEnabled({ timeout: 15_000 });
+    if ((await seed.getAttribute('aria-checked')) === 'true') await seed.click();
+    await manager.getByRole('button', { name: /^(Add \d+ languages?|Save languages)$/ }).click();
+    await expect(manager).toBeHidden({ timeout: 20_000 });
+
+    await openLanguageMenu(page);
+    await page.getByRole('menuitemcheckbox', { name: /Deutsch/ }).click();
+    await openLanguageMenu(page);
+    await page.getByRole('menuitem', { name: 'Translations table' }).click();
+    const table = page.getByRole('dialog').filter({ hasText: 'Translate empty' });
+    await expect(table).toBeVisible({ timeout: 20_000 });
+
+    await table.getByRole('button', { name: 'Translate empty' }).click();
+    await tauri.waitForCall('abs_claude_prompt', 30_000);
+    await expect(table.getByRole('textbox').first()).toHaveValue(GERMAN_COPY, { timeout: 30_000 });
+    const save = table.getByRole('button', { name: 'Save', exact: true });
+    await expect(save).toBeEnabled();
+    await expect(table.getByText('1 string translated, press Save to keep them')).toBeVisible();
+    await save.click();
+    await expect(table).toBeHidden({ timeout: 20_000 });
+
+    const project = await waitForProject(
+      page,
+      (stored) => JSON.stringify(stored.projectData).includes(GERMAN_COPY),
+      30_000
+    );
+    expect(JSON.stringify(project.projectData)).toContain('"origin":"auto"');
   });
 });
 

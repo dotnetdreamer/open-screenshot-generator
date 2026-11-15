@@ -54,6 +54,11 @@ export interface LanguageManagerDialogProps {
     next: ProjectLocalization,
     opts: { machineTranslate: boolean; addedLocales: string[] }
   ) => void;
+  /**
+   * Languages to tick on opening, beside the project's own. The Growth window
+   * opens the dialog this way with the languages its shoppers read.
+   */
+  preselect?: string[];
 }
 
 // seedBaseLocale (the one legitimate read of ArtboardState.language) lives in
@@ -87,7 +92,11 @@ export function LanguageManagerDialog({
   artboards,
   translationAvailable,
   onApply,
+  preselect,
 }: LanguageManagerDialogProps) {
+  // Read on the opening edge only, like the artboards below.
+  const preselectRef = useRef(preselect);
+  preselectRef.current = preselect;
   const [baseLocale, setBaseLocale] = useState<string>(DEFAULT_BASE_LOCALE);
   const [selected, setSelected] = useState<string[]>([]);
   const [machineTranslate, setMachineTranslate] = useState(false);
@@ -108,7 +117,8 @@ export function LanguageManagerDialog({
     const boards = artboardsRef.current;
     const entries = getProjectLocales(boards);
     setExisting(entries);
-    setSelected(entries.map((entry) => entry.code));
+    const extra = (preselectRef.current ?? []).filter((code) => LOCALES.some((def) => def.code === code));
+    setSelected(Array.from(new Set([...entries.map((entry) => entry.code), ...extra])));
     setBaseLocale(entries.length > 0 ? getBaseLocale(boards) : seedBaseLocale(boards));
     setMachineTranslate(translationAvailable);
     setQuery('');

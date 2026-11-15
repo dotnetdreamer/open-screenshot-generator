@@ -15,6 +15,10 @@ https://github.com/user-attachments/assets/92348435-668f-4a58-b0be-0b939841150d
 
 ## What's new
 
+### 15 November 2026: Growth, Capture and a website for your app
+
+See your App Store and Google Play downloads, ratings and reviews in [Growth](docs/GROWTH.md), keep an eye on competing apps and see where your app shows up in App Store search. In the desktop app, [Capture](docs/CAPTURE.md) takes screenshots of your app in every language, right from your computer or Android phone. [Website](docs/WEBSITE.md) makes your app's home, support and privacy pages and puts the pages online for free on GitHub.
+
 ### 14 October 2026: Codex joins Claude Code in the desktop app
 
 The desktop app's AI agent can now run in Codex as well as Claude Code. Claude Code uses your Claude plan and Codex uses your ChatGPT plan, so you don't need an API key. Pick one on the agent screen or in the **Agent** tab, and watch it build your design. Read the [Claude Code](docs/AI-AGENT.md#4-claude-code-mode-the-agent-edits-the-live-project) and [Codex](docs/AI-AGENT.md#5-codex-mode-the-same-live-editing-on-a-chatgpt-plan) guides.
@@ -37,9 +41,13 @@ You can also:
 - Choose from 101 templates for app screenshots, Apple Watch, Mac, preview videos, and Google Play feature graphics.
 - Make one layout for several languages and edit each language's text and screenshots.
 - Make preview videos from a screen recording.
+- Take screenshots of your app straight from the iPhone Simulator or an Android emulator, in every language, in the desktop app.
 - Ask the AI agent to pick a template, place screenshots, and draft text.
 - Save versions of your project, share a copy, or invite others to edit with you.
 - Upload finished screenshots to App Store Connect or Google Play from the desktop app.
+- See your app's App Store downloads, conversion, reviews and listing problems, and whether your new screenshots sold better, in the desktop app.
+- See where your app ranks in App Store search for the words you pick, every day, and add missing words to your store page.
+- Make a website for your app, with a support page and a privacy policy in every language, and put it online on your own GitHub account.
 
 ## A closer look
 
@@ -72,6 +80,11 @@ Both versions use the same editor. The desktop app adds features that need acces
 | Coding agent design tools | With the [web relay](infra/vps/mcp-relay/README.md) or CLI | Built in MCP server |
 | Save to your own Google Drive or GitHub account | Yes | Yes |
 | Upload screenshots directly to App Store Connect or Google Play | No | Yes |
+| Capture: screenshots and recordings from the iPhone Simulator, Android emulators and phones | No | Yes |
+| Growth: App Store and Google Play numbers, reviews, store page checks, results of new screenshots | Empty screens only | Yes |
+| Growth: competitors' screenshots, ratings, versions and prices in each country, with alerts for new screenshots | App Store apps | App Store and Google Play apps |
+| Growth: your rank in App Store search for each keyword, every day, with ideas for more keywords | Yes | Yes |
+| Website: home, support and privacy pages, put online with your GitHub account | Yes, with a GitHub token until the sign-in service asks for public repositories | Yes |
 
 ## Command line and coding agents
 

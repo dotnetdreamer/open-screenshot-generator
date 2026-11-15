@@ -1,0 +1,934 @@
+// The Website view's site (src/lib/website): the privacy policy written from
+// the answers, the checks on what the AI sends, the translations, the pages
+// the renderer writes, the publish to GitHub against a fake GitHub, the
+// colours, and the ZIP.
+
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { WebsitePublish } from '@/components/open-screenshot-generator/website/WebsitePublish';
+import { PrivacyQuestions } from '@/components/open-screenshot-generator/website/WebsiteShared';
+import { changeSite, setSiteStorage, SiteCopy, type SiteStorage, type StoredSite } from '@/lib/website/store';
+import { applyChanges, boardsFingerprint, captionOf, defaultContent, isLabel, newDraft, cleanText } from '@/lib/website/content';
+import { buildPolicy, cleanPrivacy, defaultPrivacy, policyStrings, serviceNames } from '@/lib/website/privacy';
+import { keepsAddresses, missingFor, prunedTranslations, sameLanguage, siteFingerprint, siteTexts, translator } from '@/lib/website/strings';
+import { pageDir, pageFile, relativeHref, renderPage, renderSiteFiles, renderStylesheet, shotPath } from '@/lib/website/render';
+import { gitBlobSha, isServing, publishSite, repoDescription, repoNameProblem, siteAddress, suggestedRepoName, GithubPublishError } from '@/lib/website/github';
+import { projectTranslations } from '@/lib/website/translate';
+import { contrast, parseColor, paletteOf, suggestColours, boardColours } from '@/lib/website/theme';
+import { crc32, zipFiles } from '@/lib/website/zip';
+import { hash32 } from '@/lib/i18n/hash';
+import type { SiteDraft, SiteFacts, SiteFile, SiteShot } from '@/lib/website/types';
+import type { ArtboardState, TextElementProps } from '@/types/artboard';
+
+function facts(extra: Partial<SiteFacts> = {}): SiteFacts {
+  return {
+    appName: 'Pebble',
+    tagline: 'Habits that stick',
+    developer: 'Pebble Labs',
+    supportEmail: 'help@pebble.app',
+    appStoreUrl: 'https://apps.apple.com/app/id1234567890',
+    playStoreUrl: '',
+    location: 'Berlin, Germany',
+    icon: '',
+    ...extra,
+  };
+}
+
+function text(id: string, content: string, fontSize: number): TextElementProps {
+  return {
+    id,
+    type: 'text',
+    content,
+    fontSize,
+    color: '#ffffff',
+    fontFamily: 'Poppins',
+    fontWeight: '700',
+    position: { x: 0, y: 0 },
+    size: { width: 900, height: 200 },
+    rotation: 0,
+    scale: 1,
+  } as TextElementProps;
+}
+
+function board(id: string, extra: Partial<ArtboardState> = {}): ArtboardState {
+  return { id, name: id, position: { x: 0, y: 0 }, size: { width: 1290, height: 2796 }, elements: [], backgroundColor: '#ffffff', zoom: 1, ...extra };
+}
+
+function draft(extra: Partial<SiteDraft> = {}): SiteDraft {
+  const base = newDraft({
+    projectId: 'p1',
+    facts: facts(),
+    theme: { source: 'custom', brand: '#4f46e5', brand2: '#7c3aed', accent: '#4f46e5', headingFont: '', headingWeight: 700 },
+    captions: [
+      { title: 'Build streaks', body: 'One tap a day keeps it going' },
+      { title: 'See your week', body: '' },
+    ],
+    baseLocale: 'en-US',
+    languages: ['de-DE', 'ar-SA'],
+    privacy: { ...defaultPrivacy(new Date(2026, 10, 15)), answered: true, uses: ['analytics', 'purchases'], services: { analytics: 'TelemetryDeck' } },
+    now: 1,
+  });
+  return { ...base, ...extra };
+}
+
+function shot(boardId: string, hash: string, caption = ''): SiteShot {
+  return { boardId, caption, width: 720, height: 1560, bytes: new Uint8Array([1, 2, 3, hash.length]), url: `blob:${hash}`, hash };
+}
+
+// --- the privacy policy ------------------------------------------------------------------
+
+test('an app that collects nothing gets a policy that says so, with no sharing or keeping sections', () => {
+  const sections = buildPolicy({ facts: facts(), privacy: { ...defaultPrivacy(), answered: true } });
+  const ids = sections.map((section) => section.id);
+  assert.ok(ids.includes('summary'));
+  assert.ok(!ids.includes('sharing'));
+  assert.ok(!ids.includes('keeping'));
+  const all = policyStrings(sections).join('\n');
+  assert.match(all, /Pebble doesn't collect any personal data/);
+  assert.match(all, /Pebble is made by Pebble Labs/);
+  assert.match(all, /help@pebble\.app/);
+});
+
+test('each use gets its own section and its services, and the services are listed once under sharing', () => {
+  const privacy = cleanPrivacy({
+    ...defaultPrivacy(),
+    answered: true,
+    uses: ['ads', 'analytics', 'crashes'],
+    services: { analytics: 'Firebase Analytics, TelemetryDeck', crashes: 'Firebase Analytics; Sentry', ads: 'Google AdMob' },
+    personalizedAds: true,
+  });
+  // Put back in the questions' order.
+  assert.deepEqual(privacy.uses, ['analytics', 'crashes', 'ads']);
+  assert.deepEqual(serviceNames(privacy), ['Firebase Analytics', 'TelemetryDeck', 'Sentry', 'Google AdMob']);
+  const sections = buildPolicy({ facts: facts(), privacy });
+  const ads = sections.find((section) => section.id === 'ads')!;
+  assert.match(JSON.stringify(ads), /advertising identifier/);
+  assert.match(JSON.stringify(ads), /The ads come from Google AdMob/);
+  const sharing = sections.find((section) => section.id === 'sharing')!;
+  assert.deepEqual(sharing.blocks.find((block) => block.kind === 'ul'), { kind: 'ul', items: ['Firebase Analytics', 'TelemetryDeck', 'Sentry', 'Google AdMob'] });
+});
+
+test('an app for children never has ads picked from what people do', () => {
+  const privacy = cleanPrivacy({ ...defaultPrivacy(), answered: true, uses: ['ads'], personalizedAds: true, children: true });
+  assert.equal(privacy.personalizedAds, false);
+  const all = policyStrings(buildPolicy({ facts: facts(), privacy })).join('\n');
+  assert.doesNotMatch(all, /advertising identifier/);
+  assert.match(all, /made for children/);
+});
+
+test('the policy promises a time to delete data only when the developer said they keep to it', () => {
+  const keeping = (privacy: Parameters<typeof cleanPrivacy>[0]) =>
+    JSON.stringify(buildPolicy({ facts: facts(), privacy: cleanPrivacy(privacy) }).find((section) => section.id === 'keeping'));
+  const base = { ...defaultPrivacy(), answered: true, uses: ['analytics' as const] };
+  assert.doesNotMatch(keeping(base), /month/);
+  assert.match(keeping(base), /When you ask us to delete your data, we delete it\./);
+  assert.match(keeping({ ...base, deleteWithinMonth: true }), /we delete it within one month\./);
+  assert.match(keeping({ ...base, uses: ['account'], deleteWithinMonth: true }), /When you delete your account, or ask us to delete your data, we delete it within one month\./);
+  // Nothing collected, nothing to promise.
+  assert.equal(cleanPrivacy({ ...base, uses: [], deleteWithinMonth: true }).deleteWithinMonth, false);
+});
+
+test("the policy says the data isn't sold only without ads picked from what people do, and promises no rights it wasn't asked about", () => {
+  const text = (privacy: Parameters<typeof cleanPrivacy>[0]) => policyStrings(buildPolicy({ facts: facts(), privacy: cleanPrivacy(privacy) })).join('\n');
+  const ads = { ...defaultPrivacy(), answered: true, uses: ['ads' as const] };
+  assert.match(text(ads), /We don't sell your personal data\./);
+  assert.doesNotMatch(text({ ...ads, personalizedAds: true }), /don't sell/);
+  assert.doesNotMatch(text(ads), /wherever you are/);
+});
+
+test('the policy makes no promise that no answer gave: no "only", no "never used", no "not to find out who you are"', () => {
+  const privacy = cleanPrivacy({
+    ...defaultPrivacy(),
+    answered: true,
+    uses: ['account', 'analytics', 'crashes', 'ads', 'purchases', 'location', 'media', 'contacts', 'health', 'content', 'sync', 'notifications'],
+    personalizedAds: true,
+  });
+  const all = policyStrings(buildPolicy({ facts: facts(), privacy })).join('\n');
+  assert.doesNotMatch(all, /\bonly\b/i);
+  assert.doesNotMatch(all, /never (used|sold|shared)/i);
+  assert.doesNotMatch(all, /not to find out/i);
+  assert.doesNotMatch(all, /where the law says it must/i);
+  assert.doesNotMatch(all, /we'll delete it/i);
+  // What each answer does say is still there.
+  assert.match(all, /counts how the app is used/);
+  assert.match(all, /advertising identifier/);
+  const children = policyStrings(buildPolicy({ facts: facts(), privacy: cleanPrivacy({ ...defaultPrivacy(), answered: true, uses: ['analytics'], children: true }) })).join('\n');
+  assert.doesNotMatch(children, /\bonly\b/i);
+  assert.match(children, /no ads chosen from a child's interests/);
+});
+
+test('every answer about data can name the services that get it, and the policy names them', () => {
+  const privacy = cleanPrivacy({
+    ...defaultPrivacy(),
+    answered: true,
+    uses: ['location', 'notifications'],
+    services: { location: 'Mapbox', notifications: 'OneSignal' },
+  });
+  const sections = buildPolicy({ facts: facts(), privacy });
+  assert.match(JSON.stringify(sections.find((section) => section.id === 'location')), /We use Mapbox for this/);
+  assert.match(JSON.stringify(sections.find((section) => section.id === 'notifications')), /We use OneSignal for this/);
+  assert.deepEqual(sections.find((section) => section.id === 'sharing')!.blocks.find((block) => block.kind === 'ul'), { kind: 'ul', items: ['Mapbox', 'OneSignal'] });
+  const html = renderToStaticMarkup(React.createElement(PrivacyQuestions, { answers: privacy, onChange: () => undefined, idPrefix: 'q' }));
+  for (const label of ['location', 'notifications']) assert.match(html, new RegExp(`aria-label="Services for ${label}"`));
+});
+
+test("the developer's own paragraphs go in More details", () => {
+  const sections = buildPolicy({ facts: facts(), privacy: { ...defaultPrivacy(), answered: true }, extra: 'First thing.\n\nSecond   thing.' });
+  const more = sections.find((section) => section.id === 'more')!;
+  assert.deepEqual(more.blocks, [
+    { kind: 'p', text: 'First thing.' },
+    { kind: 'p', text: 'Second thing.' },
+  ]);
+});
+
+// --- captions and the AI's changes ------------------------------------------------------------
+
+function at(element: TextElementProps, x: number, y: number): TextElementProps {
+  return { ...element, position: { x, y } };
+}
+
+test("a screenshot's caption is its headline, set over one layer or several, and the body a clearly smaller one", () => {
+  const caption = captionOf(board('a', { elements: [at(text('b', 'One tap a day', 40), 0, 400), at(text('c', 'actually use', 86), 0, 200), at(text('t', "A finance\napp   you'll", 90), 0, 50)] }));
+  assert.deepEqual(caption, { title: "A finance app you'll actually use", body: 'One tap a day' });
+  // A badge with no letters is decoration.
+  const badges = captionOf(board('b', { elements: [text('n', '100,000+', 120), text('s', '\u2605\u2605\u2605\u2605\u2605', 110), text('h', 'Breathe better', 80)] }));
+  assert.deepEqual(badges, { title: 'Breathe better', body: '' });
+  // A badge in capitals and the small print of a drawn app screen are not the line under it.
+  const labelled = captionOf(
+    board('c', {
+      elements: [
+        at(text('t', 'See Where Your Money Goes', 100), 0, 100),
+        at(text('l', 'MONEY INSIGHTS', 60), 0, 20),
+        at(text('b', 'Break down your expenses.', 50), 0, 300),
+        at(text('u', 'Grocery store', 20), 0, 900),
+        // The app's screen drawn further down, at a size a line under it could have.
+        at(text('m', 'Dinner out with friends', 50), 0, 1500),
+      ],
+    })
+  );
+  assert.deepEqual(labelled, { title: 'See Where Your Money Goes', body: 'Break down your expenses.' });
+  assert.deepEqual(captionOf(board('e')), { title: '', body: '' });
+});
+
+test('a line in a script without capitals is never taken for a badge', () => {
+  assert.ok(isLabel('SMART FINANCE'));
+  assert.ok(isLabel('100% FREE'));
+  assert.ok(!isLabel('Plan your week'));
+  assert.ok(!isLabel('毎日ひとつ'));
+  assert.ok(!isLabel('خطط أسبوعك'));
+  // Capitals from a Latin acronym don't make a Japanese or Arabic line a badge.
+  assert.ok(!isLabel('AIで楽に'));
+  assert.ok(!isLabel('تحليلات GPS دقيقة'));
+  assert.equal(captionOf(board('k', { elements: [at(text('t', '家計がひと目でわかる', 90), 0, 100), at(text('b', 'AIで楽に', 44), 0, 330)] })).body, 'AIで楽に');
+  assert.equal(captionOf(board('g', { elements: [at(text('t', 'تتبع رحلاتك', 90), 0, 100), at(text('b', 'تحليلات GPS دقيقة', 44), 0, 330)] })).body, 'تحليلات GPS دقيقة');
+  const japanese = captionOf(board('j', { elements: [at(text('t', 'お金の流れが見える', 90), 0, 100), at(text('b', '毎日ひとつ', 44), 0, 330)] }));
+  assert.deepEqual(japanese, { title: 'お金の流れが見える', body: '毎日ひとつ' });
+  const arabic = captionOf(board('a', { elements: [at(text('t', 'تتبع عاداتك', 90), 0, 100), at(text('b', 'خطوة كل يوم', 44), 0, 330)] }));
+  assert.equal(arabic.body, 'خطوة كل يوم');
+});
+
+test("the project's Japanese and Arabic captions are used for the site's, subtitles included", () => {
+  const localization = { baseLocale: 'en-US', locales: [{ code: 'ja' }, { code: 'ar-SA' }] };
+  const shot = board('s1', {
+    elements: [at(text('t', 'See where it goes', 90), 0, 100), at(text('b', 'One tap a day', 44), 0, 330)],
+    localization,
+    localized: {
+      ja: { t: { content: 'お金の流れが見える' }, b: { content: '毎日ひとつ' } },
+      'ar-SA': { t: { content: 'اعرف أين يذهب مالك' }, b: { content: 'خطوة كل يوم' } },
+    },
+  } as Partial<ArtboardState>);
+  const book = projectTranslations([shot], ['en-US', 'ja', 'ar-SA']);
+  assert.equal(book.ja?.[hash32('One tap a day')], '毎日ひとつ');
+  assert.equal(book['ar-SA']?.[hash32('One tap a day')], 'خطوة كل يوم');
+  assert.equal(book.ja?.[hash32('See where it goes')], 'お金の流れが見える');
+});
+
+test('the screenshots fingerprint changes with what the screenshots show, not with the zoom', () => {
+  const one = [board('s1', { elements: [text('t', 'See where it goes', 90)] })];
+  const zoomed = [{ ...one[0], zoom: 3 }];
+  const edited = [{ ...one[0], elements: [text('t', 'See where it all goes', 90)] }];
+  assert.equal(boardsFingerprint(one), boardsFingerprint(zoomed));
+  assert.notEqual(boardsFingerprint(one), boardsFingerprint(edited));
+});
+
+test('the content a site starts with comes from the captions and the privacy answers', () => {
+  const content = defaultContent({
+    facts: facts({ tagline: '' }),
+    captions: [{ title: 'Build streaks', body: 'One tap a day' }],
+    privacy: { ...defaultPrivacy(), answered: true, uses: ['purchases'] },
+    baseLocale: 'de-DE',
+  });
+  assert.equal(content.headline, 'Build streaks');
+  assert.equal(content.subhead, 'One tap a day');
+  // The default sentences are English, so a German site translates them.
+  assert.equal(content.lang, 'en-US');
+  assert.deepEqual(content.features.map((feature) => [feature.title, feature.shot]), [['Build streaks', 0]]);
+  assert.ok(content.faqs.some((faq) => /subscription/i.test(faq.question)));
+  assert.match(content.ctaBody, /App Store/);
+});
+
+test("the AI's changes land field by field, and a made-up address or an overlong headline is turned down", () => {
+  const start = draft();
+  const report = applyChanges(
+    start,
+    {
+      headline: 'x'.repeat(200),
+      subhead: 'Write to **support@made-up.com** for help',
+      ctaTitle: 'Get  Pebble — today',
+      faqs: [
+        { question: 'How do I reset?', answer: 'Email help@pebble.app and we sort it.' },
+        { question: 'Bad?', answer: 'Visit https://evil.example.com now' },
+      ],
+      features: [{ title: 'Streaks', body: 'Keep going', shot: 2 }, { title: 'Nowhere', body: '', shot: 9 }],
+      privacy: { uses: ['analytics', 'nonsense'] },
+      colors: { brand: '#112233' },
+    },
+    2
+  );
+  assert.equal(report.draft.content.headline, start.content.headline);
+  assert.equal(report.draft.content.subhead, start.content.subhead);
+  assert.equal(report.draft.content.ctaTitle, 'Get Pebble, today');
+  assert.deepEqual(report.draft.content.faqs.map((faq) => faq.question), ['How do I reset?']);
+  // Screenshots are counted from 1 in the prompt.
+  assert.deepEqual(report.draft.content.features.map((feature) => [feature.title, feature.shot]), [['Streaks', 1], ['Nowhere', -1]]);
+  assert.equal(report.draft.theme.brand, '#112233');
+  assert.equal(report.draft.theme.source, 'custom');
+  assert.deepEqual(report.draft.privacy, start.privacy);
+  assert.ok(report.refused.includes('headline'));
+  assert.ok(report.refused.includes('line under the headline'));
+  assert.ok(report.refused.includes('privacy answers'));
+  assert.ok(report.changed.includes('questions and answers'));
+});
+
+test('a new support email is the one the rest of the changes are checked against', () => {
+  const report = applyChanges(draft(), { supportEmail: 'hello@pebble.app', contactNote: 'Write to hello@pebble.app' }, 0, { said: 'Our email is now hello@pebble.app' });
+  assert.equal(report.draft.facts.supportEmail, 'hello@pebble.app');
+  assert.equal(report.draft.content.contactNote, 'Write to hello@pebble.app');
+});
+
+test('an email address or store link the developer never wrote stays off the site', () => {
+  const said = 'We are on Google Play now: https://play.google.com/store/apps/details?id=app.pebble.habits';
+  const report = applyChanges(
+    draft(),
+    {
+      supportEmail: 'support@pebble.app',
+      appStoreUrl: 'https://apps.apple.com/app/id9999999999',
+      playStoreUrl: 'https://play.google.com/store/apps/details?id=app.pebble.habits',
+    },
+    0,
+    { said }
+  );
+  assert.equal(report.draft.facts.supportEmail, 'help@pebble.app');
+  assert.equal(report.draft.facts.appStoreUrl, draft().facts.appStoreUrl);
+  assert.equal(report.draft.facts.playStoreUrl, 'https://play.google.com/store/apps/details?id=app.pebble.habits');
+  assert.deepEqual(report.refused, ['support email', 'App Store link']);
+  // Taking a link off needs no address.
+  assert.equal(applyChanges(draft(), { appStoreUrl: '' }, 0, {}).draft.facts.appStoreUrl, '');
+});
+
+test('an address goes on the site only when it is a whole one the developer wrote, not part of one', () => {
+  const said = 'Mail support+hello@pebble.app. We are https://apps.apple.com/app/id12345678901 and https://play.google.com/store/apps/details?id=app.pebble.habits.pro';
+  const report = applyChanges(
+    draft(),
+    {
+      supportEmail: 'hello@pebble.app',
+      appStoreUrl: 'https://apps.apple.com/app/id1234567890',
+      playStoreUrl: 'https://play.google.com/store/apps/details?id=app.pebble.habits',
+    },
+    0,
+    { said }
+  );
+  assert.deepEqual(report.refused, ['support email', 'App Store link', 'Google Play link']);
+  const whole = applyChanges(
+    draft(),
+    { supportEmail: 'Support+Hello@pebble.app', appStoreUrl: 'https://apps.apple.com/us/app/pebble/id12345678901', playStoreUrl: 'https://play.google.com/store/apps/details?id=app.pebble.habits.pro' },
+    0,
+    { said }
+  );
+  assert.deepEqual(whole.refused, []);
+  assert.equal(whole.draft.facts.appStoreUrl, 'https://apps.apple.com/us/app/pebble/id12345678901');
+  // In the text too: a longer App Store id is another app.
+  const inText = applyChanges(draft(), { ctaBody: 'Get it at https://apps.apple.com/app/id12345678901.', subhead: 'On https://apps.apple.com/app/id1234567890' }, 0);
+  assert.deepEqual(inText.refused, ['closing line']);
+  assert.equal(inText.draft.content.subhead, 'On https://apps.apple.com/app/id1234567890');
+});
+
+test("a paragraph for the privacy policy from the AI is only a suggestion until the developer puts it in", () => {
+  const report = applyChanges(draft(), { privacyExtra: 'We keep backups for 30 days.', headline: 'Habits that stick' }, 0);
+  assert.equal(report.draft.content.privacyExtra, '');
+  assert.equal(report.suggested.privacyExtra, 'We keep backups for 30 days.');
+  assert.ok(!report.changed.includes('privacy policy note'));
+  assert.ok(report.changed.includes('headline'));
+});
+
+test('the chat can change the heading font, the languages and what the pages show, within what the site can carry', () => {
+  const allowed = (family: string) => family === 'Poppins';
+  const report = applyChanges(draft(), { font: { family: 'Poppins', weight: 800 }, languages: ['ja', 'de-DE'], screenshots: false, credit: false }, 0, { fontAllowed: allowed });
+  assert.deepEqual([report.draft.theme.headingFont, report.draft.theme.headingWeight], ['Poppins', 800]);
+  // The site's own language stays, first.
+  assert.deepEqual(report.draft.languages, ['en-US', 'ja', 'de-DE']);
+  assert.deepEqual(report.draft.options, { credit: false, screenshots: false });
+  const refused = applyChanges(draft(), { font: { family: 'Comic Neue Made Up' }, languages: ['xx-nope'], screenshots: 'yes' }, 0, { fontAllowed: allowed });
+  assert.deepEqual(refused.refused, ['heading font', 'languages', 'screenshots on the home page']);
+  assert.equal(refused.draft.theme.headingFont, '');
+});
+
+test('cleanText takes Markdown and spaced dashes out', () => {
+  assert.equal(cleanText('## **Big** news – now `here`'), 'Big news, now here');
+});
+
+// --- translations --------------------------------------------------------------------------------
+
+test('a translation is found by the text it translates, and an edited text falls back to its source', () => {
+  const site = draft();
+  const de = translator({ ...site, translations: { 'de-DE': { [hash32(site.content.headline)]: 'Streaks aufbauen' } } }, 'de-DE');
+  assert.equal(de(site.content.headline), 'Streaks aufbauen');
+  assert.equal(de('Something new'), 'Something new');
+  // English template text needs nothing in an English variant.
+  assert.ok(sameLanguage('en-US', 'en-GB'));
+  assert.ok(!sameLanguage('pt-BR', 'pt-PT'));
+  const missing = missingFor(site, 'de-DE');
+  assert.ok(missing.content.includes(site.content.headline));
+  assert.ok(missing.template.includes('Privacy policy'));
+  assert.deepEqual(missingFor(site, 'en-US'), { content: [], template: [] });
+});
+
+test("the project's own translated captions count as translations", () => {
+  const site = draft();
+  const known = { 'de-DE': { [hash32('Build streaks')]: 'Serien aufbauen' } };
+  assert.equal(translator(site, 'de-DE', known)('Build streaks'), 'Serien aufbauen');
+  assert.ok(!missingFor(site, 'de-DE', known).content.includes('Build streaks'));
+});
+
+test('translations of text the site no longer has are dropped, and the order they came in does not change the fingerprint', () => {
+  const site = draft();
+  const a = { ...site, translations: { 'de-DE': { [hash32(site.content.headline)]: 'A', deadbeef: 'old' }, 'ar-SA': { [hash32('Support')]: 'B' } } };
+  assert.deepEqual(prunedTranslations(a), { 'de-DE': { [hash32(site.content.headline)]: 'A' }, 'ar-SA': { [hash32('Support')]: 'B' } });
+  const b = { ...site, translations: { 'ar-SA': { [hash32('Support')]: 'B' }, 'de-DE': { deadbeef: 'old', [hash32(site.content.headline)]: 'A' } } };
+  assert.equal(siteFingerprint(a), siteFingerprint(b));
+  assert.notEqual(siteFingerprint(a), siteFingerprint({ ...a, content: { ...a.content, headline: 'Other' } }));
+});
+
+test('a translation that drops an email or a web address is turned down', () => {
+  assert.ok(keepsAddresses('Write to help@pebble.app', 'Schreib an help@pebble.app'));
+  assert.ok(!keepsAddresses('Write to help@pebble.app', 'Schreib uns'));
+  assert.ok(keepsAddresses('No address here', 'Keine Adresse'));
+});
+
+test('the texts of a site include the policy and the fixed words, and not the developer paragraphs as English', () => {
+  const site = draft({ content: { ...draft().content, privacyExtra: 'Unser Text.' } });
+  const texts = siteTexts(site);
+  assert.ok(texts.content.includes('Unser Text.'));
+  assert.ok(!texts.template.includes('Unser Text.'));
+  assert.ok(texts.template.includes('Who else sees your data'));
+});
+
+// --- the pages ---------------------------------------------------------------------------------------
+
+test('every page is in a folder of its own, and links between them are relative', () => {
+  const site = draft();
+  assert.equal(pageDir(site, 'en-US', 'home'), '');
+  assert.equal(pageDir(site, 'en-US', 'support'), 'support/');
+  assert.equal(pageFile(site, 'de-DE', 'privacy'), 'de-de/privacy/index.html');
+  assert.equal(relativeHref('de-de/privacy/', 'assets/site.css'), '../../assets/site.css');
+  assert.equal(relativeHref('', ''), './');
+  const html = renderPage(site, 'privacy', 'de-DE', []);
+  assert.match(html, /<html lang="de-DE" dir="ltr"/);
+  assert.match(html, /href="\.\.\/\.\.\/assets\/site\.css"/);
+  assert.match(html, /href="\.\.\/support\/"/);
+  // The language menu goes to the same page in the other language.
+  assert.match(html, /href="\.\.\/\.\.\/privacy\/" hreflang="en-US"/);
+});
+
+test('an Arabic page reads right to left, and the developer text is escaped', () => {
+  const site = draft({ content: { ...draft().content, headline: '<script>alert(1)</script> & more' } });
+  const html = renderPage(site, 'home', 'ar-SA', []);
+  assert.match(html, /dir="rtl"/);
+  assert.ok(!html.includes('<script>alert(1)</script>'));
+  assert.ok(html.includes('&lt;script&gt;alert(1)&lt;/script&gt; &amp; more'));
+});
+
+test('a font name cannot end the stylesheet it goes into', () => {
+  const site = draft({ theme: { ...draft().theme, headingFont: 'Evil</style><script>alert(1)</script>' } });
+  const css = renderStylesheet(site);
+  assert.ok(!css.includes('</style>'));
+  assert.ok(!css.includes('<script>'));
+  const html = renderPage(site, 'home', 'en-US', [], { inlineCss: css });
+  assert.equal(html.match(/<\/style>/g)?.length, 1);
+});
+
+test('the home page shows the screenshots, the store links and the Smart App Banner', () => {
+  const site = draft();
+  const shots = [shot('a', 'aaa', 'Build streaks'), shot('b', 'bbb'), shot('c', 'ccc')].map((item) => ({ path: shotPath(item), width: item.width, height: item.height, caption: item.caption }));
+  const html = renderPage(site, 'home', 'en-US', shots, { siteUrl: 'https://pebble.github.io/pebble/' });
+  assert.match(html, /class="fan"/);
+  assert.match(html, /assets\/shots\/aaa\.jpg/);
+  assert.match(html, /alt="Build streaks"/);
+  assert.match(html, /href="https:\/\/apps\.apple\.com\/app\/id1234567890"/);
+  assert.match(html, /<meta name="apple-itunes-app" content="app-id=1234567890">/);
+  assert.match(html, /<link rel="canonical" href="https:\/\/pebble\.github\.io\/pebble\/">/);
+  assert.match(html, /hreflang="de-DE" href="https:\/\/pebble\.github\.io\/pebble\/de-de\/"/);
+  assert.match(html, /<meta property="og:image" content="https:\/\/pebble\.github\.io\/pebble\/assets\/shots\/aaa\.jpg">/);
+  assert.doesNotMatch(html, /Google Play/);
+});
+
+test('the support page mails the support address and lists the questions', () => {
+  const html = renderPage(draft(), 'support', 'en-US', []);
+  assert.match(html, /href="mailto:help@pebble\.app\?subject=Pebble%3A%20Support"/);
+  assert.match(html, /<details><summary>/);
+  assert.match(html, /Pebble support/);
+});
+
+test('the preview links carry the page and language the editor follows, and leave the script out', () => {
+  const html = renderPage(draft(), 'home', 'en-US', [], { preview: true, inlineCss: 'body{}' });
+  assert.match(html, /data-osg-page="support" data-osg-locale="en-US"/);
+  assert.match(html, /<style>body\{\}<\/style>/);
+  assert.doesNotMatch(html, /sessionStorage/);
+});
+
+test('the whole site has every page in every language, each screenshot once, and what GitHub Pages reads', () => {
+  const site = draft();
+  const files = renderSiteFiles(site, {
+    shots: { 'en-US': [shot('a', 'aaa'), shot('b', 'bbb')], 'de-DE': [shot('a', 'aaa'), shot('b', 'ddd')] },
+    siteUrl: 'https://pebble.github.io/pebble',
+    build: 'build-1',
+    now: Date.UTC(2026, 10, 15),
+  });
+  const paths = files.map((file) => file.path);
+  for (const path of ['index.html', 'support/index.html', 'privacy/index.html', 'de-de/index.html', 'ar-sa/privacy/index.html', '404.html', '.nojekyll', 'robots.txt', 'sitemap.xml', 'osg-site.json', 'assets/site.css', 'README.md']) {
+    assert.ok(paths.includes(path), `missing ${path}`);
+  }
+  // Arabic has no screenshots of its own and shows the base language's.
+  assert.deepEqual(paths.filter((path) => path.startsWith('assets/shots/')).sort(), ['assets/shots/aaa.jpg', 'assets/shots/bbb.jpg', 'assets/shots/ddd.jpg']);
+  assert.equal(new Set(paths).size, paths.length);
+  const marker = JSON.parse(files.find((file) => file.path === 'osg-site.json')!.text!);
+  assert.equal(marker.build, 'build-1');
+  const sitemap = files.find((file) => file.path === 'sitemap.xml')!.text!;
+  assert.match(sitemap, /<loc>https:\/\/pebble\.github\.io\/pebble\/ar-sa\/support\/<\/loc>/);
+  const missing = files.find((file) => file.path === '404.html')!.text!;
+  assert.match(missing, /href="https:\/\/pebble\.github\.io\/pebble\/assets\/site\.css"/);
+});
+
+// --- GitHub ---------------------------------------------------------------------------------------------
+
+test('repository names come from the app name, and GitHub-breaking ones are caught', () => {
+  assert.equal(suggestedRepoName('Ludo Wala: 3D & Action'), 'ludo-wala-3d-and-action');
+  assert.equal(suggestedRepoName('Café Crème'), 'cafe-creme');
+  assert.equal(suggestedRepoName('!!!'), 'app-website');
+  assert.equal(repoNameProblem('good-name'), null);
+  assert.ok(repoNameProblem('bad name'));
+  assert.ok(repoNameProblem('x.git'));
+  assert.equal(siteAddress('Octo', 'octo.github.io'), 'https://octo.github.io/');
+  assert.equal(siteAddress('Octo', 'pebble'), 'https://octo.github.io/pebble/');
+});
+
+test('the blob SHA is the one git gives', async () => {
+  assert.equal(await gitBlobSha(new TextEncoder().encode('hello\n')), 'ce013625030ba8dba906f756967f9e9ca394464a');
+  assert.equal(await gitBlobSha(new Uint8Array()), 'e69de29bb2d1d6434b8b29ae775ad8c2e48c5391');
+});
+
+interface Call {
+  method: string;
+  path: string;
+  body: unknown;
+}
+
+/** A GitHub that answers the publish's calls, from `routes`, and keeps what was asked. */
+function fakeGithub(routes: Array<[string, number, unknown]>): { fetchImpl: typeof fetch; calls: Call[] } {
+  const calls: Call[] = [];
+  const fetchImpl = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = new URL(String(input));
+    const method = init?.method ?? 'GET';
+    const path = `${url.pathname}${url.search}`;
+    calls.push({ method, path, body: init?.body ? JSON.parse(String(init.body)) : undefined });
+    const route = routes.find(([pattern]) => new RegExp(`^${pattern}$`).test(`${method} ${path}`));
+    if (!route) return new Response(JSON.stringify({ message: 'Not Found' }), { status: 404 });
+    return new Response(JSON.stringify(route[2]), { status: route[1] });
+  }) as typeof fetch;
+  return { fetchImpl, calls };
+}
+
+const SITE_FILES: SiteFile[] = [
+  { path: 'index.html', text: '<!doctype html>home' },
+  { path: 'assets/shots/aaa.jpg', bytes: new Uint8Array([255, 216, 255]) },
+  { path: 'osg-site.json', text: '{"build":"b1"}' },
+];
+
+test('a first publish makes the repository, sends the pictures as blobs and the text in the tree, and switches Pages on', async () => {
+  const { fetchImpl, calls } = fakeGithub([
+    ['GET /repos/octo/pebble', 404, { message: 'Not Found' }],
+    ['POST /user/repos', 201, { default_branch: 'main', private: false }],
+    ['GET /repos/octo/pebble/git/ref/heads/main', 200, { object: { sha: 'head1' } }],
+    ['GET /repos/octo/pebble/git/commits/head1', 200, { tree: { sha: 'tree1' } }],
+    ['GET /repos/octo/pebble/git/trees/tree1\\?recursive=1', 200, { tree: [{ path: 'README.md', type: 'blob', mode: '100644', sha: 'r1' }] }],
+    ['POST /repos/octo/pebble/git/blobs', 201, { sha: 'blob-jpg' }],
+    ['POST /repos/octo/pebble/git/trees', 201, { sha: 'tree2' }],
+    ['POST /repos/octo/pebble/git/commits', 201, { sha: 'commit2' }],
+    ['PATCH /repos/octo/pebble/git/refs/heads/main', 200, {}],
+    ['GET /repos/octo/pebble/pages', 404, { message: 'Not Found' }],
+    ['POST /repos/octo/pebble/pages', 201, {}],
+  ]);
+  const outcome = await publishSite({ token: 't', owner: 'octo', repo: 'pebble', files: SITE_FILES, appName: 'Pebble', siteUrl: 'https://octo.github.io/pebble/', fetchImpl });
+  assert.deepEqual(outcome, { branch: 'main', commit: 'commit2', created: true, unchanged: false, pages: 'switched-on' });
+  const create = calls.find((call) => call.method === 'POST' && call.path === '/user/repos')!;
+  assert.equal((create.body as { private: boolean }).private, false);
+  assert.equal((create.body as { auto_init: boolean }).auto_init, true);
+  assert.equal(calls.filter((call) => call.path.endsWith('/git/blobs')).length, 1);
+  const tree = calls.find((call) => call.method === 'POST' && call.path.endsWith('/git/trees'))!.body as { tree: Array<{ path: string; sha?: string; content?: string }>; base_tree?: string };
+  // The tree is the site's files only, so the README auto_init made is gone.
+  assert.equal(tree.base_tree, undefined);
+  assert.deepEqual(tree.tree.map((entry) => entry.path), ['index.html', 'assets/shots/aaa.jpg', 'osg-site.json']);
+  assert.equal(tree.tree[0].content, '<!doctype html>home');
+  assert.equal(tree.tree[1].sha, 'blob-jpg');
+  const commit = calls.find((call) => call.method === 'POST' && call.path.endsWith('/git/commits'))!.body as { parents: string[] };
+  assert.deepEqual(commit.parents, ['head1']);
+  const pages = calls.find((call) => call.method === 'POST' && call.path.endsWith('/pages'))!.body;
+  assert.deepEqual(pages, { build_type: 'legacy', source: { branch: 'main', path: '/' } });
+});
+
+test("a publish again sends only what changed, and a Pages switch GitHub refuses is left to the developer", async () => {
+  const jpgSha = await gitBlobSha(SITE_FILES[1].bytes!);
+  const { fetchImpl, calls } = fakeGithub([
+    ['GET /repos/octo/pebble', 200, { default_branch: 'main', private: false }],
+    ['GET /repos/octo/pebble/contents/osg-site.json\\?ref=main', 200, {}],
+    ['GET /repos/octo/pebble/git/ref/heads/main', 200, { object: { sha: 'head1' } }],
+    ['GET /repos/octo/pebble/git/commits/head1', 200, { tree: { sha: 'tree1' } }],
+    ['GET /repos/octo/pebble/git/trees/tree1\\?recursive=1', 200, { tree: [{ path: 'assets/shots/aaa.jpg', type: 'blob', mode: '100644', sha: jpgSha }] }],
+    ['POST /repos/octo/pebble/git/trees', 201, { sha: 'tree2' }],
+    ['POST /repos/octo/pebble/git/commits', 201, { sha: 'commit2' }],
+    ['PATCH /repos/octo/pebble/git/refs/heads/main', 200, {}],
+    ['GET /repos/octo/pebble/pages', 403, { message: 'Resource not accessible by integration' }],
+    ['POST /repos/octo/pebble/pages', 403, { message: 'Resource not accessible by integration' }],
+  ]);
+  const outcome = await publishSite({ token: 't', owner: 'octo', repo: 'pebble', files: SITE_FILES, appName: 'Pebble', siteUrl: 'https://octo.github.io/pebble/', fetchImpl });
+  assert.equal(outcome.created, false);
+  assert.equal(outcome.pages, 'needs-you');
+  assert.equal(calls.filter((call) => call.path.endsWith('/git/blobs')).length, 0);
+  const tree = calls.find((call) => call.method === 'POST' && call.path.endsWith('/git/trees'))!.body as { tree: Array<{ path: string; sha?: string }> };
+  assert.equal(tree.tree.find((entry) => entry.path === 'assets/shots/aaa.jpg')!.sha, jpgSha);
+});
+
+test('a repository the app did not make is never written to', async () => {
+  const { fetchImpl, calls } = fakeGithub([
+    ['GET /repos/octo/pebble', 200, { default_branch: 'main', private: false }],
+    ['GET /repos/octo/pebble/contents/osg-site.json\\?ref=main', 404, { message: 'Not Found' }],
+  ]);
+  await assert.rejects(
+    publishSite({ token: 't', owner: 'octo', repo: 'pebble', files: SITE_FILES, appName: 'Pebble', siteUrl: 'https://octo.github.io/pebble/', fetchImpl }),
+    (error: unknown) => error instanceof GithubPublishError && error.problem === 'taken'
+  );
+  assert.ok(calls.every((call) => call.method === 'GET'));
+});
+
+/**
+ * A GitHub that keeps what is done to it: repositories, commits, trees and
+ * where main points. Enough of the API for a publish, so a publish can be
+ * stopped part way and tried again against what the first one left.
+ */
+function memoryGithub() {
+  let count = 0;
+  const sha = () => `s${(count += 1)}`;
+  const repos = new Map<string, { description: string; head?: string }>();
+  const commits = new Map<string, { tree: string; parents: string[] }>();
+  const trees = new Map<string, Array<{ path: string; type: string; mode: string; sha: string }>>();
+  const calls: string[] = [];
+  let onCall: (call: string) => void = () => undefined;
+  const make = (name: string, description: string, paths: string[]) => {
+    const tree = sha();
+    trees.set(tree, paths.map((path) => ({ path, type: 'blob', mode: '100644', sha: sha() })));
+    const commit = sha();
+    commits.set(commit, { tree, parents: [] });
+    repos.set(name, { description, head: commit });
+  };
+  const fetchImpl = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = new URL(String(input));
+    const method = init?.method ?? 'GET';
+    const body = init?.body ? JSON.parse(String(init.body)) : undefined;
+    const call = `${method} ${url.pathname}`;
+    calls.push(call);
+    const answer = (status: number, data: unknown) => {
+      onCall(call);
+      return new Response(JSON.stringify(data), { status });
+    };
+    if (call === 'POST /user/repos') {
+      if (repos.has(body.name)) return answer(422, { message: 'Repository creation failed.', errors: [{ message: 'name already exists on this account' }] });
+      make(body.name, body.description, ['README.md']);
+      return answer(201, { default_branch: 'main', private: false, description: body.description });
+    }
+    const match = /^\/repos\/octo\/([^/]+)(\/.*)?$/.exec(url.pathname);
+    const repo = match ? repos.get(match[1]) : undefined;
+    if (!match || !repo) return answer(404, { message: 'Not Found' });
+    const rest = match[2] ?? '';
+    const headTree = () => (repo.head ? trees.get(commits.get(repo.head)!.tree)! : []);
+    if (rest === '' && method === 'GET') return answer(200, { default_branch: 'main', private: false, description: repo.description });
+    if (rest === '/contents/osg-site.json') return headTree().some((entry) => entry.path === 'osg-site.json') ? answer(200, {}) : answer(404, { message: 'Not Found' });
+    if (rest === '/commits') {
+      const list: unknown[] = [];
+      for (let at = repo.head; at && list.length < 2; at = commits.get(at)!.parents[0]) list.push({ sha: at, commit: { tree: { sha: commits.get(at)!.tree } } });
+      return repo.head ? answer(200, list) : answer(409, { message: 'Git Repository is empty.' });
+    }
+    if (rest === '/git/ref/heads/main') return repo.head ? answer(200, { object: { sha: repo.head } }) : answer(409, { message: 'Git Repository is empty.' });
+    let part: RegExpExecArray | null;
+    if (method === 'GET' && (part = /^\/git\/commits\/(.+)$/.exec(rest))) return answer(200, { tree: { sha: commits.get(part[1])!.tree } });
+    if (method === 'GET' && (part = /^\/git\/trees\/(.+)$/.exec(rest))) return answer(200, { tree: trees.get(part[1]) });
+    if (method === 'POST' && rest === '/git/blobs') return answer(201, { sha: sha() });
+    if (method === 'POST' && rest === '/git/trees') {
+      const made = sha();
+      trees.set(made, (body.tree as Array<{ path: string; mode: string; sha?: string }>).map((entry) => ({ path: entry.path, type: 'blob', mode: entry.mode, sha: entry.sha ?? sha() })));
+      return answer(201, { sha: made });
+    }
+    if (method === 'POST' && rest === '/git/commits') {
+      const made = sha();
+      commits.set(made, { tree: body.tree, parents: body.parents });
+      return answer(201, { sha: made });
+    }
+    if (method === 'PATCH' && rest === '/git/refs/heads/main') {
+      if (commits.get(body.sha)?.parents[0] !== repo.head) return answer(422, { message: 'Update is not a fast forward' });
+      repo.head = body.sha;
+      return answer(200, {});
+    }
+    if (rest === '/pages') return answer(method === 'GET' ? 404 : 201, {});
+    return answer(404, { message: 'Not Found' });
+  }) as typeof fetch;
+  return {
+    fetchImpl,
+    repos,
+    calls,
+    make,
+    paths: (name: string) => {
+      const repo = repos.get(name)!;
+      return trees.get(commits.get(repo.head!)!.tree)!.map((entry) => entry.path).sort();
+    },
+    set onCall(listener: (call: string) => void) {
+      onCall = listener;
+    },
+  };
+}
+
+const PUBLISH = { token: 't', owner: 'octo', repo: 'pebble', files: SITE_FILES, appName: 'Pebble', siteUrl: 'https://octo.github.io/pebble/' };
+
+test('a first publish stopped right after the repository was made is finished by the next one, under the same name', async () => {
+  const github = memoryGithub();
+  const stop = new AbortController();
+  github.onCall = (call) => {
+    if (call === 'POST /user/repos') stop.abort();
+  };
+  await assert.rejects(publishSite({ ...PUBLISH, signal: stop.signal, fetchImpl: github.fetchImpl }), (error: unknown) => (error as Error).name === 'AbortError');
+  // GitHub has the repository, with its first README and no site in it.
+  assert.deepEqual(github.paths('pebble'), ['README.md']);
+  github.onCall = () => undefined;
+  const outcome = await publishSite({ ...PUBLISH, fetchImpl: github.fetchImpl });
+  assert.equal(outcome.created, false);
+  assert.deepEqual(github.paths('pebble'), SITE_FILES.map((file) => file.path).sort());
+});
+
+test("a repository is finished only when the app made it and nothing else is in it", async () => {
+  for (const [description, paths] of [
+    ['My own repository', ['README.md']],
+    [repoDescription('Pebble'), ['README.md', 'notes.txt']],
+  ] as const) {
+    const github = memoryGithub();
+    github.make('pebble', description, [...paths]);
+    await assert.rejects(publishSite({ ...PUBLISH, fetchImpl: github.fetchImpl }), (error: unknown) => error instanceof GithubPublishError && error.problem === 'taken');
+    assert.ok(github.calls.every((call) => call.startsWith('GET ')), description);
+    assert.deepEqual(github.paths('pebble'), [...paths].sort());
+  }
+});
+
+test('the site counts as online only when GitHub serves this build', async () => {
+  const served = (body: unknown, status = 200) => (async () => new Response(JSON.stringify(body), { status })) as unknown as typeof fetch;
+  assert.equal(await isServing({ siteUrl: 'https://octo.github.io/pebble/', build: 'b2', fetchImpl: served({ build: 'b2' }) }), true);
+  assert.equal(await isServing({ siteUrl: 'https://octo.github.io/pebble/', build: 'b2', fetchImpl: served({ build: 'b1' }) }), false);
+  assert.equal(await isServing({ siteUrl: 'https://octo.github.io/pebble/', build: 'b2', fetchImpl: served({ message: 'Not Found' }, 404) }), false);
+});
+
+test('a sign-in that ran out says so', async () => {
+  const { fetchImpl } = fakeGithub([['GET /repos/octo/pebble', 401, { message: 'Bad credentials' }]]);
+  await assert.rejects(
+    publishSite({ token: 't', owner: 'octo', repo: 'pebble', files: SITE_FILES, appName: 'Pebble', siteUrl: 'https://octo.github.io/pebble/', fetchImpl }),
+    (error: unknown) => error instanceof GithubPublishError && error.problem === 'auth'
+  );
+});
+
+// --- where sites are kept --------------------------------------------------------------------------------
+
+/** Sites in memory, one transaction at a time, as IndexedDB runs them. */
+function memorySites() {
+  const rows = new Map<string, StoredSite>();
+  let chain: Promise<unknown> = Promise.resolve();
+  const storage: SiteStorage = {
+    transaction(work) {
+      const run = chain.then(() =>
+        work({
+          get: async (projectId) => structuredClone(rows.get(projectId)),
+          put: async (row) => {
+            rows.set(row.projectId, structuredClone(row));
+          },
+        })
+      );
+      chain = run.catch(() => undefined);
+      return run;
+    },
+  };
+  return { rows, storage };
+}
+
+test('results that land at once for a site that is not on screen all stay', async () => {
+  const { rows, storage } = memorySites();
+  setSiteStorage(storage);
+  try {
+    rows.set('p1', { projectId: 'p1', draft: draft(), chat: [], updatedAt: 0 });
+    const record = { owner: 'octo', repo: 'pebble', branch: 'main', url: 'https://octo.github.io/pebble/', at: 1, build: 'b1', fingerprint: 'f', live: false };
+    await Promise.all([
+      changeSite('p1', (row) => ({ ...row, draft: { ...row.draft, translations: { 'de-DE': { [hash32('Support')]: 'Hilfe' } } } })),
+      changeSite('p1', (row) => ({ ...row, draft: { ...row.draft, publish: record } })),
+      changeSite('p1', (row) => ({ ...row, chat: [...row.chat, { id: 'm1', at: 1, role: 'assistant' as const, text: 'Done' }] })),
+    ]);
+    const stored = rows.get('p1')!;
+    assert.deepEqual(stored.draft.translations, { 'de-DE': { [hash32('Support')]: 'Hilfe' } });
+    assert.equal(stored.draft.publish?.repo, 'pebble');
+    assert.deepEqual(stored.chat.map((item) => item.text), ['Done']);
+    // A project without a site gets none from a change.
+    await changeSite('p2', (row) => row);
+    assert.equal(rows.has('p2'), false);
+  } finally {
+    setSiteStorage(null);
+  }
+});
+
+/** Wait until `check` is true, a turn of the event loop at a time. */
+async function until(check: () => boolean): Promise<void> {
+  for (let turn = 0; turn < 200 && !check(); turn += 1) await new Promise((resolve) => setTimeout(resolve, 1));
+  assert.ok(check(), 'timed out');
+}
+
+const RECORD = { owner: 'octo', repo: 'pebble', branch: 'main', url: 'https://octo.github.io/pebble/', at: 1, build: 'b1', fingerprint: 'f', live: false };
+
+test('a result that lands while the site is on screen is written by a save straight after it', async () => {
+  const { rows, storage } = memorySites();
+  setSiteStorage(storage);
+  // A long wait before the copy saves by itself, so only the save below can write it.
+  const copy = new SiteCopy('p1', 60_000);
+  try {
+    rows.set('p1', { projectId: 'p1', draft: draft(), chat: [], updatedAt: 0 });
+    copy.hold();
+    await until(() => copy.snapshot().loaded);
+    void changeSite('p1', (row) => ({ ...row, draft: { ...row.draft, publish: RECORD } }));
+    // The window closing: flushWebsiteSaves, with nothing in between.
+    await copy.flush();
+    assert.equal(rows.get('p1')!.draft.publish?.build, 'b1');
+    assert.equal(copy.snapshot().draft?.publish?.build, 'b1');
+  } finally {
+    await copy.release();
+    setSiteStorage(null);
+  }
+});
+
+test('results that land while the site is still being read go in once it is, and letting go writes them', async () => {
+  const { rows, storage } = memorySites();
+  setSiteStorage(storage);
+  const copy = new SiteCopy('p1', 60_000);
+  try {
+    rows.set('p1', { projectId: 'p1', draft: draft(), chat: [], updatedAt: 0 });
+    copy.hold();
+    // Before the read has had a turn to finish.
+    void changeSite('p1', (row) => ({ ...row, chat: [...row.chat, { id: 'm1', at: 1, role: 'assistant' as const, text: 'Early' }] }));
+    await until(() => copy.snapshot().loaded);
+    assert.deepEqual(copy.snapshot().chat.map((item) => item.text), ['Early']);
+    await copy.release();
+    assert.deepEqual(rows.get('p1')!.chat.map((item) => item.text), ['Early']);
+    // Let go of, the site takes changes in the database again.
+    await changeSite('p1', (row) => ({ ...row, draft: { ...row.draft, publish: RECORD } }));
+    assert.equal(rows.get('p1')!.draft.publish?.build, 'b1');
+    assert.equal(copy.snapshot().draft?.publish, undefined);
+  } finally {
+    setSiteStorage(null);
+  }
+});
+
+// --- the Publish section ------------------------------------------------------------------------------------
+
+test("while one site's publish waits for Pages, the step names that site's repository, whichever site is on screen", () => {
+  const bramble = draft({
+    facts: facts({ appName: 'Bramble' }),
+    publish: { owner: 'octo', repo: 'bramble', branch: 'main', url: 'https://octo.github.io/bramble/', at: 1, build: 'b', fingerprint: 'f', live: true },
+  });
+  const html = renderToStaticMarkup(
+    React.createElement(WebsitePublish, {
+      draft: bramble,
+      desktop: true,
+      identity: { state: 'none' },
+      signingIn: false,
+      deviceCode: null,
+      onSignIn: () => undefined,
+      onCancelSignIn: () => undefined,
+      repo: 'bramble',
+      onRepo: () => undefined,
+      checklist: [],
+      blocked: null,
+      job: { appName: 'Pebble', phase: 'live', needsPages: true, branch: 'main', site: { owner: 'octo', repo: 'pebble' } },
+      onPublish: () => undefined,
+      onStop: () => undefined,
+      onGoOn: () => undefined,
+      onZip: () => undefined,
+      zipBusy: false,
+      changed: false,
+    })
+  );
+  assert.match(html, /Publishing Pebble/);
+  assert.match(html, /switch on GitHub Pages for pebble/);
+  assert.match(html, /octo\/pebble/);
+  assert.doesNotMatch(html, /for bramble|octo\/bramble/);
+});
+
+// --- colours ---------------------------------------------------------------------------------------------
+
+test('colours parse from hex and rgb, and see-through ones are skipped', () => {
+  assert.deepEqual(parseColor('#abc'), { r: 170, g: 187, b: 204 });
+  assert.deepEqual(parseColor('rgba(10, 20, 30, 0.9)'), { r: 10, g: 20, b: 30 });
+  assert.equal(parseColor('#00000010'), null);
+  assert.equal(parseColor('transparent'), null);
+  assert.ok(Math.abs(contrast({ r: 255, g: 255, b: 255 }, { r: 0, g: 0, b: 0 }) - 21) < 0.01);
+});
+
+test('the screenshots give the brand: their colourful background, not the white one', () => {
+  const colours = boardColours([
+    board('a', { backgroundType: 'gradient', backgroundGradient: { color1: '#ff5a1f', color2: '#c81e1e', angle: 180 } }),
+    board('b', { backgroundType: 'gradient', backgroundGradient: { color1: '#ff5a1f', color2: '#c81e1e', angle: 180 } }),
+    board('c'),
+  ]);
+  const suggested = suggestColours({ boards: colours });
+  assert.equal(suggested.source, 'screenshots');
+  assert.notEqual(suggested.brand, '#ffffff');
+  assert.equal(suggestColours({}).source, 'default');
+});
+
+test('text on the brand and the links are readable on both pages', () => {
+  for (const theme of [
+    { brand: '#ffd400', brand2: '#ffb000', accent: '#ffd400' },
+    { brand: '#0b1d51', brand2: '#1e3a8a', accent: '#60a5fa' },
+    { brand: '#22c55e', brand2: '#16a34a', accent: '#22c55e' },
+  ]) {
+    const palette = paletteOf(theme);
+    const on = parseColor(palette.onBrand)!;
+    assert.ok(Math.min(contrast(on, parseColor(palette.brand)!), contrast(on, parseColor(palette.brand2)!)) >= 3, `${theme.brand} text`);
+    assert.ok(contrast(parseColor(palette.linkLight)!, { r: 255, g: 255, b: 255 }) >= 4.5, `${theme.accent} on white`);
+    assert.ok(contrast(parseColor(palette.linkDark)!, { r: 11, g: 13, b: 18 }) >= 4.5, `${theme.accent} on dark`);
+  }
+});
+
+// --- the ZIP ---------------------------------------------------------------------------------------------
+
+test('the ZIP has a local header per file and an end record that counts them', async () => {
+  assert.equal(crc32(new TextEncoder().encode('hello')), 0x3610a686);
+  const blob = zipFiles([{ path: 'index.html', text: 'hi' }, { path: 'assets/a.jpg', bytes: new Uint8Array([1, 2, 3]) }], { folder: 'pebble' });
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  const view = new DataView(bytes.buffer);
+  assert.equal(view.getUint32(0, true), 0x04034b50);
+  const end = bytes.length - 22;
+  assert.equal(view.getUint32(end, true), 0x06054b50);
+  assert.equal(view.getUint16(end + 10, true), 2);
+  assert.ok(new TextDecoder().decode(bytes).includes('pebble/assets/a.jpg'));
+});

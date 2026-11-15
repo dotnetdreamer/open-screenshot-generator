@@ -63,8 +63,48 @@ export interface TauriMockConfig {
   codeFolder: TauriCodeFolder | null;
   /** Canned results per command. Overrides every default below. */
   responses: Record<string, unknown>;
+  /**
+   * Commands whose answer from `responses` waits until the test calls
+   * `window.__E2E_TAURI__.releaseCommands()`, to do something while one is in
+   * flight. A held abs_claude_prompt or abs_codex_prompt is ended by its stop
+   * command with the same id, as Rust ends it.
+   */
+  held: string[];
   /** Commands that must reject, mapped to the rejection message. */
   errors: Record<string, string>;
+  /**
+   * Canned answers for tauri-plugin-http, the app's way out to App Store
+   * Connect, Google Play and the AI providers. The first rule whose `match`
+   * (a regular expression source) finds "METHOD url" answers; anything else
+   * gets a 404 with a JSON error list, which is how those APIs say they have
+   * nothing. Nothing leaves the browser, so the offline guard never sees it.
+   * Every request is kept in `window.__E2E_TAURI__.httpRequests`.
+   */
+  http: TauriHttpRule[];
+  /**
+   * The Growth browser (growth_browser.rs) is a hidden frame here. Its pages
+   * come from this map by address, and `growthDriver`, the bundled driver
+   * (src/lib/growth/setup/driver.ts), runs inside each one. A page hands over
+   * a key file the way Rust does, with
+   * parent.__E2E_TAURI__.emitFromBackend('abs-growth-browser', ...).
+   */
+  growthPages: Record<string, string>;
+  growthDriver: string;
+}
+
+export interface TauriHttpRule {
+  match: string;
+  status?: number;
+  headers?: Record<string, string>;
+  /** Text body. */
+  body?: string;
+  /** Binary body, such as a gzip report. Wins over `body`. */
+  bodyBase64?: string;
+  /**
+   * Keep the answer until the test calls `window.__E2E_TAURI__.releaseHttp()`,
+   * to do something while the request is still in flight.
+   */
+  hold?: boolean;
 }
 
 export const DEFAULT_TAURI_CONFIG: TauriMockConfig = {
@@ -74,7 +114,11 @@ export const DEFAULT_TAURI_CONFIG: TauriMockConfig = {
   openPath: '/tmp/osg-e2e',
   codeFolder: { name: 'marbly', path: '/Users/e2e/code/marbly' },
   responses: {},
+  held: [],
   errors: {},
+  http: [],
+  growthPages: {},
+  growthDriver: '',
 };
 
 /**
@@ -108,8 +152,72 @@ export function tauriInitScript(config: TauriMockConfig): string {
     claudeProcesses: loadClaudeProcesses(),
     /** The Codex processes started and not stopped, by spawn id, with their thread. Kept like claudeProcesses. */
     codexProcesses: loadCodexProcesses(),
+    /** tauri-plugin-http traffic: every request, and the ones in flight by resource id. */
+    httpRequests: [],
+    httpNext: 1,
+    httpPending: {},
+    httpBodies: {},
+    /** Answers of rules with \`hold\`, waiting for releaseHttp(). */
+    httpHeld: [],
+    /** Send every held answer. Returns how many there were. */
+    releaseHttp() {
+      const held = state.httpHeld.splice(0);
+      held.forEach((release) => release());
+      return held.length;
+    },
+    /** The Growth browser's frame: where it is, where it was placed, and whether it shows. */
+    growthBrowser: { open: false, url: null, visits: [], bounds: null, visible: false, placements: [] },
+    /** Answers of commands in config.held, waiting for releaseCommands(). */
+    commandsHeld: [],
+    /** Send every held command answer. Returns how many there were. */
+    releaseCommands() {
+      const held = state.commandsHeld.splice(0);
+      held.forEach((entry) => entry.release());
+      return held.length;
+    },
   };
   window.__E2E_TAURI__ = state;
+
+  function httpSend(rid) {
+    const request = state.httpPending[rid];
+    delete state.httpPending[rid];
+    const key = (request.method || 'GET') + ' ' + request.url;
+    const rule = (state.config.http || []).find((candidate) => new RegExp(candidate.match).test(key));
+    const answer = () => {
+      const status = rule ? (rule.status ?? 200) : 404;
+      let bytes;
+      if (rule && rule.bodyBase64) {
+        bytes = Uint8Array.from(atob(rule.bodyBase64), (char) => char.charCodeAt(0));
+      } else {
+        bytes = new TextEncoder().encode(
+          rule
+            ? rule.body ?? ''
+            : JSON.stringify({ errors: [{ status: '404', code: 'NOT_FOUND', title: 'Not found', detail: 'No canned response for ' + key }] })
+        );
+      }
+      const responseRid = state.httpNext++;
+      state.httpBodies[responseRid] = { bytes, sent: false };
+      const headers = rule && rule.headers ? rule.headers : { 'content-type': 'application/json' };
+      return { status, statusText: String(status), url: request.url, headers: Object.entries(headers), rid: responseRid };
+    };
+    if (rule && rule.hold) return new Promise((resolve) => state.httpHeld.push(() => resolve(answer())));
+    return answer();
+  }
+
+  // The plugin reads a body in chunks whose last byte says what the chunk is:
+  // 0 for data, 1 for the end of the body.
+  function httpReadBody(rid) {
+    const body = state.httpBodies[rid];
+    if (!body || body.sent) {
+      delete state.httpBodies[rid];
+      return [1];
+    }
+    body.sent = true;
+    const chunk = new Uint8Array(body.bytes.length + 1);
+    chunk.set(body.bytes);
+    chunk[body.bytes.length] = 0;
+    return Array.from(chunk);
+  }
 
   function loadClaudeProcesses() {
     try {
@@ -236,6 +344,33 @@ export function tauriInitScript(config: TauriMockConfig): string {
     return null;
   };
 
+  // The Growth browser's stand-in: a frame off screen, rendered (so the
+  // driver sees the page as laid out) and hidden from the page's own tree.
+  function growthLoad(url) {
+    let frame = document.getElementById('__e2e_growth_browser');
+    if (!frame) {
+      frame = document.createElement('iframe');
+      frame.id = '__e2e_growth_browser';
+      frame.setAttribute('aria-hidden', 'true');
+      frame.tabIndex = -1;
+      frame.style.cssText = 'position:fixed;left:-5000px;top:0;width:1200px;height:900px;border:0;';
+      document.documentElement.appendChild(frame);
+    }
+    state.growthBrowser.open = true;
+    state.growthBrowser.url = url;
+    state.growthBrowser.visits.push(url);
+    state.emitFromBackend('abs-growth-browser', { type: 'page', phase: 'started', url });
+    frame.onload = () => {
+      frame.contentWindow.__osgDriverInFrame = true;
+      const script = frame.contentDocument.createElement('script');
+      script.textContent = state.config.growthDriver || '';
+      frame.contentDocument.documentElement.appendChild(script);
+      state.emitFromBackend('abs-growth-browser', { type: 'title', title: frame.contentDocument.title });
+      state.emitFromBackend('abs-growth-browser', { type: 'page', phase: 'finished', url });
+    };
+    frame.srcdoc = (state.config.growthPages || {})[url] || '<!doctype html><title>Not found</title><h1>Nothing at ' + url + '</h1>';
+  }
+
   // ---- argument sanitising ----------------------------------------------
   // page.evaluate() has to be able to return the call log, so nothing that
   // fails structured clone may enter it. Binary bodies become a byte count.
@@ -338,7 +473,17 @@ export function tauriInitScript(config: TauriMockConfig): string {
       throw new Error(state.config.errors[cmd]);
     }
     if (Object.prototype.hasOwnProperty.call(state.config.responses, cmd)) {
-      return state.config.responses[cmd];
+      let answer = state.config.responses[cmd];
+      // { __sequence: [a, b, c] } answers a, then b, then c, and c from then on.
+      if (answer && typeof answer === 'object' && Array.isArray(answer.__sequence)) {
+        answer = answer.__sequence.length > 1 ? answer.__sequence.shift() : answer.__sequence[0];
+      }
+      if ((state.config.held || []).includes(cmd)) {
+        return new Promise((resolve, reject) => {
+          state.commandsHeld.push({ cmd, id: args.id, release: () => resolve(answer), stop: (message) => reject(new Error(message)) });
+        });
+      }
+      return answer;
     }
 
     switch (cmd) {
@@ -431,6 +576,24 @@ export function tauriInitScript(config: TauriMockConfig): string {
       // emitFromBackend('abs-codex-event', ...).
       case 'abs_codex_detect':
         return { found: false, models: [] };
+      // One prompt through either CLI (abs_claude_prompt, abs_codex_prompt),
+      // for Growth's writing jobs. The app sends one only after a detect says
+      // the CLI is ready, so a spec answers both through config.responses.
+      case 'abs_claude_prompt':
+      case 'abs_codex_prompt':
+        throw new Error('Not installed in the test harness');
+      // Stop for one of those: a prompt held under the same id ends the way
+      // Rust ends it, and a stop for anything else does nothing, as in Rust.
+      case 'abs_claude_prompt_stop':
+      case 'abs_codex_prompt_stop': {
+        const prompt = cmd === 'abs_claude_prompt_stop' ? 'abs_claude_prompt' : 'abs_codex_prompt';
+        const stopped = state.commandsHeld.filter((entry) => entry.cmd === prompt && entry.id === args.id);
+        for (const entry of stopped) {
+          state.commandsHeld.splice(state.commandsHeld.indexOf(entry), 1);
+          entry.stop((prompt === 'abs_claude_prompt' ? 'Claude Code' : 'Codex') + ' was stopped');
+        }
+        return null;
+      }
       case 'abs_codex_start': {
         const start = args.args || {};
         const threadId = typeof start.resume === 'string' ? start.resume : '01a13963-abeb-7f92-b6ea-64f6cb531353';
@@ -462,6 +625,103 @@ export function tauriInitScript(config: TauriMockConfig): string {
       case 'abs_update_install':
       case 'abs_update_flushed':
         return null;
+
+      // -- Capture (src-tauri/src/device_capture.rs) ----------------------
+      // No simulator, emulator or phone until a spec lists some through
+      // config.responses. A screenshot is drawn here, at the size a spec puts
+      // in config.responses.__captureSize (an iPhone 17 Pro Max's 1320 x 2868
+      // when unset), in a colour and with a number that change per call, so
+      // a spec can tell two screenshots apart. With responses.__captureHold
+      // set, a full screenshot waits for releaseCommands(), so a spec can edit
+      // while one is being taken. A recording comes out as a short WebM drawn
+      // here when responses.__recordMovie is set, and as an error otherwise.
+      case 'abs_capture_devices':
+        return { ios: { devices: [], models: [] }, android: { devices: [], models: [] } };
+      case 'abs_capture_apps':
+        return [];
+      case 'abs_capture_start_device':
+      case 'abs_capture_tidy_status_bar':
+      case 'abs_capture_appearance':
+      case 'abs_capture_launch':
+      case 'abs_capture_record_start':
+        return null;
+      case 'abs_capture_create_simulator':
+        return '00000000-0000-4000-8000-000000000000';
+      case 'abs_capture_screenshot': {
+        if (!args.preview && state.config.responses.__captureHold) {
+          await new Promise((resolve) => state.commandsHeld.push({ cmd, id: args.id, release: resolve, stop: resolve }));
+        }
+        const size = state.config.responses.__captureSize || { width: 1320, height: 2868 };
+        const scale = args.preview ? 0.25 : 1;
+        state.captures = (state.captures || 0) + (args.preview ? 0 : 1);
+        const canvas = new OffscreenCanvas(Math.round(size.width * scale), Math.round(size.height * scale));
+        const context = canvas.getContext('2d');
+        context.fillStyle = 'hsl(' + ((state.captures * 67) % 360) + ', 70%, 55%)';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.fillStyle = '#ffffff';
+        context.font = Math.round(160 * scale) + 'px sans-serif';
+        context.fillText('Capture ' + state.captures, 80 * scale, 400 * scale);
+        const blob = await canvas.convertToBlob({ type: args.preview ? 'image/jpeg' : 'image/png' });
+        return await blob.arrayBuffer();
+      }
+      case 'abs_capture_record_stop': {
+        if (!state.config.responses.__recordMovie) throw new Error('The test runtime records nothing');
+        const canvas = document.createElement('canvas');
+        canvas.width = 132;
+        canvas.height = 286;
+        const context = canvas.getContext('2d');
+        const recorder = new MediaRecorder(canvas.captureStream(15), { mimeType: 'video/webm' });
+        const chunks = [];
+        recorder.ondataavailable = (event) => {
+          if (event.data.size) chunks.push(event.data);
+        };
+        const stopped = new Promise((resolve) => {
+          recorder.onstop = resolve;
+        });
+        recorder.start();
+        for (let frame = 0; frame < 8; frame += 1) {
+          context.fillStyle = 'hsl(' + frame * 40 + ', 70%, 55%)';
+          context.fillRect(0, 0, canvas.width, canvas.height);
+          await new Promise((resolve) => setTimeout(resolve, 60));
+        }
+        recorder.stop();
+        await stopped;
+        return await new Blob(chunks, { type: 'video/webm' }).arrayBuffer();
+      }
+
+      // -- the Growth browser (growth_browser.rs) ---------------------------
+      case 'abs_growth_browser_open':
+        state.growthBrowser.bounds = args.bounds;
+        state.growthBrowser.visible = args.visible;
+        growthLoad(args.url);
+        return { embedded: true };
+      case 'abs_growth_browser_go':
+        growthLoad(args.url);
+        return null;
+      case 'abs_growth_browser_place':
+        state.growthBrowser.bounds = args.bounds;
+        state.growthBrowser.visible = args.visible;
+        state.growthBrowser.placements.push(args.visible);
+        return null;
+      case 'abs_growth_browser_nav':
+        if (args.action === 'reload' && state.growthBrowser.url) growthLoad(state.growthBrowser.url);
+        return null;
+      case 'abs_growth_browser_allow':
+        return null;
+      case 'abs_growth_browser_run': {
+        const frame = document.getElementById('__e2e_growth_browser');
+        const driver = frame && frame.contentWindow && frame.contentWindow.__osgGrowthDriver;
+        return driver ? driver.run(JSON.parse(args.command)) : '';
+      }
+      case 'abs_growth_browser_close': {
+        const frame = document.getElementById('__e2e_growth_browser');
+        if (frame) frame.remove();
+        state.growthBrowser.open = false;
+        state.growthBrowser.url = null;
+        return null;
+      }
+      case 'abs_growth_browser_info':
+        return { open: state.growthBrowser.open, mine: state.growthBrowser.open, url: state.growthBrowser.url };
 
       // -- dialog plugin ---------------------------------------------------
       case 'plugin:dialog|save': {
@@ -576,6 +836,28 @@ export function tauriInitScript(config: TauriMockConfig): string {
       // which is where the URL, the label and the geometry are decided. It
       // falls through to the plugin:webview default below, and is recorded.
 
+
+      // -- tauri-plugin-http, answered from config.http ---------------------
+      case 'plugin:http|fetch': {
+        const clientConfig = args.clientConfig || {};
+        const rid = state.httpNext++;
+        const request = {
+          method: clientConfig.method || 'GET',
+          url: clientConfig.url,
+          headers: Object.fromEntries((clientConfig.headers || []).map(([name, value]) => [String(name).toLowerCase(), value])),
+          body: clientConfig.data ? new TextDecoder().decode(new Uint8Array(clientConfig.data)) : null,
+        };
+        state.httpRequests.push(request);
+        state.httpPending[rid] = request;
+        return rid;
+      }
+      case 'plugin:http|fetch_send':
+        return httpSend(args.rid);
+      case 'plugin:http|fetch_read_body':
+        return httpReadBody(args.rid);
+      case 'plugin:http|fetch_cancel':
+      case 'plugin:http|fetch_cancel_body':
+        return null;
 
       default:
         if (cmd.startsWith('plugin:window|') || cmd.startsWith('plugin:webview|')) return null;

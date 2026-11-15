@@ -35,7 +35,7 @@ import { TranslationTableDialog } from './TranslationTableDialog';
 import { translateText, detectLanguage, isTranslationEnabled, AUTO_DETECT } from '@/services/translation';
 import { Logo } from './Logo';
 import { GithubMark, REPO_URL } from './GithubLink';
-import type { ArtboardState, ElementLocaleOverride, ElementSelectModifiers, ElementType, Point, ProjectLocalization, ShapeType, DeviceType, ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, VideoElementProps, VideoDeviceElementProps, GestureElementProps, GestureType, Project, Size } from '@/types/artboard';
+import type { ArtboardState, CaptureScreen, ElementLocaleOverride, ElementSelectModifiers, ElementType, Point, ProjectLocalization, ShapeType, DeviceType, ArtboardElement, TextElementProps, ShapeElementProps, DeviceFrameElementProps, ImageElementProps, VideoElementProps, VideoDeviceElementProps, GestureElementProps, GestureType, Project, Size } from '@/types/artboard';
 // The locale overlay. `artboards` always means the whole base document; one
 // language is a projection of it, derived per render and never stored.
 import { getLocaleDef, localeLabel, localeName } from '@/lib/i18n/locales';
@@ -65,7 +65,24 @@ import {
   unprojectArtboards,
   type DetachableKey,
 } from '@/lib/i18n/project';
-import { availableEngines, translateIntoLocale } from '@/lib/i18n/translate';
+import {
+  inPlaceTexts,
+  translateIntoLocale,
+  translateIntoLocales,
+  translateTextsWith,
+  writeInPlace,
+  type TranslateLocalesProgress,
+  type TranslateTextsResult,
+} from '@/lib/i18n/translate';
+import {
+  availableEngines,
+  detectTranslateEngines,
+  engineLabel,
+  isOwnEngine,
+  onTranslateEnginesChange,
+  resolveEngines,
+  type TranslateEngine,
+} from '@/lib/i18n/engines';
 import { applyCsvImport, buildTranslationRows, planCsvImport, toCsv } from '@/lib/i18n/translationCsv';
 import { applyLocalizedText } from '@/lib/mcp/localizedText';
 // The language tools' pure half. Everything they do is a function of the base
@@ -196,6 +213,21 @@ import { loadProjectTemplates } from '@/services/projectService';
 import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
 import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, scaleElementsToCanvas, DEVICE_FORMAT_PRESETS, type DeviceFormat, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 import { PublishDialog } from './publish/PublishDialog';
+import { GrowthWorkspace, type GrowthRequest } from './growth/GrowthWorkspace';
+import { CaptureWorkspace, type CaptureRequest, type ClipOutcome } from './capture/CaptureWorkspace';
+import { WebsiteWorkspace, type CaptureRequest as WebsiteCaptureRequest, type CapturedBoard } from './website/WebsiteWorkspace';
+import { flushWebsiteSaves } from '@/lib/website/store';
+import { captureTargets } from '@/lib/capture/frames';
+import { placeClip, placeShots, type ClipPlacement, type ShotPlacement } from '@/lib/capture/place';
+import { deviceForQuickCapture, shootDevice } from '@/lib/capture/shoot';
+import { ActivityBar, type ActivityId } from './ActivityBar';
+import { getGrowthSettings, setGrowthSettings } from '@/lib/growth/settings';
+import { useGrowthMonitor } from '@/lib/growth/useGrowthMonitor';
+import { storeOf } from '@/lib/growth/stores';
+import { useRivalWatch } from '@/lib/growth/useRivalWatch';
+import { useKeywordWatch } from '@/lib/growth/useKeywordWatch';
+import type { GrowthTab, GrowthTabOptions } from './growth/GrowthShared';
+import { localeForAppleLocale, localeForPlayLanguage } from '@/lib/publish/storeTargets';
 import { ProjectNameField } from './ProjectNameField';
 import {
   decodeDataUrl,
@@ -1020,18 +1052,33 @@ export function OpenScreenshotGeneratorLayout() {
   const [isTranslationTableOpen, setIsTranslationTableOpen] = useState(false);
   const [translationTableLocale, setTranslationTableLocale] = useState<string | null>(null);
   const [translationTableFilter, setTranslationTableFilter] = useState<'all' | 'untranslated'>('all');
-  // Live readout for machine translation, which is one network round trip per
-  // distinct string and can run for a minute across several languages.
+  // Live readout for a translation run, which can take a minute across several
+  // languages.
   const [translateProgress, setTranslateProgress] = useState<TranslateProgress | null>(null);
   const [isCancellingTranslate, setIsCancellingTranslate] = useState(false);
   const translateAbortRef = useRef<AbortController | null>(null);
-  // A machine translation path exists at all. Set in an effect, never during
-  // render: it reads localStorage and isTauri(), both of which are absent on
-  // the server and on the first client render.
+  // Something can translate at all, and the engine a run would start with
+  // (src/lib/i18n/engines.ts). Set in an effect, never during render: they
+  // read localStorage and isTauri(), both of which are absent on the server
+  // and on the first client render.
   const [translationAvailable, setTranslationAvailable] = useState(false);
-  useEffect(() => {
-    setTranslationAvailable(availableEngines().length > 0);
+  const [translationEngine, setTranslationEngine] = useState<{ engine: TranslateEngine; label: string } | null>(null);
+  const refreshTranslationEngines = useCallback(() => {
+    const engines = availableEngines();
+    setTranslationAvailable(engines.length > 0);
+    setTranslationEngine(engines[0] ? { engine: engines[0], label: engineLabel(engines[0]) } : null);
   }, []);
+  useEffect(() => {
+    refreshTranslationEngines();
+    const stop = onTranslateEnginesChange(refreshTranslationEngines);
+    // Claude Code and Codex count once a detect has found them. A detect
+    // starts each CLI, so it waits until the editor has finished opening.
+    const timer = window.setTimeout(detectTranslateEngines, 4000);
+    return () => {
+      stop();
+      window.clearTimeout(timer);
+    };
+  }, [refreshTranslationEngines]);
   // Set for exactly as long as an export or a store upload has a converted or
   // re-projected list on the canvas. It closes the mutation door, so an MCP
   // call or a stray drag landing mid-swap cannot write a temporary render into
@@ -1569,6 +1616,176 @@ export function OpenScreenshotGeneratorLayout() {
   // Direct-to-store upload (App Store Connect / Google Play). Desktop only,
   // see src/lib/publish; the dialog explains itself on the web build.
   const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
+  // The view on screen, switched by the activity bar (ActivityBar.tsx). The
+  // editor is the default and stays mounted under the others.
+  const [activity, setActivity] = useState<ActivityId>('editor');
+  const activityRef = useRef(activity);
+  activityRef.current = activity;
+  // The editor under another view takes no focus and no clicks. Set on the
+  // element, because React 18 renders inert only from a string, which its
+  // types refuse.
+  const editorViewRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    editorViewRef.current?.toggleAttribute('inert', activity !== 'editor');
+  }, [activity]);
+  // Growth: the app's App Store numbers, reviews and listing (src/lib/growth).
+  // Mounted on its first visit and kept, so it is as it was left. A request
+  // picks the section, as the upload dialog's "see how they sell" does.
+  const [growthMounted, setGrowthMounted] = useState(false);
+  const [growthRequest, setGrowthRequest] = useState<GrowthRequest | null>(null);
+  const showGrowth = useCallback((tab?: GrowthTab, options?: GrowthTabOptions) => {
+    setGrowthMounted(true);
+    if (tab) setGrowthRequest((current) => ({ tab, options, nonce: (current?.nonce ?? 0) + 1 }));
+    setActivity('growth');
+  }, []);
+  // Capture: screenshots of the user's app from a simulator or emulator
+  // (src/lib/capture). Mounted on its first visit and kept, like Growth, so
+  // a run of screenshots goes on while the editor is in front. A request
+  // chooses a frame, as the Properties panel's Screenshot from device button does.
+  const [captureMounted, setCaptureMounted] = useState(false);
+  const [captureRequest, setCaptureRequest] = useState<CaptureRequest | null>(null);
+  const showCapture = useCallback((frame?: Omit<CaptureRequest, 'nonce'>) => {
+    setCaptureMounted(true);
+    if (frame) setCaptureRequest((current) => ({ ...frame, nonce: (current?.nonce ?? 0) + 1 }));
+    setActivity('capture');
+  }, []);
+  // Website: the app's own site, made from the open project (src/lib/website).
+  // Mounted on its first visit and kept, like Growth, so a publish goes on
+  // while the editor is in front.
+  const [websiteMounted, setWebsiteMounted] = useState(false);
+  // While the desktop app runs, Growth keeps the apps synced there fresh and
+  // says when something new turns up (src/lib/growth/monitor.ts). The main
+  // window only: a tab window would sync the same apps a second time.
+  const growthMonitor = useGrowthMonitor({
+    enabled: isTauri() && !isSecondaryWindow,
+    paused: activity === 'growth',
+    onFound: (found) => {
+      // New reviews first: a person is waiting for an answer.
+      const reviewed = found.filter((finding) => finding.reviews.length > 0);
+      if (reviewed.length > 0) {
+        const [first] = reviewed;
+        const count = reviewed.reduce((sum, finding) => sum + finding.reviews.length, 0);
+        const newest = first.reviews[0];
+        const words = (newest.title || newest.body).replace(/\s+/g, ' ').trim();
+        toast({
+          title: reviewed.length === 1 ? `${first.app.name}: ${count === 1 ? 'a new review' : `${count} new reviews`}` : `${count} new reviews in Growth`,
+          description: `${newest.rating} star${newest.rating === 1 ? '' : 's'}: ${words.length > 90 ? `${words.slice(0, 87)}...` : words}`,
+          action: (
+            <ToastAction
+              altText="Open the reviews"
+              onClick={() => {
+                setGrowthSettings({ appId: first.app.id });
+                showGrowth('reviews');
+              }}
+            >
+              Open
+            </ToastAction>
+          ),
+        });
+      }
+      const findings = found.filter((finding) => finding.fresh.length > 0);
+      if (findings.length === 0) return;
+      const [first] = findings;
+      const count = findings.reduce((sum, finding) => sum + finding.fresh.length, 0);
+      toast({
+        title:
+          findings.length === 1
+            ? `${first.app.name}: ${count === 1 ? '1 new insight' : `${count} new insights`}`
+            : `${count} new insights in Growth`,
+        description: first.fresh[0].title,
+        action: (
+          <ToastAction
+            altText="Open the insights"
+            onClick={() => {
+              setGrowthSettings({ appId: first.app.id });
+              showGrowth('insights');
+            }}
+          >
+            Open
+          </ToastAction>
+        ),
+      });
+    },
+    onSummaries: (summaries) => {
+      const [summary] = summaries;
+      toast({
+        title: `Your ${summary.scope.days === 7 ? 'weekly' : 'monthly'} review summary of ${summary.appName} is ready`,
+        description: summary.headline || 'See what people like, dislike and ask for.',
+        action: (
+          <ToastAction
+            altText="Open the review summary"
+            onClick={() => {
+              if (summary.own) setGrowthSettings({ appId: summary.appId });
+              showGrowth('review-summary', { reviewApp: summary.appId });
+            }}
+          >
+            Open
+          </ToastAction>
+        ),
+      });
+    },
+  });
+  // The apps followed under Growth's Competitors are checked twice a day,
+  // in the web build too (src/lib/growth/rivalWatch.ts), and new screenshots
+  // of one of them are announced here. The main window only, like the monitor.
+  const openCompetitors = useCallback(
+    (owner: string, changeId?: string) => {
+      if (owner && getGrowthSettings().appId !== owner) setGrowthSettings({ appId: owner });
+      showGrowth('competitors', changeId ? { rivalChange: changeId } : undefined);
+    },
+    [showGrowth]
+  );
+  // The tracked keywords' daily ranks, checked from the main window only (keywordWatch.ts).
+  useKeywordWatch({ enabled: !isSecondaryWindow });
+  const rivalWatch = useRivalWatch({
+    enabled: !isSecondaryWindow,
+    onFound: (news) => {
+      const [first] = news;
+      // Google Play shows one set for every device; the App Store one per device.
+      const device = storeOf(first.change.appId) === 'playstore' ? 'Google Play' : first.change.kind === 'ipad-screenshots' ? 'iPad' : 'iPhone';
+      const names = Array.from(new Set(news.map((item) => item.name || 'A competitor')));
+      const title =
+        names.length > 1
+          ? `${names.length} competitors changed their screenshots`
+          : news.length === 1
+            ? `${names[0]} changed its ${device} screenshots`
+            : `${names[0]} changed its screenshots`;
+      toast({
+        title,
+        description: names.length === 1 ? 'See the new screenshots next to yours in Growth.' : `${names.join(', ')}. See the new screenshots next to yours in Growth.`,
+        action: (
+          <ToastAction altText="Compare the new screenshots with yours" onClick={() => openCompetitors(first.owner, first.change.id)}>
+            Compare
+          </ToastAction>
+        ),
+      });
+    },
+  });
+  const selectActivity = useCallback(
+    (next: ActivityId) => {
+      if (next !== 'growth') {
+        if (next === 'capture') setCaptureMounted(true);
+        if (next === 'website') setWebsiteMounted(true);
+        setActivity(next);
+        return;
+      }
+      // With new insights waiting, Growth opens on them, in an app that has
+      // some; with new competitor screenshots, on Competitors.
+      if (growthMonitor.appIds.length > 0) {
+        if (!growthMonitor.appIds.includes(getGrowthSettings().appId ?? '')) {
+          setGrowthSettings({ appId: growthMonitor.appIds[0] });
+        }
+        showGrowth('insights');
+      } else if (rivalWatch.news.length > 0) {
+        openCompetitors(rivalWatch.news[0].owner);
+      } else {
+        showGrowth();
+      }
+    },
+    [growthMonitor.appIds, rivalWatch.news, openCompetitors, showGrowth]
+  );
+  // Languages the Growth window asked for, ticked when the language manager opens.
+  const [languagePreselect, setLanguagePreselect] = useState<string[] | undefined>(undefined);
   // The App Store header and search dialog. Opened from the store preview, it
   // closes the preview (a Radix dialog cannot sit above that overlay) and puts
   // it back once the art is on the canvas.
@@ -1675,6 +1892,14 @@ export function OpenScreenshotGeneratorLayout() {
   // Set when the run is scoped to one text element (the properties panel
   // button); null means the dialog translates artboards as before.
   const [translateElementId, setTranslateElementId] = useState<string | null>(null);
+  // A key added in the AI panel after the editor opened changes who
+  // translates, and the dialogs name that engine. A dialog opened before the
+  // first look for Claude Code and Codex starts it, and updates when it lands.
+  useEffect(() => {
+    if (!isTranslateDialogOpen && !isLanguageManagerOpen && !isTranslationTableOpen) return;
+    refreshTranslationEngines();
+    detectTranslateEngines();
+  }, [isTranslateDialogOpen, isLanguageManagerOpen, isTranslationTableOpen, refreshTranslationEngines]);
 
   const handleTranslateArtboard = (artboardId: string) => {
     handleArtboardSelection(artboardId);
@@ -1695,9 +1920,22 @@ export function OpenScreenshotGeneratorLayout() {
     setIsExportDialogOpen(true);
   };
 
+  // The Properties panel names its element by id alone. Opening a project
+  // makes ids unique across it (ensureUniqueElementIds); should two ever
+  // coincide, the one on the active artboard is meant.
+  const artboardHoldingElement = (boards: ArtboardState[], elementId: string) =>
+    boards.find((ab) => ab.id === activeArtboardId && ab.elements.some((el) => el.id === elementId)) ??
+    boards.find((ab) => ab.elements.some((el) => el.id === elementId));
+
   const handleTranslateTextElement = (elementId: string) => {
     if (hasLocales(artboardsRef.current)) {
-      void translateScopeIntoActiveLocale({ elementIds: [elementId] }, 'Translate Element');
+      // This run writes over what a person typed, so it names the element's
+      // artboard as well as its id and can reach nothing else.
+      const owner = artboardHoldingElement(artboardsRef.current, elementId);
+      void translateScopeIntoActiveLocale(
+        { elementIds: [elementId], ...(owner ? { artboardIds: [owner.id] } : {}) },
+        'Translate Element'
+      );
       return;
     }
     setTranslateElementId(elementId);
@@ -2946,24 +3184,33 @@ export function OpenScreenshotGeneratorLayout() {
     );
   }, [handleArtboardsUpdate]);
 
+  /** Folds an engine's progress into the readout, naming the engine at work. */
+  const showTranslateProgress = useCallback((progress: TranslateLocalesProgress) => {
+    setTranslateProgress((prev) =>
+      prev
+        ? {
+            ...prev,
+            done: progress.done,
+            total: progress.total,
+            localesDone: progress.localesDone,
+            localeCount: progress.localeCount,
+            phase: 'translating',
+            engineLabel: progress.engine ? engineLabel(progress.engine) : prev.engineLabel,
+          }
+        : prev
+    );
+  }, []);
+
   /**
-   * One machine translation run, shared by the switcher's "Update translations"
-   * and by the translation table's buttons. It never commits: the caller
-   * decides, because the table holds its result until Save.
+   * One translation run into one language, shared by the switcher's "Update
+   * translations" and by the translation table's buttons. It never commits:
+   * the caller decides, because the table holds its result until Save.
    */
   const runLocaleTranslation = useCallback(async (
     locale: string,
     only: 'empty' | 'stale' | 'all',
     scope?: { artboardIds?: string[]; elementIds?: string[]; includeManual?: boolean }
   ): Promise<ArtboardState[] | null> => {
-    const engines = availableEngines();
-    if (engines.length === 0) {
-      toast({
-        title: 'Translation is not set up',
-        description: 'Add an AI provider key, or type the strings into the translations table.',
-      });
-      return null;
-    }
     const controller = new AbortController();
     translateAbortRef.current = controller;
     setIsCancellingTranslate(false);
@@ -2971,20 +3218,28 @@ export function OpenScreenshotGeneratorLayout() {
       localeLabel: localeLabel(locale),
       done: 0,
       total: 0,
-      localeIndex: 1,
+      localesDone: 0,
       localeCount: 1,
       phase: 'starting',
     });
     try {
+      // The first run in a window waits here while Claude Code and Codex are
+      // looked for, with the readout already up.
+      const engines = await resolveEngines();
+      if (controller.signal.aborted) return null;
+      if (engines.length === 0) {
+        toast({
+          title: 'Translation is not set up',
+          description: 'Add an AI provider key, or type the strings into the translations table.',
+        });
+        return null;
+      }
       const result = await translateIntoLocale(artboardsRef.current, locale, {
-        engine: engines[0],
+        engines,
         only,
         ...scope,
         signal: controller.signal,
-        onProgress: (done, total) =>
-          setTranslateProgress((prev) =>
-            prev ? { ...prev, done, total, phase: 'translating' } : prev
-          ),
+        onProgress: showTranslateProgress,
       });
       toast(
         result.rateLimited
@@ -2998,6 +3253,7 @@ export function OpenScreenshotGeneratorLayout() {
               description:
                 [
                   result.failed ? `${result.failed} did not come back` : '',
+                  result.failed && result.error ? result.error.replace(/\.$/, '') : '',
                   result.skipped ? `${result.skipped} you edited were left alone` : '',
                 ]
                   .filter(Boolean)
@@ -3019,7 +3275,7 @@ export function OpenScreenshotGeneratorLayout() {
       setTranslateProgress(null);
       setIsCancellingTranslate(false);
     }
-  }, [toast]);
+  }, [showTranslateProgress, toast]);
 
   /**
    * What the artboard toolbar's and the Properties panel's translate buttons do
@@ -3072,37 +3328,40 @@ export function OpenScreenshotGeneratorLayout() {
     let boards = normalizeLocalization(
       setLocalization(artboardsRef.current, next.locales.length > 0 ? next : undefined)
     );
-    if (opts.machineTranslate && opts.addedLocales.length > 0 && availableEngines().length > 0) {
+    let missed: { strings: number; rateLimited: boolean; error?: string } | null = null;
+    if (opts.machineTranslate && opts.addedLocales.length > 0) {
       const controller = new AbortController();
       translateAbortRef.current = controller;
       setIsCancellingTranslate(false);
+      setTranslateProgress({
+        localeLabel: opts.addedLocales.map(localeLabel).join(', '),
+        done: 0,
+        total: 0,
+        localesDone: 0,
+        localeCount: opts.addedLocales.length,
+        phase: 'starting',
+      });
       try {
-        // Sequential, not Promise.all: the engines share one rate-limit budget.
-        for (const [index, code] of opts.addedLocales.entries()) {
-          if (controller.signal.aborted) break;
-          setTranslateProgress({
-            localeLabel: localeLabel(code),
-            done: 0,
-            total: 0,
-            localeIndex: index + 1,
-            localeCount: opts.addedLocales.length,
-            phase: 'starting',
+        // Every language in one run: an AI of the user's own takes several at
+        // once, and our server still gets one request at a time. A language
+        // that fails never costs the user the languages themselves, since the
+        // config commits below either way.
+        const engines = await resolveEngines();
+        if (engines.length > 0 && !controller.signal.aborted) {
+          const run = await translateIntoLocales(boards, opts.addedLocales, {
+            engines,
+            only: 'empty',
+            signal: controller.signal,
+            onProgress: showTranslateProgress,
           });
-          try {
-            const done = await translateIntoLocale(boards, code, {
-              engine: availableEngines()[0],
-              only: 'empty',
-              signal: controller.signal,
-              onProgress: (doneCount, total) =>
-                setTranslateProgress((prev) =>
-                  prev ? { ...prev, done: doneCount, total, phase: 'translating' } : prev
-                ),
-            });
-            boards = done.artboards;
-          } catch (error) {
-            // One language failing must not cost the user the languages
-            // themselves, so the loop keeps going and the config still commits.
-            console.error('Could not machine translate into', code, error);
+          boards = run.artboards;
+          const failed = run.locales.reduce((sum, entry) => sum + entry.failed, 0);
+          const reason = run.locales.find((entry) => entry.error)?.error;
+          if (!controller.signal.aborted && (failed > 0 || reason)) {
+            missed = { strings: failed, rateLimited: run.locales.some((entry) => entry.rateLimited), error: reason };
+          }
+          for (const entry of run.locales) {
+            if (entry.error) console.error('Could not translate into', entry.locale, entry.error);
           }
         }
       } finally {
@@ -3119,13 +3378,28 @@ export function OpenScreenshotGeneratorLayout() {
       toastUnsavedResult('The languages were not saved');
       return;
     }
+    if (missed) {
+      // The engine's own reason says what to do (sign in, wait, type them in),
+      // so the table's button is only offered when there is none.
+      toast({
+        title: missed.rateLimited
+          ? 'Translation stopped early'
+          : missed.strings > 0
+            ? `${missed.strings} ${missed.strings === 1 ? 'string was' : 'strings were'} not translated`
+            : 'Some languages were not translated',
+        description: missed.rateLimited
+          ? 'Wait a minute, then use Translate empty in the translations table.'
+          : missed.error ?? 'Use Translate empty in the translations table to try again.',
+        variant: 'destructive',
+      });
+    }
     // Viewing a language that was just removed would show a projection of a
     // locale the project no longer has.
     const viewing = activeLocaleRef.current;
     if (viewing && !next.locales.some((entry) => entry.code === viewing)) {
       handleSelectLocale(null);
     }
-  }, [handleArtboardsUpdate, handleSelectLocale, toastUnsavedResult]);
+  }, [handleArtboardsUpdate, handleSelectLocale, showTranslateProgress, toast, toastUnsavedResult]);
 
   const handleOpenTranslations = useCallback((filter: 'all' | 'untranslated' = 'all') => {
     setTranslationTableLocale(activeLocaleRef.current);
@@ -6725,9 +6999,9 @@ export function OpenScreenshotGeneratorLayout() {
   );
   beforeWindowCloseRef.current = () => {
     projectTabs.flushSession();
-    // And the agent chat, whose own pagehide flush never runs when a desktop
-    // window closes.
-    return claudeAgent.flush();
+    // And the agent chat and the Website view's site, whose own pagehide
+    // flushes never run when a desktop window closes.
+    return Promise.all([claudeAgent.flush(), flushWebsiteSaves()]);
   };
 
   // The session keeps the active tab's view, read as it is written
@@ -7819,6 +8093,18 @@ export function OpenScreenshotGeneratorLayout() {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Preview mode has its own keyboard handling
       if (isPreviewOpen) return;
+      // Another view (Growth) is in front of the editor: Delete or Cmd+Z there
+      // must not change the canvas nobody can see. Backspace on anything but
+      // a text field still loses its default, as below: WebKit can take it as
+      // "go back a page", which reloads the editor.
+      if (activityRef.current !== 'editor') {
+        const typing =
+          e.target instanceof HTMLInputElement ||
+          e.target instanceof HTMLTextAreaElement ||
+          (e.target instanceof HTMLElement && e.target.isContentEditable);
+        if (e.key === 'Backspace' && !typing) e.preventDefault();
+        return;
+      }
       // The start dialog owns the keyboard while it is up. Read through a ref so
       // neither of these effects gains a dependency and re-subscribes. Without
       // this the editor shortcuts fire underneath the dialog: Cmd+V is
@@ -8005,6 +8291,8 @@ export function OpenScreenshotGeneratorLayout() {
       if (e.code !== 'Space') return;
       // Preview mode has its own keyboard handling
       if (isPreviewOpen) return;
+      // Space presses a button in Growth; it pans only the editor's canvas.
+      if (activityRef.current !== 'editor') return;
       const target = e.target;
       // Skip if we're typing in an input, textarea, etc.
       if (
@@ -8260,6 +8548,59 @@ export function OpenScreenshotGeneratorLayout() {
     return Array.from(languages)[0];
   }, [artboards]);
 
+  /**
+   * The Translate dialog's run through an AI of the user's own, for a project
+   * with no languages, where it writes over the text itself. The model works
+   * out the source language, so our server is not asked to detect it either.
+   * Null when the user has no AI of their own set up, and the caller asks the
+   * app's free translator instead.
+   */
+  const translateInPlaceWithOwnAi = async (
+    texts: string[],
+    targetLanguage: string,
+    sourceLanguage: string
+  ): Promise<(TranslateTextsResult & { aborted: boolean }) | null> => {
+    const engines = (await resolveEngines()).filter(isOwnEngine);
+    if (engines.length === 0) return null;
+    // The progress readout, with its Cancel, takes over from the dialog.
+    setIsTranslateDialogOpen(false);
+    const controller = new AbortController();
+    translateAbortRef.current = controller;
+    setIsCancellingTranslate(false);
+    const targetName = getLanguageName(targetLanguage);
+    setTranslateProgress({
+      localeLabel: targetName,
+      done: 0,
+      total: 0,
+      localesDone: 0,
+      localeCount: 1,
+      phase: 'starting',
+      engineLabel: engineLabel(engines[0]),
+    });
+    try {
+      const result = await translateTextsWith(
+        texts,
+        { model: `${targetName} (${targetLanguage})`, machine: targetLanguage },
+        sourceLanguage !== AUTO_DETECT
+          ? { model: `${getLanguageName(sourceLanguage)} (${sourceLanguage})`, machine: sourceLanguage }
+          : undefined,
+        {
+          engines,
+          signal: controller.signal,
+          onProgress: (done, total, engine) =>
+            setTranslateProgress((prev) =>
+              prev ? { ...prev, done, total, phase: 'translating', engineLabel: engineLabel(engine) } : prev
+            ),
+        }
+      );
+      return { ...result, aborted: controller.signal.aborted };
+    } finally {
+      translateAbortRef.current = null;
+      setTranslateProgress(null);
+      setIsCancellingTranslate(false);
+    }
+  };
+
   const handleTranslateProject = async (
     targetLanguage: string,
     allArtboards: boolean,
@@ -8283,6 +8624,41 @@ export function OpenScreenshotGeneratorLayout() {
         title: "No text found",
         description: "There are no text elements to translate in the selected artboards."
       });
+      return;
+    }
+
+    const textElements = inPlaceTexts(artboardsToUpdate, modifiedIds);
+    const own = await translateInPlaceWithOwnAi(
+      textElements.map((el) => el.content),
+      targetLanguage,
+      sourceLanguage
+    );
+    // Our server below is only for a user with no AI of their own.
+    if (own) {
+      // Built on the project as it is now: the run took a while, and text
+      // edited meanwhile keeps the edit.
+      const { artboards: next, written } = writeInPlace(artboardsRef.current, textElements, own.texts, {
+        artboardIds: modifiedIds,
+        language: targetLanguage,
+        fontFamily: targetFont,
+      });
+      if (written > 0) {
+        if (!handleArtboardsUpdate(next, namedChange('Translate', 'translate', `${written} text layers`))) {
+          toastUnsavedResult('The translation was not saved');
+          return;
+        }
+        const missed = textElements.length - written;
+        toast({
+          title: `Translated ${written} text ${written === 1 ? 'element' : 'elements'}`,
+          description: missed > 0 ? `${missed} did not come back${own.error ? `. ${own.error}` : ''}` : undefined,
+        });
+      } else if (!own.aborted) {
+        toast({
+          title: 'The text was not translated',
+          description: own.error ?? 'Try again in a moment.',
+          variant: 'destructive',
+        });
+      }
       return;
     }
 
@@ -8407,7 +8783,7 @@ export function OpenScreenshotGeneratorLayout() {
   // Artboard whose text the element-scoped dialog is about to translate, so
   // the source picker can seed from that board rather than the whole project.
   const translateElementArtboard = translateElementId
-    ? artboards.find((ab) => ab.elements.some((el) => el.id === translateElementId))
+    ? artboardHoldingElement(artboards, translateElementId)
     : undefined;
 
   const handleTranslateElement = async (
@@ -8416,7 +8792,7 @@ export function OpenScreenshotGeneratorLayout() {
     sourceLanguage: string = AUTO_DETECT,
     targetFont?: string
   ) => {
-    const owner = artboards.find((ab) => ab.elements.some((el) => el.id === elementId));
+    const owner = artboardHoldingElement(artboards, elementId);
     const element = owner?.elements.find((el) => el.id === elementId);
 
     if (!owner || !element || element.type !== 'text' || !element.content?.trim()) {
@@ -8427,37 +8803,56 @@ export function OpenScreenshotGeneratorLayout() {
       return;
     }
 
-    let effectiveSource = sourceLanguage || AUTO_DETECT;
-    if (effectiveSource === AUTO_DETECT) {
-      const detected = await detectLanguage(element.content.slice(0, 1000));
-      if (detected) {
-        effectiveSource = detected.language;
+    let translated: string | null = null;
+    // Our server below is only for a user with no AI of their own.
+    const own = await translateInPlaceWithOwnAi([element.content], targetLanguage, sourceLanguage);
+    if (own) {
+      translated = own.texts[0] ?? null;
+      if (!translated) {
+        if (!own.aborted) {
+          toast({
+            title: 'The text was not translated',
+            description: own.error ?? 'Try again in a moment.',
+            variant: 'destructive',
+          });
+        }
+        return;
       }
     }
 
-    if (effectiveSource !== AUTO_DETECT && effectiveSource === targetLanguage) {
-      toast({
-        title: "Nothing to translate",
-        description: `The text is already in ${getLanguageName(targetLanguage)}.`
-      });
-      return;
-    }
+    if (translated === null) {
+      let effectiveSource = sourceLanguage || AUTO_DETECT;
+      if (effectiveSource === AUTO_DETECT) {
+        const detected = await detectLanguage(element.content.slice(0, 1000));
+        if (detected) {
+          effectiveSource = detected.language;
+        }
+      }
 
-    let translated: string;
-    try {
-      const result = await translateText(element.content, targetLanguage, effectiveSource);
-      translated = result.text;
-    } catch (e: any) {
-      console.error("Failed to translate element", elementId, e);
-      toast({
-        title: e?.status === 429 ? "Rate limit exceeded" : "Translation failed",
-        description: e?.status === 429
-          ? "Please wait a minute before trying again."
-          : "Failed to translate this text element. Please try again later.",
-        variant: "destructive"
-      });
-      return;
+      if (effectiveSource !== AUTO_DETECT && effectiveSource === targetLanguage) {
+        toast({
+          title: "Nothing to translate",
+          description: `The text is already in ${getLanguageName(targetLanguage)}.`
+        });
+        return;
+      }
+
+      try {
+        const result = await translateText(element.content, targetLanguage, effectiveSource);
+        translated = result.text;
+      } catch (e: any) {
+        console.error("Failed to translate element", elementId, e);
+        toast({
+          title: e?.status === 429 ? "Rate limit exceeded" : "Translation failed",
+          description: e?.status === 429
+            ? "Please wait a minute before trying again."
+            : "Failed to translate this text element. Please try again later.",
+          variant: "destructive"
+        });
+        return;
+      }
     }
+    const content = translated;
 
     // The artboard's language stamp describes all of its text. It only stays
     // true if this was the board's one and only text element; otherwise the
@@ -8466,15 +8861,16 @@ export function OpenScreenshotGeneratorLayout() {
       (el) => el.type === 'text' && el.id !== elementId
     );
 
+    // The project as it is now, since the translation took a while.
     const landed = handleArtboardsUpdate(
-      artboards.map((ab) =>
+      artboardsRef.current.map((ab) =>
         ab.id !== owner.id
           ? ab
           : {
               ...ab,
               elements: ab.elements.map((el) =>
                 el.id === elementId
-                  ? { ...el, content: translated, ...(targetFont ? { fontFamily: targetFont } : {}) }
+                  ? { ...el, content, ...(targetFont ? { fontFamily: targetFont } : {}) }
                   : el
               ),
               language: isOnlyTextElement ? targetLanguage : undefined,
@@ -8729,6 +9125,7 @@ export function OpenScreenshotGeneratorLayout() {
       isExporting: exportCanvasArtboards !== null,
       tabRequest,
       agent: agentView,
+      translationAvailable,
     }),
     [
       activeProjectId,
@@ -8753,7 +9150,132 @@ export function OpenScreenshotGeneratorLayout() {
       exportCanvasArtboards,
       tabRequest,
       agentView,
+      translationAvailable,
     ]
+  );
+
+  // ---- Capture (src/lib/capture) ------------------------------------------
+  // Everything Capture puts into the project commits here, on the base
+  // document through handleArtboardsUpdate, so it is one undo step and the
+  // editor stays the only writer. The ref, because a run commits after many
+  // awaits, when this render's handler is stale.
+  const handleCapturePlaceShots = useCallback(
+    (placements: ShotPlacement[], detail: string): { missed: number } | null => {
+      const { artboards: next, missed } = placeShots(artboardsRef.current, placements);
+      if (missed === placements.length) return { missed };
+      const committed = handleArtboardsUpdateRef.current(next, {
+        label: placements.length === 1 ? 'Capture Screenshot' : 'Capture Screenshots',
+        icon: 'image',
+        detail,
+        mergeKey: null,
+      });
+      return committed ? { missed } : null;
+    },
+    []
+  );
+  // A recording goes into the project it was started in, which may not be the
+  // one open when it stops: then into that project's tab in the background,
+  // and nowhere once the tab is closed. Through a ref, because the recording
+  // stops seconds after the click on Stop, when that render is out of date.
+  const placeClipRef = useRef<(projectId: string | null, placement: ClipPlacement, detail: string) => Promise<ClipOutcome>>(
+    async () => ({ placed: false, reason: 'busy' })
+  );
+  placeClipRef.current = async (projectId, placement, detail) => {
+    const change: HistoryChange = { label: 'Capture Recording', icon: 'image', detail, mergeKey: null };
+    if (projectId === activeProjectIdRef.current) {
+      const { artboards: next, missed } = placeClip(artboardsRef.current, placement);
+      if (missed > 0) return { placed: false, reason: 'missed' };
+      return handleArtboardsUpdateRef.current(next, change) ? { placed: true, projectName: null } : { placed: false, reason: 'busy' };
+    }
+    if (!projectId || !projectTabs.has(projectId)) return { placed: false, reason: 'closed' };
+    let missed = false;
+    const landed = await editProjectAnywhere(projectId, change, (boards) => {
+      const placed = placeClip(boards, placement);
+      if (placed.missed > 0) {
+        missed = true;
+        return null;
+      }
+      return { boards: placed.artboards, result: true };
+    });
+    if (landed) return { placed: true, projectName: projectNameOf(projectId) };
+    return { placed: false, reason: missed ? 'missed' : 'busy' };
+  };
+  const handleCapturePlaceClip = useCallback(
+    (projectId: string | null, placement: ClipPlacement, detail: string) => placeClipRef.current(projectId, placement, detail),
+    []
+  );
+  // How Capture reaches a frame's screen is the same in every language, so it
+  // is written on the base element, never through a language's view.
+  const handleSetCaptureScreen = useCallback((boardId: string, elementId: string, screen: CaptureScreen | undefined) => {
+    const base = artboardsRef.current;
+    let boardName = '';
+    let changed = false;
+    const next = base.map((board) => {
+      if (board.id !== boardId) return board;
+      const elements = board.elements.map((element) => {
+        if (element.id !== elementId || element.type !== 'device') return element;
+        changed = true;
+        boardName = board.name;
+        const { captureScreen: _previous, ...rest } = element;
+        return screen ? { ...rest, captureScreen: screen } : rest;
+      });
+      return { ...board, elements };
+    });
+    if (!changed) return;
+    handleArtboardsUpdateRef.current(next, { label: 'Set Capture Screen', icon: 'device', detail: boardName, mergeKey: null });
+  }, []);
+  // The Properties panel's Screenshot from device button. With a device running, the
+  // screenshot goes straight into the frame in the language on the canvas;
+  // a recording frame, or no device running, opens Capture on the frame.
+  const handleCaptureScreenshot = useCallback(
+    async (elementId: string) => {
+      const target = captureTargets(artboardsRef.current).find((candidate) => candidate.elementId === elementId) ?? null;
+      if (!target) return;
+      const frame = { boardId: target.boardId, elementId, locale: activeLocaleRef.current };
+      if (!isTauri() || target.kind === 'recording') {
+        showCapture(frame);
+        return;
+      }
+      try {
+        const projectId = activeProjectIdRef.current;
+        const device = await deviceForQuickCapture(target);
+        if (!device) {
+          showCapture(frame);
+          return;
+        }
+        const shot = await shootDevice(device, null);
+        // The frame ids of a copied project match, so the check is by project.
+        if (activeProjectIdRef.current !== projectId) {
+          toast({
+            title: 'The screenshot did not go into the frame',
+            description: 'Another project was opened meanwhile. The screenshot is in Capture.',
+          });
+          return;
+        }
+        const result = handleCapturePlaceShots([{ ...frame, ref: shot.ref, width: shot.width, height: shot.height }], device.name);
+        if (!result || result.missed > 0) {
+          toast({
+            title: 'The screenshot did not go into the frame',
+            description: result ? 'The frame was deleted or is hidden in this language. The screenshot is in Capture.' : 'The editor was busy. The screenshot is in Capture.',
+          });
+          return;
+        }
+        toast({
+          title: `Screenshot from ${device.name}`,
+          action: (
+            <ToastAction altText="Open Capture" onClick={() => showCapture(frame)}>
+              Open Capture
+            </ToastAction>
+          ),
+        });
+      } catch (error) {
+        toast({
+          title: 'The screenshot was not taken',
+          description: error instanceof Error ? error.message : 'The device did not answer.',
+        });
+      }
+    },
+    [handleCapturePlaceShots, showCapture, toast]
   );
 
   // Not memoized on purpose: nearly every one of these is recreated per render
@@ -8764,6 +9286,7 @@ export function OpenScreenshotGeneratorLayout() {
     onUpdateElementById: handleUpdateElementById,
     onStudioLive: updateStudioLive,
     onTranslateElement: handleTranslateTextElement,
+    onCaptureScreenshot: (elementId) => void handleCaptureScreenshot(elementId),
     onUpdateArtboardDetails: handleUpdateArtboardDetails,
     onResetLocaleField: handleResetLocaleField,
     onToggleLocaleDetach: handleToggleLocaleDetach,
@@ -10083,14 +10606,12 @@ const generateRandomProjectName = (): string => {
   };
 
   /**
-   * The MCP translate path: run the engine over one or more languages against a
-   * single snapshot and hand the boards back UNCOMMITTED, so the caller decides
-   * whether this was the whole tool (translate_locales) or one step of a bigger
-   * one (add_locales drafting the languages it just added).
-   *
-   * Sequential, not Promise.all, because the engines share one rate-limit
-   * budget, and each language is fed the previous one's output so a single
-   * commit at the end carries all of them and one undo takes all of them back.
+   * The MCP translate path: run the engines over one or more languages against
+   * a single snapshot and hand the boards back UNCOMMITTED, so the caller
+   * decides whether this was the whole tool (translate_locales) or one step of
+   * a bigger one (add_locales drafting the languages it just added). Every
+   * language lands in the same document, so one commit carries all of them and
+   * one undo takes all of them back.
    *
    * The progress dialog and the abort ref are the ones the app's own translate
    * buttons use: a run started from outside the app still shows the user what
@@ -10107,81 +10628,58 @@ const generateRandomProjectName = (): string => {
       elementIds?: string[];
     }
   ): Promise<{ artboards: ArtboardState[]; result: McpTranslateRunResult }> => {
-    const engines = availableEngines();
-    // Not an error here. The tool turns "no engine" into the instruction that
-    // actually helps a model: write the strings yourself and send them back.
-    if (engines.length === 0) {
-      return { artboards: boards, result: { engine: null, runs: [], completion: [] } };
-    }
-    const engine = engines[0];
     const controller = new AbortController();
     translateAbortRef.current = controller;
     setIsCancellingTranslate(false);
-    const runs: McpTranslateRun[] = [];
-    let next = boards;
+    setTranslateProgress({
+      localeLabel: locales.map(localeLabel).join(', '),
+      done: 0,
+      total: 0,
+      localesDone: 0,
+      localeCount: locales.length,
+      phase: 'starting',
+    });
     try {
-      for (const [index, locale] of locales.entries()) {
-        if (controller.signal.aborted) break;
-        setTranslateProgress({
-          localeLabel: localeLabel(locale),
-          done: 0,
-          total: 0,
-          localeIndex: index + 1,
-          localeCount: locales.length,
-          phase: 'starting',
-        });
-        try {
-          const result = await translateIntoLocale(next, locale, {
-            engine,
-            only: options.only,
-            includeManual: options.includeManual,
-            guidance: options.guidance,
-            artboardIds: options.artboardIds,
-            elementIds: options.elementIds,
-            signal: controller.signal,
-            onProgress: (done, total) =>
-              setTranslateProgress((prev) =>
-                prev ? { ...prev, done, total, phase: 'translating' } : prev
-              ),
-          });
-          next = result.artboards;
-          runs.push({
-            locale,
-            translated: result.translated,
-            failed: result.failed,
-            skipped: result.skipped,
-            rateLimited: result.rateLimited,
-          });
-        } catch (error) {
-          // translateIntoLocale throws only for a setup problem, e.g. a
-          // language the machine engine does not cover. One of those must not
-          // cost the caller the other languages, or the languages themselves
-          // when this is running inside add_locales, so it is reported per
-          // language and the loop keeps going.
-          console.error('Could not machine translate into', locale, error);
-          runs.push({
-            locale,
-            translated: 0,
-            failed: 0,
-            skipped: 0,
-            rateLimited: false,
-            error: error instanceof Error ? error.message : String(error),
-          });
-        }
+      const engines = await resolveEngines();
+      // Not an error here. The tool turns "no engine" into the instruction that
+      // actually helps a model: write the strings yourself and send them back.
+      if (engines.length === 0) {
+        return { artboards: boards, result: { engine: null, runs: [], completion: [] } };
       }
+      const run = await translateIntoLocales(boards, locales, {
+        engines,
+        only: options.only,
+        includeManual: options.includeManual,
+        guidance: options.guidance,
+        artboardIds: options.artboardIds,
+        elementIds: options.elementIds,
+        signal: controller.signal,
+        onProgress: showTranslateProgress,
+      });
+      const runs: McpTranslateRun[] = run.locales.map((entry) => {
+        if (entry.error) console.error('Could not translate into', entry.locale, entry.error);
+        return {
+          locale: entry.locale,
+          translated: entry.translated,
+          failed: entry.failed,
+          skipped: entry.skipped,
+          rateLimited: entry.rateLimited,
+          ...(entry.error ? { error: entry.error } : {}),
+        };
+      });
+      return {
+        artboards: run.artboards,
+        result: {
+          engine: run.engine,
+          runs,
+          completion: locales.map((locale) => ({ locale, ...localeCompletion(run.artboards, locale) })),
+        },
+      };
     } finally {
       translateAbortRef.current = null;
       setTranslateProgress(null);
       setIsCancellingTranslate(false);
     }
-    return {
-      artboards: next,
-      result: {
-        engine,
-        runs,
-        completion: locales.map((locale) => ({ locale, ...localeCompletion(next, locale) })),
-      },
-    };
   };
 
   // Two frames, which is how long the canvas takes to repaint after a state
@@ -10249,6 +10747,68 @@ const generateRandomProjectName = (): string => {
       handleSelectLocale(previous);
     }
   };
+
+  // The Website view's screenshots: each artboard in one language, at most
+  // `maxWidth` wide, with the Export dialog's capture recipe. The Website view
+  // is in front while this runs, so the editor is `invisible`, and html-to-
+  // image copies every computed style, that one too: a board captured as it
+  // is comes out blank. Each board is made visible for its own capture; it
+  // sits under the view in front, so nothing of it shows.
+  const captureBoardsForWebsite = async (request: WebsiteCaptureRequest): Promise<CapturedBoard[]> => {
+    if (activeProjectIdRef.current !== request.projectId) {
+      throw new Error('Another project is open now. Open the project again to take its screenshots');
+    }
+    return withLocaleOnCanvas(request.locale, async () => {
+      if (typeof document !== 'undefined' && document.fonts?.ready) {
+        try {
+          await document.fonts.ready;
+        } catch {
+          // A browser that cannot report font loading captures what it has.
+        }
+      }
+      const out: CapturedBoard[] = [];
+      for (const id of request.boardIds) {
+        const board = artboards.find((ab) => ab.id === id);
+        const node = document.querySelector(`[data-artboard-dom-id="${id}"]`) as HTMLElement | null;
+        if (!board || !node) continue;
+        const scale = Math.min(1, request.maxWidth / Math.max(1, board.size.width));
+        const visibility = node.style.visibility;
+        node.style.visibility = 'visible';
+        try {
+          const { backgroundColor, backgroundImage } = artboardBackground(board);
+          const dataUrl = await captureNodeToPng(node, {
+            width: board.size.width,
+            height: board.size.height,
+            backgroundColor,
+            pixelRatio: scale,
+            // A cache-busted blob: URL is an unregistered one (see captureArtboardDataUrl).
+            cacheBust: false,
+            filter: (n) => {
+              const el = n as HTMLElement;
+              return !(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));
+            },
+            style: {
+              transform: 'scale(1)',
+              transformOrigin: 'top left',
+              width: `${board.size.width}px`,
+              height: `${board.size.height}px`,
+              backgroundImage,
+            },
+          });
+          out.push({ boardId: id, dataUrl, width: Math.round(board.size.width * scale), height: Math.round(board.size.height * scale) });
+        } finally {
+          node.style.visibility = visibility;
+        }
+      }
+      return out;
+    });
+  };
+  const captureBoardsForWebsiteRef = useRef(captureBoardsForWebsite);
+  captureBoardsForWebsiteRef.current = captureBoardsForWebsite;
+  // Stable, so the Website view does not start its screenshot work again on every render.
+  const captureForWebsite = useCallback((request: WebsiteCaptureRequest) => captureBoardsForWebsiteRef.current(request), []);
+  const websiteBackToEditor = useCallback(() => setActivity('editor'), []);
+  const websiteProject = useMemo(() => ({ id: activeProjectId, name: currentProjectName, artboards }), [activeProjectId, currentProjectName, artboards]);
 
   // Render one artboard for the MCP export tools. Same capture recipe as the
   // Export dialog (unscale the node, drop editor chrome, restore afterwards),
@@ -11326,6 +11886,40 @@ const generateRandomProjectName = (): string => {
       return applied.result;
     },
 
+    // capture_screenshot calls this once the device has answered, seconds after
+    // its call began, on the api of the render it began in. So it reads the
+    // newest document and commits through the newest handleArtboardsUpdate:
+    // edits made while the app opened and settled stay. Another project
+    // opened meanwhile stops it before anything is written.
+    placeCapturedScreenshot: (input) => {
+      if (activeProjectIdRef.current !== activeProjectId) {
+        throw new Error('Another project was opened while the screenshot was taken, so it went into no frame.');
+      }
+      const newest = artboardsRef.current;
+      const board = input.artboardId
+        ? newest.find((candidate) => candidate.id === input.artboardId)
+        : newest.find((candidate) => candidate.elements.some((element) => element.id === input.elementId));
+      if (!board) throw new Error(input.artboardId ? `No artboard "${input.artboardId}" in this project.` : `No element "${input.elementId}" in this project.`);
+      const element = board.elements.find((candidate) => candidate.id === input.elementId);
+      if (!element) throw new Error(`No element "${input.elementId}" on artboard "${board.name}".`);
+      if (element.type !== 'device') {
+        throw new Error(`"${input.elementId}" is ${element.type === 'video-device' ? 'a video-device, which plays a recording' : `a ${element.type}`}. A screenshot goes into a device element.`);
+      }
+      const locale = !input.locale || input.locale === getBaseLocale(newest) ? null : input.locale;
+      const { artboards: next, missed } = placeShots(newest, [
+        { boardId: board.id, elementId: element.id, locale, ref: input.ref, width: input.width, height: input.height },
+      ]);
+      if (missed > 0) {
+        throw new Error(
+          locale && getProjectLocales(newest).some((entry) => entry.code === locale)
+            ? `"${input.elementId}" is hidden in ${locale}, so it cannot show a screenshot there.`
+            : `This project has no language "${locale}".`
+        );
+      }
+      commitForTool(next, namedChange('Capture Screenshot', 'image', input.detail), handleArtboardsUpdateRef.current);
+      return { artboardId: board.id, elementId: element.id, locale };
+    },
+
     // The Claude Code agent's code folders. Rust reads the picture and checks
     // the path; the store knows whether the process can read a folder now, and
     // whether the chat's agent ever could.
@@ -11375,8 +11969,55 @@ const generateRandomProjectName = (): string => {
   return (
     <>
       {templateSelectorDialog}
+      {/* The activity bar, then the editor, then any other view drawn over
+          it. The editor stays mounted, inert while another view is in
+          front. Phones get no bar: the editor is all a phone can use. */}
+      <div className="flex min-h-svh w-full">
+      <ActivityBar
+        active={activity}
+        onSelect={selectActivity}
+        badges={{ growth: growthMonitor.unseen + rivalWatch.unseen }}
+        actions={
+          HAS_DISCOVER
+            ? [
+                {
+                  id: 'discover',
+                  label: 'Discover',
+                  title: 'Discover, designs the community shared',
+                  icon: <CompassIcon className="h-5 w-5" />,
+                  onClick: () => openDiscover('feed'),
+                },
+              ]
+            : []
+        }
+        bottomActions={[
+          {
+            id: 'account',
+            label: accountSession ? `Account, ${accountSession.account.name}` : 'Account',
+            icon: accountSession ? (
+              <Avatar className="h-6 w-6">
+                {accountSession.account.avatarUrl && <AvatarImage src={accountSession.account.avatarUrl} alt="" />}
+                <AvatarFallback className="text-[10px]">{accountSession.account.name.slice(0, 1).toUpperCase()}</AvatarFallback>
+              </Avatar>
+            ) : (
+              <UserIcon className="h-5 w-5" />
+            ),
+            onClick: () => openAccountDialog(),
+          },
+          { id: 'settings', label: 'Settings', icon: <SettingsIcon className="h-5 w-5" />, onClick: () => setIsSettingsOpen(true) },
+          { id: 'about', label: 'About', icon: <InfoIcon className="h-5 w-5" />, onClick: () => setIsAboutOpen(true) },
+        ]}
+        className="fixed inset-y-0 left-0 hidden md:flex"
+      />
+      {/* Hidden rather than taken out of the layout: the canvas keeps its size,
+          and nothing of the editor (its toolbar sits above the view's layer)
+          shows through another view. A flex column, so the sidebar wrapper
+          inside shrinks to the window's height as it did as the page's own
+          flex item; as a block it grew to its content, and the canvas lost
+          its scroll area to the page. */}
+      <div ref={editorViewRef} className={cn('flex min-w-0 flex-1 flex-col md:pl-12', activity !== 'editor' && 'invisible')}>
       <SidebarProvider defaultOpen>
-        <Sidebar side="left" collapsible="icon" variant="sidebar" className="border-r">
+        <Sidebar side="left" collapsible="icon" variant="sidebar" className="border-r md:left-12">
           <SidebarHeader className="border-b">
             <div className="flex items-center gap-3 px-2 py-2.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
               <Logo withBackground className="h-10 w-10 shrink-0 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8" />
@@ -11392,8 +12033,10 @@ const generateRandomProjectName = (): string => {
                 Account and Settings: it is a place you go, like the canvas and
                 the palette, rather than a preference you set. The rail keeps
                 only the compass when the sidebar is collapsed to icons. */}
+            {/* On the activity bar from tablet width up; here for phones, which
+                have no bar. The same goes for Account, Settings and About. */}
             {HAS_DISCOVER && (
-            <SidebarGroup className="px-2 pb-0 pt-2 group-data-[collapsible=icon]:px-1">
+            <SidebarGroup className="px-2 pb-0 pt-2 group-data-[collapsible=icon]:px-1 md:hidden">
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton
@@ -11422,7 +12065,7 @@ const generateRandomProjectName = (): string => {
               <SidebarMenu>
                 {/* Desktop: there only while an update is ready, out, or going in. */}
                 <UpdateSidebarItem />
-                <SidebarMenuItem>
+                <SidebarMenuItem className="md:hidden">
                   <SidebarMenuButton
                     tooltip={accountSession ? `Account, ${accountSession.account.name}` : 'Account'}
                     className="w-full"
@@ -11445,7 +12088,7 @@ const generateRandomProjectName = (): string => {
                     </span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-                <SidebarMenuItem>
+                <SidebarMenuItem className="md:hidden">
                   {/* Theme, and the way back into the tips once the startup
                       checkbox is unticked. */}
                   <SidebarMenuButton tooltip="Settings" className="w-full" onClick={() => setIsSettingsOpen(true)}>
@@ -11453,7 +12096,7 @@ const generateRandomProjectName = (): string => {
                     <span className="group-data-[collapsible=icon]:hidden">Settings</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-                <SidebarMenuItem>
+                <SidebarMenuItem className="md:hidden">
                   <SidebarMenuButton tooltip="About" className="w-full" onClick={() => setIsAboutOpen(true)}>
                     <InfoIcon />
                     <span className="group-data-[collapsible=icon]:hidden">About</span>
@@ -11515,7 +12158,7 @@ const generateRandomProjectName = (): string => {
                   }
                 : undefined
             }
-            shortcutsBlocked={isTemplateSelectorOpen || isPreviewOpen}
+            shortcutsBlocked={isTemplateSelectorOpen || isPreviewOpen || activity !== 'editor'}
             desktopShortcuts={isDesktopApp}
           />
           <LoadStatusBar
@@ -11600,7 +12243,8 @@ const generateRandomProjectName = (): string => {
               setIsTranslateSingleArtboard(false);
               setIsTranslateDialogOpen(true);
             }}
-            isTranslationEnabled={isTranslationEnabled}
+            // The user's own AI translates in place as well as our server does.
+            isTranslationEnabled={translationAvailable}
             // The BASE document, never viewArtboards: the switcher counts
             // overrides, and a projection has already folded them away.
             artboards={artboards}
@@ -12300,14 +12944,24 @@ const generateRandomProjectName = (): string => {
             activeLocale={activeLocale}
             onCapture={handlePublishCapture}
             onCaptureVideos={handlePublishCaptureVideos}
+            projectId={activeProjectId}
+            projectName={currentProjectName}
+            onOpenGrowth={() => {
+              setIsPublishDialogOpen(false);
+              showGrowth('overview');
+            }}
           />
 
           <LanguageManagerDialog
             open={isLanguageManagerOpen}
-            onOpenChange={setIsLanguageManagerOpen}
+            onOpenChange={(open) => {
+              setIsLanguageManagerOpen(open);
+              if (!open) setLanguagePreselect(undefined);
+            }}
             artboards={artboards}
             translationAvailable={translationAvailable}
             onApply={(next, opts) => void handleApplyLanguages(next, opts)}
+            preselect={languagePreselect}
           />
 
           <TranslationTableDialog
@@ -12467,6 +13121,9 @@ const generateRandomProjectName = (): string => {
               setIsTranslateDialogOpen(false);
               handleOpenTranslations('all');
             }}
+            ownAiLabel={
+              translationEngine && isOwnEngine(translationEngine.engine) ? translationEngine.label : undefined
+            }
             onTranslate={handleTranslateRequest}
           />
 
@@ -12515,6 +13172,114 @@ const generateRandomProjectName = (): string => {
           </Dialog>
         </SidebarInset>
       </SidebarProvider>
+      </div>
+      {growthMounted && (
+        <div className={cn('fixed inset-0 z-30 md:left-12', activity !== 'growth' && 'hidden')}>
+          <GrowthWorkspace
+            active={activity === 'growth'}
+            request={growthRequest}
+            // The language on screen, as the canvas and the store preview show the project.
+            openProject={() => ({
+              name: projectNameRef.current,
+              artboards: projectArtboards(artboardsRef.current, activeLocaleRef.current),
+              language: activeLocaleRef.current,
+            })}
+            onPublish={() => {
+              setActivity('editor');
+              setIsPublishDialogOpen(true);
+            }}
+            onLocalize={(storeLocales) => {
+              // App Store Connect's codes, or Google Play's (ja-JP, iw-IL) for an app there.
+              const codes = storeLocales
+                .map((storeLocale) => localeForAppleLocale(storeLocale) ?? localeForPlayLanguage(storeLocale))
+                .filter((code): code is string => !!code);
+              if (artboards.length === 0) {
+                toast({ title: 'Open a project first', description: 'The screenshots to translate live in a project.' });
+                return;
+              }
+              setActivity('editor');
+              setLanguagePreselect(codes);
+              setIsLanguageManagerOpen(true);
+            }}
+            // A tab window keeps out of the coding agents (isSecondaryWindow),
+            // though Growth's own AI buttons work in every editor window.
+            agentUnavailable={isSecondaryWindow ? 'The agent only works in the main window' : undefined}
+            onAskAgent={
+              claudeAgentState.available && !isSecondaryWindow
+                ? (question) => {
+                    setActivity('editor');
+                    const { session, chat } = claudeAgentState;
+                    if (session.status === 'working' || session.status === 'starting') {
+                      claudeAgent.setPanelEnabled(true);
+                      revealDockTab('agent');
+                      toast({ title: 'The agent is busy', description: 'Wait for it to finish, or stop it in the Agent tab, then ask again.' });
+                      return;
+                    }
+                    track('growth_ask_agent');
+                    void (async () => {
+                      // A question about the numbers starts a chat of its own
+                      // rather than landing in the middle of a design chat.
+                      if (session.items.length > 0) await claudeAgent.newChat(undefined, { agent: chat.agent });
+                      claudeAgent.setPanelEnabled(true);
+                      revealDockTab('agent');
+                      if (isMobileViewport) setIsMobileDockOpen(true);
+                      await claudeAgent.send({
+                        // The store tools read the app Growth shows, a Google Play app too.
+                        text: `${question}\n\nRead the numbers of the app open in Growth with the store tools first (get_store_overview, then the others as needed).`,
+                      });
+                    })().catch((error) =>
+                      toast({
+                        title: 'The agent could not take the question',
+                        description: error instanceof Error ? error.message : 'Try again in the Agent tab.',
+                      })
+                    );
+                  }
+                : undefined
+            }
+            onOpenProject={(projectId) => {
+              void db.projects.get(projectId).then((project) => {
+                if (!project) {
+                  toast({ title: 'That project is no longer on this device', description: 'It may have been deleted since the upload.' });
+                  return;
+                }
+                // The way a tab click opens it, live session question included.
+                setActivity('editor');
+                handleActivateTab(projectId);
+              });
+            }}
+          />
+        </div>
+      )}
+      {captureMounted && (
+        <div className={cn('fixed inset-0 z-30 md:left-12', activity !== 'capture' && 'hidden')}>
+          <CaptureWorkspace
+            active={activity === 'capture'}
+            artboards={artboards}
+            canvasLocale={activeLocale}
+            request={captureRequest}
+            getProjectId={() => activeProjectIdRef.current}
+            onPlaceShots={handleCapturePlaceShots}
+            onPlaceClip={handleCapturePlaceClip}
+            onSetScreen={handleSetCaptureScreen}
+            onOpenLanguages={() => {
+              setActivity('editor');
+              setIsLanguageManagerOpen(true);
+            }}
+            onBackToEditor={() => setActivity('editor')}
+          />
+        </div>
+      )}
+      {websiteMounted && (
+        <div className={cn('fixed inset-0 z-30 md:left-12', activity !== 'website' && 'hidden')}>
+          <WebsiteWorkspace
+            active={activity === 'website'}
+            project={websiteProject}
+            captureBoards={captureForWebsite}
+            onBackToEditor={websiteBackToEditor}
+          />
+        </div>
+      )}
+      </div>
     </>
   );
 }

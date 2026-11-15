@@ -87,12 +87,12 @@ pub enum Reason {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum Channel {
+enum ReleaseChannel {
     Stable,
     Beta,
 }
 
-impl Channel {
+impl ReleaseChannel {
     fn parse(value: &str) -> Result<Self, String> {
         match value {
             "stable" => Ok(Self::Stable),
@@ -325,7 +325,7 @@ fn endpoint_template<R: Runtime>(app: &AppHandle<R>) -> Option<String> {
 
 /// The configured endpoint with this check's channel and rollout bucket added.
 /// The `{{target}}`-style placeholders are left for the plugin to fill in.
-fn endpoint_url(template: &str, channel: Channel, bucket: u8) -> Option<Url> {
+fn endpoint_url(template: &str, channel: ReleaseChannel, bucket: u8) -> Option<Url> {
     let mut url = Url::parse(template).ok()?;
     url.query_pairs_mut()
         .append_pair("channel", channel.as_str())
@@ -439,12 +439,15 @@ fn publish<R: Runtime>(app: &AppHandle<R>) -> Snapshot {
     snapshot
 }
 
-/// The Claude Code and Codex processes are children of this one. A normal quit
-/// stops them from the run loop's Exit event, which an update skips: on Windows
-/// the plugin ends the process itself, and elsewhere the app restarts.
+/// The Claude Code and Codex processes, and Capture's screen recordings, are
+/// children of this one. A normal quit stops them from the run loop's Exit
+/// event, which an update skips: on Windows the plugin ends the process itself,
+/// and elsewhere the app restarts. Capture also puts back the status bars it
+/// tidied.
 fn stop_agents<R: Runtime>(app: &AppHandle<R>) {
     crate::claude_code::kill_all(app);
     crate::codex::kill_all(app);
+    crate::device_capture::stop_all(app);
 }
 
 #[tauri::command]
@@ -461,7 +464,7 @@ pub async fn abs_update_check<R: Runtime>(
     channel: String,
 ) -> Result<Snapshot, String> {
     require_main(&window)?;
-    let channel = Channel::parse(&channel)?;
+    let channel = ReleaseChannel::parse(&channel)?;
     let state = app.state::<UpdateState>();
     if state.mode == Mode::Off {
         return Ok(state.snapshot());
@@ -477,7 +480,7 @@ pub async fn abs_update_check<R: Runtime>(
 
 async fn check<R: Runtime>(
     app: &AppHandle<R>,
-    channel: Channel,
+    channel: ReleaseChannel,
     bucket: u8,
 ) -> Result<Option<Update>, String> {
     let endpoint = endpoint_template(app)
@@ -769,7 +772,7 @@ mod tests {
 
     #[test]
     fn the_endpoint_keeps_its_placeholders_and_gains_channel_and_bucket() {
-        let url = endpoint_url(TEMPLATE, Channel::Beta, 7).unwrap();
+        let url = endpoint_url(TEMPLATE, ReleaseChannel::Beta, 7).unwrap();
         let text = url.to_string();
         // The url crate encodes the braces in the path; the plugin replaces
         // both spellings.
@@ -780,14 +783,14 @@ mod tests {
 
     #[test]
     fn an_endpoint_that_does_not_parse_is_no_endpoint() {
-        assert!(endpoint_url("not a url", Channel::Stable, 1).is_none());
+        assert!(endpoint_url("not a url", ReleaseChannel::Stable, 1).is_none());
     }
 
     #[test]
     fn only_the_two_channels_are_accepted() {
-        assert_eq!(Channel::parse("stable"), Ok(Channel::Stable));
-        assert_eq!(Channel::parse("beta"), Ok(Channel::Beta));
-        assert!(Channel::parse("nightly").is_err());
+        assert_eq!(ReleaseChannel::parse("stable"), Ok(ReleaseChannel::Stable));
+        assert_eq!(ReleaseChannel::parse("beta"), Ok(ReleaseChannel::Beta));
+        assert!(ReleaseChannel::parse("nightly").is_err());
     }
 
     #[test]

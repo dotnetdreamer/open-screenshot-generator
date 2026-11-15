@@ -38,6 +38,7 @@ const SLOW_TOOLS = new Set([
   'update_artboard',
   'translate_locales',
   'add_locales',
+  'capture_screenshot',
 ]);
 
 const HANDLER_TIMEOUT_MS = 30_000;

@@ -51,12 +51,12 @@ export interface LanguageSwitcherProps {
   /** Open the translate dialog for the whole project. */
   onTranslate?: () => void;
   /**
-   * False when the translate dialog has no engine to call. Separate from
-   * `translationAvailable`, which gates the bulk refresh: the two answer to
-   * different configuration and collapsing them would disable the wrong item.
+   * False when the translate dialog has nothing to translate with. Kept apart
+   * from `translationAvailable`, which gates the bulk refresh, so a host can
+   * offer one without the other.
    */
   translateEnabled?: boolean;
-  /** False when no machine translation engine is configured. */
+  /** False when nothing is set up to translate with, neither an AI nor the app's free translator. */
   translationAvailable: boolean;
   className?: string;
 }
@@ -79,11 +79,7 @@ function TranslateItem({
     <DropdownMenuItem
       onClick={onTranslate}
       disabled={!enabled}
-      title={
-        enabled
-          ? 'Translate the text on these artboards'
-          : 'Translation is disabled because API URLs are not configured'
-      }
+      title={enabled ? 'Translate the text on these artboards' : 'Add an AI in the AI panel to translate'}
     >
       {/* The globe is the language set. Translating is a different verb, so it
           keeps the A-and-character glyph it carried as its own button. */}

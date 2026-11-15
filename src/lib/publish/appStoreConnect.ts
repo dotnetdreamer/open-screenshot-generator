@@ -87,30 +87,73 @@ const IN_REVIEW_STATES = new Set(['WAITING_FOR_REVIEW', 'IN_REVIEW', 'PENDING_AP
 
 // --- transport --------------------------------------------------------------
 
+/**
+ * How far this computer's clock runs ahead of Apple's, in milliseconds (behind
+ * when negative), from the Date header on Apple's answers.
+ *
+ * App Store Connect refuses a token dated more than about two minutes ahead of
+ * its own clock, and one that expires more than 20 minutes after it (measured
+ * in November 2026). A PC whose clock has drifted would then get "check your
+ * key" for a key that is fine, so tokens are dated by Apple's clock once one
+ * answer has shown it.
+ *
+ * It only moves when an answer puts it ten seconds or more from where it is:
+ * each answer measures it a little differently (network time, whole seconds in
+ * the header), every change mints a new token, and a few seconds either way
+ * are well inside what Apple accepts.
+ */
+let appleClockLead = 0;
+
+/** Learn Apple's clock from an App Store Connect response. Every one carries a Date header. */
+export function noteAppleClock(response: Pick<Response, 'headers'>, receivedAt = Date.now()): void {
+  const header = response.headers?.get?.('date');
+  const server = header ? Date.parse(header) : NaN;
+  if (Number.isNaN(server)) return;
+  // The header has whole seconds, so it is half a second early on average.
+  const measured = receivedAt - (server + 500);
+  if (Math.abs(measured - appleClockLead) >= 10_000) appleClockLead = measured;
+}
+
+/** Apple's time as last seen, in milliseconds. */
+export function appleNow(): number {
+  return Date.now() - appleClockLead;
+}
+
 interface TokenCacheEntry {
   token: string;
   expiresAt: number;
+  /** The clock lead the token was dated with. */
+  lead: number;
 }
 const tokenCache = new Map<string, TokenCacheEntry>();
 
-async function bearerToken(credentials: AppStoreCredentials): Promise<string> {
+/**
+ * A cached bearer token for the key. Exported for the growth feature
+ * (src/lib/growth/asc.ts), which reads with the same key and should not mint a
+ * second token for it.
+ */
+export async function bearerToken(credentials: AppStoreCredentials): Promise<string> {
   const cacheKey = `${credentials.issuerId}:${credentials.keyId}`;
   const cached = tokenCache.get(cacheKey);
-  // Re-mint a minute early so a slow upload never runs past expiry mid-flight.
-  if (cached && cached.expiresAt - 60_000 > Date.now()) return cached.token;
+  // Re-mint a minute early so a slow upload never runs past expiry mid-flight,
+  // and as soon as Apple's clock turns out to differ from the one the token
+  // was dated with.
+  if (cached && cached.expiresAt - 60_000 > Date.now() && cached.lead === appleClockLead) return cached.token;
 
   if (!credentials.issuerId.trim() || !credentials.keyId.trim() || !credentials.privateKey.trim()) {
     throw new StoreAuthError('Add your issuer id, key id and .p8 private key first.');
   }
 
   const lifetimeSeconds = 900;
+  const lead = appleClockLead;
   const token = await createAppStoreConnectJwt({
     issuerId: credentials.issuerId.trim(),
     keyId: credentials.keyId.trim(),
     privateKeyPem: credentials.privateKey,
     lifetimeSeconds,
+    now: Date.now() - lead,
   });
-  tokenCache.set(cacheKey, { token, expiresAt: Date.now() + lifetimeSeconds * 1000 });
+  tokenCache.set(cacheKey, { token, expiresAt: Date.now() + lifetimeSeconds * 1000, lead });
   return token;
 }
 
@@ -131,7 +174,7 @@ interface JsonApiCollection<A> {
 }
 
 /** Apple explains failures well, so the detail is surfaced verbatim. */
-function describeApiError(status: number, body: string): string {
+export function describeApiError(status: number, body: string): string {
   try {
     const parsed = JSON.parse(body) as {
       errors?: Array<{ title?: string; detail?: string; code?: string }>;
@@ -154,15 +197,28 @@ async function apiRequest<T>(
   init: { method?: string; body?: unknown } = {}
 ): Promise<T> {
   const doFetch = await bridgeFetch();
-  const token = await bearerToken(credentials);
-  const response = await doFetch(path.startsWith('http') ? path : `${API_BASE}${path}`, {
-    method: init.method ?? 'GET',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      ...(init.body ? { 'Content-Type': 'application/json' } : {}),
-    },
-    body: init.body ? JSON.stringify(init.body) : undefined,
-  });
+  const attempt = async () => {
+    const answer = await doFetch(path.startsWith('http') ? path : `${API_BASE}${path}`, {
+      method: init.method ?? 'GET',
+      headers: {
+        Authorization: `Bearer ${await bearerToken(credentials)}`,
+        ...(init.body ? { 'Content-Type': 'application/json' } : {}),
+      },
+      body: init.body ? JSON.stringify(init.body) : undefined,
+    });
+    noteAppleClock(answer);
+    return answer;
+  };
+  let response = await attempt();
+  if (response.status === 401) {
+    // Apple refused the token, so nothing was done and asking again is safe.
+    // The new token is dated by the clock this answer just showed, and Apple
+    // also refuses a good token now and then.
+    await response.body?.cancel().catch(() => undefined);
+    forgetAppStoreToken(credentials);
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    response = await attempt();
+  }
 
   const text = await response.text();
   if (response.status === 401 || response.status === 403) {

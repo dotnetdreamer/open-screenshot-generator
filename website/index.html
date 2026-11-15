@@ -137,6 +137,7 @@
               "Live collaboration and saved project versions",
               "Local saving and optional cloud, Google Drive, or GitHub storage",
               "Direct App Store Connect and Google Play uploads on desktop",
+              "App Store and Google Play ratings and reviews on desktop",
               "Free editor with no watermark or export limit"
             ],
             "sameAs": [
@@ -192,7 +193,7 @@
                 "name": "What does the desktop app add?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "The same editor, plus direct uploads to App Store Connect and Google Play, Claude Code, local AI providers, and built in coding agent tools. Desktop apps are available for macOS, Windows, and Linux"
+                  "text": "The same editor, plus direct uploads to App Store Connect and Google Play, a place to read and answer your app's reviews, Claude Code, local AI providers, and built in coding agent tools. Desktop apps are available for macOS, Windows, and Linux"
                 }
               }
             ]
@@ -253,7 +254,7 @@
         </a>
         <nav class="site-nav" aria-label="Main navigation">
           <a href="#features">The editor</a><a href="#agent-tools">Your agent</a
-          ><a href="#localization">Languages</a
+          ><a href="#localization">Languages</a><a href="#reviews">Reviews</a
           ><a href="#templates">Templates</a><a href="#how">How it works</a>
         </nav>
         <div class="header-actions">
@@ -305,8 +306,9 @@
         hidden
       >
         <a href="#features">The editor</a><a href="#agent-tools">Your agent</a
-        ><a href="#localization">Languages</a><a href="#templates">Templates</a
-        ><a href="#how">How it works</a><a href="#faq">Questions</a>
+        ><a href="#localization">Languages</a><a href="#reviews">Reviews</a
+        ><a href="#templates">Templates</a><a href="#how">How it works</a
+        ><a href="#faq">Questions</a>
       </nav>
     </header>
 
@@ -536,8 +538,7 @@
               <div class="agent-project-brand">
                 <img src="assets/logo.svg" alt="" width="37" height="37" />
                 <div>
-                  <strong>Open Screenshot<br />Generator</strong
-                  ><span>The same editable project</span>
+                  <strong>Open Screenshot<br />Generator</strong>
                 </div>
               </div>
               <figure class="agent-project-canvas">
@@ -557,11 +558,6 @@
                 <span>Choose a template</span><span>Edit a layer</span
                 ><span>Add languages</span>
               </div>
-              <p class="agent-project-editable">
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="m5 12 4 4L19 6" /></svg
-                >Every layer stays yours to edit
-              </p>
             </div>
             <div class="agent-map-column">
               <p class="agent-map-label">
@@ -1038,6 +1034,57 @@
       </section>
 
       <section
+        class="locale-section"
+        id="reviews"
+        aria-labelledby="reviews-title"
+      >
+        <div class="wrap locale-layout section-space">
+          <div class="feature-copy">
+            <p class="eyebrow">06 / After launch</p>
+            <h2 id="reviews-title">
+              See what people say<br /><span>after you ship</span>
+            </h2>
+            <p>
+              Growth puts your App Store and Google Play reviews in one place,
+              so you can answer each review with help from AI. You can also
+              watch your star rating in every country and see what people like
+              and what they don't
+            </p>
+            <ul class="check-list">
+              <li>One list for both stores, with unanswered reviews first</li>
+              <li>Replies drafted by AI, in the reviewer's language</li>
+              <li>Your star rating in every country, day by day</li>
+              <li>Your competitors' reviews too</li>
+            </ul>
+            <a class="text-link" href="/app-ratings-and-reviews"
+              >Explore ratings and reviews <span aria-hidden="true">↗</span></a
+            >
+            <p class="feature-note">
+              In the free desktop app for macOS, Windows, and Linux
+            </p>
+          </div>
+          <figure class="video-editor">
+            <img
+              src="assets/img/reviews-reply-844.webp"
+              srcset="
+                assets/img/reviews-reply-844.webp   844w,
+                assets/img/reviews-reply-1688.webp 1688w
+              "
+              sizes="(max-width: 800px) 100vw, 600px"
+              alt="The Reviews screen with a one star review about a crash and a reply drafted by AI"
+              width="844"
+              height="759"
+              loading="lazy"
+            />
+            <figcaption>
+              <span class="status-dot" aria-hidden="true"></span>Example app
+              and reviews, with a reply drafted by AI
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section
         class="templates-section wrap section-space"
         id="templates"
         aria-labelledby="templates-title"
@@ -1336,9 +1383,9 @@
               <summary>What does the desktop app add?</summary>
               <p>
                 The same editor, plus direct uploads to App Store Connect and
-                Google Play, Claude Code, local AI providers, and built in
-                coding agent tools. Desktop apps are available for macOS,
-                Windows, and Linux
+                Google Play, a place to read and answer your app's reviews,
+                Claude Code, local AI providers, and built in coding agent
+                tools. Desktop apps are available for macOS, Windows, and Linux
               </p>
             </details>
           </div>
@@ -1380,6 +1427,7 @@
             <a href="https://editor.openscrgen.app/">Open the editor</a
             ><a href="/app-store-screenshot-templates">Templates</a
             ><a href="/app-preview-video-maker">Preview videos</a
+            ><a href="/app-ratings-and-reviews">Ratings and reviews</a
             ><a
               href="https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest"
               >Desktop app</a

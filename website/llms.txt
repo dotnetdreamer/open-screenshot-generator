@@ -15,17 +15,19 @@ Key facts
 - An optional AI agent can choose a template, place screenshots and draft text in an editable project. Use your own API key, an existing assistant account or the desktop app's built in providers. The desktop app also supports local Ollama and LM Studio, and Claude Code on the user's existing Claude plan. Assistant account mode uses a built in window on desktop or a companion extension and manual copy and paste in the browser. Content sent to an AI provider follows that provider's terms
 - Live collaboration lets people edit the same project through an invite link and see the other participants. Collaboration creates a cloud copy and requires sign in. Saved project versions can be restored or opened as a separate project
 - The desktop app uploads screenshots directly to App Store Connect and Google Play using the user's store credentials. It can also upload App Store preview videos. Google Play uses a YouTube link for video rather than a video upload
+- The desktop app also has Growth. Its ratings and reviews screens put App Store and Google Play reviews in one list with reply drafts from the user's AI, keep a daily record of the star rating in every country, sort reviews into what people like, dislike and ask for, read the public reviews of competitor apps, and can post new reviews to Slack. Growth uses the same store keys as the screenshot upload and keeps the data on the user's computer
 - Desktop apps are available for Windows, macOS and Linux
 - The source code is public at https://github.com/dotnetdreamer/open-screenshot-generator
 
 ## Pages
 
-- [Home](https://openscrgen.app/): current editor and agent workflow, a 32 second product film, agent connections, exported examples, features, templates and FAQ
+- [Home](https://openscrgen.app/): current editor and agent workflow, a 32 second product film, agent connections, exported examples, features, ratings and reviews, templates and FAQ
 - [App Store screenshot generator](https://openscrgen.app/app-store-screenshot-generator): the free editor for Apple's store, with the sizes it exports
 - [Play Store screenshot generator](https://openscrgen.app/play-store-screenshot-generator): Google Play screenshots and feature graphics
 - [App Store screenshot sizes](https://openscrgen.app/app-store-screenshot-sizes): App Store screenshot dimensions and device requirements
 - [Google Play screenshot sizes](https://openscrgen.app/google-play-screenshot-sizes): Google Play screenshot dimensions, feature graphics and icon requirements
 - [App preview video maker](https://openscrgen.app/app-preview-video-maker): MP4 export for App Store previews and styled promotional videos, plus Google Play video guidance
+- [App ratings and reviews](https://openscrgen.app/app-ratings-and-reviews): reviews from both stores in one list, AI reply drafts, the star rating in every country, review summaries and competitor reviews, in the desktop app
 - [App Store screenshot templates](https://openscrgen.app/app-store-screenshot-templates): 101 free templates for iPhone and Android screenshot sets, Apple Watch, Mac, app preview videos and Google Play feature graphics. Each opens directly in the editor
 - [iPhone mockup generator](https://openscrgen.app/iphone-mockup-generator): free iPhone frames and 3D poses, exported at App Store sizes
 - [Android mockup generator](https://openscrgen.app/android-mockup-generator): Android phone and tablet frames, exported at Google Play sizes

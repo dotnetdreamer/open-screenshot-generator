@@ -61,6 +61,40 @@ body {
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+
+    /* Growth charts. The series blue and the highlight orange are slots 1 and
+       2 of the validated categorical palette (dataviz reference), stepped per
+       theme; good and bad are its success text and critical status. */
+    --growth-series: 213 68% 50%;
+    --growth-compare: 45 3% 52%;
+    --growth-highlight: 17 82% 56%;
+    --growth-good: 120 100% 19%;
+    --growth-bad: 0 61% 52%;
+    /* The Ask AI assistant: its avatar, its cards, and the ring it draws
+       around a control in the Growth browser (driver.ts uses the same violet). */
+    --growth-assistant: 252 100% 66%;
+    /* Stars, one to five: a diverging scale, red through a neutral grey to
+       blue, so the order reads in colour without leaning on red against
+       green. Checked with the dataviz validator against the card surface:
+       neighbours apart for protanopia and deuteranopia (worst 15.5) and for
+       full colour vision (worst 15.7). Three stars, the neutral middle, is
+       under 3:1 against the card, so every chart of stars has a legend and
+       its counts as text. */
+    --growth-star-1: 0 59% 45%;
+    --growth-star-2: 17 82% 56%;
+    --growth-star-3: 55 9% 74%;
+    --growth-star-4: 213 77% 56%;
+    --growth-star-5: 214 72% 34%;
+    /* Review tags: the eight slots of the validated categorical palette, in
+       its order, so tags taken in turn stay apart. Each tag also shows its name. */
+    --growth-tag-1: 213 68% 50%;
+    --growth-tag-2: 17 82% 56%;
+    --growth-tag-3: 159 73% 40%;
+    --growth-tag-4: 41 100% 46%;
+    --growth-tag-5: 337 70% 70%;
+    --growth-tag-6: 120 100% 26%;
+    --growth-tag-7: 248 62% 58%;
+    --growth-tag-8: 0 73% 59%;
   }
 
   /* Dark editor chrome. Same roles as the light palette above, same slate blue
@@ -118,6 +152,29 @@ body {
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+
+    --growth-series: 213 77% 56%;
+    --growth-compare: 45 3% 52%;
+    --growth-highlight: 17 70% 50%;
+    --growth-good: 120 86% 34%;
+    --growth-bad: 0 61% 52%;
+    --growth-assistant: 252 100% 74%;
+    /* The same scale stepped for the dark card: the ends bright, the middle
+       steps dark (worst neighbours 14.3 for colour blindness, 16.5 for full
+       colour vision). */
+    --growth-star-1: 0 72% 65%;
+    --growth-star-2: 16 56% 31%;
+    --growth-star-3: 53 3% 45%;
+    --growth-star-4: 214 72% 34%;
+    --growth-star-5: 213 77% 68%;
+    --growth-tag-1: 213 77% 56%;
+    --growth-tag-2: 17 70% 50%;
+    --growth-tag-3: 159 73% 36%;
+    --growth-tag-4: 40 100% 39%;
+    --growth-tag-5: 338 61% 58%;
+    --growth-tag-6: 120 100% 26%;
+    --growth-tag-7: 247 69% 72%;
+    --growth-tag-8: 0 72% 65%;
   }
 
   /* The tokens alone are not enough: an artboard also has to opt out of the
@@ -513,4 +570,37 @@ html.palette-dragging [data-sidebar="sidebar"][data-mobile="true"] {
    screen there. */
 html[data-osg-panel] [data-editor-chrome-skeleton] {
   display: none;
+}
+
+/* While the Growth browser shows beside the Ask AI chat, a native view covers
+   the right of the window and anything drawn there would sit under it. The
+   toasts move to the top left, over Growth's header, where they cover none of
+   the chat's buttons (GrowthBrowserPane.tsx sets the attribute). */
+html[data-growth-browser] [data-toast-viewport] {
+  top: 0;
+  bottom: auto;
+  left: 3rem;
+  right: auto;
+}
+
+/* The Growth browser's status line while the Ask AI assistant works. */
+.growth-shimmer {
+  background: linear-gradient(90deg, transparent 0%, hsl(var(--growth-assistant) / 0.1) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: growth-shimmer 1.8s linear infinite;
+}
+
+@keyframes growth-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .growth-shimmer {
+    animation: none;
+  }
 }

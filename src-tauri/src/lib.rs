@@ -1,7 +1,9 @@
 mod claude_code;
 mod code_folders;
 mod codex;
+mod device_capture;
 mod devtools;
+mod growth_browser;
 mod mcp_server;
 mod migrate;
 mod oauth;
@@ -48,11 +50,21 @@ pub fn run() {
         .manage(codex::CodexState::default())
         .manage(oauth::OauthState::default())
         .manage(webview_crash::WebviewCrashState::default())
+        .manage(device_capture::CaptureState::default())
+        .manage(growth_browser::GrowthBrowserState::default())
         // A reload of the editor must not strand a Claude Code or Codex
         // process that was still starting for the page it replaced.
         .on_page_load(|webview, payload| {
+            // The Growth browser lives inside an editor window, so its pages
+            // would read as that window's: they must not stop the window's
+            // prompts, recordings or agent start.
+            if webview.label() == growth_browser::LABEL {
+                return;
+            }
+            growth_browser::on_page_load(webview, payload.event() == tauri::webview::PageLoadEvent::Started);
             claude_code::on_page_load(webview, payload);
             codex::on_page_load(webview, payload);
+            device_capture::on_page_load(webview, payload);
         });
 
     // On macOS, the OS kills WKWebView WebContent processes under memory
@@ -94,6 +106,8 @@ pub fn run() {
             claude_code::abs_claude_pick_folder,
             claude_code::abs_claude_forget_folder,
             claude_code::abs_claude_read_project_image,
+            claude_code::abs_claude_prompt,
+            claude_code::abs_claude_prompt_stop,
             codex::abs_codex_detect,
             codex::abs_codex_start,
             codex::abs_codex_send,
@@ -101,6 +115,8 @@ pub fn run() {
             codex::abs_codex_stop,
             codex::abs_codex_list,
             codex::abs_codex_page_epoch,
+            codex::abs_codex_prompt,
+            codex::abs_codex_prompt_stop,
             oauth::abs_oauth_start,
             oauth::abs_oauth_await,
             oauth::abs_oauth_cancel,
@@ -108,6 +124,24 @@ pub fn run() {
             updater::abs_update_check,
             updater::abs_update_install,
             updater::abs_update_flushed,
+            device_capture::abs_capture_devices,
+            device_capture::abs_capture_start_device,
+            device_capture::abs_capture_create_simulator,
+            device_capture::abs_capture_apps,
+            device_capture::abs_capture_tidy_status_bar,
+            device_capture::abs_capture_appearance,
+            device_capture::abs_capture_launch,
+            device_capture::abs_capture_screenshot,
+            device_capture::abs_capture_record_start,
+            device_capture::abs_capture_record_stop,
+            growth_browser::abs_growth_browser_open,
+            growth_browser::abs_growth_browser_place,
+            growth_browser::abs_growth_browser_go,
+            growth_browser::abs_growth_browser_nav,
+            growth_browser::abs_growth_browser_allow,
+            growth_browser::abs_growth_browser_run,
+            growth_browser::abs_growth_browser_close,
+            growth_browser::abs_growth_browser_info,
         ])
         .setup(|app| {
             // Settings first: it manages the state the other modules read.
@@ -144,12 +178,23 @@ pub fn run() {
         })
         .build(context)
         .expect("error while running tauri application")
-        .run(|app, event| {
+        .run(|app, event| match event {
+            // A window that closes takes the one-shot prompts it asked for with
+            // it. A tab window can close before the editor, or outlive it.
+            tauri::RunEvent::WindowEvent { label, event: tauri::WindowEvent::Destroyed, .. } => {
+                claude_code::stop_window_prompts(app, &label);
+                codex::stop_window_prompts(app, &label);
+                device_capture::stop_window(app, &label);
+                growth_browser::window_closed(app, &label);
+            }
             // The editor window's own Destroyed hook usually gets there first;
             // this covers quitting the app outright (Cmd+Q on macOS).
-            if let tauri::RunEvent::Exit = event {
+            tauri::RunEvent::Exit => {
                 claude_code::kill_all(app);
                 codex::kill_all(app);
+                // Recordings stop, and the status bars Capture tidied come back.
+                device_capture::stop_all(app);
             }
+            _ => {}
         });
 }

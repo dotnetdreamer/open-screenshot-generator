@@ -114,6 +114,12 @@ export interface TranslateDialogProps {
   projectHasLanguages?: boolean;
   /** Opens the translation table. Omit it and the note is text only. */
   onOpenTranslations?: () => void;
+  /**
+   * The user's own AI that will translate, as it reads after "with", e.g.
+   * "Claude Code (Max plan)". Unset when the app's free translator will,
+   * whose request limits the dialog then explains.
+   */
+  ownAiLabel?: string;
   onTranslate: (targetLanguage: string, allArtboards: boolean, sourceLanguage: string, targetFont?: string) => Promise<void>;
 }
 
@@ -125,6 +131,7 @@ export function TranslateDialog({
   scope = 'project',
   projectHasLanguages = false,
   onOpenTranslations,
+  ownAiLabel,
   onTranslate,
 }: TranslateDialogProps) {
   const [sourceLanguage, setSourceLanguage] = useState<string>(AUTO_DETECT);
@@ -190,9 +197,13 @@ export function TranslateDialog({
         <DialogHeader>
           <DialogTitle>{scope === 'element' ? 'Translate This Text' : 'Translate Text'}</DialogTitle>
           <DialogDescription>
-            {scope === 'element'
-              ? 'Translate only the selected text element. Rate limits apply (20 requests / 5000 characters per minute).'
-              : 'Translate text elements in your artboards. Rate limits apply (20 requests / 5000 characters per minute).'}
+            {ownAiLabel
+              ? scope === 'element'
+                ? `Translate only the selected text element, with ${ownAiLabel}.`
+                : `Translate text elements in your artboards, with ${ownAiLabel}.`
+              : scope === 'element'
+                ? 'Translate only the selected text element. Rate limits apply (20 requests / 5000 characters per minute).'
+                : 'Translate text elements in your artboards. Rate limits apply (20 requests / 5000 characters per minute).'}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -290,9 +301,11 @@ export function TranslateDialog({
                     Translate all artboards
                   </Label>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  To stay within the free translation API limits, we recommend leaving this unchecked and translating your artboards one by one.
-                </p>
+                {!ownAiLabel && (
+                  <p className="text-xs text-muted-foreground">
+                    To stay within the free translation API limits, we recommend leaving this unchecked and translating your artboards one by one.
+                  </p>
+                )}
               </div>
             </div>
           )}

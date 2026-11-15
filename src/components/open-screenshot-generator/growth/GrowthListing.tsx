@@ -1,0 +1,782 @@
+"use client";
+
+// The store listing: name, subtitle, keywords, promotional text, description
+// and what's new on the App Store, title, short description and full
+// description on Google Play (listingFields.ts), per language, with the checks
+// beside it and every edit collected as a suggested change until the user
+// applies them.
+//
+// Edits never go to Apple one keystroke at a time. They queue up as before and
+// after pairs (ListingChange), which the user reads, trims and applies in one
+// go, the same review step AI suggestions and quick fixes go through. Apple
+// refuses changes to a version in review, and name and subtitle live on the
+// app info, which has its own editable state, so each field says whether it
+// can be changed right now and why not. Google Play takes a change at any
+// time, in one commit for every language, and checks it before it goes live.
+
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  AlertTriangleIcon,
+  CheckCircle2Icon,
+  InfoIcon,
+  LanguagesIcon,
+  Loader2Icon,
+  OctagonAlertIcon,
+  PlusIcon,
+  SparklesIcon,
+  UploadCloudIcon,
+  WandSparklesIcon,
+  XIcon,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { reviewListingWithAi, suggestListingField, translateListingFields } from '@/lib/growth/ai';
+import { addListingLanguage, applyListingChanges, editableAppInfoId, fetchListing } from '@/lib/growth/asc';
+import { announceGrowthChange, writeListing, writeMeta } from '@/lib/growth/db';
+import { listingFieldEditable, listingFieldLabel, listingFieldsFor, listingLimit } from '@/lib/growth/listingFields';
+import { applyPlayListingChanges, fetchPlayListing } from '@/lib/growth/play';
+import { metaKeys, type LiveListing } from '@/lib/growth/sync';
+import { recordListingChange } from '@/lib/growth/events';
+import { cleanKeywords, collapseChanges, fieldLength, listingScore, splitKeywords } from '@/lib/growth/listingChecks';
+import { MAX_KEYWORDS, isKeywordsIssue, keywordListingIssues, listingLocaleFor, normalizeTerm, standingOf, startingKeywordCountries, type KeywordFacts, type KeywordStanding } from '@/lib/growth/keywords';
+import { checkKeywords, trackKeywords } from '@/lib/growth/keywordWatch';
+import { useKeywords } from '@/lib/growth/useKeywords';
+import { localTerritory } from '@/lib/growth/rivals';
+import { today } from '@/lib/growth/dates';
+import {
+  rebaseChanges,
+  setListingAiIssues,
+  setListingChanges,
+  setListingJob,
+  setListingNote,
+  upsertListingChanges,
+  useListingDrafts,
+  withChanges,
+  withoutApplied,
+  type ListingNote,
+} from '@/lib/growth/listingDrafts';
+import { LISTING_LANGUAGES, TERRITORY_CODES, languageCovers, listingLanguageFor, listingLanguageName, territoryName } from '@/lib/growth/territories';
+import { type ListingChange, type ListingField, type ListingIssue, type ListingSnapshot } from '@/lib/growth/types';
+import { cn } from '@/lib/utils';
+import { EmptyState, Gated, Panel, SectionTitle, StoreImage, useGrowthView } from './GrowthShared';
+import { RankText } from './GrowthKeywords';
+
+const MULTILINE: ListingField[] = ['description', 'whatsNew', 'promotionalText'];
+
+const PLATFORM_LABELS: Record<string, string> = { IOS: 'iOS', MAC_OS: 'macOS', TV_OS: 'tvOS', VISION_OS: 'visionOS' };
+
+/** The version shoppers see now, as opposed to one being prepared or waiting for release. */
+function isLiveState(state: string): boolean {
+  return state === 'READY_FOR_SALE' || state === 'READY_FOR_DISTRIBUTION';
+}
+
+const SEVERITY_ICON = { problem: OctagonAlertIcon, warning: AlertTriangleIcon, tip: InfoIcon };
+
+const fieldEditable = listingFieldEditable;
+
+export function GrowthListing() {
+  const view = useGrowthView();
+  const listing = view.data.listing;
+  const [locale, setLocale] = useState<string>(() => view.tabOptions.locale ?? listing?.primaryLocale ?? 'en-US');
+  // Edits, AI findings and the action under way live outside this screen
+  // (listingDrafts.ts): the window mounts a new one for every section, and an
+  // action still running when the user comes back must show, not start again.
+  const appId = view.app.id;
+  const play = view.store === 'playstore';
+  const fields = listingFieldsFor(appId);
+  const labelOf = (field: ListingField) => listingFieldLabel(appId, field);
+  const drafts = useListingDrafts(appId);
+  const changes = useMemo(() => (listing ? rebaseChanges(drafts.changes, listing) : drafts.changes), [drafts.changes, listing]);
+  const aiIssues = drafts.aiIssues;
+  const setChanges = useCallback(
+    (update: ListingChange[] | ((current: ListingChange[]) => ListingChange[])) => setListingChanges(appId, update),
+    [appId]
+  );
+  const setAiIssues = useCallback((issues: ListingIssue[]) => setListingAiIssues(appId, issues), [appId]);
+  const busy = drafts.job?.label ?? null;
+  const message = drafts.note;
+  const setMessage = useCallback((note: ListingNote | null) => setListingNote(appId, note), [appId]);
+  const [translateFields, setTranslateFields] = useState<ListingField[]>(['subtitle', 'keywords', 'promotionalText', 'description', 'whatsNew']);
+  // Which language the AI is translating into, while it does (each can take a minute).
+  const translating = drafts.job?.label === 'translate' ? drafts.job.progress ?? null : null;
+  const [newLanguage, setNewLanguage] = useState('');
+
+  useEffect(() => {
+    if (listing && !listing.locales.some((entry) => entry.locale === locale)) setLocale(listing.primaryLocale);
+  }, [listing, locale]);
+
+  // The keywords tracked on Keywords, and where each ranks, for the checks
+  // and the ranks under the keywords field. App Store only: Google Play
+  // cannot be searched.
+  const keywordData = useKeywords(!play && view.rivals.loaded ? view.rivalOwner : null, { days: 30, searches: false });
+  const keywordFacts: KeywordFacts | null = useMemo(() => {
+    const list = keywordData.list;
+    if (!list || list.keywords.length === 0 || !listing || keywordData.appId !== listing.appId) return null;
+    const day = today();
+    const standings = new Map<string, Map<string, KeywordStanding>>();
+    for (const country of list.countries) {
+      const rows = keywordData.history.get(country);
+      standings.set(country, new Map(list.keywords.map((keyword) => [keyword.term, standingOf(rows?.get(keyword.term) ?? [], day)])));
+    }
+    return { terms: list.keywords.map((keyword) => keyword.term), countries: list.countries, standings };
+  }, [keywordData.list, keywordData.appId, keywordData.history, listing]);
+  // Checked against the text waiting to go out, so a fix adds to an edit
+  // already made rather than undoing it.
+  const waiting = useMemo(() => collapseChanges(changes), [changes]);
+  const keywordIssues = useMemo(
+    () => (listing && keywordFacts ? keywordListingIssues(withChanges(listing, waiting), keywordFacts) : []),
+    [listing, keywordFacts, waiting]
+  );
+
+  const issues = useMemo(() => {
+    const ai = aiIssues.filter((issue) => listing?.locales.some((entry) => entry.locale === issue.locale && entry[issue.field!] === issue.fix?.before));
+    return [...view.listingIssues, ...ai, ...keywordIssues];
+  }, [view.listingIssues, aiIssues, listing, keywordIssues]);
+
+  if (!listing) {
+    return (
+      <EmptyState icon={InfoIcon} title="Store page not loaded yet">
+        {view.blocked.app ? `${view.blocked.app}.` : view.data.status.listing.message ?? 'Refresh to load your store page.'}
+      </EmptyState>
+    );
+  }
+
+  const current = listing.locales.find((entry) => entry.locale === locale) ?? listing.locales[0];
+  const pending = collapseChanges(changes);
+  const valueOf = (field: ListingField) =>
+    pending.find((change) => change.locale === current.locale && change.field === field)?.after ?? current[field];
+  const score = listingScore(view.listingIssues, listing.locales.length);
+  const localeIssues = issues.filter((issue) => issue.locale === current.locale);
+
+  const upsert = (entries: ListingChange[]) => setChanges((existing) => upsertListingChanges(existing, entries, listing));
+
+  const run = async (label: string, task: () => Promise<void>) => {
+    setListingJob(appId, { label });
+    setMessage(null);
+    try {
+      await task();
+    } catch (error) {
+      console.error('Growth listing action failed', error);
+      setMessage({ tone: 'error', text: error instanceof Error ? error.message : 'Your last action did not work. Try again' });
+    } finally {
+      setListingJob(appId, null);
+    }
+  };
+
+  const refreshListing = async () => {
+    if (play) {
+      if (!view.playCredentials) return;
+      const fresh = await fetchPlayListing(view.playCredentials, view.app.id);
+      if (fresh) {
+        await writeListing(fresh.listing);
+        const live = { ...(view.data.live ?? {}), ...fresh.images, ipadScreenshotUrls: [], version: '', releaseDate: null, checkedAt: Date.now() } as LiveListing;
+        await writeMeta(metaKeys.live(view.app.id), live);
+        announceGrowthChange(view.app.id);
+      }
+      return;
+    }
+    if (!view.credentials) return;
+    const fresh = await fetchListing(view.credentials, { id: view.app.id, primaryLocale: listing.primaryLocale });
+    if (fresh) {
+      await writeListing(fresh);
+      announceGrowthChange(view.app.id);
+    }
+  };
+
+  const apply = () =>
+    run('apply', async () => {
+      const toApply = collapseChanges(changes);
+      if (toApply.length === 0) return;
+      for (const change of toApply) {
+        if (!fields.includes(change.field)) {
+          throw new Error(`${view.words.store} has no ${labelOf(change.field).toLowerCase()}. Remove the ${labelOf(change.field).toLowerCase()} change first`);
+        }
+        if (!fieldEditable(listing, change.field).ok) {
+          throw new Error(`${labelOf(change.field)} cannot be changed right now. Remove the ${labelOf(change.field).toLowerCase()} change first`);
+        }
+        if (fieldLength(change.after) > listingLimit(appId, change.field)) {
+          throw new Error(`The ${listingLanguageName(change.locale)} ${labelOf(change.field).toLowerCase()} is over the ${listingLimit(appId, change.field)} character limit`);
+        }
+      }
+      let result: { applied: string[]; warnings: string[]; sentForReview?: boolean };
+      if (play) {
+        if (!view.playCredentials) throw new Error('Add your Google Play service account key under Setup first');
+        const written = await applyPlayListingChanges(view.playCredentials, listing, toApply);
+        result = { applied: written.applied, warnings: [], sentForReview: written.sentForReview };
+      } else {
+        if (!view.credentials) throw new Error('Add your App Store Connect API key under Setup first');
+        result = await applyListingChanges(view.credentials, listing, toApply);
+      }
+      const took = new Set(result.applied);
+      const applied = toApply.filter((change) => took.has(`${change.locale}:${change.field}`));
+      if (applied.length > 0) {
+        // A change shows on the store when the version it was written to
+        // does, so only an edit to the live version counts from today.
+        // On Google Play the store page is not tied to a version of the app; a
+        // change Play holds for review waits.
+        await recordListingChange({
+          appId: view.app.id,
+          fields: Array.from(new Set(applied.map((change) => labelOf(change.field).toLowerCase()))),
+          locales: Array.from(new Set(applied.map((change) => change.locale))),
+          versionString: play || isLiveState(listing.state) ? undefined : listing.versionString,
+          sentForReview: play ? result.sentForReview : undefined,
+        });
+        await refreshListing();
+      }
+      // What Apple refused stays in the list, to fix and apply again, and so
+      // does anything typed while Apple was answering.
+      setChanges((latest) => withoutApplied(latest, applied));
+      if (applied.length > 0) setAiIssues([]);
+      setMessage(
+        result.warnings.length > 0
+          ? { tone: 'error', text: `Applied ${applied.length} of ${toApply.length} changes. ${result.warnings.join(' ')}` }
+          : play
+            ? {
+                tone: 'ok',
+                text: `Applied ${applied.length} change${applied.length === 1 ? '' : 's'} in Play Console. ${
+                  result.sentForReview === false
+                    ? 'Google Play holds the changes until you send the changes for review in Play Console'
+                    : 'Google checks the changes before people see the changes, which can take up to a week'
+                }`,
+              }
+            : { tone: 'ok', text: `Applied ${applied.length} change${applied.length === 1 ? '' : 's'} in App Store Connect` }
+      );
+    });
+
+  const applyReason = view.canWrite ? null : view.blocked.app ?? `To apply changes, you need the desktop app and your ${view.words.key}`;
+
+  // The fixes that come from Keywords are worked out again once the other
+  // fixes are in, so adding words never undoes a clean up of the same field.
+  const addEveryFix = () => {
+    // The page's own fixes go first, the clean up of the keywords field included.
+    const plain = localeIssues.filter((issue) => issue.fix && !isKeywordsIssue(issue.id)).map((issue) => issue.fix!);
+    upsert(plain);
+    if (!keywordFacts) return;
+    const after = withChanges(listing, collapseChanges([...waiting, ...plain]));
+    const words = keywordListingIssues(after, keywordFacts).find((issue) => issue.locale === current.locale && issue.fix && isKeywordsIssue(issue.id));
+    if (words?.fix) upsert([words.fix]);
+  };
+  const addable = LISTING_LANGUAGES.filter((code) => !listing.locales.some((entry) => entry.locale === code));
+
+  return (
+    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="min-w-0 space-y-4">
+        <Panel>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            {play ? (
+              <div>
+                <p className="text-sm font-semibold">Google Play store page</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  You can change every field at any time. Google checks each change before people see the change, which can take up
+                  to a week.
+                </p>
+              </div>
+            ) : (
+              <div>
+                <p className="text-sm font-semibold">
+                  Version {listing.versionString}
+                  {listing.platform !== 'IOS' && ` for ${PLATFORM_LABELS[listing.platform] ?? listing.platform}`}
+                  <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-[11px] font-normal text-muted-foreground">
+                    {listing.state.toLowerCase().replace(/_/g, ' ')}
+                  </span>
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {listing.editable
+                    ? `You can change every field until you submit version ${listing.versionString} for review. People see the changes when version ${listing.versionString} is in the App Store.`
+                    : `Version ${listing.versionString} is live or in review, so you can only change the promotional text.`}
+                </p>
+              </div>
+            )}
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <p className={cn('text-2xl font-semibold leading-none', score >= 80 ? 'text-[hsl(var(--growth-good))]' : score < 55 ? 'text-[hsl(var(--growth-bad))]' : '')}>
+                  {score}
+                </p>
+                <p className="text-[11px] text-muted-foreground">store page score</p>
+              </div>
+              <Gated reason={view.blocked.ai}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={busy !== null}
+                  onClick={() =>
+                    void run('ai-review', async () => {
+                      const found = await reviewListingWithAi(listing);
+                      setAiIssues(found);
+                      setMessage({ tone: 'ok', text: found.length > 0 ? `The AI found ${found.length} spelling or wording mistake${found.length === 1 ? '' : 's'}` : 'The AI found no spelling or wording mistakes' });
+                    })
+                  }
+                >
+                  {busy === 'ai-review' ? <Loader2Icon className="mr-1.5 h-4 w-4 animate-spin" /> : <SparklesIcon className="mr-1.5 h-4 w-4" />}
+                  Check spelling
+                </Button>
+              </Gated>
+            </div>
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-1.5" role="tablist" aria-label="Store page languages">
+            {listing.locales.map((entry) => {
+              const count = issues.filter((issue) => issue.locale === entry.locale && issue.severity !== 'tip').length;
+              return (
+                <button
+                  key={entry.locale}
+                  type="button"
+                  role="tab"
+                  aria-selected={entry.locale === current.locale}
+                  onClick={() => setLocale(entry.locale)}
+                  className={cn(
+                    'rounded-full border px-3 py-1 text-xs',
+                    entry.locale === current.locale ? 'border-foreground bg-foreground text-background' : 'hover:bg-muted'
+                  )}
+                >
+                  {listingLanguageName(entry.locale)}
+                  {entry.locale === listing.primaryLocale && <span className="ml-1 opacity-70">(main)</span>}
+                  {count > 0 && <span className="ml-1.5 rounded-full bg-amber-500/20 px-1.5 text-[10px] tabular-nums text-amber-700 dark:text-amber-300">{count}</span>}
+                </button>
+              );
+            })}
+            {!play && view.canWrite && listing.editable && addable.length > 0 && (
+              <div className="flex items-center gap-1">
+                <Select value={newLanguage} onValueChange={setNewLanguage}>
+                  <SelectTrigger className="h-7 w-[150px] text-xs" aria-label="Language to add">
+                    <SelectValue placeholder="Add a language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {addable.map((code) => (
+                      <SelectItem key={code} value={code} className="text-xs">
+                        {listingLanguageName(code)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {newLanguage && (
+                  <Button
+                    size="sm"
+                    className="h-7 text-xs"
+                    disabled={busy !== null}
+                    onClick={() =>
+                      void run('add-language', async () => {
+                        if (!view.credentials) throw new Error('Add your App Store Connect API key under Setup first');
+                        const primary = listing.locales.find((entry) => entry.locale === listing.primaryLocale);
+                        const infoId = await editableAppInfoId(view.credentials, view.app.id);
+                        await addListingLanguage(view.credentials, listing, newLanguage, infoId, primary?.name ?? view.app.name);
+                        await refreshListing();
+                        setLocale(newLanguage);
+                        setNewLanguage('');
+                        setMessage({ tone: 'ok', text: `${listingLanguageName(newLanguage)} added. Fill in the ${listingLanguageName(newLanguage)} text below, then apply the changes` });
+                      })
+                    }
+                  >
+                    {busy === 'add-language' ? <Loader2Icon className="mr-1 h-3.5 w-3.5 animate-spin" /> : <PlusIcon className="mr-1 h-3.5 w-3.5" />}
+                    Add
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+        </Panel>
+
+        <Panel className="space-y-4">
+          <SectionTitle
+            title={`${listingLanguageName(current.locale)} store page`}
+            hint={play ? 'Nothing changes on Google Play until you apply your edits' : 'Nothing changes in the App Store until you apply your edits'}
+          />
+          {fields.map((field) => {
+            const value = valueOf(field);
+            const length = fieldLength(value);
+            const limit = listingLimit(appId, field);
+            const editable = fieldEditable(listing, field);
+            const changed = value !== current[field];
+            const fieldProps = {
+              id: `growth-field-${field}`,
+              value,
+              disabled: !editable.ok,
+              title: editable.why,
+              className: cn('text-sm', changed && 'border-[hsl(var(--growth-highlight))]'),
+              onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                upsert([{ locale: current.locale, field, before: current[field], after: event.target.value }]),
+            };
+            return (
+              <div key={field} className="space-y-1">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <label htmlFor={`growth-field-${field}`} className="text-xs font-medium">
+                    {labelOf(field)}
+                    {changed && <span className="ml-2 text-[11px] font-normal text-[hsl(var(--growth-highlight))]">edited</span>}
+                  </label>
+                  <div className="flex items-center gap-1">
+                    {field === 'keywords' && editable.ok && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2 text-[11px]"
+                        onClick={() => {
+                          const cleanup = cleanKeywords({ ...current, keywords: value, name: valueOf('name'), subtitle: valueOf('subtitle') });
+                          if (cleanup.keywords === value) {
+                            setMessage({ tone: 'ok', text: 'The keywords are already clean' });
+                            return;
+                          }
+                          upsert([{ locale: current.locale, field, before: current[field], after: cleanup.keywords, reason: `Made the keywords ${cleanup.saved} character${cleanup.saved === 1 ? '' : 's'} shorter` }]);
+                        }}
+                        title="Remove spaces after commas, repeated keywords and words already in the name or subtitle"
+                      >
+                        <WandSparklesIcon className="mr-1 h-3 w-3" />
+                        Clean up
+                      </Button>
+                    )}
+                    {editable.ok && (
+                      <Gated reason={view.blocked.ai}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-[11px]"
+                          disabled={busy !== null}
+                          onClick={() =>
+                            void run(`suggest:${field}`, async () => {
+                              const after = await suggestListingField({ listing, locale: current.locale, field });
+                              // The text on the store, or the edit waiting: as a change it
+                              // would be dropped, or would undo the edit, without a word.
+                              if (after === current[field] || after === valueOf(field)) {
+                                setMessage({ tone: 'ok', text: `The AI would not change the ${labelOf(field).toLowerCase()}` });
+                                return;
+                              }
+                              upsert([{ locale: current.locale, field, before: current[field], after, reason: 'Written by AI' }]);
+                            })
+                          }
+                        >
+                          {busy === `suggest:${field}` ? <Loader2Icon className="mr-1 h-3 w-3 animate-spin" /> : <SparklesIcon className="mr-1 h-3 w-3" />}
+                          Suggest
+                        </Button>
+                      </Gated>
+                    )}
+                    <span className={cn('text-[11px] tabular-nums', length > limit ? 'text-destructive' : 'text-muted-foreground')}>
+                      {length} / {limit}
+                    </span>
+                  </div>
+                </div>
+                {MULTILINE.includes(field) ? (
+                  <Textarea {...fieldProps} rows={field === 'description' ? 8 : field === 'whatsNew' ? 3 : 2} />
+                ) : (
+                  <Input {...fieldProps} />
+                )}
+                {!editable.ok && <p className="text-[11px] text-muted-foreground">{editable.why}</p>}
+                {field === 'keywords' && !play && (
+                  <KeywordRanks
+                    value={value}
+                    locale={current.locale}
+                    listing={listing}
+                    facts={keywordFacts}
+                    owner={view.rivalOwner}
+                    countries={keywordData.list?.countries ?? []}
+                  />
+                )}
+              </div>
+            );
+          })}
+
+          {current.locale === listing.primaryLocale && listing.locales.length > 1 && (
+            <div className="space-y-2 rounded-md border border-dashed p-3">
+              <p className="text-xs font-medium">
+                Translate into your other {listing.locales.length - 1} language{listing.locales.length === 2 ? '' : 's'}
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {fields.filter((field) => field !== 'name').map((field) => (
+                  <label key={field} className="flex items-center gap-1.5 text-xs">
+                    <Checkbox
+                      checked={translateFields.includes(field)}
+                      onCheckedChange={(checked) =>
+                        setTranslateFields((list) => (checked ? [...list, field] : list.filter((item) => item !== field)))
+                      }
+                    />
+                    {labelOf(field)}
+                  </label>
+                ))}
+              </div>
+              <Gated reason={view.blocked.ai}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={busy !== null || !translateFields.some((field) => fields.includes(field))}
+                  onClick={() =>
+                    void run('translate', async () => {
+                      const others = listing.locales.map((entry) => entry.locale).filter((code) => code !== listing.primaryLocale);
+                      const result = await translateListingFields({
+                        listing,
+                        from: listing.primaryLocale,
+                        to: others,
+                        fields: translateFields.filter((field) => fields.includes(field)),
+                        onProgress: (code, index, total) =>
+                          setListingJob(appId, { label: 'translate', progress: `${listingLanguageName(code)}, ${index + 1} of ${total}` }),
+                      });
+                      upsert(result.changes.filter((change) => fieldEditable(listing, change.field).ok));
+                      setMessage({
+                        tone: result.failed.length > 0 ? 'error' : 'ok',
+                        text: `${result.changes.length} translation${result.changes.length === 1 ? '' : 's'} added to your changes${
+                          result.failed.length > 0 ? `. No translation came back for ${result.failed.map(listingLanguageName).join(', ')}` : ''
+                        }`,
+                      });
+                    })
+                  }
+                >
+                  {busy === 'translate' ? <Loader2Icon className="mr-1.5 h-4 w-4 animate-spin" /> : <LanguagesIcon className="mr-1.5 h-4 w-4" />}
+                  Translate with AI
+                </Button>
+              </Gated>
+              {translating && (
+                <p className="text-[11px] text-muted-foreground" role="status">
+                  Translating into {translating}
+                </p>
+              )}
+            </div>
+          )}
+        </Panel>
+
+        <LiveScreenshots />
+      </div>
+
+      <div className="space-y-4">
+        <Panel>
+          <SectionTitle
+            title="Changes to apply"
+            hint={pending.length === 0 ? 'No changes yet. Edit a field, or add a fix or an AI suggestion.' : undefined}
+          />
+          {pending.length > 0 && (
+            <ul className="mb-3 max-h-[360px] space-y-2 overflow-y-auto pr-1">
+              {pending.map((change) => (
+                <li key={`${change.locale}:${change.field}`} className="rounded-md border p-2 text-xs">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-medium">
+                      {listingLanguageName(change.locale)}, {labelOf(change.field).toLowerCase()}
+                    </p>
+                    <button
+                      type="button"
+                      className="text-muted-foreground hover:text-foreground"
+                      onClick={() => setChanges((list) => list.filter((item) => !(item.locale === change.locale && item.field === change.field)))}
+                      aria-label="Remove this change"
+                      title="Remove this change"
+                    >
+                      <XIcon className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  {change.reason && <p className="text-muted-foreground">{change.reason}</p>}
+                  <p className="mt-1 line-clamp-3 break-words text-muted-foreground line-through decoration-[hsl(var(--growth-bad))]/60">{change.before || 'empty'}</p>
+                  <p className="mt-0.5 line-clamp-4 break-words">{change.after || 'empty'}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="flex flex-wrap gap-2">
+            <Gated reason={applyReason}>
+              <Button size="sm" disabled={pending.length === 0 || busy !== null} onClick={() => void apply()}>
+                {busy === 'apply' ? <Loader2Icon className="mr-1.5 h-4 w-4 animate-spin" /> : <UploadCloudIcon className="mr-1.5 h-4 w-4" />}
+                Apply in {view.words.console}
+              </Button>
+            </Gated>
+            {pending.length > 0 && (
+              <Button size="sm" variant="ghost" onClick={() => setChanges([])}>
+                Discard all
+              </Button>
+            )}
+          </div>
+          {message && (
+            <p className={cn('mt-2 text-xs', message.tone === 'error' ? 'text-destructive' : 'text-[hsl(var(--growth-good))]')}>{message.text}</p>
+          )}
+        </Panel>
+
+        <Panel>
+          <SectionTitle
+            title={`Checks for ${listingLanguageName(current.locale)}`}
+            actions={
+              localeIssues.some((issue) => issue.fix) ? (
+                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={addEveryFix}>
+                  Add every fix
+                </Button>
+              ) : undefined
+            }
+          />
+          {localeIssues.length === 0 ? (
+            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <CheckCircle2Icon className="h-4 w-4 text-[hsl(var(--growth-good))]" />
+              Nothing to fix
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {localeIssues.map((issue) => {
+                const Icon = SEVERITY_ICON[issue.severity];
+                return (
+                  <li key={issue.id} className="flex gap-2 text-xs">
+                    <Icon
+                      className={cn(
+                        'mt-0.5 h-3.5 w-3.5 shrink-0',
+                        issue.severity === 'problem' && 'text-[hsl(var(--growth-bad))]',
+                        issue.severity === 'warning' && 'text-amber-600 dark:text-amber-400',
+                        issue.severity === 'tip' && 'text-muted-foreground'
+                      )}
+                    />
+                    <div className="min-w-0">
+                      <p className="font-medium">{issue.title}</p>
+                      <p className="text-muted-foreground">{issue.detail}</p>
+                      <div className="mt-1 flex flex-wrap gap-2">
+                        {issue.fix && fieldEditable(listing, issue.fix.field).ok && (
+                          <button type="button" className="font-medium text-[hsl(var(--growth-series))] hover:underline" onClick={() => upsert([issue.fix!])}>
+                            Fix
+                          </button>
+                        )}
+                        {isKeywordsIssue(issue.id) && issue.id.endsWith(':not-found') && (
+                          <button type="button" className="font-medium text-[hsl(var(--growth-series))] hover:underline" onClick={() => view.goTo('keywords')}>
+                            Find other keywords
+                          </button>
+                        )}
+                        {issue.id.endsWith(':screenshots-borrowed') && (
+                          <button type="button" className="font-medium text-[hsl(var(--growth-series))] hover:underline" onClick={() => view.onLocalize([issue.locale])}>
+                            Translate the screenshots
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The screenshots shoppers see today, from the public lookup on the App
+ * Store and from Play Console on Google Play, beside the way to replace them.
+ */
+function LiveScreenshots() {
+  const view = useGrowthView();
+  const live = view.data.live;
+  const play = view.store === 'playstore';
+  if (!live || live.screenshotUrls.length === 0) {
+    return (
+      <Panel className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium">Screenshots</p>
+          <p className="text-xs text-muted-foreground">
+            Most people look at the screenshots on your store page. Upload new screenshots from the editor. The Overview then compares your downloads before and after the new screenshots go live.
+          </p>
+        </div>
+        <Button size="sm" variant="outline" onClick={view.onPublish}>
+          <UploadCloudIcon className="mr-1.5 h-4 w-4" />
+          Upload screenshots
+        </Button>
+      </Panel>
+    );
+  }
+  return (
+    <Panel>
+      <SectionTitle
+        title={play ? 'Your phone screenshots in Play Console' : `In the App Store now, version ${live.version}`}
+        hint={play ? 'Google Play shows new screenshots to people after Google checks the new screenshots' : 'The first three screenshots also show in search results'}
+        actions={
+          <Button size="sm" variant="outline" onClick={view.onPublish}>
+            <UploadCloudIcon className="mr-1.5 h-4 w-4" />
+            Upload new screenshots
+          </Button>
+        }
+      />
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {live.screenshotUrls.slice(0, 10).map((url, index) => (
+          <StoreImage
+            // By place as well: a store can hand out one image twice.
+            key={`${index}:${url}`}
+            src={url}
+            alt={`Live screenshot ${index + 1}`}
+            className={cn('h-56 w-auto shrink-0 rounded-md border object-contain', !play && index < 3 && 'ring-1 ring-[hsl(var(--growth-series))]/50')}
+            loading="lazy"
+          />
+        ))}
+      </div>
+    </Panel>
+  );
+}
+
+/**
+ * Each keyword of the field with its rank in the country whose shoppers read
+ * this language, from Keywords. A keyword not tracked yet can be tracked from
+ * here; with nothing tracked, one button tracks the whole field.
+ */
+function KeywordRanks({
+  value,
+  locale,
+  listing,
+  facts,
+  owner,
+  countries,
+}: {
+  value: string;
+  locale: string;
+  listing: ListingSnapshot;
+  facts: KeywordFacts | null;
+  owner: string;
+  countries: string[];
+}) {
+  const view = useGrowthView();
+  const [busy, setBusy] = useState(false);
+  const entries = Array.from(new Set(splitKeywords(value).map(normalizeTerm).filter(Boolean)));
+  if (entries.length === 0) return null;
+  const track = (terms: string[]) => {
+    setBusy(true);
+    const startWith = countries.length > 0 ? countries : startingKeywordCountries([view.rivals.list?.countries[0], localTerritory()], TERRITORY_CODES);
+    void trackKeywords(owner, terms, { source: 'store-page', countries: startWith })
+      .then((result) => {
+        if (result.added.length > 0) return checkKeywords(owner, { only: { terms: result.added }, wait: true }).then(() => undefined);
+      })
+      .catch((error) => console.error('Tracking the store page keywords failed', error))
+      .finally(() => setBusy(false));
+  };
+  if (!facts) {
+    return (
+      <div className="flex flex-wrap items-center gap-2 pt-0.5 text-[11px] text-muted-foreground" data-testid="growth-listing-keyword-ranks">
+        See where these keywords rank in App Store search
+        <button type="button" className="font-medium text-[hsl(var(--growth-series))] hover:underline disabled:opacity-50" disabled={busy} onClick={() => track(entries)}>
+          Track {entries.length === 1 ? 'this keyword' : `these ${entries.length} keywords`}
+        </button>
+      </div>
+    );
+  }
+  // A country whose shoppers read this language: one that speaks it first,
+  // since the main language also stands in for countries without their own.
+  const readers = facts.countries.filter((code) => listingLocaleFor(code, listing) === locale);
+  const country = readers.find((code) => languageCovers(locale, listingLanguageFor(code))) ?? readers[0];
+  if (!country) return null;
+  const untracked = entries.filter((term) => !facts.terms.includes(term));
+  return (
+    <div className="flex flex-wrap items-center gap-1 pt-0.5" data-testid="growth-listing-keyword-ranks">
+      <span className="mr-0.5 text-[11px] text-muted-foreground">Rank in {territoryName(country)}:</span>
+      {entries.map((term) =>
+        facts.terms.includes(term) ? (
+          <span key={term} className="inline-flex items-center gap-1 rounded-full border py-0.5 pl-2 pr-1 text-[11px]">
+            {term}
+            <RankText day={facts.standings.get(country)?.get(term)?.latest} />
+          </span>
+        ) : (
+          <span key={term} className="inline-flex items-center rounded-full border border-dashed px-2 py-0.5 text-[11px] text-muted-foreground" title="Not tracked on Keywords">
+            {term}
+          </span>
+        )
+      )}
+      {untracked.length > 0 && (
+        <button
+          type="button"
+          className="ml-1 text-[11px] font-medium text-[hsl(var(--growth-series))] hover:underline disabled:opacity-50"
+          disabled={busy || facts.terms.length + untracked.length > MAX_KEYWORDS}
+          title={facts.terms.length + untracked.length > MAX_KEYWORDS ? `You can track ${MAX_KEYWORDS} keywords. Stop tracking some on Keywords first` : undefined}
+          onClick={() => track(untracked)}
+        >
+          Track {untracked.length === 1 ? 'the other one' : `the other ${untracked.length}`}
+        </button>
+      )}
+      <button type="button" className="ml-1 text-[11px] font-medium text-[hsl(var(--growth-series))] hover:underline" onClick={() => view.goTo('keywords', { territory: country })}>
+        Open Keywords
+      </button>
+    </div>
+  );
+}

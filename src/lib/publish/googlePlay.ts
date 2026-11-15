@@ -83,11 +83,23 @@ export function serviceAccountEmail(credentials: PlayCredentials): string | null
 
 // --- transport --------------------------------------------------------------
 
+/** Tokens per service account and scope: the upload asks for less than Growth does. */
 const tokenCache = new Map<string, { token: string; expiresAt: number }>();
 
+const tokenKey = (email: string, scope: string) => `${email} ${scope}`;
+
 async function accessToken(credentials: PlayCredentials): Promise<string> {
+  return playAccessToken(credentials, SCOPE);
+}
+
+/**
+ * An access token for the service account, for `scope` (space separated
+ * scopes for more than one API). Growth asks for the Play Developer API and
+ * read access to Cloud Storage, where Play keeps the monthly report files.
+ */
+export async function playAccessToken(credentials: PlayCredentials, scope: string): Promise<string> {
   const account = parseServiceAccount(credentials.serviceAccountJson);
-  const cached = tokenCache.get(account.client_email);
+  const cached = tokenCache.get(tokenKey(account.client_email, scope));
   if (cached && cached.expiresAt - 60_000 > Date.now()) return cached.token;
 
   const tokenUri = account.token_uri || DEFAULT_TOKEN_URI;
@@ -95,7 +107,7 @@ async function accessToken(credentials: PlayCredentials): Promise<string> {
     clientEmail: account.client_email,
     privateKeyPem: account.private_key,
     privateKeyId: account.private_key_id,
-    scope: SCOPE,
+    scope,
     tokenUri,
   });
 
@@ -118,20 +130,23 @@ async function accessToken(credentials: PlayCredentials): Promise<string> {
   const body = JSON.parse(text) as { access_token?: string; expires_in?: number };
   if (!body.access_token) throw new StoreAuthError('Google returned no access token.');
 
-  tokenCache.set(account.client_email, {
+  tokenCache.set(tokenKey(account.client_email, scope), {
     token: body.access_token,
     expiresAt: Date.now() + (body.expires_in ?? 3600) * 1000,
   });
   return body.access_token;
 }
 
-/** Drop the cached token, e.g. after the user swaps the key file. */
+/** Drop the cached tokens, e.g. after the user swaps the key file. */
 export function forgetPlayToken(credentials: PlayCredentials): void {
   const email = serviceAccountEmail(credentials);
-  if (email) tokenCache.delete(email);
+  if (!email) return;
+  for (const key of Array.from(tokenCache.keys())) {
+    if (key.startsWith(`${email} `)) tokenCache.delete(key);
+  }
 }
 
-function describeGoogleError(status: number, body: string): string {
+export function describeGoogleError(status: number, body: string): string {
   try {
     const parsed = JSON.parse(body) as {
       error?: { message?: string } | string;
@@ -191,6 +206,26 @@ const encodePath = (value: string) => encodeURIComponent(value.trim());
 
 // --- edits ------------------------------------------------------------------
 
+/**
+ * Play keeps one open edit per user: opening a second one cancels the first.
+ * Growth reads the store page through an edit of its own (growth/play.ts), so
+ * a refresh while an upload is running would cancel the upload's edit and
+ * fail its commit. Everything that opens an edit takes this turn first, for
+ * as long as its edit is open, and Web Locks make the turn hold across every
+ * editor window. The promise chain stands in where Web Locks are missing.
+ */
+const editTurns = new Map<string, Promise<unknown>>();
+
+export function withPlayEdit<T>(credentials: PlayCredentials, task: () => Promise<T>, signal?: AbortSignal): Promise<T> {
+  const account = serviceAccountEmail(credentials) ?? credentials.packageName;
+  const name = `osg-play-edit:${account}`;
+  const locks = typeof navigator !== 'undefined' && navigator.locks ? navigator.locks : null;
+  if (locks) return locks.request(name, signal ? { signal } : {}, () => task());
+  const next = (editTurns.get(name) ?? Promise.resolve()).then(task, task);
+  editTurns.set(name, next.catch(() => undefined));
+  return next;
+}
+
 async function openEdit(credentials: PlayCredentials): Promise<string> {
   const edit = await apiRequest<{ id?: string }>(
     credentials,
@@ -219,8 +254,10 @@ export async function verifyPlayAccess(credentials: PlayCredentials): Promise<vo
   if (!credentials.packageName.trim()) {
     throw new StoreRejectedError('Enter the app package name first.');
   }
-  const editId = await openEdit(credentials);
-  await discardEdit(credentials, editId);
+  await withPlayEdit(credentials, async () => {
+    const editId = await openEdit(credentials);
+    await discardEdit(credentials, editId);
+  });
 }
 
 export interface PlayListing {
@@ -230,6 +267,10 @@ export interface PlayListing {
 
 /** The languages this listing already has, for the language picker. */
 export async function listPlayLanguages(credentials: PlayCredentials): Promise<PlayListing[]> {
+  return withPlayEdit(credentials, () => readPlayLanguages(credentials));
+}
+
+async function readPlayLanguages(credentials: PlayCredentials): Promise<PlayListing[]> {
   const editId = await openEdit(credentials);
   try {
     const body = await apiRequest<{ listings?: Array<{ language?: string; title?: string }> }>(
@@ -351,9 +392,23 @@ export async function uploadPlayScreenshotsForLanguages(
   onProgress?.({ stage: 'authenticating', message: 'Signing in with the service account' });
   const token = await accessToken(credentials);
 
+  return withPlayEdit(credentials, () => uploadInEdit(credentials, planned, options, token, warnings, totalImages, manyLanguages, onProgress));
+}
+
+async function uploadInEdit(
+  credentials: PlayCredentials,
+  planned: Array<PlayUploadEntry & { usable: PublishImage[]; slotLabel: string }>,
+  options: PlayBatchUploadOptions,
+  token: string,
+  warnings: string[],
+  totalImages: number,
+  manyLanguages: boolean,
+  onProgress?: PublishProgressFn
+): Promise<PublishResult> {
   onProgress?.({ stage: 'preparing', message: 'Opening a Play Console edit' });
   const editId = await openEdit(credentials);
   const packageName = encodePath(credentials.packageName);
+  let sentForReview = false;
 
   try {
     const doFetch = await bridgeFetch();
@@ -414,12 +469,14 @@ export async function uploadPlayScreenshotsForLanguages(
 
     try {
       await commit(options.changesNotSentForReview === true);
+      sentForReview = options.changesNotSentForReview !== true;
     } catch (error) {
       // Play refuses to auto-submit for review on some accounts and says so in
       // the error. Retrying with the flag is exactly what it is asking for.
       const message = error instanceof Error ? error.message : '';
       if (!options.changesNotSentForReview && /changesNotSentForReview/i.test(message)) {
         await commit(true);
+        sentForReview = false;
         warnings.push('Committed without sending for review, which is what Play asked for. Submit the release in Play Console when you are ready.');
       } else {
         throw error;
@@ -436,6 +493,7 @@ export async function uploadPlayScreenshotsForLanguages(
     uploaded: totalImages,
     warnings,
     reviewUrl: 'https://play.google.com/console',
+    sentForReview,
   };
 }
 

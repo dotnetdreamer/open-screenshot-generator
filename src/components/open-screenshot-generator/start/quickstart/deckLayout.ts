@@ -6,7 +6,7 @@
  * handled with a constant.
  */
 
-import type { ArtboardState, DeviceFrameElementProps, Size } from '@/types/artboard';
+import type { ArtboardElement, ArtboardState, DeviceFrameElementProps, Size } from '@/types/artboard';
 import { isDevice3dStyle } from '@/lib/devicePerspective';
 
 /**
@@ -82,11 +82,16 @@ export function deckBoardBox(canvas: Size): DeckBoardBox {
 export function flattenBoard3d(board: ArtboardState): ArtboardState {
   let changed = false;
   const elements = board.elements.map((element) => {
-    if (element.type !== 'device') return element;
-    const device = element as DeviceFrameElementProps;
-    if (!isDevice3dStyle(device.styleType)) return element;
-    changed = true;
-    return { ...device, styleType: 'normal' as const };
+    const flat = flattenElement3d(element);
+    if (flat !== element) changed = true;
+    return flat;
   });
   return changed ? { ...board, elements } : board;
+}
+
+/** One element for flattenBoard3d: a 3D device frame drawn flat, anything else as it is. */
+export function flattenElement3d(element: ArtboardElement): ArtboardElement {
+  if (element.type !== 'device') return element;
+  const device = element as DeviceFrameElementProps;
+  return isDevice3dStyle(device.styleType) ? { ...device, styleType: 'normal' as const } : element;
 }

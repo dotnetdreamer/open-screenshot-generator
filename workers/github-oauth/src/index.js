@@ -24,8 +24,14 @@
 
 const GITHUB_AUTHORIZE = 'https://github.com/login/oauth/authorize';
 const GITHUB_TOKEN = 'https://github.com/login/oauth/access_token';
-/** Only gist access is ever requested. */
+/**
+ * Gist access, which saving projects needs, unless the app asks for one of the
+ * other scope sets here: the Website view asks for public_repo as well, to
+ * publish the user's app website to GitHub Pages. Anything else gets gist.
+ * Must match githubScope in src/lib/account/providers/github.ts.
+ */
 const SCOPE = 'gist';
+const ALLOWED_SCOPES = new Set(['gist', 'gist public_repo']);
 /** Must match MESSAGE_SOURCE in src/lib/account/providers/github.ts. */
 const MESSAGE_SOURCE = 'abs-github-oauth';
 
@@ -85,7 +91,8 @@ function handleStart(request, env, url) {
   const authorize = new URL(GITHUB_AUTHORIZE);
   authorize.searchParams.set('client_id', env.GITHUB_CLIENT_ID);
   authorize.searchParams.set('redirect_uri', `${url.origin}/callback`);
-  authorize.searchParams.set('scope', SCOPE);
+  const asked = url.searchParams.get('scope');
+  authorize.searchParams.set('scope', asked && ALLOWED_SCOPES.has(asked) ? asked : SCOPE);
   authorize.searchParams.set('state', raw);
   return Response.redirect(authorize.toString(), 302);
 }

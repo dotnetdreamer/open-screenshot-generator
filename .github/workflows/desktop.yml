@@ -454,13 +454,20 @@ jobs:
       # The build signed the AppImage before the hook went in, so that
       # signature no longer matches and every AppImage update would be
       # refused. Sign the patched file again. The password is passed even when
-      # empty: without it the signer stops to ask for one.
+      # empty: without it the signer stops to ask for one. `tauri build` binds
+      # its signatures to the app version and a hand signature needs
+      # --app-version for that, or an updater with requireSignedVersion would
+      # refuse this one. The version is tauri.conf.json's, as in the update
+      # manifest (scripts/updates/collect.mjs): on a dry run the version output
+      # is the next version, not the one built.
       - name: Sign the patched AppImage for in-app updates
         if: matrix.platform == 'ubuntu-22.04' && needs.version.outputs.updates == 'true'
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        run: npx tauri signer sign --password "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" "$APPIMAGE_PATH"
+        run: |
+          built="$(node -p "require('./src-tauri/tauri.conf.json').version")"
+          npx tauri signer sign --password "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" --app-version "$built" "$APPIMAGE_PATH"
 
       # tauri-action uploaded the unpatched AppImage from this same job a step
       # ago, so this replaces it rather than adding to it, and its signature

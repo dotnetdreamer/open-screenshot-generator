@@ -1,0 +1,119 @@
+"use client";
+
+// Runs Growth's background monitor (monitor.ts) from the editor window.
+//
+// The first pass waits a minute and a half after the editor opens, so it does
+// not compete with a project loading, and also looks at apps that are not due
+// a sync so the activity bar shows what was waiting from before a restart.
+// After that a pass every 15 minutes, each syncing only what is due. Passes
+// stop while Growth is the view on screen, since it syncs its app itself, and
+// never overlap.
+//
+// What a pass finds is announced once (onFound), and the count of notable
+// insights not yet seen is kept for Growth's button on the activity bar. An
+// app drops out of the count when the Growth view shows it (onInsightsSeen).
+
+import { useEffect, useRef, useState } from 'react';
+import { getStoreCredentials, isStorePublishingAvailable } from '@/lib/publish';
+import { onInsightsSeen, runMonitorPass, type MonitorFinding } from './monitor';
+import { runDueSummaries } from './reviewSchedule';
+import type { ReviewSummary } from './reviewSummary';
+import { subscribeGrowthSettings, getGrowthSettings } from './settings';
+
+const FIRST_PASS_MS = 90_000;
+const PASS_EVERY_MS = 15 * 60_000;
+
+export interface GrowthMonitorOptions {
+  /** Desktop main window only: a tab window would sync the same apps again. */
+  enabled: boolean;
+  /** True while Growth is the view on screen. */
+  paused: boolean;
+  /** Insights no earlier pass reported, at most once each. */
+  onFound: (findings: MonitorFinding[]) => void;
+  /** Review summaries written on their schedule in this pass (reviewSchedule.ts). */
+  onSummaries?: (summaries: ReviewSummary[]) => void;
+}
+
+export function useGrowthMonitor({ enabled, paused, onFound, onSummaries }: GrowthMonitorOptions): {
+  /** Notable insights not seen yet, across the watched apps. */
+  unseen: number;
+  /** The apps they are in. */
+  appIds: string[];
+} {
+  const [unseen, setUnseen] = useState<Record<string, string[]>>({});
+  const pausedRef = useRef(paused);
+  pausedRef.current = paused;
+  const onFoundRef = useRef(onFound);
+  onFoundRef.current = onFound;
+  const onSummariesRef = useRef(onSummaries);
+  onSummariesRef.current = onSummaries;
+  const announced = useRef(new Set<string>());
+  const [monitorOn, setMonitorOn] = useState(true);
+
+  useEffect(() => {
+    setMonitorOn(getGrowthSettings().monitor);
+    return subscribeGrowthSettings(() => setMonitorOn(getGrowthSettings().monitor));
+  }, []);
+
+  useEffect(
+    () =>
+      onInsightsSeen((appId) =>
+        setUnseen((current) => {
+          if (!(appId in current)) return current;
+          const next = { ...current };
+          delete next[appId];
+          return next;
+        })
+      ),
+    []
+  );
+
+  useEffect(() => {
+    if (!enabled || !monitorOn) return;
+    const stop = new AbortController();
+    let running = false;
+    let first = true;
+    const pass = async () => {
+      if (running || pausedRef.current || stop.signal.aborted) return;
+      if (!isStorePublishingAvailable()) return;
+      const { appstore, playstore } = getStoreCredentials();
+      if (!appstore && !playstore) return;
+      running = true;
+      try {
+        const findings = await runMonitorPass({ credentials: appstore, playCredentials: playstore, signal: stop.signal, checkAll: first });
+        first = false;
+        if (stop.signal.aborted) return;
+        setUnseen((current) => {
+          const next = { ...current };
+          for (const finding of findings) if (finding.fresh.length > 0) next[finding.app.id] = finding.fresh.map((insight) => insight.id);
+          return next;
+        });
+        // New reviews are taken off their list when read, so each comes once.
+        const news = findings
+          .map((finding) => ({ ...finding, fresh: finding.fresh.filter((insight) => !announced.current.has(insight.id)) }))
+          .filter((finding) => finding.fresh.length > 0 || finding.reviews.length > 0);
+        for (const finding of news) finding.fresh.forEach((insight) => announced.current.add(insight.id));
+        if (news.length > 0) onFoundRef.current(news);
+        // After the refreshes, so a weekly summary reads this week's reviews.
+        const summaries = await runDueSummaries(stop.signal);
+        if (summaries.length > 0 && !stop.signal.aborted) onSummariesRef.current?.(summaries);
+      } catch (error) {
+        if (!stop.signal.aborted) console.error('The Growth background check failed', error);
+      } finally {
+        running = false;
+      }
+    };
+    const firstTimer = window.setTimeout(() => void pass(), FIRST_PASS_MS);
+    const interval = window.setInterval(() => void pass(), PASS_EVERY_MS);
+    return () => {
+      stop.abort();
+      window.clearTimeout(firstTimer);
+      window.clearInterval(interval);
+    };
+  }, [enabled, monitorOn]);
+
+  return {
+    unseen: Object.values(unseen).reduce((sum, ids) => sum + ids.length, 0),
+    appIds: Object.keys(unseen),
+  };
+}

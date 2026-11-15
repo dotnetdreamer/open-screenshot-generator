@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
+import { CaptureFromDeviceButton } from './capture/CaptureFromDeviceButton';
 import { UploadCloudIcon, PaintbrushIcon, Palette, Plus, Minus, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, ClapperboardIcon, Trash2Icon, Languages, CheckIcon, CopyIcon, RotateCcw, LinkIcon, UnlinkIcon, MoreHorizontalIcon, BringToFront, SendToBack } from 'lucide-react';
 import type { SpanChange } from '@/lib/spanArtboards';
 import {
@@ -54,7 +55,6 @@ import { StudioDeviceProperties } from './StudioDeviceProperties';
 import { studioConversionPatch, studioModelFor } from '@/lib/device3dStudio';
 import { isDevice3dStyle } from '@/lib/devicePerspective';
 import type { StudioLiveHandler } from '@/lib/device3dStudioLive';
-import { isTranslationEnabled } from '@/services/translation';
 import { DEVICE_PICKER_GROUPS } from '@/lib/deviceRegistry';
 import { trackScreenshotUploaded } from '@/lib/analytics';
 import { DEFAULT_BASE_LOCALE, localeLabel, localeName } from '@/lib/i18n/locales';
@@ -756,6 +756,14 @@ interface PropertiesPanelProps {
    * the host has no translation flow to offer.
    */
   onTranslateElement?: (elementId: string) => void;
+  /** Something can translate: the user's own AI or the app's free translator. */
+  translationAvailable?: boolean;
+  /**
+   * Take a screenshot from the running simulator or emulator into a frame, or
+   * open Capture on it (src/components/open-screenshot-generator/capture/).
+   * Omitted when the host has no Capture to offer.
+   */
+  onCaptureScreenshot?: (elementId: string) => void;
   activeArtboardDetails?: ArtboardState | null;
   /**
    * Board-level form edits. `scope: 'all'` writes every board in one commit,
@@ -1076,6 +1084,8 @@ export function PropertiesPanel({
   onMoveSelectionTo,
   layerElements,
   onTranslateElement,
+  translationAvailable = false,
+  onCaptureScreenshot,
   activeArtboardDetails,
   onUpdateArtboardDetails,
   activeLocale,
@@ -1929,15 +1939,24 @@ export function PropertiesPanel({
     // translated language it lands in that language's override map on its own.
     // All this row owes the user is the chip saying which language it hits.
     const screenshotUploadButton = (
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => handleImageUploadButtonClick('screenshot')}
-        className="text-xs h-8"
-      >
-        <UploadCloudIcon className="w-3 h-3 mr-1.5" />
-        {element.screenshotSrc ? 'Change Screenshot' : 'Upload Screenshot'}
-      </Button>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handleImageUploadButtonClick('screenshot')}
+          className="text-xs h-8"
+        >
+          <UploadCloudIcon className="w-3 h-3 mr-1.5" />
+          {element.screenshotSrc ? 'Change Screenshot' : 'Upload Screenshot'}
+        </Button>
+        {onCaptureScreenshot && (
+          <CaptureFromDeviceButton
+            deviceType={element.deviceType}
+            kind="screenshot"
+            onClick={() => onCaptureScreenshot(element.id)}
+          />
+        )}
+      </div>
     );
 
     return (
@@ -2361,7 +2380,7 @@ export function PropertiesPanel({
           </Label>
           {localeChip('mediaId')}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -2371,6 +2390,13 @@ export function PropertiesPanel({
             <UploadCloudIcon className="w-3 h-3 mr-1.5" />
             {element.mediaId ? 'Change Recording' : 'Upload Recording'}
           </Button>
+          {onCaptureScreenshot && (
+            <CaptureFromDeviceButton
+              deviceType={element.deviceType}
+              kind="recording"
+              onClick={() => onCaptureScreenshot(element.id)}
+            />
+          )}
           {element.mediaId && (
             <Button
               variant="ghost"
@@ -3056,12 +3082,8 @@ export function PropertiesPanel({
                 variant="outline"
                 size="icon"
                 className="h-10 w-10 shrink-0"
-                disabled={!isTranslationEnabled || !localContent.trim()}
-                title={
-                  isTranslationEnabled
-                    ? "Translate this text"
-                    : "Translation is disabled because API URLs are not configured"
-                }
+                disabled={!translationAvailable || !localContent.trim()}
+                title={translationAvailable ? 'Translate this text' : 'Add an AI in the AI panel to translate'}
                 aria-label="Translate this text"
                 onClick={() => {
                   // Flush an edit the blur may not have committed yet, so the
