@@ -4,7 +4,8 @@
 // changes the site (src/lib/website/ai.ts), and the preview beside it shows
 // the change at once. The newest change can be undone. When the AI needs
 // something it does not know, such as an email address, it asks, and the
-// answer goes in the same box.
+// answer goes in the same box. A paragraph it suggests for the privacy policy
+// waits under its answer until the developer puts it in.
 
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowUpIcon, Loader2Icon, SparklesIcon, SquareIcon, Undo2Icon } from 'lucide-react';
@@ -30,6 +31,7 @@ export function WebsiteChat({
   onSend,
   onStop,
   onUndo,
+  onUseSuggestion,
 }: {
   chat: SiteChatItem[];
   ai: AiStatus;
@@ -40,6 +42,8 @@ export function WebsiteChat({
   onSend: (text: string) => void;
   onStop: () => void;
   onUndo: (id: string) => void;
+  /** Put the privacy paragraph an answer suggested into the policy. */
+  onUseSuggestion: (id: string) => void;
 }) {
   const [text, setText] = useState('');
   const list = useRef<HTMLDivElement>(null);
@@ -106,7 +110,7 @@ export function WebsiteChat({
                         </span>
                       ))}
                       {item.refused?.length ? (
-                        <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-amber-800 dark:text-amber-300" title="The site turned these down: too long, or naming an address you didn't give">
+                        <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-amber-800 dark:text-amber-300" title="The site turned these down: too long, not something the site can use, or an address or link you didn't give">
                           Left as they were: {item.refused.join(', ')}
                         </span>
                       ) : null}
@@ -118,6 +122,19 @@ export function WebsiteChat({
                       )}
                     </div>
                   ) : null}
+                  {item.suggestion && (
+                    <div className="space-y-1.5 rounded-lg border border-dashed p-2.5 text-xs" data-testid="site-chat-suggestion">
+                      <p className="font-medium">For the privacy policy, under More details</p>
+                      <p className="whitespace-pre-wrap text-muted-foreground">{item.suggestion.privacyExtra}</p>
+                      {item.suggestion.used ? (
+                        <p className="text-[hsl(var(--growth-good))]">In the policy now</p>
+                      ) : (
+                        <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={() => onUseSuggestion(item.id)}>
+                          Put it in the policy
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             )

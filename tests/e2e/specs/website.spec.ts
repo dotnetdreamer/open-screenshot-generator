@@ -43,12 +43,19 @@ async function projectWithText(app: { startBlankProject(): Promise<void>; addEle
   await app.addElementFrom('Basic', 'Text', 'basic:text');
 }
 
+/** One more text layer. The palette stays on Basic after the first, so its tile may be out already. */
+async function addText(app: { addElement(label: string, id: string): Promise<void>; addElementFrom(category: string, label: string, id: string): Promise<void> }, page: Page) {
+  const tile = page.getByRole('button', { name: 'Add Text (basic:text)', exact: true });
+  if (await tile.isVisible()) await app.addElement('Text', 'basic:text');
+  else await app.addElementFrom('Basic', 'Text', 'basic:text');
+}
+
 /** The three steps of Make my website, with no AI writing. */
-async function makeSite(page: Page, view: Locator, options: { ai?: boolean } = {}) {
+async function makeSite(page: Page, view: Locator, options: { ai?: boolean; appName?: string } = {}) {
   await view.getByRole('button', { name: 'Make my website' }).click();
   const dialog = page.getByTestId('website-setup');
   await expect(dialog).toBeVisible();
-  await dialog.getByLabel('App name').fill('Pebble');
+  await dialog.getByLabel('App name').fill(options.appName ?? 'Pebble');
   await dialog.getByLabel('Support email').fill('help@pebble.app');
   await dialog.getByLabel("Your name or your company's").fill('Pebble Labs');
   await dialog.getByRole('button', { name: 'Next' }).click();
@@ -68,8 +75,54 @@ async function previewPage(view: Locator, name: 'Home' | 'Support' | 'Privacy po
   await view.getByRole('group', { name: 'Page' }).getByRole('button', { name, exact: true }).click();
 }
 
+async function openSection(view: Locator, name: RegExp) {
+  await view.getByRole('navigation', { name: 'Website sections' }).getByRole('button', { name }).click();
+}
+
+/** hash32 from src/lib/i18n/hash.ts, which the site's translations are stored under. */
+function hash32(input: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < input.length; i++) {
+    h ^= input.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0).toString(16).padStart(8, '0');
+}
+
+const PIXEL_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+
+/** Change the one site stored on this device, as the Website view keeps it (store.ts). The view reads it again after a reload. */
+async function editStoredSite(page: Page, patch: { languages?: string[]; translations?: Record<string, Record<string, string>>; icon?: string }) {
+  await page.evaluate(
+    (patch) =>
+      new Promise<void>((resolve, reject) => {
+        const open = indexedDB.open('OpenScreenshotGeneratorWebsite');
+        open.onerror = () => reject(open.error);
+        open.onsuccess = () => {
+          const db = open.result;
+          const store = db.transaction('sites', 'readwrite').objectStore('sites');
+          const all = store.getAll();
+          all.onsuccess = () => {
+            const [row] = all.result;
+            if (!row) return reject(new Error('No site is stored'));
+            if (patch.languages) row.draft.languages = patch.languages;
+            if (patch.translations) row.draft.translations = patch.translations;
+            if (patch.icon) row.draft.facts.icon = patch.icon;
+            const put = store.put(row);
+            put.onsuccess = () => {
+              db.close();
+              resolve();
+            };
+            put.onerror = () => reject(put.error);
+          };
+        };
+      }),
+    patch
+  );
+}
+
 test.describe('website', () => {
-  test('the Website button sits under Discover, and a first visit shows the site the project would make', async ({ app, page }) => {
+  test('the Website button sits under Discover, and a first visit shows the site the project would make', async ({ app, page, tauri, isDesktop }) => {
     await projectWithText(app);
     const names = await views(page).getByRole('button').evaluateAll((buttons) => buttons.map((button) => button.getAttribute('aria-label')));
     const website = names.indexOf(WEBSITE);
@@ -107,6 +160,11 @@ test.describe('website', () => {
     await previewPage(view, 'Support');
     await expect(site(view).locator('h1')).toHaveText('Pebble support');
     await expect(site(view).locator('a.button[href^="mailto:help@pebble.app"]')).toBeVisible();
+    if (isDesktop) {
+      // Email us opens the mail app, as it would on the published page.
+      await site(view).locator('a.button[href^="mailto:"]').click();
+      await expect.poll(() => tauri.openedUrls()).toContainEqual(expect.stringMatching(/^mailto:help@pebble\.app\?subject=/));
+    }
     await previewPage(view, 'Privacy policy');
     await expect(site(view).locator('#summary')).toContainText("Pebble doesn't collect any personal data");
     await expect(site(view).locator('#about')).toContainText('Pebble is made by Pebble Labs');
@@ -128,6 +186,35 @@ test.describe('website', () => {
     await expect(again.getByRole('navigation', { name: 'Website sections' })).toBeVisible();
     await previewPage(again, 'Home');
     await expect(site(again).locator('h1')).toHaveText('Habits that stick');
+  });
+
+  test('the pages fit a phone in a language with long words', async ({ app, page }) => {
+    await projectWithText(app);
+    const view = await openWebsite(page);
+    await makeSite(page, view);
+    // The site is saved a moment after it changes.
+    await page.waitForTimeout(800);
+    await editStoredSite(page, {
+      languages: ['en-US', 'de-DE'],
+      icon: PIXEL_PNG,
+      translations: {
+        'de-DE': { [hash32('Home')]: 'Startseite', [hash32('Support')]: 'Unterstützung', [hash32('Privacy policy')]: 'Datenschutzerklärung', [hash32('Language')]: 'Sprache' },
+      },
+    });
+    await page.reload();
+    await app.waitForBoot();
+    const again = await openWebsite(page);
+    await again.getByRole('button', { name: 'Phone', exact: true }).click();
+    await again.getByLabel('Language of the preview').click();
+    await page.getByRole('option', { name: /^Deutsch/ }).click();
+    for (const name of ['Home', 'Support', 'Privacy policy'] as const) {
+      await previewPage(again, name);
+      await expect(site(again).locator('.links a', { hasText: 'Datenschutzerklärung' })).toBeVisible();
+      const sideways = await site(again)
+        .locator('html')
+        .evaluate((html) => html.scrollWidth - html.clientWidth);
+      expect(sideways, `${name} scrolls sideways`).toBeLessThanOrEqual(0);
+    }
   });
 
   test.describe('with Claude Code signed in', () => {
@@ -169,6 +256,8 @@ test.describe('website', () => {
               { question: 'Can I get a refund?', answer: 'Apple and Google handle refunds for purchases.' },
             ],
             supportIntro: 'Write to fake@made-up.example for help.',
+            // An address the developer never wrote.
+            supportEmail: 'support@pebble.app',
           },
         })
       );
@@ -177,8 +266,8 @@ test.describe('website', () => {
       const answer = view.getByTestId('site-chat-answer').last();
       await expect(answer).toContainText('Added a question about refunds.');
       await expect(answer).toContainText('questions and answers');
-      // The made-up address is turned down, and says so.
-      await expect(answer).toContainText('Left as they were: support page opening');
+      // The made-up addresses are turned down, and the answer says so.
+      await expect(answer).toContainText('Left as they were: support email, support page opening');
       await previewPage(view, 'Support');
       await expect(site(view).locator('summary', { hasText: 'Can I get a refund?' })).toBeVisible();
       await expect(site(view).locator('.head')).not.toContainText('fake@made-up.example');
@@ -186,6 +275,19 @@ test.describe('website', () => {
       await answer.getByRole('button', { name: 'Undo' }).click();
       await expect(site(view).locator('summary', { hasText: 'Can I get a refund?' })).toHaveCount(0);
       await expect(site(view).locator('summary', { hasText: 'Is Pebble free?' })).toBeVisible();
+
+      // A paragraph for the privacy policy waits for the developer.
+      await tauri.setResponse('abs_claude_prompt', JSON.stringify({ reply: 'Here is a paragraph about backups.', changes: { privacyExtra: 'We keep backups for 30 days.' } }));
+      await view.getByLabel('Ask for a change').fill('Say that we keep backups for 30 days');
+      await view.getByLabel('Ask for a change').press('Enter');
+      const suggestion = view.getByTestId('site-chat-suggestion');
+      await expect(suggestion).toContainText('We keep backups for 30 days.');
+      await previewPage(view, 'Privacy policy');
+      await expect(site(view).locator('#summary')).toBeVisible();
+      await expect(site(view).locator('#more')).toHaveCount(0);
+      await suggestion.getByRole('button', { name: 'Put it in the policy' }).click();
+      await expect(site(view).locator('#more')).toContainText('We keep backups for 30 days.');
+      await expect(suggestion).toContainText('In the policy now');
     });
   });
 
@@ -213,6 +315,109 @@ test.describe('website', () => {
       { match: `^POST ${repo}/pages$`, ...json({ html_url: 'https://octo.github.io/pebble/' }, 201) },
     ];
     test.use({ tauriConfig: { http: GITHUB } });
+
+    type Recorded = { method: string; url: string; body: string | null };
+    const requests = (page: Page) => page.evaluate(() => (window as unknown as { __E2E_TAURI__: { httpRequests: Recorded[] } }).__E2E_TAURI__.httpRequests);
+    /** Put a rule in front of the others, while the test runs. */
+    const answerFirst = (page: Page, rule: TauriHttpRule) =>
+      page.evaluate((rule) => (window as unknown as { __E2E_TAURI__: { config: { http: TauriHttpRule[] } } }).__E2E_TAURI__.config.http.unshift(rule), rule);
+
+    async function signIn(view: Locator) {
+      await openSection(view, /^Publish/);
+      await view.getByRole('button', { name: 'Sign in with GitHub' }).click();
+      await expect(view.getByTestId('site-device-code')).toHaveText('ABCD-1234');
+      await expect(view.getByText('github.com/octo', { exact: true })).toBeVisible({ timeout: 20_000 });
+    }
+
+    test('untranslated lines wait for a yes, and the Pages step GitHub leaves to the developer stays until the site answers', async ({ app, page, isDesktop }) => {
+      test.skip(!isDesktop, "GitHub's device sign-in and the app's HTTP client are the desktop app's");
+      test.setTimeout(180_000);
+      // Offline: the app's own translation server turns every request down at
+      // once (a dead one is retried with pauses, string by string).
+      await page.route(
+        (url) => /\/(translate|detect|health)$/.test(url.pathname),
+        (route) => route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ error: 'Offline in this test' }) })
+      );
+      await projectWithText(app);
+      const view = await openWebsite(page);
+      await makeSite(page, view);
+      // A language with nothing translated, and no AI set up to translate it.
+      await openSection(view, /^Languages/);
+      await view.getByLabel('Add a language').click();
+      await page.getByRole('option', { name: 'German (Deutsch)' }).click();
+      await signIn(view);
+      // GitHub turns the app down when it switches Pages on.
+      await answerFirst(page, { match: `^POST ${repo}/pages$`, ...json({ message: 'Resource not accessible by integration' }, 403) });
+
+      await view.getByTestId('site-publish').click();
+      const untranslated = view.getByTestId('site-untranslated');
+      await expect(untranslated).toBeVisible({ timeout: 90_000 });
+      await expect(untranslated).toContainText('Deutsch');
+      await expect(view.getByTestId('site-publish-progress')).toContainText('Publishing Pebble');
+      // Nothing went to GitHub while the question waits.
+      expect((await requests(page)).filter((request) => request.url.startsWith('https://api.github.com/') && request.url !== 'https://api.github.com/user')).toEqual([]);
+      await untranslated.getByRole('button', { name: 'Publish anyway' }).click();
+
+      await expect(view.getByTestId('site-pages-step')).toBeVisible({ timeout: 60_000 });
+      await view.getByTestId('site-publish-progress').getByRole('button', { name: 'Stop' }).click();
+      await expect(view.getByTestId('site-publish-progress')).toBeHidden();
+      // Stopping the wait keeps the step, with the button to the settings.
+      const step = view.getByTestId('site-pages-step');
+      await expect(step).toBeVisible();
+      await expect(step.getByRole('button', { name: 'Open the Pages settings' })).toBeVisible();
+      await expect(view.getByTestId('website-status')).toHaveText('Going online');
+
+      // The developer switches Pages on, and GitHub serves this version.
+      const tree = JSON.parse((await requests(page)).find((request) => request.method === 'POST' && request.url.endsWith('/git/trees'))!.body!) as { tree: Array<{ path: string; content?: string }> };
+      const { build } = JSON.parse(tree.tree.find((entry) => entry.path === 'osg-site.json')!.content!) as { build: string };
+      await answerFirst(page, { match: '^GET https://octo\\.github\\.io/pebble/osg-site\\.json\\?look=\\d+$', status: 200, body: JSON.stringify({ build }), headers: { 'content-type': 'application/json' } });
+      await expect(view.getByTestId('website-status')).toHaveText('Online', { timeout: 45_000 });
+      await expect(step).toBeHidden();
+    });
+
+    test('a publish stops when another project is opened while its screenshots are taken, and nothing goes to GitHub', async ({ app, page, isDesktop }) => {
+      test.skip(!isDesktop, "GitHub's device sign-in and the app's HTTP client are the desktop app's");
+      test.setTimeout(180_000);
+      const strip = page.locator('[data-project-tabs]');
+      await projectWithText(app);
+      let view = await openWebsite(page);
+      await makeSite(page, view);
+      await signIn(view);
+
+      // A second project, with a site of its own.
+      await view.getByRole('button', { name: 'Back to the editor' }).click();
+      await strip.getByRole('button', { name: 'New tab', exact: true }).click();
+      await app.startBlankProject();
+      await addText(app, page);
+      view = await openWebsite(page);
+      await makeSite(page, view, { appName: 'Bramble' });
+
+      // Back to the first, changed since its screenshots were taken.
+      await view.getByRole('button', { name: 'Back to the editor' }).click();
+      await strip.getByRole('tab').first().click();
+      await expect(strip.getByRole('tab').first()).toHaveAttribute('aria-selected', 'true');
+      await addText(app, page);
+      // The editor waits for the fonts before it takes a screenshot: hold them.
+      await page.evaluate(() => {
+        const held = window as unknown as { __releaseFonts?: () => void };
+        const gate = new Promise<void>((resolve) => (held.__releaseFonts = resolve));
+        Object.defineProperty(document.fonts, 'ready', { configurable: true, get: () => gate.then(() => document.fonts) });
+      });
+      view = await openWebsite(page);
+      await openSection(view, /^Publish/);
+      await expect(view.locator('#site-repo')).toHaveValue('pebble');
+      await view.getByTestId('site-publish').click();
+      await expect(view.getByTestId('site-publish-progress')).toContainText('Getting your screenshots');
+
+      await view.getByRole('button', { name: 'Back to the editor' }).click();
+      await strip.getByRole('tab').nth(1).click();
+      await expect(strip.getByRole('tab').nth(1)).toHaveAttribute('aria-selected', 'true');
+      await page.evaluate(() => (window as unknown as { __releaseFonts: () => void }).__releaseFonts());
+
+      await expect(page.getByText('Another project was opened while its screenshots were being taken').first()).toBeVisible({ timeout: 30_000 });
+      const github = (await requests(page)).filter((request) => request.url.startsWith('https://api.github.com/') && request.url !== 'https://api.github.com/user');
+      expect(github).toEqual([]);
+    });
 
     test('GitHub sign-in asks for public repositories, and the site goes up in one commit with Pages switched on', async ({ app, page, tauri, isDesktop }) => {
       test.skip(!isDesktop, "GitHub's device sign-in and the app's HTTP client are the desktop app's");
@@ -273,6 +478,12 @@ test.describe('website', () => {
       expect(home).toContain('<link rel="canonical" href="https://octo.github.io/pebble/">');
       expect(home).toContain('New Text');
       expect(tauri).toBeTruthy();
+
+      // A change to the screenshots in the editor is a change to the site too.
+      await view.getByRole('button', { name: 'Back to the editor' }).click();
+      await addText(app, page);
+      const back = await openWebsite(page);
+      await expect(back.getByTestId('website-status')).toHaveText('Changes not online yet');
     });
   });
 

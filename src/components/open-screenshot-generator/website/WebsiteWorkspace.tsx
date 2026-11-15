@@ -50,10 +50,11 @@ import { getLocaleDef } from '@/lib/i18n/locales';
 import { projectArtboards } from '@/lib/i18n/project';
 import { useStoreCredentials } from '@/lib/publish';
 import { askSite, writeSite } from '@/lib/website/ai';
-import { appStoreIdOf, fetchHeadingFace, iconFromFile, iconFromUrl, lookupStoreFacts, pictureColors, webJpeg } from '@/lib/website/assets';
-import { applyChanges, captionOf, factsFromProject, newDraft, newId, siteBoards, type Caption } from '@/lib/website/content';
+import { appStoreIdOf, fetchHeadingFace, iconFromFile, iconFromUrl, importedHeadingFace, isGoogleFamily, lookupStoreFacts, pictureColors, webJpeg } from '@/lib/website/assets';
+import { applyChanges, boardsFingerprint, captionOf, factsFromProject, newDraft, newId, siteBoards, type Caption, type ChangeContext } from '@/lib/website/content';
 import {
   githubIdentities,
+  isServing,
   mayPublish,
   onWebsiteGithubChange,
   publishSite,
@@ -66,8 +67,8 @@ import {
   GithubPublishError,
 } from '@/lib/website/github';
 import { defaultPrivacy, privacyProblems } from '@/lib/website/privacy';
-import { pageDir, pageUrl, renderSiteFiles } from '@/lib/website/render';
-import { readSiteRow, useSiteDraft, writeSiteRow, type SiteChatItem } from '@/lib/website/store';
+import { faceCss, pageDir, pageUrl, renderSiteFiles } from '@/lib/website/render';
+import { changeSiteRow, readSiteRow, useSiteDraft, writeSiteRow, type SiteChatItem } from '@/lib/website/store';
 import { missingCounts, prunedTranslations, siteFingerprint, siteTexts, translator, type TranslationBook } from '@/lib/website/strings';
 import { boardColours, suggestColours, suggestHeading, type Weighted } from '@/lib/website/theme';
 import { projectTranslations, translateSite } from '@/lib/website/translate';
@@ -75,6 +76,7 @@ import type { PublishRecord, SiteDraft, SitePage, SiteShot, SiteTheme } from '@/
 import { zipFiles } from '@/lib/website/zip';
 import type { AscApp } from '@/lib/growth/asc';
 import type { ArtboardState } from '@/types/artboard';
+import { isCustomFontFamily, useCustomFonts } from '@/services/customFonts';
 import { cn } from '@/lib/utils';
 import { AppSection, HomeSection, LanguagesSection, LookSection, PrivacySection, SupportSection, type GrowthAppChoice, type Update } from './WebsiteForms';
 import { WebsiteChat } from './WebsiteChat';
@@ -144,6 +146,19 @@ function isStop(error: unknown): boolean {
   return (error as Error)?.name === 'AbortError';
 }
 
+/** Screenshots are taken from the canvas, so they stop when another project is opened while they are taken. */
+class ProjectChangedError extends Error {
+  constructor() {
+    super('Another project was opened while the screenshots were being taken');
+    this.name = 'ProjectChangedError';
+  }
+}
+
+/** Fonts the site can carry: the app's Google ones, and the developer's own (which go on only when they say so). */
+function fontAllowed(family: string): boolean {
+  return isGoogleFamily(family) || isCustomFontFamily(family);
+}
+
 function mergeBooks(into: TranslationBook, from: TranslationBook): TranslationBook {
   const out: TranslationBook = { ...into };
   for (const [locale, entries] of Object.entries(from)) out[locale] = { ...(into[locale] ?? {}), ...entries };
@@ -201,9 +216,11 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
   latestProject.current = project;
 
   const takeShots = useCallback(
-    (locale: string): Promise<SiteShot[]> => {
+    (locale: string, forProject?: string): Promise<SiteShot[]> => {
       const run = async (): Promise<SiteShot[]> => {
         const now = latestProject.current;
+        // Work for one project never takes another one's screenshots.
+        if (forProject && now.id !== forProject) throw new ProjectChangedError();
         const doc = now.artboards;
         const base = getBaseLocale(doc);
         const own = getProjectLocales(doc).map((entry) => entry.code);
@@ -216,6 +233,7 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
         setCapturing(key);
         try {
           const captured = await captureBoards({ projectId: now.id, locale: target, boardIds: list.map((board) => board.id), maxWidth: SHOT_WIDTH });
+          if (latestProject.current.id !== now.id) throw new ProjectChangedError();
           const localized = (target ? siteBoards(projectArtboards(doc, target)) : list).map(captionOf);
           const made: SiteShot[] = [];
           for (const [index, board] of captured.entries()) {
@@ -338,8 +356,8 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
 
   const runTranslate = useCallback(async () => {
     const current = draftRef.current;
-    const projectId = projectIdRef.current;
-    if (!current || !projectId || translateStop.current) return;
+    if (!current || current.projectId !== projectIdRef.current || translateStop.current) return;
+    const projectId = current.projectId;
     const stop = new AbortController();
     translateStop.current = stop;
     setTranslating({ done: 0, total: 0, engine: '' });
@@ -442,40 +460,58 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
 
   const addChat = useCallback((item: Omit<SiteChatItem, 'id' | 'at'>) => site.setChat((chat) => [...chat, { ...item, id: newId('m'), at: Date.now() }]), [site]);
 
+  /** Whether the site on screen is `projectId`'s, so an answer for it can go straight in. */
+  const showing = useCallback((projectId: string) => projectIdRef.current === projectId && draftRef.current?.projectId === projectId, []);
+
+  /** A chat line for a project whose site is not on screen any more. */
+  const addChatTo = useCallback(async (projectId: string, item: Omit<SiteChatItem, 'id' | 'at'>) => {
+    if (showing(projectId)) {
+      addChat(item);
+      return;
+    }
+    await changeSiteRow(projectId, (row) => ({ ...row, chat: [...row.chat, { ...item, id: newId('m'), at: Date.now() }] })).catch((error) =>
+      console.error('The answer could not be saved with its site', error)
+    );
+  }, [showing, addChat]);
+
   const runWrite = useCallback(
     async (start: SiteDraft, notes = '') => {
       const projectId = start.projectId;
       const stop = new AbortController();
       writeStop.current = stop;
       setWriting(true);
+      const text = `I wrote the home and support pages from your screenshots${notes.trim() ? ' and your notes' : ''}. Tell me what to change.`;
       try {
         const written = await writeSite({ draft: start, captions, notes, signal: stop.signal });
-        if (projectIdRef.current !== projectId) return;
-        const before = draftRef.current ?? start;
-        const report = applyChanges(before, written.changes, captions.length);
         const apply = (now: SiteDraft) => {
           const next = applyChanges(now, written.changes, captions.length).draft;
           return { ...next, content: written.whole ? { ...next.content, lang: next.baseLocale } : next.content, writtenBy: ai.label ?? undefined };
         };
+        const answer = (before: SiteDraft, next: SiteDraft): Omit<SiteChatItem, 'id' | 'at'> => {
+          const report = applyChanges(before, written.changes, captions.length);
+          return { role: 'assistant', text, changed: report.changed, refused: report.refused, before, after: siteFingerprint(next) };
+        };
+        if (!showing(projectId)) {
+          // Another project was opened meanwhile: its site still gets what was written for it.
+          await changeSiteRow(projectId, ({ draft: now, chat }) => {
+            const next = apply(now);
+            return { draft: next, chat: [...chat, { ...answer(now, next), id: newId('m'), at: Date.now() }] };
+          });
+          return;
+        }
+        const before = draftRef.current!;
         const next = apply(before);
         site.update((now) => (now === before ? next : apply(now)));
-        addChat({
-          role: 'assistant',
-          text: `I wrote the home and support pages from your screenshots${notes.trim() ? ' and your notes' : ''}. Tell me what to change.`,
-          changed: report.changed,
-          refused: report.refused,
-          before,
-          after: siteFingerprint(next),
-        });
+        addChat(answer(before, next));
       } catch (error) {
         if (isStop(error)) return;
-        addChat({ role: 'assistant', text: `The AI couldn't write the site: ${messageOf(error, 'try again')}. The site has your screenshots' words for now.`, failed: true });
+        await addChatTo(projectId, { role: 'assistant', text: `The AI couldn't write the site: ${messageOf(error, 'try again')}. The site has your screenshots' words for now.`, failed: true });
       } finally {
         writeStop.current = null;
         setWriting(false);
       }
     },
-    [captions, ai.label, site, addChat]
+    [captions, ai.label, site, addChat, addChatTo, showing]
   );
 
   const finishSetup = useCallback(
@@ -505,35 +541,67 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
   const send = useCallback(
     async (message: string) => {
       const current = draftRef.current;
-      const projectId = projectIdRef.current;
-      if (!current || !projectId || askStop.current) return;
+      if (!current || current.projectId !== projectIdRef.current || askStop.current) return;
+      const projectId = current.projectId;
       const history = site.chat.filter((item) => !item.failed).map((item) => ({ role: item.role, text: item.text }));
+      // An email address or store link the AI sends has to be one the developer wrote.
+      const context: ChangeContext = { said: [...site.chat.filter((item) => item.role === 'user').map((item) => item.text), message].join('\n'), fontAllowed };
       addChat({ role: 'user', text: message });
       const stop = new AbortController();
       askStop.current = stop;
       setAsking(true);
       try {
         const answer = await askSite({ draft: current, captions, history, message, signal: stop.signal });
-        if (stop.signal.aborted || projectIdRef.current !== projectId) return;
-        const before = draftRef.current ?? current;
-        const report = applyChanges(before, answer.changes, captions.length);
-        if (report.changed.length > 0) site.update((now) => (now === before ? report.draft : applyChanges(now, answer.changes, captions.length).draft));
-        addChat({
-          role: 'assistant',
-          text: answer.reply || (report.changed.length ? `Done: I changed the ${report.changed.join(', ')}.` : "I didn't change anything."),
-          changed: report.changed,
-          refused: report.refused,
-          before: report.changed.length > 0 ? before : undefined,
-          after: report.changed.length > 0 ? siteFingerprint(report.draft) : undefined,
-        });
+        if (stop.signal.aborted) return;
+        const outcome = (before: SiteDraft): { next: SiteDraft; item: Omit<SiteChatItem, 'id' | 'at'> } => {
+          const report = applyChanges(before, answer.changes, captions.length, context);
+          const touched = report.changed.length > 0;
+          const suggestion = report.suggested.privacyExtra;
+          return {
+            next: touched ? report.draft : before,
+            item: {
+              role: 'assistant',
+              text:
+                answer.reply ||
+                (touched ? `Done: I changed the ${report.changed.join(', ')}.` : suggestion ? 'I wrote a paragraph for the privacy policy. Put it in if it says what your app does.' : "I didn't change anything."),
+              changed: report.changed,
+              refused: report.refused,
+              before: touched ? before : undefined,
+              after: touched ? siteFingerprint(report.draft) : undefined,
+              suggestion: suggestion ? { privacyExtra: suggestion } : undefined,
+            },
+          };
+        };
+        if (!showing(projectId)) {
+          await changeSiteRow(projectId, ({ draft: now, chat }) => {
+            const { next, item } = outcome(now);
+            return { draft: next, chat: [...chat, { ...item, id: newId('m'), at: Date.now() }] };
+          });
+          return;
+        }
+        const before = draftRef.current!;
+        const { next, item } = outcome(before);
+        if (next !== before) site.update((now) => (now === before ? next : outcome(now).next));
+        addChat(item);
       } catch (error) {
-        if (!isStop(error)) addChat({ role: 'assistant', text: `The AI couldn't answer: ${messageOf(error, 'try again')}`, failed: true });
+        if (!isStop(error)) await addChatTo(projectId, { role: 'assistant', text: `The AI couldn't answer: ${messageOf(error, 'try again')}`, failed: true });
       } finally {
         askStop.current = null;
         setAsking(false);
       }
     },
-    [site, captions, addChat]
+    [site, captions, addChat, addChatTo, showing]
+  );
+
+  /** Put the paragraph an answer suggested into the privacy policy. */
+  const takeSuggestion = useCallback(
+    (id: string) => {
+      const text = site.chat.find((entry) => entry.id === id)?.suggestion?.privacyExtra;
+      if (!text) return;
+      site.update((now) => ({ ...now, content: { ...now.content, privacyExtra: text } }));
+      site.setChat((chat) => chat.map((entry) => (entry.id === id && entry.suggestion ? { ...entry, suggestion: { ...entry.suggestion, used: true } } : entry)));
+    },
+    [site]
   );
 
   const undo = useCallback(
@@ -613,10 +681,15 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
   }, [project.id, draft?.publish?.repo, !!draft]);
   const [job, setJob] = useState<PublishJob | null>(null);
   const publishStop = useRef<AbortController | null>(null);
+  /** Answers the question a publish asks about untranslated lines. */
+  const goOn = useRef<((go: boolean) => void) | null>(null);
   const [zipBusy, setZipBusy] = useState(false);
   const fingerprint = useMemo(() => (draft ? siteFingerprint(draft) : ''), [draft]);
+  const boardsPrint = useMemo(() => boardsFingerprint(artboards), [artboards]);
   const published = draft?.publish;
-  const changedSince = !!published && published.fingerprint !== fingerprint;
+  // The screenshots and the project's translations of their captions are
+  // part of what goes out too, and they change in the editor.
+  const changedSince = !!published && (published.fingerprint !== fingerprint || (!!published.boards && published.boards !== boardsPrint));
 
   /** Every language's screenshots, for the files. */
   const allShots = useCallback(
@@ -626,7 +699,7 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
       for (const locale of current.languages) {
         if (signal?.aborted) throw new DOMException('Stopped', 'AbortError');
         if (locale !== baseLocale && !projectLocales.includes(locale)) continue;
-        out[locale] = await takeShots(locale);
+        out[locale] = await takeShots(locale, current.projectId);
       }
       return out;
     },
@@ -637,6 +710,14 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
   const headingFace = useCallback(
     async (current: SiteDraft, signal?: AbortSignal) => {
       if (!current.theme.headingFont) return null;
+      if (!isGoogleFamily(current.theme.headingFont)) {
+        // A font the developer imported goes on the site only when they said its license allows it.
+        if (!current.theme.shareFont) return null;
+        return importedHeadingFace(current.theme.headingFont).catch((error) => {
+          console.warn('The imported heading font could not be read; the site uses the visitor’s own', error);
+          return null;
+        });
+      }
       const texts = siteTexts(current);
       const headings = [current.content.headline, current.content.galleryTitle, current.content.ctaTitle, ...current.content.features.map((feature) => feature.title), current.facts.appName];
       const letters = current.languages
@@ -673,21 +754,26 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
 
   const publish = useCallback(async () => {
     const start = draftRef.current;
-    const projectId = projectIdRef.current;
-    if (!start || !projectId || identity.state !== 'ready' || publishStop.current) return;
+    if (!start || start.projectId !== projectIdRef.current || identity.state !== 'ready' || publishStop.current) return;
+    // Everything below is this project's, whichever project is open by the time it ends.
+    const projectId = start.projectId;
     const who = identity.who;
     const repo = repoName;
     const stop = new AbortController();
     publishStop.current = stop;
     track('website_publish', { languages: start.languages.length, again: !!start.publish });
+    const appName = start.facts.appName.trim();
+    const setPhase = (next: Omit<PublishJob, 'appName'>) => setJob({ ...next, appName });
     let sent = false;
     try {
-      setJob({ phase: 'shots' });
+      setPhase({ phase: 'shots' });
       const shotsByLocale = await allShots(start, stop.signal);
-      let current = draftRef.current ?? start;
+      const boards = latestProject.current.id === projectId ? boardsFingerprint(latestProject.current.artboards) : undefined;
+      const latest = draftRef.current;
+      let current = latest && latest.projectId === projectId ? latest : start;
       if (Object.values(missingCounts(current, known)).some((count) => count > 0) && availableEngines().length > 0) {
-        setJob({ phase: 'translate' });
-        const result = await translateSite(current, { known, signal: stop.signal, onProgress: (done, total) => setJob({ phase: 'translate', done, total }) });
+        setPhase({ phase: 'translate' });
+        const result = await translateSite(current, { known, signal: stop.signal, onProgress: (done, total) => setPhase({ phase: 'translate', done, total }) });
         current = { ...current, translations: result.translations };
         current = { ...current, translations: prunedTranslations(current) };
         const translated = current.translations;
@@ -696,7 +782,20 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
           return { ...merged, translations: prunedTranslations(merged) };
         });
       }
-      setJob({ phase: 'build' });
+      // Lines still in the site's own language go out only when the developer says so.
+      const untranslated = Object.entries(missingCounts(current, known))
+        .filter(([, count]) => count > 0)
+        .map(([locale, count]) => ({ locale, count }));
+      if (untranslated.length > 0) {
+        setPhase({ phase: 'translate', untranslated });
+        const go = await new Promise<boolean>((resolve) => {
+          goOn.current = resolve;
+          stop.signal.addEventListener('abort', () => resolve(false), { once: true });
+        });
+        goOn.current = null;
+        if (!go) throw new DOMException('Stopped', 'AbortError');
+      }
+      setPhase({ phase: 'build' });
       const siteUrl = siteAddress(who.login, repo);
       const face = await headingFace(current, stop.signal);
       const build = newId('b');
@@ -709,18 +808,32 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
         appName: current.facts.appName,
         siteUrl,
         signal: stop.signal,
-        onProgress: (progress) => setJob({ phase: progress.step, done: progress.done, total: progress.total }),
+        onProgress: (progress) => setPhase({ phase: progress.step, done: progress.done, total: progress.total }),
       });
       sent = true;
-      const record: PublishRecord = { owner: who.login, repo, branch: outcome.branch, url: siteUrl, at: Date.now(), build, fingerprint: siteFingerprint(current), live: false };
+      const pagesPending = outcome.pages === 'needs-you';
+      const record: PublishRecord = {
+        owner: who.login,
+        repo,
+        branch: outcome.branch,
+        url: siteUrl,
+        at: Date.now(),
+        build,
+        fingerprint: siteFingerprint(current),
+        live: false,
+        pagesPending,
+        boards,
+      };
       await updateSiteOf(projectId, (now) => ({ ...now, publish: record }));
-      setJob({ phase: 'live', needsPages: outcome.pages === 'needs-you', branch: outcome.branch });
-      const live = await waitUntilLive({ siteUrl, build, signal: stop.signal, timeoutMs: outcome.pages === 'needs-you' ? 20 * 60_000 : 6 * 60_000 });
-      await updateSiteOf(projectId, (now) => (now.publish?.build === build ? { ...now, publish: { ...now.publish, live } } : now));
+      setPhase({ phase: 'live', needsPages: pagesPending, branch: outcome.branch });
+      const live = await waitUntilLive({ siteUrl, build, signal: stop.signal, timeoutMs: pagesPending ? 20 * 60_000 : 6 * 60_000 });
+      await updateSiteOf(projectId, (now) => (now.publish?.build === build ? { ...now, publish: { ...now.publish, live, pagesPending: live ? false : now.publish.pagesPending } } : now));
       toast(
         live
           ? { title: 'Your website is online', description: `${siteUrl}. The links for App Store Connect and Play Console are under Publish.` }
-          : { title: 'GitHub is still putting the site online', description: 'It can take a few more minutes the first time. The links are under Publish.' }
+          : pagesPending
+            ? { title: 'GitHub Pages is still off', description: 'Switch it on in the repository settings. The steps are under Publish.' }
+            : { title: 'GitHub is still putting the site online', description: 'It can take a few more minutes the first time. The links are under Publish.' }
       );
     } catch (error) {
       if (isStop(error)) {
@@ -729,16 +842,52 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
             ? { title: 'Stopped waiting for GitHub', description: 'The site is on GitHub and goes online by itself. Its links are under Publish.' }
             : { title: 'Publishing stopped', description: 'Nothing on GitHub changed after the step that was running.' }
         );
+      } else if (error instanceof ProjectChangedError) {
+        toast({ title: 'Publishing stopped', description: 'Another project was opened while its screenshots were being taken. Open the project again and publish.' });
       } else {
         console.error('Publishing the website failed', error);
         toast({ title: "The website didn't go out", description: messageOf(error, 'Try again in a moment.'), variant: 'destructive' });
         if (error instanceof GithubPublishError && (error.problem === 'auth' || error.problem === 'scope')) void checkIdentity();
       }
     } finally {
+      goOn.current = null;
       publishStop.current = null;
       setJob(null);
     }
   }, [identity, repoName, allShots, known, headingFace, updateSiteOf, toast, checkIdentity]);
+
+  // A site GitHub has not served yet is looked at now and then while the
+  // view is open, so it shows as online once it is, also when the developer
+  // stopped waiting, or switched Pages on by hand after the app could not.
+  const watchUrl = !job && published && !published.live ? published.url : null;
+  const watchBuild = published?.build;
+  const watchProject = draft?.projectId;
+  const watchPending = !!published?.pagesPending;
+  // Through refs: updateSiteOf is made again on every render, and the look must not start over with it.
+  const updateSiteOfRef = useRef(updateSiteOf);
+  updateSiteOfRef.current = updateSiteOf;
+  const toastRef = useRef(toast);
+  toastRef.current = toast;
+  useEffect(() => {
+    if (!active || !watchUrl || !watchBuild || !watchProject) return;
+    const stop = new AbortController();
+    let timer = 0;
+    const look = async () => {
+      const live = await isServing({ siteUrl: watchUrl, build: watchBuild, signal: stop.signal }).catch(() => false);
+      if (stop.signal.aborted) return;
+      if (live) {
+        await updateSiteOfRef.current(watchProject, (now) => (now.publish?.build === watchBuild ? { ...now, publish: { ...now.publish, live: true, pagesPending: false } } : now));
+        if (watchPending) toastRef.current({ title: 'Your website is online', description: 'GitHub Pages is on now. The links are under Publish.' });
+        return;
+      }
+      timer = window.setTimeout(() => void look(), 15_000);
+    };
+    void look();
+    return () => {
+      stop.abort();
+      window.clearTimeout(timer);
+    };
+  }, [active, watchUrl, watchBuild, watchProject, watchPending]);
 
   const saveZip = useCallback(async () => {
     const current = draftRef.current;
@@ -774,6 +923,27 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
   );
 
   // --- the preview --------------------------------------------------------------------------------
+  // An imported heading font the developer put on the site, from this device's copy.
+  const customFonts = useCustomFonts();
+  const shareFamily = draft?.theme.shareFont && draft.theme.headingFont && !isGoogleFamily(draft.theme.headingFont) ? draft.theme.headingFont : '';
+  const shareWeight = draft?.theme.headingWeight || 700;
+  const [previewFace, setPreviewFace] = useState('');
+  useEffect(() => {
+    setPreviewFace('');
+    if (!shareFamily || !customFonts.some((font) => font.family === shareFamily)) return;
+    let cancelled = false;
+    let url = '';
+    void importedHeadingFace(shareFamily).then((face) => {
+      if (cancelled || !face) return;
+      url = URL.createObjectURL(new Blob([face.bytes as BlobPart]));
+      setPreviewFace(faceCss(shareFamily, url, face.format, shareWeight));
+    });
+    return () => {
+      cancelled = true;
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [shareFamily, shareWeight, customFonts]);
+
   const [page, setPage] = useState<SitePage>('home');
   const [previewLocale, setPreviewLocale] = useState<string | null>(null);
   const [device, setDevice] = useState<PreviewDevice>('desktop');
@@ -830,6 +1000,7 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
             writeStop.current?.abort();
           }}
           onUndo={undo}
+          onUseSuggestion={takeSuggestion}
         />
       );
     } else {
@@ -916,6 +1087,7 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
             job={job}
             onPublish={() => void publish()}
             onStop={() => publishStop.current?.abort()}
+            onGoOn={() => goOn.current?.(true)}
             onZip={() => void saveZip()}
             zipBusy={zipBusy}
             changed={changedSince}
@@ -1096,6 +1268,7 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
                 known={known}
                 address={address}
                 busy={busy}
+                faceCss={previewFace}
                 onNavigate={(nextPage, nextLocale) => {
                   setPage(nextPage);
                   setPreviewLocale(nextLocale);

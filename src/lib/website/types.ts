@@ -44,6 +44,13 @@ export interface SiteTheme {
   /** A family from the app's font list for the headings, '' for the system face. */
   headingFont: string;
   headingWeight: number;
+  /**
+   * The heading font is one the developer imported, and they said its file
+   * may go on the site. Off, the site leaves an imported font out: a font
+   * licensed for the desktop is often not licensed for the web, and anyone
+   * can download a file a site carries.
+   */
+  shareFont?: boolean;
 }
 
 export interface SiteFeature {
@@ -110,6 +117,8 @@ export interface PrivacyAnswers {
   personalizedAds: boolean;
   /** The app is made for children under 13. */
   children: boolean;
+  /** The developer deletes someone's data within a month of being asked, so the policy may promise it. */
+  deleteWithinMonth?: boolean;
   /** The day the policy takes effect, YYYY-MM-DD. */
   updated: string;
 }
@@ -135,6 +144,10 @@ export interface PublishRecord {
   fingerprint: string;
   /** GitHub served this version already, rather than still building it. */
   live: boolean;
+  /** GitHub turned the app down when it switched Pages on, so the developer has to, once. Kept until the site answers. */
+  pagesPending?: boolean;
+  /** boardsFingerprint of the artboards the screenshots were taken from, to tell when they changed since. */
+  boards?: string;
 }
 
 export interface SiteDraft {

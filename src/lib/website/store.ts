@@ -30,6 +30,12 @@ export interface SiteChatItem extends SiteChatTurn {
   after?: string;
   /** The answer could not be had: what went wrong. */
   failed?: boolean;
+  /**
+   * A paragraph the AI suggested for the privacy policy. It goes in only when
+   * the developer presses the button under it, so no sentence of the policy
+   * is the AI's without the developer choosing it.
+   */
+  suggestion?: { privacyExtra: string; used?: boolean };
 }
 
 interface SiteRow {
@@ -67,6 +73,21 @@ export async function writeSiteRow(draft: SiteDraft, chat: SiteChatItem[]): Prom
   // Only the newest answer can be undone, so only it keeps the draft before it.
   const kept = chat.slice(-CHAT_LIMIT).map((item, index, all) => (index === all.length - 1 || !item.before ? item : { ...item, before: undefined }));
   await db().sites.put({ projectId: draft.projectId, draft, chat: kept, updatedAt: Date.now() });
+}
+
+/**
+ * Change a project's stored site and conversation. For AI work that ends
+ * after another project was opened: the answer still lands in the site it
+ * was asked about. Nothing happens for a project without a site.
+ */
+export async function changeSiteRow(
+  projectId: string,
+  change: (row: { draft: SiteDraft; chat: SiteChatItem[] }) => { draft: SiteDraft; chat: SiteChatItem[] }
+): Promise<void> {
+  const row = await readSiteRow(projectId);
+  if (!row) return;
+  const next = change(row);
+  await writeSiteRow({ ...next.draft, updatedAt: Date.now() }, next.chat);
 }
 
 /** The saves waiting in each mounted Website view, for the window's close hook. */

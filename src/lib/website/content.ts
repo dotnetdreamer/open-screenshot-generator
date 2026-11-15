@@ -10,7 +10,8 @@
 
 import { suggestedAppName } from '@/lib/creative/layouts';
 import { projectBoards } from '@/lib/growth/projectShots';
-import { DEFAULT_BASE_LOCALE } from '@/lib/i18n/locales';
+import { hash32 } from '@/lib/i18n/hash';
+import { DEFAULT_BASE_LOCALE, getLocaleDef } from '@/lib/i18n/locales';
 import type { ArtboardState, TextElementProps } from '@/types/artboard';
 import { cleanPrivacy, defaultPrivacy, isDataUse } from './privacy';
 import type { PrivacyAnswers, SiteContent, SiteDraft, SiteFacts, SiteFaq, SiteFeature, SiteTheme } from './types';
@@ -58,6 +59,16 @@ export function siteBoards(artboards: ArtboardState[]): ArtboardState[] {
   return phones.length > 0 ? phones : projectBoards(artboards, 'ipad').boards;
 }
 
+/**
+ * A fingerprint of the artboards the site's screenshots come from, with the
+ * project's translations (every board carries them), to tell when the
+ * screenshots or their captions changed since a publish. The zoom the canvas
+ * shows a board at changes nothing on it.
+ */
+export function boardsFingerprint(artboards: ArtboardState[]): string {
+  return hash32(JSON.stringify(siteBoards(artboards).map(({ zoom: _zoom, ...board }) => board)));
+}
+
 export interface Caption {
   title: string;
   body: string;
@@ -72,9 +83,13 @@ function readingOrder(a: TextElementProps, b: TextElementProps): number {
   return Math.abs(a.position.y - b.position.y) > 8 ? a.position.y - b.position.y : a.position.x - b.position.x;
 }
 
-/** A badge such as "SMART FINANCE": a few words in capitals only. */
-function isLabel(text: string): boolean {
-  return !/\p{Ll}/u.test(text) && text.split(/\s+/).length <= 4;
+/**
+ * A badge such as "SMART FINANCE": a few words in capitals only. Japanese,
+ * Chinese, Arabic and other scripts without capitals have no such badges, so
+ * their lines are never taken for one.
+ */
+export function isLabel(text: string): boolean {
+  return /\p{Lu}/u.test(text) && !/\p{Ll}/u.test(text) && text.split(/\s+/).length <= 4;
 }
 
 /**
@@ -312,6 +327,24 @@ export interface ChangeReport {
   changed: string[];
   /** Fields the AI sent that were turned down. */
   refused: string[];
+  /**
+   * What the AI may only suggest. A paragraph for the privacy policy is
+   * never put in by the AI: the chat shows it with a button, and it goes in
+   * when the developer presses that.
+   */
+  suggested: { privacyExtra?: string };
+}
+
+/** What applyChanges checks the AI's changes against, beyond the draft. */
+export interface ChangeContext {
+  /**
+   * Everything the developer wrote in the conversation. An email address or
+   * a store link the AI sends must be in it, so the AI cannot put one on the
+   * site that the developer never gave. Unset, those fields are turned down.
+   */
+  said?: string;
+  /** Whether a heading font can go on the site: one of the app's fonts. '' (the phone's own) always can. */
+  fontAllowed?: (family: string) => boolean;
 }
 
 const FIELD_WORDS: Record<string, string> = {
@@ -333,10 +366,23 @@ const FIELD_WORDS: Record<string, string> = {
   location: 'location',
   colors: 'colours',
   privacy: 'privacy answers',
+  appStoreUrl: 'App Store link',
+  playStoreUrl: 'Google Play link',
+  font: 'heading font',
+  languages: 'languages',
+  screenshots: 'screenshots on the home page',
+  credit: 'footer credit',
 };
 
 const HEX = /^#[0-9a-f]{6}$/i;
 const EMAIL_ONLY = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+const APP_STORE_URL = /^https:\/\/apps\.apple\.com\/([a-z]{2}\/)?app\/([^/?#]+\/)?id\d{6,}(\?[^\s]*)?$/i;
+const PLAY_STORE_URL = /^https:\/\/play\.google\.com\/store\/apps\/details\?id=[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)+(&[^\s]*)?$/;
+
+/** Whether the developer wrote `value` in the conversation, ignoring case. */
+function saidBy(context: ChangeContext, value: string): boolean {
+  return !!context.said && context.said.toLowerCase().includes(value.toLowerCase());
+}
 
 /**
  * Put the AI's changes into the draft, field by field. Each field is checked
@@ -344,25 +390,42 @@ const EMAIL_ONLY = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
  * as it was and the rest still lands. `shots` is how many screenshots the site
  * has, so a feature cannot point at one that is not there.
  */
-export function applyChanges(draft: SiteDraft, raw: unknown, shots: number): ChangeReport {
+export function applyChanges(draft: SiteDraft, raw: unknown, shots: number, context: ChangeContext = {}): ChangeReport {
   const changes = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
   const changed: string[] = [];
   const refused: string[] = [];
+  const suggested: ChangeReport['suggested'] = {};
   let facts = { ...draft.facts };
   const content: SiteContent = { ...draft.content };
   let theme = { ...draft.theme };
   let privacy = draft.privacy;
+  let languages = draft.languages;
+  let options = draft.options;
   const note = (key: string, ok: boolean) => (ok ? changed : refused).push(FIELD_WORDS[key] ?? key);
 
   // Facts first, so a new support email is the one the text is checked against.
   if ('supportEmail' in changes) {
     const email = typeof changes.supportEmail === 'string' ? changes.supportEmail.trim() : '';
-    if (EMAIL_ONLY.test(email)) {
+    if (EMAIL_ONLY.test(email) && (email === facts.supportEmail || saidBy(context, email))) {
       if (email !== facts.supportEmail) {
         facts.supportEmail = email;
         note('supportEmail', true);
       }
     } else note('supportEmail', false);
+  }
+  for (const [key, pattern] of [
+    ['appStoreUrl', APP_STORE_URL],
+    ['playStoreUrl', PLAY_STORE_URL],
+  ] as const) {
+    if (!(key in changes)) continue;
+    const url = typeof changes[key] === 'string' ? (changes[key] as string).trim() : null;
+    // A link comes off when the developer says so; one goes on only as they wrote it.
+    if (url === '' || (url && pattern.test(url) && saidBy(context, url))) {
+      if (url !== facts[key]) {
+        facts = { ...facts, [key]: url };
+        note(key, true);
+      }
+    } else note(key, false);
   }
   for (const key of ['appName', 'tagline', 'developer', 'location'] as const) {
     if (!(key in changes)) continue;
@@ -387,10 +450,7 @@ export function applyChanges(draft: SiteDraft, raw: unknown, shots: number): Cha
   if ('privacyExtra' in changes) {
     const value = stringOf(changes.privacyExtra, LIMITS.privacyExtra, facts, true);
     if (value === undefined) note('privacyExtra', false);
-    else if (value !== content.privacyExtra) {
-      content.privacyExtra = value;
-      note('privacyExtra', true);
-    }
+    else if (value !== content.privacyExtra) suggested.privacyExtra = value;
   }
 
   if ('features' in changes) {
@@ -464,6 +524,7 @@ export function applyChanges(draft: SiteDraft, raw: unknown, shots: number): Cha
     }
     if ('personalizedAds' in answer) next.personalizedAds = answer.personalizedAds === true;
     if ('children' in answer) next.children = answer.children === true;
+    if ('deleteWithinMonth' in answer) next.deleteWithinMonth = answer.deleteWithinMonth === true;
     if (ok) {
       const cleaned = cleanPrivacy({ ...next, answered: true });
       if (JSON.stringify(cleaned) !== JSON.stringify(privacy)) {
@@ -473,5 +534,41 @@ export function applyChanges(draft: SiteDraft, raw: unknown, shots: number): Cha
     } else note('privacy', false);
   }
 
-  return { draft: { ...draft, facts, content, theme, privacy }, changed, refused };
+  if ('font' in changes && changes.font && typeof changes.font === 'object') {
+    const font = changes.font as { family?: unknown; weight?: unknown };
+    const family = typeof font.family === 'string' ? font.family.trim() : theme.headingFont;
+    const weight = font.weight === undefined ? theme.headingWeight : Number(font.weight);
+    const familyOk = family === '' || family === theme.headingFont || !!context.fontAllowed?.(family);
+    const weightOk = Number.isInteger(weight) && weight >= 100 && weight <= 900 && weight % 100 === 0;
+    if (familyOk && weightOk) {
+      if (family !== theme.headingFont || weight !== theme.headingWeight) {
+        theme = { ...theme, headingFont: family, headingWeight: weight, shareFont: family === theme.headingFont ? theme.shareFont : false };
+        note('font', true);
+      }
+    } else note('font', false);
+  }
+
+  if ('languages' in changes) {
+    const list = Array.isArray(changes.languages) ? changes.languages : null;
+    const codes = list?.every((code) => typeof code === 'string' && !!getLocaleDef(code)) ? [...new Set(list as string[])] : null;
+    // The base language is the one the site is written in, so it stays, first.
+    if (codes && codes.length > 0) {
+      const next = [draft.baseLocale, ...codes.filter((code) => code !== draft.baseLocale)];
+      if (next.join() !== languages.join()) {
+        languages = next;
+        note('languages', true);
+      }
+    } else note('languages', false);
+  }
+
+  for (const key of ['screenshots', 'credit'] as const) {
+    if (!(key in changes)) continue;
+    if (typeof changes[key] !== 'boolean') note(key, false);
+    else if (changes[key] !== options[key]) {
+      options = { ...options, [key]: changes[key] };
+      note(key, true);
+    }
+  }
+
+  return { draft: { ...draft, facts, content, theme, privacy, languages, options }, changed, refused, suggested };
 }

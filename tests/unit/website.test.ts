@@ -5,11 +5,12 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { applyChanges, captionOf, defaultContent, newDraft, cleanText } from '@/lib/website/content';
+import { applyChanges, boardsFingerprint, captionOf, defaultContent, isLabel, newDraft, cleanText } from '@/lib/website/content';
 import { buildPolicy, cleanPrivacy, defaultPrivacy, policyStrings, serviceNames } from '@/lib/website/privacy';
 import { keepsAddresses, missingFor, prunedTranslations, sameLanguage, siteFingerprint, siteTexts, translator } from '@/lib/website/strings';
 import { pageDir, pageFile, relativeHref, renderPage, renderSiteFiles, renderStylesheet, shotPath } from '@/lib/website/render';
-import { gitBlobSha, publishSite, repoNameProblem, siteAddress, suggestedRepoName, GithubPublishError } from '@/lib/website/github';
+import { gitBlobSha, isServing, publishSite, repoDescription, repoNameProblem, siteAddress, suggestedRepoName, GithubPublishError } from '@/lib/website/github';
+import { projectTranslations } from '@/lib/website/translate';
 import { contrast, parseColor, paletteOf, suggestColours, boardColours } from '@/lib/website/theme';
 import { crc32, zipFiles } from '@/lib/website/zip';
 import { hash32 } from '@/lib/i18n/hash';
@@ -112,6 +113,26 @@ test('an app for children never has ads picked from what people do', () => {
   assert.match(all, /made for children/);
 });
 
+test('the policy promises a time to delete data only when the developer said they keep to it', () => {
+  const keeping = (privacy: Parameters<typeof cleanPrivacy>[0]) =>
+    JSON.stringify(buildPolicy({ facts: facts(), privacy: cleanPrivacy(privacy) }).find((section) => section.id === 'keeping'));
+  const base = { ...defaultPrivacy(), answered: true, uses: ['analytics' as const] };
+  assert.doesNotMatch(keeping(base), /month/);
+  assert.match(keeping(base), /When you ask us to delete your data, we delete it\./);
+  assert.match(keeping({ ...base, deleteWithinMonth: true }), /we delete it within one month\./);
+  assert.match(keeping({ ...base, uses: ['account'], deleteWithinMonth: true }), /When you delete your account, or ask us to delete your data, we delete it within one month\./);
+  // Nothing collected, nothing to promise.
+  assert.equal(cleanPrivacy({ ...base, uses: [], deleteWithinMonth: true }).deleteWithinMonth, false);
+});
+
+test("the policy says the data isn't sold only without ads picked from what people do, and promises no rights it wasn't asked about", () => {
+  const text = (privacy: Parameters<typeof cleanPrivacy>[0]) => policyStrings(buildPolicy({ facts: facts(), privacy: cleanPrivacy(privacy) })).join('\n');
+  const ads = { ...defaultPrivacy(), answered: true, uses: ['ads' as const] };
+  assert.match(text(ads), /We don't sell your personal data\./);
+  assert.doesNotMatch(text({ ...ads, personalizedAds: true }), /don't sell/);
+  assert.doesNotMatch(text(ads), /wherever you are/);
+});
+
 test("the developer's own paragraphs go in More details", () => {
   const sections = buildPolicy({ facts: facts(), privacy: { ...defaultPrivacy(), answered: true }, extra: 'First thing.\n\nSecond   thing.' });
   const more = sections.find((section) => section.id === 'more')!;
@@ -148,6 +169,41 @@ test("a screenshot's caption is its headline, set over one layer or several, and
   );
   assert.deepEqual(labelled, { title: 'See Where Your Money Goes', body: 'Break down your expenses.' });
   assert.deepEqual(captionOf(board('e')), { title: '', body: '' });
+});
+
+test('a line in a script without capitals is never taken for a badge', () => {
+  assert.ok(isLabel('SMART FINANCE'));
+  assert.ok(!isLabel('Plan your week'));
+  assert.ok(!isLabel('毎日ひとつ'));
+  assert.ok(!isLabel('خطط أسبوعك'));
+  const japanese = captionOf(board('j', { elements: [at(text('t', 'お金の流れが見える', 90), 0, 100), at(text('b', '毎日ひとつ', 44), 0, 330)] }));
+  assert.deepEqual(japanese, { title: 'お金の流れが見える', body: '毎日ひとつ' });
+  const arabic = captionOf(board('a', { elements: [at(text('t', 'تتبع عاداتك', 90), 0, 100), at(text('b', 'خطوة كل يوم', 44), 0, 330)] }));
+  assert.equal(arabic.body, 'خطوة كل يوم');
+});
+
+test("the project's Japanese and Arabic captions are used for the site's, subtitles included", () => {
+  const localization = { baseLocale: 'en-US', locales: [{ code: 'ja' }, { code: 'ar-SA' }] };
+  const shot = board('s1', {
+    elements: [at(text('t', 'See where it goes', 90), 0, 100), at(text('b', 'One tap a day', 44), 0, 330)],
+    localization,
+    localized: {
+      ja: { t: { content: 'お金の流れが見える' }, b: { content: '毎日ひとつ' } },
+      'ar-SA': { t: { content: 'اعرف أين يذهب مالك' }, b: { content: 'خطوة كل يوم' } },
+    },
+  } as Partial<ArtboardState>);
+  const book = projectTranslations([shot], ['en-US', 'ja', 'ar-SA']);
+  assert.equal(book.ja?.[hash32('One tap a day')], '毎日ひとつ');
+  assert.equal(book['ar-SA']?.[hash32('One tap a day')], 'خطوة كل يوم');
+  assert.equal(book.ja?.[hash32('See where it goes')], 'お金の流れが見える');
+});
+
+test('the screenshots fingerprint changes with what the screenshots show, not with the zoom', () => {
+  const one = [board('s1', { elements: [text('t', 'See where it goes', 90)] })];
+  const zoomed = [{ ...one[0], zoom: 3 }];
+  const edited = [{ ...one[0], elements: [text('t', 'See where it all goes', 90)] }];
+  assert.equal(boardsFingerprint(one), boardsFingerprint(zoomed));
+  assert.notEqual(boardsFingerprint(one), boardsFingerprint(edited));
 });
 
 test('the content a site starts with comes from the captions and the privacy answers', () => {
@@ -200,9 +256,49 @@ test("the AI's changes land field by field, and a made-up address or an overlong
 });
 
 test('a new support email is the one the rest of the changes are checked against', () => {
-  const report = applyChanges(draft(), { supportEmail: 'hello@pebble.app', contactNote: 'Write to hello@pebble.app' }, 0);
+  const report = applyChanges(draft(), { supportEmail: 'hello@pebble.app', contactNote: 'Write to hello@pebble.app' }, 0, { said: 'Our email is now hello@pebble.app' });
   assert.equal(report.draft.facts.supportEmail, 'hello@pebble.app');
   assert.equal(report.draft.content.contactNote, 'Write to hello@pebble.app');
+});
+
+test('an email address or store link the developer never wrote stays off the site', () => {
+  const said = 'We are on Google Play now: https://play.google.com/store/apps/details?id=app.pebble.habits';
+  const report = applyChanges(
+    draft(),
+    {
+      supportEmail: 'support@pebble.app',
+      appStoreUrl: 'https://apps.apple.com/app/id9999999999',
+      playStoreUrl: 'https://play.google.com/store/apps/details?id=app.pebble.habits',
+    },
+    0,
+    { said }
+  );
+  assert.equal(report.draft.facts.supportEmail, 'help@pebble.app');
+  assert.equal(report.draft.facts.appStoreUrl, draft().facts.appStoreUrl);
+  assert.equal(report.draft.facts.playStoreUrl, 'https://play.google.com/store/apps/details?id=app.pebble.habits');
+  assert.deepEqual(report.refused, ['support email', 'App Store link']);
+  // Taking a link off needs no address.
+  assert.equal(applyChanges(draft(), { appStoreUrl: '' }, 0, {}).draft.facts.appStoreUrl, '');
+});
+
+test("a paragraph for the privacy policy from the AI is only a suggestion until the developer puts it in", () => {
+  const report = applyChanges(draft(), { privacyExtra: 'We keep backups for 30 days.', headline: 'Habits that stick' }, 0);
+  assert.equal(report.draft.content.privacyExtra, '');
+  assert.equal(report.suggested.privacyExtra, 'We keep backups for 30 days.');
+  assert.ok(!report.changed.includes('privacy policy note'));
+  assert.ok(report.changed.includes('headline'));
+});
+
+test('the chat can change the heading font, the languages and what the pages show, within what the site can carry', () => {
+  const allowed = (family: string) => family === 'Poppins';
+  const report = applyChanges(draft(), { font: { family: 'Poppins', weight: 800 }, languages: ['ja', 'de-DE'], screenshots: false, credit: false }, 0, { fontAllowed: allowed });
+  assert.deepEqual([report.draft.theme.headingFont, report.draft.theme.headingWeight], ['Poppins', 800]);
+  // The site's own language stays, first.
+  assert.deepEqual(report.draft.languages, ['en-US', 'ja', 'de-DE']);
+  assert.deepEqual(report.draft.options, { credit: false, screenshots: false });
+  const refused = applyChanges(draft(), { font: { family: 'Comic Neue Made Up' }, languages: ['xx-nope'], screenshots: 'yes' }, 0, { fontAllowed: allowed });
+  assert.deepEqual(refused.refused, ['heading font', 'languages', 'screenshots on the home page']);
+  assert.equal(refused.draft.theme.headingFont, '');
 });
 
 test('cleanText takes Markdown and spaced dashes out', () => {
@@ -450,6 +546,128 @@ test('a repository the app did not make is never written to', async () => {
     (error: unknown) => error instanceof GithubPublishError && error.problem === 'taken'
   );
   assert.ok(calls.every((call) => call.method === 'GET'));
+});
+
+/**
+ * A GitHub that keeps what is done to it: repositories, commits, trees and
+ * where main points. Enough of the API for a publish, so a publish can be
+ * stopped part way and tried again against what the first one left.
+ */
+function memoryGithub() {
+  let count = 0;
+  const sha = () => `s${(count += 1)}`;
+  const repos = new Map<string, { description: string; head?: string }>();
+  const commits = new Map<string, { tree: string; parents: string[] }>();
+  const trees = new Map<string, Array<{ path: string; type: string; mode: string; sha: string }>>();
+  const calls: string[] = [];
+  let onCall: (call: string) => void = () => undefined;
+  const make = (name: string, description: string, paths: string[]) => {
+    const tree = sha();
+    trees.set(tree, paths.map((path) => ({ path, type: 'blob', mode: '100644', sha: sha() })));
+    const commit = sha();
+    commits.set(commit, { tree, parents: [] });
+    repos.set(name, { description, head: commit });
+  };
+  const fetchImpl = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = new URL(String(input));
+    const method = init?.method ?? 'GET';
+    const body = init?.body ? JSON.parse(String(init.body)) : undefined;
+    const call = `${method} ${url.pathname}`;
+    calls.push(call);
+    const answer = (status: number, data: unknown) => {
+      onCall(call);
+      return new Response(JSON.stringify(data), { status });
+    };
+    if (call === 'POST /user/repos') {
+      if (repos.has(body.name)) return answer(422, { message: 'Repository creation failed.', errors: [{ message: 'name already exists on this account' }] });
+      make(body.name, body.description, ['README.md']);
+      return answer(201, { default_branch: 'main', private: false, description: body.description });
+    }
+    const match = /^\/repos\/octo\/([^/]+)(\/.*)?$/.exec(url.pathname);
+    const repo = match ? repos.get(match[1]) : undefined;
+    if (!match || !repo) return answer(404, { message: 'Not Found' });
+    const rest = match[2] ?? '';
+    const headTree = () => (repo.head ? trees.get(commits.get(repo.head)!.tree)! : []);
+    if (rest === '' && method === 'GET') return answer(200, { default_branch: 'main', private: false, description: repo.description });
+    if (rest === '/contents/osg-site.json') return headTree().some((entry) => entry.path === 'osg-site.json') ? answer(200, {}) : answer(404, { message: 'Not Found' });
+    if (rest === '/commits') {
+      const list: unknown[] = [];
+      for (let at = repo.head; at && list.length < 2; at = commits.get(at)!.parents[0]) list.push({ sha: at, commit: { tree: { sha: commits.get(at)!.tree } } });
+      return repo.head ? answer(200, list) : answer(409, { message: 'Git Repository is empty.' });
+    }
+    if (rest === '/git/ref/heads/main') return repo.head ? answer(200, { object: { sha: repo.head } }) : answer(409, { message: 'Git Repository is empty.' });
+    let part: RegExpExecArray | null;
+    if (method === 'GET' && (part = /^\/git\/commits\/(.+)$/.exec(rest))) return answer(200, { tree: { sha: commits.get(part[1])!.tree } });
+    if (method === 'GET' && (part = /^\/git\/trees\/(.+)$/.exec(rest))) return answer(200, { tree: trees.get(part[1]) });
+    if (method === 'POST' && rest === '/git/blobs') return answer(201, { sha: sha() });
+    if (method === 'POST' && rest === '/git/trees') {
+      const made = sha();
+      trees.set(made, (body.tree as Array<{ path: string; mode: string; sha?: string }>).map((entry) => ({ path: entry.path, type: 'blob', mode: entry.mode, sha: entry.sha ?? sha() })));
+      return answer(201, { sha: made });
+    }
+    if (method === 'POST' && rest === '/git/commits') {
+      const made = sha();
+      commits.set(made, { tree: body.tree, parents: body.parents });
+      return answer(201, { sha: made });
+    }
+    if (method === 'PATCH' && rest === '/git/refs/heads/main') {
+      if (commits.get(body.sha)?.parents[0] !== repo.head) return answer(422, { message: 'Update is not a fast forward' });
+      repo.head = body.sha;
+      return answer(200, {});
+    }
+    if (rest === '/pages') return answer(method === 'GET' ? 404 : 201, {});
+    return answer(404, { message: 'Not Found' });
+  }) as typeof fetch;
+  return {
+    fetchImpl,
+    repos,
+    calls,
+    make,
+    paths: (name: string) => {
+      const repo = repos.get(name)!;
+      return trees.get(commits.get(repo.head!)!.tree)!.map((entry) => entry.path).sort();
+    },
+    set onCall(listener: (call: string) => void) {
+      onCall = listener;
+    },
+  };
+}
+
+const PUBLISH = { token: 't', owner: 'octo', repo: 'pebble', files: SITE_FILES, appName: 'Pebble', siteUrl: 'https://octo.github.io/pebble/' };
+
+test('a first publish stopped right after the repository was made is finished by the next one, under the same name', async () => {
+  const github = memoryGithub();
+  const stop = new AbortController();
+  github.onCall = (call) => {
+    if (call === 'POST /user/repos') stop.abort();
+  };
+  await assert.rejects(publishSite({ ...PUBLISH, signal: stop.signal, fetchImpl: github.fetchImpl }), (error: unknown) => (error as Error).name === 'AbortError');
+  // GitHub has the repository, with its first README and no site in it.
+  assert.deepEqual(github.paths('pebble'), ['README.md']);
+  github.onCall = () => undefined;
+  const outcome = await publishSite({ ...PUBLISH, fetchImpl: github.fetchImpl });
+  assert.equal(outcome.created, false);
+  assert.deepEqual(github.paths('pebble'), SITE_FILES.map((file) => file.path).sort());
+});
+
+test("a repository is finished only when the app made it and nothing else is in it", async () => {
+  for (const [description, paths] of [
+    ['My own repository', ['README.md']],
+    [repoDescription('Pebble'), ['README.md', 'notes.txt']],
+  ] as const) {
+    const github = memoryGithub();
+    github.make('pebble', description, [...paths]);
+    await assert.rejects(publishSite({ ...PUBLISH, fetchImpl: github.fetchImpl }), (error: unknown) => error instanceof GithubPublishError && error.problem === 'taken');
+    assert.ok(github.calls.every((call) => call.startsWith('GET ')), description);
+    assert.deepEqual(github.paths('pebble'), [...paths].sort());
+  }
+});
+
+test('the site counts as online only when GitHub serves this build', async () => {
+  const served = (body: unknown, status = 200) => (async () => new Response(JSON.stringify(body), { status })) as unknown as typeof fetch;
+  assert.equal(await isServing({ siteUrl: 'https://octo.github.io/pebble/', build: 'b2', fetchImpl: served({ build: 'b2' }) }), true);
+  assert.equal(await isServing({ siteUrl: 'https://octo.github.io/pebble/', build: 'b2', fetchImpl: served({ build: 'b1' }) }), false);
+  assert.equal(await isServing({ siteUrl: 'https://octo.github.io/pebble/', build: 'b2', fetchImpl: served({ message: 'Not Found' }, 404) }), false);
 });
 
 test('a sign-in that ran out says so', async () => {

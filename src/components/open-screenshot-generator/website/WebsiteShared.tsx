@@ -192,6 +192,19 @@ export function PrivacyQuestions({ answers, onChange, idPrefix }: { answers: Pri
         </span>
         <Switch checked={answers.children} onCheckedChange={(value) => set({ children: value })} aria-label="Made for children under 13" />
       </label>
+      {answers.uses.length > 0 && (
+        <label className="flex items-center justify-between gap-3 rounded-lg border p-3">
+          <span className="min-w-0">
+            <span className="block text-sm font-medium">Delete data within a month of being asked</span>
+            <span className="block text-xs text-muted-foreground">Turn this on only if you do. The policy then promises it</span>
+          </span>
+          <Switch
+            checked={!!answers.deleteWithinMonth}
+            onCheckedChange={(value) => set({ deleteWithinMonth: value })}
+            aria-label="Delete data within a month of being asked"
+          />
+        </label>
+      )}
     </div>
   );
 }

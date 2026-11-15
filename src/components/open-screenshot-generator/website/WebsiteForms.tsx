@@ -25,6 +25,7 @@ import { Switch } from '@/components/ui/switch';
 import { LIMITS, MAX_FAQS, MAX_FEATURES, newId } from '@/lib/website/content';
 import { LOCALES, getLocaleDef } from '@/lib/i18n/locales';
 import { heroContrast } from '@/lib/website/theme';
+import { useCustomFonts } from '@/services/customFonts';
 import type { SiteDraft, SiteShot, SiteTheme } from '@/lib/website/types';
 import { cn } from '@/lib/utils';
 import { FontFamilySelect } from '../FontFamilySelect';
@@ -232,6 +233,7 @@ export function LookSection({
   const theme = draft.theme;
   const setTheme = (patch: Partial<SiteTheme>) => update((current) => ({ ...current, theme: { ...current.theme, ...patch, source: 'custom' } }));
   const lowContrast = heroContrast(theme) < 4.5;
+  const imported = useCustomFonts().some((font) => font.family === theme.headingFont);
   const following = theme.source !== 'custom';
   return (
     <div className="space-y-6">
@@ -269,10 +271,27 @@ export function LookSection({
           <FontFamilySelect
             id="site-font"
             value={theme.headingFont || 'system-ui'}
-            onValueChange={(value) => update((current) => ({ ...current, theme: { ...current.theme, headingFont: value === 'system-ui' ? '' : value, source: current.theme.source } }))}
+            onValueChange={(value) =>
+              update((current) => ({ ...current, theme: { ...current.theme, headingFont: value === 'system-ui' ? '' : value, shareFont: false, source: current.theme.source } }))
+            }
             leadingItems={<SelectItem value="system-ui">The phone&apos;s own font</SelectItem>}
           />
         </Field>
+        {imported && (
+          <label className="flex items-center justify-between gap-3 rounded-lg border p-3">
+            <span className="min-w-0">
+              <span className="block text-sm font-medium">Put this font on the website</span>
+              <span className="block text-xs text-muted-foreground">
+                {theme.shareFont ? 'Anyone can download the font file from the site' : "Only if its license allows websites. Until then the headings use the phone's own font"}
+              </span>
+            </span>
+            <Switch
+              checked={!!theme.shareFont}
+              onCheckedChange={(value) => update((current) => ({ ...current, theme: { ...current.theme, shareFont: value } }))}
+              aria-label="Put this font on the website"
+            />
+          </label>
+        )}
         <Field label="Weight" htmlFor="site-weight">
           <Select value={String(theme.headingWeight || 700)} onValueChange={(value) => update((current) => ({ ...current, theme: { ...current.theme, headingWeight: Number(value) } }))}>
             <SelectTrigger id="site-weight" className="h-9">
@@ -486,7 +505,8 @@ export function PrivacySection({ draft, update }: { draft: SiteDraft; update: Up
         />
       </Field>
       <p className="rounded-lg bg-muted/60 p-3 text-xs leading-relaxed text-muted-foreground">
-        This policy is a starting point, not legal advice. Read it in the preview and make sure it matches what your app really does. It says you don&apos;t sell anyone&apos;s data; if you do, don&apos;t use it.
+        This policy is a starting point, not legal advice. Read it in the preview and make sure every sentence matches what your app really does.
+        {draft.privacy.uses.length > 0 && !draft.privacy.personalizedAds ? " It says you don't sell anyone's data, so don't use it if you do." : ''}
       </p>
     </div>
   );

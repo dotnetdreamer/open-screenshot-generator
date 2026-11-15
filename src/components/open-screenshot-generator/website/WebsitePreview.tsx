@@ -18,7 +18,7 @@
 
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Loader2Icon } from 'lucide-react';
-import { openExternal } from '@/lib/desktop';
+import { isTauri, openExternal } from '@/lib/desktop';
 import { isGoogleFamily } from '@/lib/website/assets';
 import { renderPage, renderStylesheet, shotPath } from '@/lib/website/render';
 import type { TranslationBook } from '@/lib/website/strings';
@@ -33,7 +33,18 @@ const DESKTOP_WIDTH = 1280;
 const PHONE = { width: 390, height: 844 };
 const BAR = 38;
 
-function previewHtml(draft: SiteDraft, page: SitePage, locale: string, shots: SiteShot[], known: TranslationBook): string {
+/** A mail link opens the mail app: on the desktop through the system, on the web the way a page's own link would. */
+function openMail(href: string): void {
+  if (isTauri()) {
+    void openExternal(href);
+    return;
+  }
+  const link = document.createElement('a');
+  link.href = href;
+  link.click();
+}
+
+function previewHtml(draft: SiteDraft, page: SitePage, locale: string, shots: SiteShot[], known: TranslationBook, faceCss: string): string {
   const urls = new Map<string, string>();
   for (const shot of shots) urls.set(shotPath(shot), shot.url);
   const font = draft.theme.headingFont && isGoogleFamily(draft.theme.headingFont)
@@ -47,7 +58,7 @@ function previewHtml(draft: SiteDraft, page: SitePage, locale: string, shots: Si
     {
       preview: true,
       known,
-      inlineCss: `${renderStylesheet(draft)}\nhtml{scroll-behavior:auto}`,
+      inlineCss: `${renderStylesheet(draft, { faceCss })}\nhtml{scroll-behavior:auto}`,
       headExtra: `<meta http-equiv="Content-Security-Policy" content="script-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">${font}`,
       asset: (path) => (path === 'assets/icon.png' ? draft.facts.icon : urls.get(path) ?? path),
     }
@@ -64,6 +75,7 @@ export function WebsitePreview({
   known,
   address,
   busy,
+  faceCss = '',
   onNavigate,
   className,
 }: {
@@ -78,6 +90,8 @@ export function WebsitePreview({
   address: string;
   /** What the preview waits for, such as the screenshots. */
   busy?: string | null;
+  /** The @font-face of an imported heading font the developer put on the site, from memory. */
+  faceCss?: string;
   onNavigate: (page: SitePage, locale: string) => void;
   className?: string;
 }) {
@@ -99,7 +113,7 @@ export function WebsitePreview({
   }, []);
 
   // Rebuilt only when what it shows changes, not on every render of the view.
-  const html = useMemo(() => previewHtml(draft, page, locale, shots, known), [draft, page, locale, shots, known]);
+  const html = useMemo(() => previewHtml(draft, page, locale, shots, known, faceCss), [draft, page, locale, shots, known, faceCss]);
 
   const wire = useCallback((doc: Document) => {
     doc.addEventListener('click', (event) => {
@@ -118,6 +132,7 @@ export function WebsitePreview({
         return;
       }
       if (/^https:\/\//.test(href)) void openExternal(href);
+      else if (/^mailto:/i.test(href)) openMail(href);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -10,6 +10,7 @@
 
 import { bridgeFetch } from '@/lib/account/transport';
 import { storeImageSource } from '@/lib/growth/storeImages';
+import { getCustomFontRows } from '@/services/customFonts';
 import { GOOGLE_FONTS } from '@/services/fontService';
 import { sampleColors, type Weighted } from './theme';
 
@@ -178,6 +179,21 @@ function servedWeight(family: string, weight: number): number | null {
   const weights = (font?.variants ?? []).map(Number).filter(Number.isFinite);
   if (weights.length === 0) return null;
   return weights.reduce((best, next) => (Math.abs(next - weight) < Math.abs(best - weight) ? next : best));
+}
+
+/**
+ * A font the developer imported, whole, for a site whose developer said its
+ * file may go on the site (SiteTheme.shareFont). Null when the family is not
+ * an imported one, or its file is gone from this device. Not cut down to the
+ * letters used: the app has no font tools to do it, and an imported face is
+ * mostly one display weight.
+ */
+export async function importedHeadingFace(family: string): Promise<HeadingFace | null> {
+  const [row] = await getCustomFontRows([family]);
+  if (!row) return null;
+  const extension = { woff2: 'woff2', woff: 'woff', truetype: 'ttf', opentype: 'otf' }[row.format];
+  const slug = family.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'heading';
+  return { file: `${slug}.${extension}`, bytes: new Uint8Array(await row.blob.arrayBuffer()), format: row.format };
 }
 
 /** Whether a family is one of the app's Google Fonts, which the site can carry. */

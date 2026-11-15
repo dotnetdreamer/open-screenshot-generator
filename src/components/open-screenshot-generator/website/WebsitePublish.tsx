@@ -40,12 +40,16 @@ export type IdentityState =
 export type PublishPhase = 'shots' | 'translate' | 'build' | 'repo' | 'upload' | 'commit' | 'pages' | 'live';
 
 export interface PublishJob {
+  /** The app whose site is going out: it can be another project's than the one on screen. */
+  appName: string;
   phase: PublishPhase;
   done?: number;
   total?: number;
   /** The developer has to switch Pages on in the repository's settings. */
   needsPages?: boolean;
   branch?: string;
+  /** Lines still untranslated after translating, by language: the publish waits for the developer to say go on or stop. */
+  untranslated?: Array<{ locale: string; count: number }>;
 }
 
 const PHASES: Array<{ id: PublishPhase; label: string }> = [
@@ -81,6 +85,23 @@ function LinkRow({ label, url, note }: { label: string; url: string; note?: stri
   );
 }
 
+/** GitHub turned the app down when it switched Pages on: the one step the developer does in GitHub's settings. */
+function PagesStep({ owner, repo, branch }: { owner: string; repo: string; branch: string }) {
+  return (
+    <div className="space-y-2 rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-xs" data-testid="site-pages-step">
+      <p className="font-medium">One more step: switch on GitHub Pages</p>
+      <p className="text-muted-foreground">
+        GitHub didn&apos;t let the app do this part. In the repository&apos;s settings, under Build and deployment, choose Deploy from a branch, then {branch} and / (root), and press
+        Save. The app keeps checking while this view is open and shows when the site is online.
+      </p>
+      <Button type="button" variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={() => void openExternal(pagesSettingsUrl(owner, repo))}>
+        Open the Pages settings
+        <ExternalLinkIcon className="h-3 w-3" />
+      </Button>
+    </div>
+  );
+}
+
 export function WebsitePublish({
   draft,
   desktop,
@@ -97,6 +118,7 @@ export function WebsitePublish({
   job,
   onPublish,
   onStop,
+  onGoOn,
   onZip,
   zipBusy,
   changed,
@@ -118,6 +140,8 @@ export function WebsitePublish({
   job: PublishJob | null;
   onPublish: () => void;
   onStop: () => void;
+  /** Publish with the untranslated lines in the site's own language. */
+  onGoOn: () => void;
   onZip: () => void;
   zipBusy: boolean;
   /** The site changed since it was last published. */
@@ -136,8 +160,17 @@ export function WebsitePublish({
       {published && !job && (
         <PanelSection
           title={published.live ? 'Your website is online' : 'Your website is on its way'}
-          hint={published.live ? (changed ? 'You changed the site since. Publish again to put the changes online' : 'Paste these links into App Store Connect and Play Console') : 'GitHub takes a minute or two the first time'}
+          hint={
+            published.live
+              ? changed
+                ? 'You changed the site since. Publish again to put the changes online'
+                : 'Paste these links into App Store Connect and Play Console'
+              : published.pagesPending
+                ? 'GitHub has the files. It puts them online once Pages is on'
+                : 'GitHub takes a minute or two the first time'
+          }
         >
+          {published.pagesPending && !published.live && <PagesStep owner={published.owner} repo={published.repo} branch={published.branch} />}
           <div className="rounded-lg border px-3" data-testid="site-links">
             <LinkRow label="Home page" url={pageUrl(site!, draft, draft.baseLocale, 'home')} />
             <LinkRow label="Support page" url={pageUrl(site!, draft, draft.baseLocale, 'support')} note="Support URL" />
@@ -293,6 +326,7 @@ export function WebsitePublish({
 
       {job ? (
         <div className="space-y-3 rounded-lg border p-3" role="status" data-testid="site-publish-progress">
+          <p className="text-xs font-semibold">Publishing {job.appName || 'the site'}</p>
           <ol className="space-y-1.5">
             {PHASES.map((phase, index) => {
               const done = index < current;
@@ -314,22 +348,30 @@ export function WebsitePublish({
               );
             })}
           </ol>
-          {job.needsPages && published && (
-            <div className="space-y-2 rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-xs">
-              <p className="font-medium">One more step: switch on GitHub Pages</p>
+          {job.needsPages && published && <PagesStep owner={published.owner} repo={published.repo} branch={job.branch ?? published.branch} />}
+          {job.untranslated ? (
+            <div className="space-y-2 rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-xs" data-testid="site-untranslated">
+              <p className="font-medium">Some lines aren&apos;t translated</p>
               <p className="text-muted-foreground">
-                GitHub didn&apos;t let the app do this part. In the repository&apos;s settings, under Build and deployment, choose Deploy from a branch, then {job.branch ?? 'main'} and / (root), and press Save. The app keeps checking and tells you when the site is online.
+                {job.untranslated.map((entry) => `${getLocaleDef(entry.locale)?.nativeName ?? entry.locale}: ${entry.count}`).join(', ')}. Until they&apos;re translated they show in{' '}
+                {getLocaleDef(draft.baseLocale)?.nativeName ?? draft.baseLocale}. You can publish now and again later.
               </p>
-              <Button type="button" variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={() => void openExternal(pagesSettingsUrl(published.owner, published.repo))}>
-                Open the Pages settings
-                <ExternalLinkIcon className="h-3 w-3" />
-              </Button>
+              <div className="flex gap-2">
+                <Button type="button" size="sm" className="h-7 text-xs" onClick={onGoOn}>
+                  Publish anyway
+                </Button>
+                <Button type="button" variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={onStop}>
+                  <SquareIcon className="h-3 w-3" />
+                  Stop
+                </Button>
+              </div>
             </div>
+          ) : (
+            <Button type="button" variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={onStop}>
+              <SquareIcon className="h-3 w-3" />
+              Stop
+            </Button>
           )}
-          <Button type="button" variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={onStop}>
-            <SquareIcon className="h-3 w-3" />
-            Stop
-          </Button>
         </div>
       ) : (
         <div className="space-y-2">

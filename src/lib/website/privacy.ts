@@ -4,11 +4,15 @@
 // The policy is made of fixed sentences, chosen by the answers, and never
 // written by the AI. A policy has to say exactly what the app does, and a
 // model asked to write one can add promises nobody made ("we encrypt
-// everything", "we never use third parties"). The AI can still change the answers when the
-// developer tells it something in the chat, and the developer can add a
-// paragraph of their own; the sentences themselves stay these. They are
-// written in English and go through the same translation as the rest of the
-// site.
+// everything", "we never use third parties"). The AI can change the answers
+// when the developer tells it something in the chat. The developer can add a
+// paragraph of their own (privacyExtra); the AI may only suggest one, which
+// goes in when the developer presses the button under it (content.ts). The
+// sentences themselves stay these. They are written in English and go
+// through the same translation as the rest of the site.
+//
+// A sentence promises only what an answer said. How soon data is deleted is a
+// question of its own, and without an answer the policy names no time.
 //
 // It is a starting point, not legal advice, and the view says so.
 
@@ -64,7 +68,7 @@ export function todayString(now = new Date()): string {
 }
 
 export function defaultPrivacy(now = new Date()): PrivacyAnswers {
-  return { answered: false, uses: [], services: {}, personalizedAds: false, children: false, updated: todayString(now) };
+  return { answered: false, uses: [], services: {}, personalizedAds: false, children: false, deleteWithinMonth: false, updated: todayString(now) };
 }
 
 /** The answers with anything impossible taken out, in the order the questions come. */
@@ -81,6 +85,7 @@ export function cleanPrivacy(answers: PrivacyAnswers): PrivacyAnswers {
     services,
     // An app for children may not show ads chosen from what a child does.
     personalizedAds: uses.includes('ads') && !answers.children && answers.personalizedAds,
+    deleteWithinMonth: uses.length > 0 && answers.deleteWithinMonth === true,
   };
 }
 
@@ -205,7 +210,9 @@ export function buildPolicy(input: { facts: SiteFacts; privacy: PrivacyAnswers; 
       ? [
           { kind: 'p', text: `${app} collects only what it needs:` },
           { kind: 'ul', items: answers.uses.map((use) => SUMMARY[use](answers)) },
-          { kind: 'p', text: "We don't sell your personal data." },
+          // Ads picked from what people do can count as selling data under
+          // laws such as the CCPA, so the policy promises it only without them.
+          ...(answers.personalizedAds ? [] : [{ kind: 'p' as const, text: "We don't sell your personal data." }]),
         ]
       : [{ kind: 'p', text: `${app} doesn't collect any personal data. What you do in the app stays on your device.` }],
   });
@@ -242,9 +249,9 @@ export function buildPolicy(input: { facts: SiteFacts; privacy: PrivacyAnswers; 
       blocks: [
         {
           kind: 'p',
-          text: answers.uses.includes('account')
-            ? 'We keep your data only as long as we need it for the reasons above. When you delete your account, or ask us to delete your data, we delete it within one month.'
-            : 'We keep your data only as long as we need it for the reasons above. When you ask us to delete your data, we delete it within one month.',
+          text: `We keep your data only as long as we need it for the reasons above. ${
+            answers.uses.includes('account') ? 'When you delete your account, or ask us to delete your data, we delete it' : 'When you ask us to delete your data, we delete it'
+          }${answers.deleteWithinMonth ? ' within one month' : ''}.`,
         },
       ],
     });
@@ -256,7 +263,7 @@ export function buildPolicy(input: { facts: SiteFacts; privacy: PrivacyAnswers; 
     blocks: collects
       ? [
           { kind: 'p', text: `You can ask us for a copy of your data, ask us to correct it or ask us to delete it, at any time. To do that, ${writeTo}.` },
-          { kind: 'p', text: 'Depending on where you live, laws such as the GDPR in Europe and the CCPA in California give you these rights. We respect them wherever you are.' },
+          { kind: 'p', text: 'Depending on where you live, laws such as the GDPR in Europe and the CCPA in California give you these rights.' },
         ]
       : [{ kind: 'p', text: `${app} collects no personal data, so there's nothing for us to share, correct or delete. If you have a question, ${writeTo}.` }],
   });

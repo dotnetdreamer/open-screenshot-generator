@@ -15,13 +15,19 @@
 // last one, so a page the site no longer has is gone from it too. A
 // repository the app did not make is never written to: a site the app made
 // has osg-site.json at its root, and a repository without one is somebody
-// else's, whatever it is called.
+// else's, whatever it is called. The one exception is a repository whose
+// first publish stopped between making it and putting the site in: the app's
+// description is on it and it holds nothing but GitHub's first README, so
+// the next publish finishes it instead of asking for another name.
 //
 // GitHub documents the Pages endpoint as needing the `repo` scope, which is
 // full access to private repositories too. The app asks for `public_repo`
-// only and tries the endpoint with it; when GitHub turns that down, the view
-// asks the developer to switch Pages on once in the repository's settings (a
-// branch to pick and Save), and watches the site until it answers.
+// only, and that was enough when measured (2026-11-15, a new public
+// repository, a token whose X-OAuth-Scopes said "gist, public_repo": Pages
+// came on with no step left to the developer). When GitHub turns it down all
+// the same, the view asks the developer to switch Pages on once in the
+// repository's settings (a branch to pick and Save), and watches the site
+// until it answers.
 
 import { getSession, setSession } from '@/lib/account/store';
 import { githubProvider } from '@/lib/account/providers/github';
@@ -339,7 +345,15 @@ export interface PublishOutcome {
 interface RepoAnswer {
   default_branch: string;
   private: boolean;
+  description?: string | null;
   owner?: { login: string };
+}
+
+/** The end of the description every repository the app makes gets. */
+const REPO_MARK = 'made with Open Screenshot Generator';
+
+export function repoDescription(appName: string): string {
+  return `The website of ${appName || 'my app'}, ${REPO_MARK}`.slice(0, 350);
 }
 
 interface TreeEntry {
@@ -353,6 +367,24 @@ interface TreeEntry {
 async function holdsOurSite(ctx: Ctx, owner: string, repo: string, branch: string): Promise<boolean> {
   const answer = await api<unknown>(ctx, 'GET', `/repos/${owner}/${repo}/contents/${SITE_MARKER}?ref=${encodeURIComponent(branch)}`, undefined, [404, 409]);
   return answer.status === 200;
+}
+
+/**
+ * Whether the repository is one the app made whose first publish stopped
+ * before the site went in: the app's description, and no more than the one
+ * commit GitHub makes with a README, or no commit yet. Nothing in it can be
+ * lost by putting the site there.
+ */
+async function unfinishedByUs(ctx: Ctx, owner: string, repo: string, answer: RepoAnswer): Promise<boolean> {
+  if (!answer.description?.trim().endsWith(REPO_MARK)) return false;
+  const commits = await api<Array<{ commit?: { tree?: { sha?: string } } }>>(ctx, 'GET', `/repos/${owner}/${repo}/commits?per_page=2`, undefined, [404, 409]);
+  // 409 is GitHub's answer for a repository with no commit at all.
+  if (commits.status === 409) return true;
+  if (commits.status !== 200 || !Array.isArray(commits.data) || commits.data.length > 1) return false;
+  const treeSha = commits.data[0]?.commit?.tree?.sha;
+  if (!treeSha) return commits.data.length === 0;
+  const tree = await api<{ tree?: TreeEntry[] }>(ctx, 'GET', `/repos/${owner}/${repo}/git/trees/${treeSha}`);
+  return (tree.data.tree ?? []).every((entry) => entry.path === 'README.md');
 }
 
 /** Where a branch stands, waiting a moment for a repository GitHub is still setting up. */
@@ -396,7 +428,7 @@ export async function publishSite(input: {
       '/user/repos',
       {
         name: repo,
-        description: `The website of ${input.appName || 'my app'}, made with Open Screenshot Generator`.slice(0, 350),
+        description: repoDescription(input.appName),
         homepage: input.siteUrl,
         private: false,
         auto_init: true,
@@ -417,7 +449,7 @@ export async function publishSite(input: {
     created = true;
   } else {
     branch = existing.data.default_branch || 'main';
-    if (!(await holdsOurSite(ctx, owner, repo, branch))) {
+    if (!(await holdsOurSite(ctx, owner, repo, branch)) && !(await unfinishedByUs(ctx, owner, repo, existing.data))) {
       throw new GithubPublishError(
         `Your GitHub account already has a repository called ${repo}, and it isn't a site the app made. Pick another name, so nothing in it is replaced`,
         'taken'
@@ -487,6 +519,21 @@ export async function publishSite(input: {
   return { branch, commit: commitSha, created, unchanged, pages };
 }
 
+/** Whether GitHub serves the version with `build` in its osg-site.json now: one look. */
+export async function isServing(input: { siteUrl: string; build: string; signal?: AbortSignal; fetchImpl?: typeof fetch }): Promise<boolean> {
+  const run = await doFetch(input.fetchImpl);
+  try {
+    const response = await run(`${input.siteUrl}${SITE_MARKER}?look=${Date.now()}`, { cache: 'no-store', signal: input.signal });
+    if (!response.ok) return false;
+    const body = (await response.json()) as { build?: string };
+    return body.build === input.build;
+  } catch (error) {
+    if (input.signal?.aborted) throw stopped();
+    console.warn('The site did not answer yet', error);
+    return false;
+  }
+}
+
 /**
  * Wait until GitHub serves the version with `build` in its osg-site.json.
  * GitHub's servers keep pages for ten minutes, so each look asks for a new
@@ -504,17 +551,8 @@ export async function waitUntilLive(input: {
   const until = Date.now() + (input.timeoutMs ?? 240_000);
   while (Date.now() < until) {
     if (input.signal?.aborted) throw stopped();
-    try {
-      const response = await run(`${input.siteUrl}${SITE_MARKER}?look=${Date.now()}`, { cache: 'no-store' });
-      if (response.ok) {
-        const body = (await response.json()) as { build?: string };
-        if (body.build === input.build) return true;
-      }
-    } catch (error) {
-      if (input.signal?.aborted) throw stopped();
-      // Not up yet, or the network blinked: look again.
-      console.warn('The site did not answer yet', error);
-    }
+    // Not up yet, or the network blinked: look again.
+    if (await isServing({ siteUrl: input.siteUrl, build: input.build, signal: input.signal, fetchImpl: run })) return true;
     await pause(input.everyMs ?? 5000, input.signal);
   }
   return false;
