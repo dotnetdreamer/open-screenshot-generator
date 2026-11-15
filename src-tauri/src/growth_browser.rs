@@ -861,32 +861,152 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
     }
 
+    /// The identifiers in Rust source, leaving out comments, strings and
+    /// character literals, so a path is found however it is spaced or split.
+    fn identifiers(code: &str) -> Vec<String> {
+        let chars: Vec<char> = code.chars().collect();
+        let at = |i: usize| chars.get(i).copied().unwrap_or('\0');
+        let mut words = Vec::new();
+        let mut i = 0;
+        while i < chars.len() {
+            let c = chars[i];
+            if c == '/' && at(i + 1) == '/' {
+                while i < chars.len() && chars[i] != '\n' {
+                    i += 1;
+                }
+            } else if c == '/' && at(i + 1) == '*' {
+                let mut depth = 0;
+                while i < chars.len() {
+                    if chars[i] == '/' && at(i + 1) == '*' {
+                        depth += 1;
+                        i += 2;
+                    } else if chars[i] == '*' && at(i + 1) == '/' {
+                        depth -= 1;
+                        i += 2;
+                        if depth == 0 {
+                            break;
+                        }
+                    } else {
+                        i += 1;
+                    }
+                }
+            } else if c == '"' {
+                i += 1;
+                while i < chars.len() && chars[i] != '"' {
+                    i += if chars[i] == '\\' { 2 } else { 1 };
+                }
+                i += 1;
+            } else if c == '\'' {
+                // 'x' and '\n' are characters; 'a in <'a> is a lifetime.
+                if at(i + 1) == '\\' {
+                    i += 2;
+                    while i < chars.len() && chars[i] != '\'' {
+                        i += 1;
+                    }
+                    i += 1;
+                } else if at(i + 2) == '\'' {
+                    i += 3;
+                } else {
+                    i += 1;
+                }
+            } else if c.is_alphabetic() || c == '_' {
+                let start = i;
+                while i < chars.len() && (chars[i].is_alphanumeric() || chars[i] == '_') {
+                    i += 1;
+                }
+                let word: String = chars[start..i].iter().collect();
+                // r#Channel is the identifier Channel, written raw.
+                if word == "r" && at(i) == '#' && (at(i + 1).is_alphabetic() || at(i + 1) == '_') {
+                    i += 1;
+                    continue;
+                }
+                // r"..", r#".."#, br#".."#: raw strings, which end at a quote
+                // and as many hashes as they start with.
+                if (word == "r" || word == "br") && (at(i) == '"' || at(i) == '#') {
+                    let mut hashes = 0;
+                    while at(i) == '#' {
+                        hashes += 1;
+                        i += 1;
+                    }
+                    i += 1;
+                    while i < chars.len() && !(chars[i] == '"' && (1..=hashes).all(|n| at(i + n) == '#')) {
+                        i += 1;
+                    }
+                    i += 1 + hashes;
+                } else if word == "b" && at(i) == '"' {
+                    i += 1;
+                    while i < chars.len() && chars[i] != '"' {
+                        i += if chars[i] == '\\' { 2 } else { 1 };
+                    }
+                    i += 1;
+                } else {
+                    words.push(word);
+                }
+            } else {
+                i += 1;
+            }
+        }
+        words
+    }
+
+    /// Where `code` could reach Tauri's IPC Channel: any identifier with
+    /// Channel in it (Channel, JavaScriptChannelId, ChannelDataIpcQueue) but
+    /// updater.rs's ReleaseChannel, and the helpers that hand one out. Naming
+    /// Tauri's type takes one of those words, however it is imported, aliased
+    /// in another file, written raw (r#Channel) or passed through a macro.
+    fn channel_uses(code: &str) -> Vec<String> {
+        let channel = ["Chan", "nel"].concat();
+        let ours = ["Release", &channel].concat();
+        let helpers = [["channel", "_on"].concat(), ["send_", "channel", "_data"].concat()];
+        identifiers(code)
+            .into_iter()
+            .filter(|word| (word.contains(&channel) && *word != ours) || helpers.contains(word))
+            .collect()
+    }
+
+    #[test]
+    fn the_channel_check_sees_through_spacing_aliases_and_globs() {
+        let finds = |code: &str| !channel_uses(code).is_empty();
+        let word = ["Chan", "nel"].concat();
+        assert!(finds(&format!("use tauri::ipc :: {word};")));
+        assert!(finds(&format!("use tauri::ipc::{{\n    Response,\n    {word} as Pipe,\n}};")));
+        assert!(finds(&format!("use tauri::ipc as transport;\nfn f(c: transport::{word}<u8>) {{}}")));
+        assert!(finds(&format!("use tauri::{{ipc::{{self as i}}}};\nfn f(c: i::{word}<u8>) {{}}")));
+        assert!(finds(&format!("use tauri::ipc::*;\nfn f(c: {word}<u8>) {{}}")));
+        assert!(finds(&format!("let id = \"x\".parse::<tauri::ipc::JavaScript{word}Id>();")));
+        // An alias made in one file and used in another, a macro, a raw name.
+        assert!(finds(&format!("use crate::pipes::{word} as Pipe;")));
+        assert!(finds(&format!("fn f(c: crate::transport::{word}<u8>) {{}}")));
+        assert!(finds(&format!("macro_rules! pipe {{ () => {{ tauri::ipc::{word}::<String>::new(|_| Ok(())) }} }}")));
+        assert!(finds(&format!("fn f(c: r#{word}<u8>) {{}}")));
+        // The updater's own enum, comments and strings are not the IPC Channel.
+        assert!(!finds(&format!("enum Release{word} {{ Stable, Beta }}\nfn f(c: Release{word}) {{}}")));
+        assert!(!finds(&format!("// tauri::ipc::{word}\n/* ipc::{word} */\nlet s = \"ipc::{word}\"; let r = r#\"ipc::{word}\"#;")));
+        assert!(!finds("use tauri::ipc::Response;\nfn f() -> Response { Response::new(vec![]) }"));
+        assert!(!finds("fn f<'a>(s: &'a str) -> char { let _ = '\"'; 'x' }"));
+    }
+
     /// Tauri 2 lets every webview, the browser's third-party page included,
     /// fetch a queued Channel message by its number: the channel fetch
-    /// command skips the ACL. So the app sends nothing over Tauri's Channel.
-    /// (updater.rs has an enum of its own by that name, for release channels.)
+    /// command skips the ACL. So the app's Rust code reaches no Channel.
     #[test]
     fn the_app_sends_nothing_over_a_tauri_channel() {
-        let needle = ["ipc::", "Channel"].concat();
-        let word = ["Chan", "nel"].concat();
-        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
-        for entry in std::fs::read_dir(&dir).unwrap().flatten() {
-            let path = entry.path();
-            if path.extension().and_then(|ext| ext.to_str()) != Some("rs") {
-                continue;
+        fn walk(dir: &Path, files: &mut Vec<PathBuf>) {
+            for entry in std::fs::read_dir(dir).unwrap().flatten() {
+                let path = entry.path();
+                if path.is_dir() {
+                    walk(&path, files);
+                } else if path.extension().and_then(|ext| ext.to_str()) == Some("rs") {
+                    files.push(path);
+                }
             }
-            let text = std::fs::read_to_string(&path).unwrap();
-            let code: String = text.lines().map(|line| line.split("//").next().unwrap_or("")).collect::<Vec<_>>().join("\n");
-            assert!(!code.contains(&needle), "{} uses Tauri's Channel", path.display());
-            // `use tauri::ipc::{Channel, ...}` names it inside braces.
-            for group in code.split("ipc::{").skip(1) {
-                let names = group.split('}').next().unwrap_or("");
-                assert!(
-                    !names.split(|c: char| !c.is_alphanumeric() && c != '_').any(|name| name == word),
-                    "{} imports Tauri's Channel",
-                    path.display()
-                );
-            }
+        }
+        let mut files = Vec::new();
+        walk(&Path::new(env!("CARGO_MANIFEST_DIR")).join("src"), &mut files);
+        assert!(files.len() > 10, "found the sources");
+        for path in files {
+            let uses = channel_uses(&std::fs::read_to_string(&path).unwrap());
+            assert!(uses.is_empty(), "{} reaches Tauri's IPC Channel: {uses:?}", path.display());
         }
     }
 

@@ -18,7 +18,7 @@
  */
 
 import type { DriverCommand, Expected } from './protocol';
-import { hasSecret, redactSecrets } from './secrets';
+import { HIDDEN_KEY, hasSecret, redactSecrets } from './secrets';
 
 declare global {
   interface Window {
@@ -45,6 +45,9 @@ declare global {
   const Pointer = PointerEvent;
   const Mouse = MouseEvent;
   const now = () => performance.now();
+  // Each page the browser loads gets its own driver, and numbers start again
+  // at 1. A control judged on one page must never be pressed on the next.
+  const DOCUMENT = `${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
 
   // An element in a frame from the same site belongs to that frame's window,
   // whose HTMLInputElement is another object than this one, so `instanceof`
@@ -95,9 +98,9 @@ declare global {
   // What the page copies, such as Play Console's "Copy Cloud Storage URI".
   // A copied private key is never kept.
   const remember = (text: unknown) => {
-    if (typeof text !== 'string') return;
+    if (typeof text !== 'string' || /PRIVATE KEY/.test(text) || hasSecret(text)) return;
     const value = text.trim().slice(0, 500);
-    if (!value || /PRIVATE KEY/.test(value) || hasSecret(value)) return;
+    if (!value) return;
     copied.push(value);
     if (copied.length > 5) copied.shift();
   };
@@ -146,7 +149,9 @@ declare global {
     const number = typeof ref === 'string' ? Number(ref.replace(/\D/g, '')) : ref;
     if (typeof number !== 'number' || !Number.isInteger(number)) return null;
     const el = byNumber.get(number)?.deref();
-    return el && el.isConnected ? el : null;
+    // An element of a frame that has since loaded another page still counts
+    // as connected, in a document no window shows any more.
+    return el && el.isConnected && el.ownerDocument.defaultView ? el : null;
   };
 
   // --- reading the page ---------------------------------------------------------------
@@ -164,8 +169,10 @@ declare global {
   const TEXT_INPUTS = new Set(['', 'text', 'email', 'search', 'tel', 'url', 'number', 'password', 'date', 'time']);
   const CELL_ROLES = new Set(['cell', 'gridcell', 'columnheader', 'rowheader']);
 
+  // Keys are hidden before anything is cut short: a key cut first could
+  // leave a piece too short to be recognised.
   const squash = (text: string | null | undefined, max = 200) => {
-    const flat = (text ?? '').replace(/\s+/g, ' ').trim();
+    const flat = redactSecrets(text ?? '').replace(/\s+/g, ' ').trim();
     return flat.length > max ? `${flat.slice(0, max - 1)}…` : flat;
   };
 
@@ -283,7 +290,8 @@ declare global {
 
   const secretOf = (el: Element): 'sign-in' | 'private' | null => {
     const input = is(el, 'input');
-    if (!input && !is(el, 'textarea') && el.getAttribute('role') !== 'textbox') return null;
+    const editable = htmlElement(el)?.isContentEditable === true && el.getAttribute('contenteditable') !== null;
+    if (!input && !editable && !is(el, 'textarea') && el.getAttribute('role') !== 'textbox') return null;
     const type = input ? el.type.toLowerCase() : '';
     if (type === 'password') return 'sign-in';
     const tokens = (el.getAttribute('autocomplete') ?? '').toLowerCase().split(/\s+/);
@@ -351,20 +359,59 @@ declare global {
     cut: boolean;
   }
 
+  // A key's first and last lines, as they read with every space taken out.
+  const KEY_BEGINS = /-----BEGIN[A-Z0-9]*PRIVATEKEY-----/;
+  const KEY_ENDS = /-----END[A-Z0-9]*PRIVATEKEY-----/;
+
   const read = (root: Element | Document, started: number): Reading => {
     const lines: string[] = [];
+    // Each outline line twice: `line` puts a space between pieces so labels
+    // and values stay apart, `glued` joins the page's text as it renders.
+    // A page can split a key into short elements, which `line` spaces apart
+    // and `glued` puts back together, so keys are looked for in `glued`.
     let line = '';
+    let glued = '';
+    let inKey = false;
     let signIn = false;
     let visited = 0;
     let cut = false;
+    const keep = (text: string) => {
+      if (lines[lines.length - 1] !== text || text !== HIDDEN_KEY) lines.push(text);
+    };
     const flush = () => {
       const text = line.trim();
-      if (text && text !== '|' && text !== '-') lines.push(text);
+      const whole = glued.replace(/\s+/g, ' ').trim();
       line = '';
+      glued = '';
+      if (!text || text === '|' || text === '-') return;
+      // With the spaces out, a key's BEGIN and END lines show however the
+      // page broke them up, and so do the lines of key text between them.
+      const compact = whole.replace(/[\s…]+/g, '');
+      const begins = compact.search(KEY_BEGINS);
+      if (begins >= 0 || (inKey && (KEY_ENDS.test(compact) || /^[A-Za-z0-9+/=]+$/.test(compact)))) {
+        inKey = !KEY_ENDS.test(begins >= 0 ? compact.slice(begins) : compact);
+        keep(HIDDEN_KEY);
+        return;
+      }
+      inKey = false;
+      // A key the line only shows glued together: the glued line, hidden.
+      keep(hasSecret(whole) ? squash(whole, 400) : text);
     };
     const add = (text: string) => {
       if (!text) return;
       line = line && !line.endsWith(' ') ? `${line} ${text}` : `${line}${text}`;
+      glued = `${glued} ${text} `;
+      if (line.length > 400) flush();
+    };
+    /** A text node: spaced in `line`, run on in `glued` exactly as the page has it. */
+    const addText = (raw: string) => {
+      const text = squash(raw, 300);
+      if (!text) {
+        glued += raw;
+        return;
+      }
+      line = line && !line.endsWith(' ') ? `${line} ${text}` : `${line}${text}`;
+      glued += raw;
       if (line.length > 400) flush();
     };
 
@@ -376,7 +423,7 @@ declare global {
         return;
       }
       if (node.nodeType === Node.TEXT_NODE) {
-        add(squash(node.textContent, 300));
+        addText(node.textContent ?? '');
         return;
       }
       if (node.nodeType !== Node.ELEMENT_NODE) return;
@@ -511,7 +558,8 @@ declare global {
         visited += 1;
         if (node.nodeType !== Node.ELEMENT_NODE) continue;
         const el = node as Element;
-        if (is(el, 'input') && secretOf(el) === 'sign-in' && shown(el)) {
+        // The same test the outline uses: a code box can be a textarea too.
+        if (secretOf(el) === 'sign-in' && shown(el)) {
           found = true;
           return;
         }
@@ -571,19 +619,49 @@ declare global {
     return heading ? squash((heading as HTMLElement).innerText ?? heading.textContent, 100) : '';
   };
 
-  /** The control as describe sees it, compared with what the app judged. */
+  /**
+   * Where `el` is: the page's address and, for a frame, the frame's too. A
+   * single-page console changes its address without loading a new page, so
+   * the address counts as well as the page itself.
+   */
+  const addressOf = (el: Element) => {
+    const frame = el.ownerDocument === document ? '' : ` ${el.ownerDocument.URL}`;
+    return `${location.href}${frame}`;
+  };
+
+  /**
+   * The control as describe sees it, compared with what the app judged: the
+   * page, the control's name, role and address, and the title of the dialog
+   * it sits in, which the policy reads too.
+   */
   const changedFrom = (el: Element, expected: Expected | undefined): string | null => {
     if (!expected) return null;
+    if (expected.doc !== undefined && expected.doc !== DOCUMENT) return 'The page changed';
+    if (expected.url !== undefined && expected.url !== addressOf(el)) return 'The page changed';
     const name = nameOf(el);
+    if (name !== expected.name) return `That control changed from "${expected.name}" to "${name}"`;
     const role = roleOf(el) ?? el.localName;
     const href = is(el, 'a') ? el.href : null;
-    if (name !== expected.name || role !== expected.role || (expected.href !== undefined && href !== (expected.href ?? null))) {
-      return name === expected.name ? 'That control changed' : `That control changed from "${expected.name}" to "${name}"`;
+    if (role !== expected.role || (expected.href !== undefined && href !== (expected.href ?? null))) return 'That control changed';
+    if (expected.dialog !== undefined) {
+      const box = dialogOf(el);
+      const title = box ? titleOf(box) : null;
+      if (title !== (expected.dialog ?? null)) {
+        return `The title above it changed from "${expected.dialog ?? ''}" to "${title ?? ''}"`;
+      }
     }
     return null;
   };
 
   const SIGN_IN_REFUSAL = 'Nothing is typed or pressed on a sign-in page';
+
+  /** Whether `el` is still the control the app judged, with no sign-in form up. */
+  const still = (el: Element, expected: Expected | undefined) => (): string | null => {
+    if (!el.isConnected) return 'That control left the page';
+    if (signInShown()) return SIGN_IN_REFUSAL;
+    if (disabled(el)) return 'That control turned off';
+    return changedFrom(el, expected);
+  };
 
   // --- acting on the page ---------------------------------------------------------------
 
@@ -647,22 +725,36 @@ declare global {
     return { x: box.left + box.width / 2, y: box.top + box.height / 2 };
   };
 
-  const click = (el: Element) => {
+  /**
+   * Press `el` the way a mouse does. The page's handlers run at every step
+   * (a mousedown can rename the button, a focus can bring up a sign-in form),
+   * so `still` looks again after each one, and the click itself only happens
+   * if nothing changed. Returns why it stopped, or null once pressed.
+   */
+  const click = (el: Element, still: () => string | null): string | null => {
     const { x, y } = centre(el);
     const view = el.ownerDocument.defaultView ?? window;
     const base = { bubbles: true, cancelable: true, composed: true, clientX: x, clientY: y, button: 0, view };
     const pointer = { ...base, pointerId: 1, pointerType: 'mouse', isPrimary: true };
-    el.dispatchEvent(new Pointer('pointerover', pointer));
-    el.dispatchEvent(new Mouse('mouseover', base));
-    el.dispatchEvent(new Pointer('pointerdown', { ...pointer, buttons: 1 }));
-    el.dispatchEvent(new Mouse('mousedown', { ...base, buttons: 1 }));
     const html = htmlElement(el);
-    html?.focus({ preventScroll: true });
-    el.dispatchEvent(new Pointer('pointerup', pointer));
-    el.dispatchEvent(new Mouse('mouseup', base));
+    const steps = [
+      () => el.dispatchEvent(new Pointer('pointerover', pointer)),
+      () => el.dispatchEvent(new Mouse('mouseover', base)),
+      () => el.dispatchEvent(new Pointer('pointerdown', { ...pointer, buttons: 1 })),
+      () => el.dispatchEvent(new Mouse('mousedown', { ...base, buttons: 1 })),
+      () => html?.focus({ preventScroll: true }),
+      () => el.dispatchEvent(new Pointer('pointerup', pointer)),
+      () => el.dispatchEvent(new Mouse('mouseup', base)),
+    ];
+    for (const step of steps) {
+      step();
+      const problem = still();
+      if (problem) return problem;
+    }
     if (html) html.click();
     else el.dispatchEvent(new Mouse('click', base));
     tapAt(x, y);
+    return null;
   };
 
   /** Set a box's value with the setter taken before the page's scripts ran, in any frame. */
@@ -681,13 +773,30 @@ declare global {
 
   const PRIVATE_BOX = 'This box is for a password, a code or other private details, so nothing is typed in it';
 
-  const typeInto = (el: Element, text: string) => {
+  /**
+   * Type `text` into `el`. Focusing the box runs the page's handlers, which
+   * can turn it into a password box, so `still` looks again, and the box is
+   * checked again, before a letter goes in.
+   */
+  const typeInto = (el: Element, text: string, still: () => string | null) => {
+    const refusal = (): string | null => {
+      if (is(el, 'input') && !TEXT_INPUTS.has(el.type)) return 'This is not a text box';
+      if ((is(el, 'input') || is(el, 'textarea')) && (el.readOnly || disabled(el))) return 'This box cannot be typed in now';
+      return secretOf(el) ? PRIVATE_BOX : null;
+    };
+    const focused = () => {
+      const problem = still() ?? refusal();
+      if (!problem) return null;
+      const plain = problem === PRIVATE_BOX || problem === SIGN_IN_REFUSAL;
+      return { ok: false, error: plain ? problem : `${problem}, so nothing was typed. Read the page again` };
+    };
     if (is(el, 'input') || is(el, 'textarea')) {
-      if (secretOf(el)) return { ok: false, error: PRIVATE_BOX };
-      if (is(el, 'input') && !TEXT_INPUTS.has(el.type)) return { ok: false, error: 'This is not a text box' };
-      if (el.readOnly || disabled(el)) return { ok: false, error: 'This box cannot be typed in now' };
+      const before = refusal();
+      if (before) return { ok: false, error: before };
       centre(el);
       el.focus({ preventScroll: true });
+      const after = focused();
+      if (after) return after;
       setValue(el, text);
       el.dispatchEvent(new TypedEvent('input', { bubbles: true, composed: true, inputType: 'insertText', data: text }));
       el.dispatchEvent(new PlainEvent('change', { bubbles: true }));
@@ -697,6 +806,8 @@ declare global {
     if (html?.isContentEditable) {
       if (secretOf(el)) return { ok: false, error: PRIVATE_BOX };
       html.focus();
+      const after = focused();
+      if (after) return after;
       el.ownerDocument.execCommand('selectAll');
       el.ownerDocument.execCommand('insertText', false, text);
       return { ok: true };
@@ -706,10 +817,11 @@ declare global {
 
   /**
    * Choose an option in a plain list. A preview only says which option
-   * `option` names, so the app can judge that option before it is chosen;
-   * `exact` then takes that option and no other.
+   * `option` names, and the value it sets, so the app can judge that option
+   * before it is chosen; `exact` then takes that option and no other, and
+   * only while it still sets `value`.
    */
-  const pick = (el: Element, option: string, mode: { preview?: boolean; exact?: boolean }) => {
+  const pick = (el: Element, option: string, mode: { preview?: boolean; exact?: boolean; value?: string }) => {
     if (!is(el, 'select')) {
       return { ok: false, error: 'This is not a plain list. Click it to open the list, then click the option' };
     }
@@ -722,7 +834,10 @@ declare global {
         options.find((entry) => entry.text.trim().toLowerCase().startsWith(wanted));
     if (!found) return { ok: false, error: `No option "${option}". The options are: ${options.map((entry) => entry.text.trim()).join(', ')}` };
     if (found.disabled) return { ok: false, error: `"${found.text.trim()}" is turned off in this list` };
-    if (mode.preview) return { ok: true, picked: found.text.trim() };
+    if (mode.preview) return { ok: true, picked: found.text.trim(), value: found.value };
+    if (mode.value !== undefined && found.value !== mode.value) {
+      return { ok: false, error: `The option "${found.text.trim()}" changed, so nothing was chosen. Read the page again` };
+    }
     if (disabled(el)) return { ok: false, error: 'This list is turned off right now' };
     setValue(el, found.value);
     el.dispatchEvent(new PlainEvent('input', { bubbles: true }));
@@ -774,6 +889,8 @@ declare global {
             href: is(el, 'a') ? el.href : null,
             inDialog: !!dialog,
             dialog: dialog ? titleOf(dialog) : null,
+            doc: DOCUMENT,
+            url: addressOf(el),
           });
         }
         // Each action looks again in the moment it acts: at a sign-in form
@@ -785,7 +902,8 @@ declare global {
           const changed = changedFrom(el, command.expect);
           if (changed) return answer({ ok: false, error: `${changed}, so nothing was pressed. Read the page again` });
           if (disabled(el)) return answer({ ok: false, error: 'That control is turned off right now' });
-          click(el);
+          const stopped = click(el, still(el, command.expect));
+          if (stopped) return answer({ ok: false, error: stopped === SIGN_IN_REFUSAL ? stopped : `${stopped}, so the click was stopped. Read the page again` });
           return answer({ ok: true, name: nameOf(el) });
         }
         case 'type': {
@@ -794,7 +912,7 @@ declare global {
           if (signInShown()) return answer({ ok: false, error: SIGN_IN_REFUSAL });
           const changed = changedFrom(el, command.expect);
           if (changed) return answer({ ok: false, error: `${changed}, so nothing was typed. Read the page again` });
-          return answer(typeInto(el, String(command.text ?? '').slice(0, 300)));
+          return answer(typeInto(el, String(command.text ?? '').slice(0, 300), still(el, command.expect)));
         }
         case 'pick': {
           const el = elementFor(command.ref);
@@ -802,7 +920,13 @@ declare global {
           if (!command.preview && signInShown()) return answer({ ok: false, error: SIGN_IN_REFUSAL });
           const changed = changedFrom(el, command.expect);
           if (changed) return answer({ ok: false, error: `${changed}, so nothing was chosen. Read the page again` });
-          return answer(pick(el, String(command.option ?? ''), { preview: command.preview === true, exact: command.exact === true }));
+          return answer(
+            pick(el, String(command.option ?? ''), {
+              preview: command.preview === true,
+              exact: command.exact === true,
+              value: typeof command.value === 'string' ? command.value : undefined,
+            })
+          );
         }
         case 'scroll':
           return answer(scrollPage(command.to ?? 'down'));

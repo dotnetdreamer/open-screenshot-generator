@@ -250,7 +250,7 @@ export const driver = {
   /** `expect` is the control as the app judged it; the driver acts only while it still matches. */
   click: (ref: number, expect?: Expected) => runDriver<ActionAnswer>({ cmd: 'click', ref, expect }),
   type: (ref: number, text: string, expect?: Expected) => runDriver<ActionAnswer>({ cmd: 'type', ref, text, expect }),
-  pick: (ref: number, option: string, mode: { preview?: boolean; exact?: boolean; expect?: Expected } = {}) =>
+  pick: (ref: number, option: string, mode: { preview?: boolean; exact?: boolean; value?: string; expect?: Expected } = {}) =>
     runDriver<ActionAnswer>({ cmd: 'pick', ref, option, ...mode }),
   scroll: (to: 'up' | 'down' | 'top' | 'bottom') => runDriver<ActionAnswer>({ cmd: 'scroll', to }),
   point: (ref: number, note?: string) => runDriver<ActionAnswer>({ cmd: 'point', ref, note }),

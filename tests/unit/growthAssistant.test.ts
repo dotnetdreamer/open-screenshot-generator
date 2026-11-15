@@ -80,22 +80,14 @@ test('a click that removes something is refused, one that changes the account is
   assert.equal(judgeClick('Revoke', true).kind, 'never');
 });
 
-test('only the known form openers, on their own console, go without a yes', () => {
-  const asc = { host: 'appstoreconnect.apple.com' };
-  const cloud = { host: 'console.cloud.google.com' };
-  const play = { host: 'play.google.com' };
-  assert.equal(judgeClick('Generate API Key', false, asc).kind, 'free');
-  assert.equal(judgeClick('Create service account', false, cloud).kind, 'free');
-  assert.equal(judgeClick('add Create service account', false, cloud).kind, 'free', 'a Material icon name in front');
-  assert.equal(judgeClick('New project', false, cloud).kind, 'free');
-  assert.equal(judgeClick('Create new key', false, cloud).kind, 'free');
-  assert.equal(judgeClick('Invite new users', false, play).kind, 'free');
-  // The same label on another site, or without one, or with more to it.
-  assert.equal(judgeClick('Generate API Key').kind, 'ask');
-  assert.equal(judgeClick('Generate API Key', false, play).kind, 'ask');
-  assert.equal(judgeClick('Generate API Key and download it', false, asc).kind, 'ask');
+test('a control that only opens the form is asked about too', () => {
+  // A label cannot say whether it opens the form or makes the change.
+  for (const name of ['Generate API Key', 'Create service account', 'Create new key', 'Create credentials', 'Invite new users']) {
+    assert.equal(judgeClick(name).kind, 'ask', name);
+  }
+  assert.equal(judgeClick('New project').kind, 'free', 'no word that changes anything');
   // A link or a tab that saves is asked about like a button.
-  assert.equal(judgeClick('Save', false, asc).kind, 'ask');
+  assert.equal(judgeClick('Save').kind, 'ask');
 });
 
 test('in a dialog the title counts, and a bare yes is asked about', () => {
@@ -163,6 +155,14 @@ test('private keys are hidden wherever they turn up, and nothing else is', () =>
   assert.equal(redactSecrets('line one\nZm9vYmFyYmF6cXV4Zm9vYmFyYmF6cXV4Zm9vYmFyYmF6cXV4\nline three'), `line one\n${HIDDEN_KEY}\nline three`);
   const plain = `Issuer ID ${ISSUER}\nKey ID ${KEY_ID} | Admin\ncom.dotnetdreamer.ludowala gs://pubsite_prod_7073048686294523029 85012345`;
   assert.equal(redactSecrets(plain), plain);
+  // A key shown across several elements has each part hidden on its own; its
+  // short last line and its END line go with them.
+  assert.equal(
+    redactSecrets(`${HIDDEN_KEY} ${HIDDEN_KEY} AwEHBHkwdw== -----END PRIVATE KEY----- Download`),
+    `${HIDDEN_KEY} Download`
+  );
+  // An EC key in its own format starts with MHc, not MI.
+  assert.equal(redactSecrets(`key: MHcCAQEEIIrYSSNQFaA2Hwf1duRSxKtLYX5CB04fSeQ6tF1aY/PuoAoGCCqGSM49AwEHoUQDQgAE`), `key: ${HIDDEN_KEY}`);
 });
 
 test('the Key ID comes from the file name, the Issuer ID from the page', () => {
@@ -228,6 +228,11 @@ test('a prompt fences the page and cannot be closed from inside it', () => {
   });
   assert.doesNotMatch(leaky, /MIGTAgEAMBMG/);
   assert.match(leaky, /\[a private key, hidden\]/);
+  // A long message is checked whole before it is cut to length, so the cut
+  // cannot leave a piece of key too short to be recognised.
+  const body = 'MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgSYNTHETICkeyBODYabcdefghijklmnopqrstuvwxyz0123456789';
+  const clipped = turnPrompt({ status: '', events: [], page: null, transcript: [{ role: 'user', text: `${'a'.repeat(838)} ${body}` }] });
+  assert.doesNotMatch(clipped, /MIGHAgEA|SYNTHETICkey/);
   assert.match(systemPrompt(null, null), /No app is connected yet/);
   assert.match(systemPrompt({ totals: 1 }, 'Ludo Wala'), /The numbers of Ludo Wala/);
 });
@@ -236,8 +241,9 @@ test('a prompt fences the page and cannot be closed from inside it', () => {
 
 interface Control extends ControlDescription {
   onClick?: () => void;
-  /** A plain list's options. */
+  /** A plain list's options, and the value each sets when it differs from its text. */
   options?: string[];
+  values?: Record<string, string>;
 }
 
 function standInBrowser() {
@@ -248,12 +254,17 @@ function standInBrowser() {
   const clicks: number[] = [];
   const typed: Array<[number, string]> = [];
   const picks: Array<[number, string]> = [];
-  // As the driver does: act only while the control is the one judged.
-  const changed = (ref: number, expect?: { name: string; role: string }) => {
+  // As the driver does: act only while the control is the one judged, on the
+  // page and in the dialog it was judged in.
+  const changed = (ref: number, expect?: { name: string; role: string; dialog?: string | null; url?: string }) => {
     const control = controls.get(ref);
-    return !!expect && !!control && (control.name !== expect.name || control.role !== expect.role)
-      ? `That control changed from "${expect.name}" to "${control.name}"`
-      : null;
+    if (!expect || !control) return null;
+    if (expect.url !== undefined && control.url !== expect.url) return 'The page changed';
+    if (control.name !== expect.name || control.role !== expect.role) return `That control changed from "${expect.name}" to "${control.name}"`;
+    if (expect.dialog !== undefined && (control.dialog ?? null) !== expect.dialog) {
+      return `The title above it changed from "${expect.dialog ?? ''}" to "${control.dialog ?? ''}"`;
+    }
+    return null;
   };
   const show = (url: string, text: string, list: Array<[number, Control]> = []) => {
     state.url = url;
@@ -297,12 +308,15 @@ function standInBrowser() {
         return { ok: true };
       },
       pick: async (ref, option, mode = {}) => {
-        const options = controls.get(ref)?.options ?? [];
+        const control = controls.get(ref);
+        const options = control?.options ?? [];
         const found = options.find((entry) => (mode.exact ? entry === option : entry.toLowerCase().startsWith(option.toLowerCase())));
         if (!found) return { ok: false, error: `No option "${option}"` };
-        if (mode.preview) return { ok: true, picked: found };
+        const value = control?.values?.[found] ?? found;
+        if (mode.preview) return { ok: true, picked: found, value };
         const moved = changed(ref, mode.expect);
         if (moved) return { ok: false, error: `${moved}, so nothing was chosen` };
+        if (mode.value !== undefined && mode.value !== value) return { ok: false, error: `The option "${found}" changed, so nothing was chosen` };
         picks.push([ref, found]);
         return { ok: true, picked: found };
       },
@@ -451,8 +465,12 @@ test('an App Store key is made, approved, caught and saved, and no key reaches t
   browser = setup.browser;
 
   sendMessage('My app is on the App Store. Help me connect it.');
-  await until(() => lastOf('approval')?.state === 'asking', 'the question before Generate');
-  assert.equal(lastOf('approval')!.action, 'Generate');
+  // Even the button that only opens the dialog waits for a yes.
+  await until(() => lastOf('approval')?.state === 'asking', 'the question before Generate API Key');
+  assert.equal(lastOf('approval')!.action, 'Generate API Key');
+  assert.deepEqual(browser.clicks, [], 'Generate API Key waits for the answer');
+  answerApproval(lastOf('approval')!.id, true);
+  await until(() => lastOf('approval')?.action === 'Generate' && lastOf('approval')?.state === 'asking', 'the question before Generate');
   assert.deepEqual(browser.clicks, [3], 'Generate waits for the answer');
   assert.equal(assistantSnapshot().phase, 'approval');
   answerApproval(lastOf('approval')!.id, true);
@@ -561,6 +579,78 @@ test('a control that changes while the user decides is not pressed', async () =>
   await idle();
   assert.deepEqual(browser.clicks, []);
   assert.equal(lastOf('step')!.state, 'failed');
+  assert.equal(growth.prompts.length, 3);
+});
+
+test('a dialog whose title changes while the user decides is not pressed in', async () => {
+  const url = 'https://console.cloud.google.com/apis/library';
+  const { browser, growth } = await fresh([
+    json({ actions: [{ do: 'open', url }], next: 'continue' }),
+    () => {
+      browser.show(url, 'A dialog is open: "Enable analytics"\n[5] button "OK"', [[5, { ok: true, role: 'button', name: 'OK', dialog: 'Enable analytics' }]]);
+      return json({ actions: [{ do: 'click', ref: 5 }], next: 'continue' });
+    },
+    (prompt) => {
+      assert.match(prompt, /title above it changed from "Enable analytics" to "Delete account", so nothing was pressed/);
+      return json({ say: 'The box changed, so I left it.', next: 'user' });
+    },
+  ]);
+  sendMessage('Turn on analytics');
+  await until(() => lastOf('approval')?.state === 'asking', 'the question before OK');
+  // "OK" says nothing by itself, so the question names the dialog.
+  assert.equal(lastOf('approval')!.where, 'Enable analytics');
+  browser.controls().set(5, { ok: true, role: 'button', name: 'OK', dialog: 'Delete account' });
+  answerApproval(lastOf('approval')!.id, true);
+  await idle();
+  assert.deepEqual(browser.clicks, []);
+  assert.equal(growth.prompts.length, 3);
+});
+
+test('an option whose value changes while the user decides is not chosen', async () => {
+  const url = 'https://console.cloud.google.com/apis/api/androidpublisher.googleapis.com';
+  const { browser, growth } = await fresh([
+    json({ actions: [{ do: 'open', url }], next: 'continue' }),
+    () => {
+      browser.show(url, '[6] combobox "API" options: Leave as it is, Enable API', [
+        [6, { ok: true, role: 'combobox', name: 'API', options: ['Leave as it is', 'Enable API'], values: { 'Enable API': 'enable' } }],
+      ]);
+      return json({ actions: [{ do: 'pick', ref: 6, option: 'Enable API' }], next: 'continue' });
+    },
+    (prompt) => {
+      assert.match(prompt, /The option "Enable API" changed, so nothing was chosen/);
+      return json({ say: 'The list changed, so I left it.', next: 'user' });
+    },
+  ]);
+  sendMessage('Turn on the API');
+  await until(() => lastOf('approval')?.state === 'asking', 'the question before Enable API');
+  // The label stays, the value under it does not.
+  browser.controls().set(6, { ok: true, role: 'combobox', name: 'API', options: ['Leave as it is', 'Enable API'], values: { 'Enable API': 'disable' } });
+  answerApproval(lastOf('approval')!.id, true);
+  await idle();
+  assert.deepEqual(browser.picks, []);
+  assert.equal(growth.prompts.length, 3);
+});
+
+test('a console that changes its address while the user decides is not pressed in', async () => {
+  const url = 'https://play.google.com/console/u/0/developers/1/notifications';
+  const { browser, growth } = await fresh([
+    json({ actions: [{ do: 'open', url }], next: 'continue' }),
+    () => {
+      browser.show(url, '[4] button "Save"', [[4, { ok: true, role: 'button', name: 'Save', url }]]);
+      return json({ actions: [{ do: 'click', ref: 4 }], next: 'continue' });
+    },
+    (prompt) => {
+      assert.match(prompt, /The page changed, so nothing was pressed/);
+      return json({ say: 'The page moved on, so I left it.', next: 'user' });
+    },
+  ]);
+  sendMessage('Save my notification settings');
+  await until(() => lastOf('approval')?.state === 'asking', 'the question before Save');
+  // A single-page console moves to another page and keeps the same button.
+  browser.controls().set(4, { ok: true, role: 'button', name: 'Save', url: url.replace('notifications', 'account') });
+  answerApproval(lastOf('approval')!.id, true);
+  await idle();
+  assert.deepEqual(browser.clicks, []);
   assert.equal(growth.prompts.length, 3);
 });
 
