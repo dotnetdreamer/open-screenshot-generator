@@ -37,11 +37,22 @@
 //     not search Google Play: a Google Play app is followed by its link.
 //   - A page is about 220 KB compressed, so pages are asked for one at a time,
 //     PLAY_PACE_MS apart.
+//   - The ratings per star sit beside the rating ([51][1], one star first),
+//     and each country has its own. Ludo King in the US: 1,628,744 one-star
+//     to 7,278,347 five-star ratings, whose average is the page's 4.13.
+//   - Twenty reviews are in another block, the ones Google Play shows first:
+//     some years old (2019 and 2020 for Ludo King), most from the last few
+//     months, in the page's language. Each has its id, the reviewer's name,
+//     the stars, the text, the time, the thumbs up, the developer's reply and
+//     the app version (readPlayReviews).
 
 import { bridgeFetch } from '@/lib/account/transport';
 import { isTauri } from '@/lib/desktop';
 import { pause, throwIfAborted } from './http';
+import type { PublicReview } from './publicReviews';
+import { asStarCounts } from './ratingHistory';
 import type { RivalStorefront } from './rivals';
+import { playAppId } from './stores';
 
 /** Spacing between two Google Play pages. Google publishes no limit; this keeps a check at a person's pace. */
 export const PLAY_PACE_MS = 2_000;
@@ -102,6 +113,8 @@ const FIELD = {
   developer: [68, 0],
   genre: [79, 0, 0, 0],
   rating: [51, 0, 1],
+  /** [null, [printed, one-star count], ... [printed, five-star count]]. */
+  stars: [51, 1],
   ratingCount: [51, 2, 1],
   /** [price in millionths, currency, price as printed]; the printed price is empty for a free app. */
   offer: [57, 0, 0, 0, 0, 1, 0],
@@ -220,6 +233,7 @@ export function readPlayPage(html: string, packageName: string, territory: strin
     releaseNotes: plainText(text(at(app, FIELD.whatsNew))),
     rating: count(at(app, FIELD.rating)),
     ratingCount: count(at(app, FIELD.ratingCount)),
+    ...starsOf(app),
     price: micros === null ? null : micros / 1_000_000,
     priceLabel: text(at(offer, [2])) || (micros === 0 ? 'Free' : ''),
     currency: text(at(offer, [1])) || null,
@@ -228,6 +242,97 @@ export function readPlayPage(html: string, packageName: string, territory: strin
     ipadScreenshots: [],
     storeUrl: playPageUrl(packageName, territory),
     seenAt,
+  };
+}
+
+/** The stars per country, when they are five whole numbers. */
+function starsOf(app: unknown[]): Pick<RivalStorefront, 'stars'> {
+  const entries = at(app, FIELD.stars);
+  if (!Array.isArray(entries) || entries.length !== 6) return {};
+  const stars = asStarCounts(entries.slice(1).map((entry) => at(entry, [1])), 'one-first');
+  return stars ? { stars } : {};
+}
+
+/** The review list: a block whose data[0] is entries of [id, [name], stars, _, text, [seconds]]. */
+function reviewRows(html: string): unknown[] | null {
+  for (const match of html.matchAll(BLOCK)) {
+    const raw = match[1];
+    if (!raw.trimStart().startsWith('[[["')) continue;
+    let data: unknown;
+    try {
+      data = JSON.parse(raw);
+    } catch {
+      continue;
+    }
+    const rows = at(data, [0]);
+    if (!Array.isArray(rows) || rows.length === 0) continue;
+    const shaped = rows.every(
+      (row) =>
+        Array.isArray(row) &&
+        typeof row[0] === 'string' &&
+        typeof at(row, [1, 0]) === 'string' &&
+        typeof row[2] === 'number' &&
+        count(at(row, [5, 0])) !== null
+    );
+    if (shaped) return rows;
+  }
+  return null;
+}
+
+/**
+ * The reviews a Google Play page shows first, in the page's language. Empty
+ * when the page has none where Growth reads them; reviews are a detail, so a
+ * page without them is not an unreadable page.
+ */
+export function readPlayReviews(html: string, packageName: string, territory: string): PublicReview[] {
+  const rows = reviewRows(html);
+  if (!rows) return [];
+  const out: PublicReview[] = [];
+  for (const row of rows) {
+    const rating = count(at(row, [2]));
+    const seconds = count(at(row, [5, 0]));
+    const body = text(at(row, [4])).trim();
+    if (!rating || rating < 1 || rating > 5 || !seconds || !body) continue;
+    const replyText = text(at(row, [7, 1])).trim();
+    const replySeconds = count(at(row, [7, 2, 0]));
+    out.push({
+      id: text(at(row, [0])),
+      appId: playAppId(packageName),
+      territory,
+      rating,
+      title: '',
+      body,
+      author: text(at(row, [1, 0])),
+      version: text(at(row, [10])) || undefined,
+      date: new Date(seconds * 1000).toISOString(),
+      helpful: count(at(row, [6])) ?? undefined,
+      ...(replyText ? { reply: { body: replyText, date: replySeconds ? new Date(replySeconds * 1000).toISOString() : null } } : {}),
+    });
+  }
+  return out;
+}
+
+/**
+ * An app's Google Play page in `territory`, after this window's turn: the app
+ * as the page shows it, and the reviews it shows first. Null when Google Play
+ * has no such app (404).
+ */
+export async function fetchPlayPage(
+  packageName: string,
+  territory: string,
+  options: { signal?: AbortSignal; now?: number } = {}
+): Promise<{ storefront: RivalStorefront; reviews: PublicReview[] } | null> {
+  await playTurn(options.signal);
+  throwIfAborted(options.signal);
+  const doFetch = await bridgeFetch();
+  const response = await doFetch(playPageUrl(packageName, territory), { method: 'GET', cache: 'no-store' });
+  throwIfAborted(options.signal);
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`Google Play answered HTTP ${response.status}`);
+  const html = await response.text();
+  return {
+    storefront: readPlayPage(html, packageName, territory, options.now ?? Date.now()),
+    reviews: readPlayReviews(html, packageName, territory),
   };
 }
 
@@ -240,12 +345,5 @@ export async function fetchPlayStorefront(
   territory: string,
   options: { signal?: AbortSignal; now?: number } = {}
 ): Promise<RivalStorefront | null> {
-  await playTurn(options.signal);
-  throwIfAborted(options.signal);
-  const doFetch = await bridgeFetch();
-  const response = await doFetch(playPageUrl(packageName, territory), { method: 'GET', cache: 'no-store' });
-  throwIfAborted(options.signal);
-  if (response.status === 404) return null;
-  if (!response.ok) throw new Error(`Google Play answered HTTP ${response.status}`);
-  return readPlayPage(await response.text(), packageName, territory, options.now ?? Date.now());
+  return (await fetchPlayPage(packageName, territory, options))?.storefront ?? null;
 }

@@ -43,6 +43,10 @@ export interface GrowthSettings {
    * automatic takes Claude Code, then Codex, then the AI panel's provider.
    */
   aiWriter?: 'auto' | 'claude' | 'codex' | 'panel';
+  /** Which new reviews Growth tells the user about (reviewAlerts.ts): all of them unless set. */
+  reviewAlerts?: 'all' | 'low' | 'off';
+  /** A Slack incoming webhook that new reviews are posted to, in the desktop app. */
+  slackWebhook?: string;
   /** The stores the user told the Ask AI assistant their app is on, so setup shows only those. */
   setupStores?: Array<'appstore' | 'playstore'>;
 }

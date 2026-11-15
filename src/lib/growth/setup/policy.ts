@@ -33,22 +33,13 @@ export function mayOpen(address: string): boolean {
 const NEVER =
   /\b(delete|remove|revoke|deactivate|disable|deny|reject|sign ?out|log ?out|transfer|reset|shut ?down|archive|terminate|unpublish|withdraw|leave|regenerate|rotate|cancel (?:my |your |the )?(?:subscription|membership|plan|account)|close (?:my |your |the )?account|change password|pay|purchase|buy)\b/i;
 
-/** Words on a control that changes the account: the user says yes first. */
-const ASK = /\b(generate|create|enable|invite|send|grant|save|apply|submit|confirm|agree|accept|request|allow|publish|upload)\b/i;
-
 /**
- * Controls that only open the form where the change is made, on the console
- * that has them: "Generate API Key" opens a dialog whose "Generate" makes the
- * key, "Invite new users" opens the page whose "Invite user" sends it. The
- * second one is asked about. Only these exact labels, on these sites, are let
- * through: the label alone cannot say whether a control opens a form or
- * makes the change, so any other control with a change word is asked about.
+ * Words on a control that changes the account: the user says yes first. That
+ * includes a control that only opens the form where the change is made, such
+ * as "Generate API Key" before the dialog's "Generate": a label cannot say
+ * which of the two it does, so both are asked about.
  */
-const FORM_OPENERS: Record<string, readonly string[]> = {
-  'appstoreconnect.apple.com': ['generate api key'],
-  'console.cloud.google.com': ['create service account', 'create credentials', 'create new key', 'new project'],
-  'play.google.com': ['invite new users'],
-};
+const ASK = /\b(generate|create|enable|invite|send|grant|save|apply|submit|confirm|agree|accept|request|allow|publish|upload)\b/i;
 
 /** Labels that only close a box or go back. */
 const DISMISS = /^(cancel|close|no|no thanks|not now|back|dismiss|later|maybe later|got it)$/i;
@@ -72,18 +63,9 @@ export type ClickVerdict =
   | { kind: 'ask'; reason: string }
   | { kind: 'never'; reason: string };
 
-/** Where a control is: the site, and the title of the dialog it sits in. */
+/** Where a control is: the title of the dialog it sits in. */
 export interface ControlPlace {
-  host?: string;
   dialog?: string | null;
-}
-
-function opensForm(label: string, host: string | undefined): boolean {
-  const openers = FORM_OPENERS[(host ?? '').toLowerCase()];
-  if (!openers) return false;
-  const words = label.toLowerCase().replace(/\s+/g, ' ').trim();
-  // Material buttons put their icon's name first: "add Create service account".
-  return openers.some((opener) => words === opener || (words.endsWith(` ${opener}`) && words.split(' ').length === opener.split(' ').length + 1));
 }
 
 /**
@@ -103,8 +85,7 @@ export function judgeClick(name: string, changes = false, place: ControlPlace = 
   if (dialog && NEVER.test(dialog) && !DISMISS.test(label)) {
     return { kind: 'never', reason: `The assistant never presses "${label}" in "${dialog}". If you want that, press it yourself.` };
   }
-  if (changes) return { kind: 'ask', reason: label };
-  if (ASK.test(label)) return opensForm(label, place.host) ? { kind: 'free' } : { kind: 'ask', reason: label };
+  if (changes || ASK.test(label)) return { kind: 'ask', reason: label };
   if (CONFIRM.test(label) || (dialog && /^continue\b/i.test(label))) return { kind: 'ask', reason: label };
   return { kind: 'free' };
 }

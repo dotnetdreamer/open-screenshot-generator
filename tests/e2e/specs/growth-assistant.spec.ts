@@ -124,11 +124,17 @@ test.describe('the Ask AI assistant', () => {
       await expect(view.getByTestId('growth-browser-address')).toContainText('appstoreconnect.apple.com');
       await expect(view.getByText("Let's get your App Store key. I'll open App Store Connect.")).toBeVisible();
 
+      // Even the button that only opens the dialog asks first: a label cannot
+      // say whether it opens a form or makes the change.
+      await expect(view.getByText('Can I press "Generate API Key"?')).toBeVisible();
+      const frame = page.frameLocator('#__e2e_growth_browser');
+      await expect(frame.locator('#dialog')).toBeHidden();
+      await view.getByRole('button', { name: 'Yes, press it' }).click();
+
       // Generate changes the account, so it waits for a yes. Until then the
       // dialog is still open and no key exists.
       const ask = view.getByText('Can I press "Generate"?');
       await expect(ask).toBeVisible();
-      const frame = page.frameLocator('#__e2e_growth_browser');
       await expect(frame.locator('#new-key')).toHaveCount(0);
       await expect(frame.locator('#name')).toHaveValue('Open Screenshot Generator');
       await expect(frame.locator('#access')).toHaveValue('Admin');
@@ -140,6 +146,7 @@ test.describe('the Ask AI assistant', () => {
       await expect(view.getByText(`Key ID ${NEW_KEY_ID}`).first()).toBeVisible();
       await expect(view.getByText('Your App Store Connect API key is saved. Next comes your vendor number.')).toBeVisible();
       await expect(view.getByText('You said yes to "Generate"')).toBeVisible();
+      await expect(view.getByText('You said yes to "Generate API Key"')).toBeVisible();
       await expect(view.getByText('Clicked "Generate API Key"')).toBeVisible();
 
       // Saved where the upload dialog keeps it, with the Issuer ID the page showed.
@@ -166,6 +173,8 @@ test.describe('the Ask AI assistant', () => {
       await app.startBlankProject();
       const view = await openGrowth(page);
       await view.getByRole('button', { name: 'App Store', exact: true }).click();
+      await expect(view.getByText('Can I press "Generate API Key"?')).toBeVisible();
+      await view.getByRole('button', { name: 'Yes, press it' }).click();
       await expect(view.getByText('Can I press "Generate"?')).toBeVisible();
 
       const browser = () =>

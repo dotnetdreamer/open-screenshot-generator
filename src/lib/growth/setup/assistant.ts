@@ -478,9 +478,19 @@ function failed(message: string): Outcome {
   return 'stop';
 }
 
-/** The control as `describe` saw it, which the driver checks again as it acts. */
+/**
+ * The control as `describe` saw it, which the driver checks again as it
+ * acts: everything the policy read to judge it, on the same page.
+ */
 function expectation(control: ControlDescription): Expected {
-  return { name: control.name ?? '', role: control.role ?? '', href: control.href ?? null };
+  return {
+    name: control.name ?? '',
+    role: control.role ?? '',
+    href: control.href ?? null,
+    dialog: control.dialog ?? null,
+    doc: control.doc,
+    url: control.url,
+  };
 }
 
 /**
@@ -545,7 +555,7 @@ async function performOne(action: AssistantAction, signal: AbortSignal): Promise
       if (!control?.ok) return failed(`click [${action.ref}]: ${control?.error ?? 'that control is no longer on the page'}. Read the page again.`);
       const name = control.name || `control ${action.ref}`;
       const dialog = control.dialog || null;
-      const verdict = judgeClick(name, action.changes, { host: host(browser.state().url), dialog });
+      const verdict = judgeClick(name, action.changes, { dialog });
       // "OK" says nothing by itself, so the question names its dialog.
       const refusal = await allowed(verdict, `click [${action.ref}] "${name}"`, signal, 'press', dialog && isBareAnswer(name) ? dialog : null);
       if (refusal) return refusal;
@@ -589,11 +599,12 @@ async function performOne(action: AssistantAction, signal: AbortSignal): Promise
       }
       const option = preview.picked;
       const dialog = control.dialog || null;
-      const verdict = judgePick(name, option, action.changes, { host: host(browser.state().url), dialog });
+      const verdict = judgePick(name, option, action.changes, { dialog });
       const refusal = await allowed(verdict, `pick "${option}" in [${action.ref}] "${name}"`, signal, 'choose', name);
       if (refusal) return refusal;
       const done = await step('pick', `Chose "${option}" in "${name}"`, async () => {
-        const answer = await browser.driver.pick(action.ref, option, { exact: true, expect: expectation(control) });
+        // The option the user said yes to: the same text, setting the same value.
+        const answer = await browser.driver.pick(action.ref, option, { exact: true, value: preview.value, expect: expectation(control) });
         if (answer?.ok) await browser.settle({ signal, limitMs: 3000, quietMs: 300 });
         return answer;
       });

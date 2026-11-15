@@ -1,3 +1,4 @@
+import { generateKeyPairSync } from 'node:crypto';
 import { test, expect, type Page } from '../fixtures/test';
 import { driverSource } from '../helpers/growthBrowser';
 
@@ -140,7 +141,7 @@ test.describe('the Growth browser driver', () => {
     await expect(page.frameLocator('#frame').locator('#access')).toBeAttached();
     const status = await refOf(page, 'Status');
     const preview = await run<{ ok: boolean; picked?: string }>(page, { cmd: 'pick', ref: status, option: 'Disable', preview: true });
-    expect(preview).toEqual({ ok: true, picked: 'Disable account' });
+    expect(preview).toEqual({ ok: true, picked: 'Disable account', value: 'off' });
     expect(await page.evaluate(() => (window as unknown as { changed?: string }).changed)).toBeUndefined();
     await expect(page.locator('#status')).toHaveValue('on');
     expect((await run<{ ok: boolean }>(page, { cmd: 'pick', ref: status, option: 'Disable', exact: true })).ok).toBe(false);
@@ -156,6 +157,164 @@ test.describe('the Growth browser driver', () => {
       typed: (window as unknown as { typed?: string }).typed,
     }));
     expect(frameState).toEqual({ changed: 'Admin', typed: 'Open Screenshot Generator' });
+  });
+
+  test('a dialog whose title changed after the yes is not pressed in', async ({ page }) => {
+    await consolePage(
+      page,
+      `<div role="dialog" aria-modal="true" aria-labelledby="title" style="width:400px;height:200px">
+         <h2 id="title">Enable analytics</h2>
+         <button type="button" onclick="window.pressed = document.getElementById('title').textContent">OK</button>
+       </div>`
+    );
+    const ref = await refOf(page, 'OK');
+    const judged = await run<{ name: string; role: string; dialog: string | null; doc: string }>(page, { cmd: 'describe', ref });
+    expect(judged.dialog).toBe('Enable analytics');
+    await page.locator('#title').evaluate((title) => (title.textContent = 'Delete account'));
+    const pressed = await run<{ ok: boolean; error?: string }>(page, { cmd: 'click', ref, expect: judged });
+    expect(pressed.ok).toBe(false);
+    expect(pressed.error).toMatch(/title above it changed from "Enable analytics" to "Delete account"/);
+    expect(await page.evaluate(() => (window as unknown as { pressed?: string }).pressed)).toBeUndefined();
+  });
+
+  test('an option whose value changed after the preview is not chosen', async ({ page }) => {
+    await consolePage(
+      page,
+      `<label>API <select id="api" onchange="window.changed = this.value"><option value="keep">Leave as it is</option><option id="enable" value="enable">Enable API</option></select></label>`
+    );
+    const ref = await refOf(page, 'API');
+    const judged = await run<{ name: string; role: string; doc: string }>(page, { cmd: 'describe', ref });
+    const preview = await run<{ ok: boolean; picked: string; value: string }>(page, { cmd: 'pick', ref, option: 'Enable', preview: true });
+    expect(preview).toEqual({ ok: true, picked: 'Enable API', value: 'enable' });
+    // The label stays, the value under it does not.
+    await page.locator('#enable').evaluate((option) => ((option as HTMLOptionElement).value = 'disable'));
+    const chosen = await run<{ ok: boolean; error?: string }>(page, { cmd: 'pick', ref, option: preview.picked, exact: true, value: preview.value, expect: judged });
+    expect(chosen.ok).toBe(false);
+    expect(chosen.error).toMatch(/The option "Enable API" changed/);
+    await expect(page.locator('#api')).toHaveValue('keep');
+    expect(await page.evaluate(() => (window as unknown as { changed?: string }).changed)).toBeUndefined();
+  });
+
+  test('a verification code textarea a click brings up stops the typing that follows it', async ({ page }) => {
+    await consolePage(
+      page,
+      `<label>Email <input id="email"></label>
+       <button type="button" onclick="document.body.insertAdjacentHTML('beforeend', '<label>Verification code <textarea></textarea></label>')">Continue</button>`
+    );
+    const email = await refOf(page, 'Email');
+    expect((await run<{ ok: boolean }>(page, { cmd: 'click', ref: await refOf(page, 'Continue') })).ok).toBe(true);
+    const typed = await run<{ ok: boolean; error?: string }>(page, { cmd: 'type', ref: email, text: 'someone@example.com' });
+    expect(typed.ok).toBe(false);
+    expect(typed.error).toMatch(/sign-in page/);
+    await expect(page.locator('#email')).toHaveValue('');
+  });
+
+  test('a number judged on one page does not act on the next one', async ({ page }) => {
+    const body = `<button type="button" onclick="window.pressed = true">Save</button>`;
+    await consolePage(page, body);
+    const ref = await refOf(page, 'Save');
+    const judged = await run<{ name: string; role: string; doc: string }>(page, { cmd: 'describe', ref });
+    // The page loads again: a new driver, whose numbers start at 1 again.
+    await page.goto(CONSOLE);
+    expect(await refOf(page, 'Save')).toBe(ref);
+    const pressed = await run<{ ok: boolean; error?: string }>(page, { cmd: 'click', ref, expect: judged });
+    expect(pressed.ok).toBe(false);
+    expect(pressed.error).toMatch(/The page changed/);
+    expect(await page.evaluate(() => (window as unknown as { pressed?: boolean }).pressed)).toBeUndefined();
+  });
+
+  test('a key in a box, or spread over several elements, is hidden before anything is cut short', async ({ page }) => {
+    const body = 'MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgSYNTHETICkeyBODYabcdefghijklmnopqrstuvwxyz0123456789';
+    await consolePage(
+      page,
+      `<label>Notes <input id="notes" value="PRIVATE_KEY_VALUE=${body}"></label>
+       <pre><span>-----BEGIN PRIVATE KEY-----</span>
+<span>${body}</span>
+<span>QQgSYNTHETICtail==</span>
+<span>-----END PRIVATE KEY-----</span></pre>
+       <p>Key ID 2X9R4HXF34</p>`
+    );
+    const read = await snapshot(page);
+    expect(read.text).not.toMatch(/MIGHAgEA|SYNTHETIC|END PRIVATE KEY/);
+    expect(read.text).toContain('Key ID 2X9R4HXF34');
+  });
+
+  test('a key the page splits into short pieces is hidden whole, pieces glued or spaced', async ({ page }) => {
+    // A fresh key made for this test, as a page could show one.
+    const pem = generateKeyPairSync('ec', { namedCurve: 'prime256v1' }).privateKey.export({ type: 'pkcs8', format: 'pem' }).toString();
+    const body = pem.split('\n').filter((row) => row && !row.startsWith('-----')).join('');
+    const pieces = (row: string, gap: string) => (row.match(/.{1,8}/g) ?? []).map((piece) => `<span>${piece}</span>`).join(gap);
+    const shown = (gap: string) => `<pre>${pem.trim().split('\n').map((row) => pieces(row, gap)).join('\n')}</pre>`;
+    await consolePage(page, `<h1>Key</h1>${shown('')}<p>Then</p>${shown(' ')}<p>Key ID 2X9R4HXF34</p>`);
+    const read = await snapshot(page);
+    const squeezed = read.text.replace(/\s+/g, '');
+    for (let at = 0; at + 16 <= body.length; at += 8) {
+      expect(squeezed, `key text from ${at}`).not.toContain(body.slice(at, at + 16));
+    }
+    expect(read.text).toContain('Then');
+    expect(read.text).toContain('Key ID 2X9R4HXF34');
+  });
+
+  test('a key with no BEGIN line, split into short pieces, is found glued back together', async ({ page }) => {
+    const pem = generateKeyPairSync('ec', { namedCurve: 'prime256v1' }).privateKey.export({ type: 'pkcs8', format: 'pem' }).toString();
+    const body = pem.split('\n').filter((row) => row && !row.startsWith('-----')).join('');
+    const spans = (body.match(/.{1,8}/g) ?? []).map((piece) => `<span>${piece}</span>`).join('');
+    await consolePage(page, `<p>Your key: ${spans}</p><p>Key ID 2X9R4HXF34</p>`);
+    const squeezed = (await snapshot(page)).text.replace(/\s+/g, '');
+    for (let at = 0; at + 16 <= body.length; at += 8) {
+      expect(squeezed, `key text from ${at}`).not.toContain(body.slice(at, at + 16));
+    }
+    expect(squeezed).toContain('KeyID2X9R4HXF34');
+  });
+
+  test('a button its own mousedown renames is not clicked', async ({ page }) => {
+    await consolePage(
+      page,
+      `<button id="target" type="button" onmousedown="this.textContent = 'Delete account'" onclick="window.pressed = this.textContent">Save</button>`
+    );
+    const ref = await refOf(page, 'Save');
+    const judged = await run<Record<string, unknown>>(page, { cmd: 'describe', ref });
+    const pressed = await run<{ ok: boolean; error?: string }>(page, { cmd: 'click', ref, expect: judged });
+    expect(pressed.ok).toBe(false);
+    expect(pressed.error).toMatch(/changed from "Save" to "Delete account", so the click was stopped/);
+    expect(await page.evaluate(() => (window as unknown as { pressed?: string }).pressed)).toBeUndefined();
+  });
+
+  test('a box that turns into a password box when focused is not typed in', async ({ page }) => {
+    await consolePage(
+      page,
+      `<label>Key name <input id="name" onfocus="this.type = 'password'; this.setAttribute('autocomplete', 'current-password')"></label>`
+    );
+    const ref = await refOf(page, 'Key name');
+    const judged = await run<Record<string, unknown>>(page, { cmd: 'describe', ref });
+    const typed = await run<{ ok: boolean; error?: string }>(page, { cmd: 'type', ref, text: 'Open Screenshot Generator', expect: judged });
+    expect(typed.ok).toBe(false);
+    await expect(page.locator('#name')).toHaveValue('');
+  });
+
+  test('a single-page console that moves to another address keeps nothing it judged', async ({ page }) => {
+    await consolePage(page, `<button id="target" type="button" onclick="window.pressed = location.pathname">Save</button>`);
+    const ref = await refOf(page, 'Save');
+    const judged = await run<Record<string, unknown>>(page, { cmd: 'describe', ref });
+    // The same button, now on another account's page, without a new page load.
+    await page.evaluate(() => history.pushState({}, '', '/access/other-account'));
+    const pressed = await run<{ ok: boolean; error?: string }>(page, { cmd: 'click', ref, expect: judged });
+    expect(pressed.ok).toBe(false);
+    expect(pressed.error).toMatch(/The page changed/);
+    expect(await page.evaluate(() => (window as unknown as { pressed?: string }).pressed)).toBeUndefined();
+  });
+
+  test('a control in a frame that has since loaded another page is gone', async ({ page }) => {
+    await consolePage(page, `<iframe id="frame" style="width:400px;height:120px" srcdoc="<button type='button'>Save</button>"></iframe>`);
+    await expect(page.frameLocator('#frame').locator('button')).toBeAttached();
+    const ref = await refOf(page, 'Save');
+    await page.locator('#frame').evaluate((frame) => {
+      (frame as HTMLIFrameElement).srcdoc = '<p>Another page</p>';
+    });
+    await expect(page.frameLocator('#frame').locator('p')).toHaveText('Another page');
+    const pressed = await run<{ ok: boolean; error?: string }>(page, { cmd: 'click', ref });
+    expect(pressed.ok).toBe(false);
+    expect(pressed.error).toMatch(/no longer on the page/);
   });
 
   test('a control in a dialog is described with the dialog title, never its body', async ({ page }) => {

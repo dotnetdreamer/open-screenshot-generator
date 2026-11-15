@@ -29,7 +29,11 @@ import { useStoreImage } from '@/lib/growth/storeImages';
 export type GrowthTab =
   | 'overview'
   | 'insights'
+  | 'ratings'
   | 'reviews'
+  | 'review-summary'
+  | 'rival-reviews'
+  | 'replies'
   | 'listing'
   | 'competitors'
   | 'markets'
@@ -43,6 +47,11 @@ export interface GrowthTabOptions {
   reviewRating?: number;
   reviewUnanswered?: boolean;
   reviewTopic?: string;
+  /** Reviews: open on these reviews only, as a summary's theme lists them. */
+  reviewIds?: string[];
+  /** Review summary and Competitor reviews: open on this app (the user's own, or one followed), in this country. */
+  reviewApp?: string;
+  reviewPlace?: string;
   /** Listing: open on this language. */
   locale?: string;
   /** Markets: highlight this storefront. */
@@ -66,6 +75,8 @@ export interface OpenProject {
 
 export interface GrowthView {
   app: GrowthApp;
+  /** Every app in the picker: the account's App Store apps, then the Google Play app of the key. */
+  apps: GrowthApp[];
   /** True while Growth is the view on screen. */
   active: boolean;
   /** The store the app is in, and the words for it ("App Store", "Apple"; "Google Play", "Google"). */
@@ -94,6 +105,8 @@ export interface GrowthView {
     app: string | null;
     /** Anything the AI writes. */
     ai: string | null;
+    /** AI work about apps the user follows, which needs no app of the account: only an AI. */
+    aiAlone: string | null;
   };
   aiAvailable: boolean;
   aiLabel: string | null;

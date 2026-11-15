@@ -1652,7 +1652,32 @@ export function OpenScreenshotGeneratorLayout() {
   const growthMonitor = useGrowthMonitor({
     enabled: isTauri() && !isSecondaryWindow,
     paused: activity === 'growth',
-    onFound: (findings) => {
+    onFound: (found) => {
+      // New reviews first: a person is waiting for an answer.
+      const reviewed = found.filter((finding) => finding.reviews.length > 0);
+      if (reviewed.length > 0) {
+        const [first] = reviewed;
+        const count = reviewed.reduce((sum, finding) => sum + finding.reviews.length, 0);
+        const newest = first.reviews[0];
+        const words = (newest.title || newest.body).replace(/\s+/g, ' ').trim();
+        toast({
+          title: reviewed.length === 1 ? `${first.app.name}: ${count === 1 ? 'a new review' : `${count} new reviews`}` : `${count} new reviews in Growth`,
+          description: `${newest.rating} star${newest.rating === 1 ? '' : 's'}: ${words.length > 90 ? `${words.slice(0, 87)}...` : words}`,
+          action: (
+            <ToastAction
+              altText="Open the reviews"
+              onClick={() => {
+                setGrowthSettings({ appId: first.app.id });
+                showGrowth('reviews');
+              }}
+            >
+              Open
+            </ToastAction>
+          ),
+        });
+      }
+      const findings = found.filter((finding) => finding.fresh.length > 0);
+      if (findings.length === 0) return;
       const [first] = findings;
       const count = findings.reduce((sum, finding) => sum + finding.fresh.length, 0);
       toast({
@@ -1667,6 +1692,24 @@ export function OpenScreenshotGeneratorLayout() {
             onClick={() => {
               setGrowthSettings({ appId: first.app.id });
               showGrowth('insights');
+            }}
+          >
+            Open
+          </ToastAction>
+        ),
+      });
+    },
+    onSummaries: (summaries) => {
+      const [summary] = summaries;
+      toast({
+        title: `Your ${summary.scope.days === 7 ? 'weekly' : 'monthly'} review summary of ${summary.appName} is ready`,
+        description: summary.headline || 'See what people like, dislike and ask for.',
+        action: (
+          <ToastAction
+            altText="Open the review summary"
+            onClick={() => {
+              if (summary.own) setGrowthSettings({ appId: summary.appId });
+              showGrowth('review-summary', { reviewApp: summary.appId });
             }}
           >
             Open

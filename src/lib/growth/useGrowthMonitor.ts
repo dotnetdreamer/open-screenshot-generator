@@ -16,6 +16,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { getStoreCredentials, isStorePublishingAvailable } from '@/lib/publish';
 import { onInsightsSeen, runMonitorPass, type MonitorFinding } from './monitor';
+import { runDueSummaries } from './reviewSchedule';
+import type { ReviewSummary } from './reviewSummary';
 import { subscribeGrowthSettings, getGrowthSettings } from './settings';
 
 const FIRST_PASS_MS = 90_000;
@@ -28,9 +30,11 @@ export interface GrowthMonitorOptions {
   paused: boolean;
   /** Insights no earlier pass reported, at most once each. */
   onFound: (findings: MonitorFinding[]) => void;
+  /** Review summaries written on their schedule in this pass (reviewSchedule.ts). */
+  onSummaries?: (summaries: ReviewSummary[]) => void;
 }
 
-export function useGrowthMonitor({ enabled, paused, onFound }: GrowthMonitorOptions): {
+export function useGrowthMonitor({ enabled, paused, onFound, onSummaries }: GrowthMonitorOptions): {
   /** Notable insights not seen yet, across the watched apps. */
   unseen: number;
   /** The apps they are in. */
@@ -41,6 +45,8 @@ export function useGrowthMonitor({ enabled, paused, onFound }: GrowthMonitorOpti
   pausedRef.current = paused;
   const onFoundRef = useRef(onFound);
   onFoundRef.current = onFound;
+  const onSummariesRef = useRef(onSummaries);
+  onSummariesRef.current = onSummaries;
   const announced = useRef(new Set<string>());
   const [monitorOn, setMonitorOn] = useState(true);
 
@@ -79,14 +85,18 @@ export function useGrowthMonitor({ enabled, paused, onFound }: GrowthMonitorOpti
         if (stop.signal.aborted) return;
         setUnseen((current) => {
           const next = { ...current };
-          for (const finding of findings) next[finding.app.id] = finding.fresh.map((insight) => insight.id);
+          for (const finding of findings) if (finding.fresh.length > 0) next[finding.app.id] = finding.fresh.map((insight) => insight.id);
           return next;
         });
+        // New reviews are taken off their list when read, so each comes once.
         const news = findings
           .map((finding) => ({ ...finding, fresh: finding.fresh.filter((insight) => !announced.current.has(insight.id)) }))
-          .filter((finding) => finding.fresh.length > 0);
+          .filter((finding) => finding.fresh.length > 0 || finding.reviews.length > 0);
         for (const finding of news) finding.fresh.forEach((insight) => announced.current.add(insight.id));
         if (news.length > 0) onFoundRef.current(news);
+        // After the refreshes, so a weekly summary reads this week's reviews.
+        const summaries = await runDueSummaries(stop.signal);
+        if (summaries.length > 0 && !stop.signal.aborted) onSummariesRef.current?.(summaries);
       } catch (error) {
         if (!stop.signal.aborted) console.error('The Growth background check failed', error);
       } finally {

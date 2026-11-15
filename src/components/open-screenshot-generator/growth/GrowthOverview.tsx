@@ -136,9 +136,9 @@ export function GrowthOverview() {
         })}
         <button
           type="button"
-          onClick={() => view.goTo('reviews')}
+          onClick={() => view.goTo('ratings')}
           className="rounded-lg border bg-card p-3 text-left transition-colors hover:bg-muted/50"
-          title={play ? "Average star rating from Google's report files. Open the reviews" : 'Star rating in the countries checked. Open the reviews'}
+          title={play ? "Average star rating from Google's report files. Open Ratings" : 'Star rating in the countries checked. Open Ratings'}
         >
           <p className="truncate text-xs text-muted-foreground">Rating</p>
           <p className="mt-1 text-xl font-semibold leading-none">{rating.average === null ? 'n/a' : formatRating(rating.average)}</p>

@@ -485,7 +485,7 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
           <Panel>
             <SectionTitle
               title={view.app.id ? `Data for ${view.app.name} on your computer` : 'Data on your computer'}
-              hint="Removing the data keeps your API key, your screenshot uploads and the events you added. The next refresh loads the rest of the data again."
+              hint="Removing the data keeps your API key, your screenshot uploads, the events you added, your review tags and the record of your ratings. The next refresh loads the rest of the data again."
             />
             {confirmClear ? (
               <div className="flex flex-wrap items-center gap-2">

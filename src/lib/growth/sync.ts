@@ -55,10 +55,13 @@ import {
   writeReviews,
 } from './db';
 import { lookupApp, type LookupResult } from './itunes';
+import { recordRatings, todaysReadings } from './ratingHistory';
+import { carryAll } from './reviewInbox';
+import { noteNewReviews } from './reviewAlerts';
 import { byTerritory, indexRecords } from './metrics';
 import { emptyFeedDay, mergeFeed, type FeedBatch } from './records';
 import { parseSalesReport } from './salesReport';
-import type { DayRecord, DayString, FeedId, FeedStatus, GrowthFeed, SyncProgress, SyncStatus, TerritoryRating, TimelineEvent } from './types';
+import type { DayRecord, DayString, FeedId, FeedStatus, GrowthFeed, RatingPoint, SyncProgress, SyncStatus, TerritoryRating, TimelineEvent } from './types';
 
 export const IDLE_STATUS: SyncStatus = {
   listing: { state: 'idle' },
@@ -275,6 +278,7 @@ async function runSync(options: SyncOptions): Promise<SyncStatus> {
   options.onProgress?.(null);
   await writeMeta(metaKeys.status(appId), status);
   if (!options.signal?.aborted) await writeMeta(metaKeys.lastSync(appId), Date.now());
+  if (wanted.has('reviews')) await noteNewReviews(appId, options.app.name).catch((error) => console.error('Looking for new reviews failed', error));
   announceGrowthChange(appId);
   return status;
 }
@@ -309,7 +313,7 @@ async function syncReviews(options: SyncOptions, setProgress: (value: SyncProgre
     // A refresh pages until it reaches `since` (fetchReviews stops there), so a
     // busy fortnight is read in full rather than cut at a page count and lost.
     const reviews = await fetchReviews(options.credentials, appId, { since, maxPages: 25, signal: options.signal });
-    await writeReviews(reviews);
+    await writeReviews(carryAll(stored, reviews));
     const total = new Set([...stored.map((review) => review.id), ...reviews.map((review) => review.id)]).size;
     if (total === 0) return { state: 'empty', message: 'No written reviews yet' };
     return { state: 'ok', message: `${total} written review${total === 1 ? '' : 's'}` };
@@ -814,10 +818,14 @@ async function syncRatings(options: SyncOptions, setProgress: (value: SyncProgre
   const storefronts = fullSweep ? everywhere : everywhere.slice(0, 1);
 
   const ratings: TerritoryRating[] = [];
+  // Every answer is a day in the ratings history (ratingHistory.ts), a
+  // country with no ratings yet included: its first rating is then a new one.
+  const readings: Record<string, RatingPoint> = {};
   let live: LookupResult | null = null;
   let liveTerritory = '';
   let failuresInARow = 0;
-  setProgress({ label: 'ratings', done: 0, total: storefronts.length });
+  const total = storefronts.length;
+  setProgress({ label: 'ratings', done: 0, total });
   for (const [index, territory] of storefronts.entries()) {
     // lookupApp waits its turn (RATING_PACE_MS apart, shared with the competitors check).
     try {
@@ -826,6 +834,14 @@ async function syncRatings(options: SyncOptions, setProgress: (value: SyncProgre
         if (!live) {
           live = result;
           liveTerritory = territory;
+        }
+        if (result.averageUserRating !== null && result.userRatingCount !== null) {
+          readings[territory] = {
+            average: result.averageUserRating,
+            count: result.userRatingCount,
+            ...(result.version ? { version: result.version } : {}),
+            at: Date.now(),
+          };
         }
         if (result.averageUserRating !== null && result.userRatingCount) {
           ratings.push({
@@ -848,9 +864,11 @@ async function syncRatings(options: SyncOptions, setProgress: (value: SyncProgre
       if (failuresInARow >= 3 && ratings.length === 0) throw error;
       if (failuresInARow >= 3) break;
     }
-    setProgress({ label: 'ratings', done: index + 1, total: storefronts.length });
+    setProgress({ label: 'ratings', done: index + 1, total });
   }
+
   await writeRatings(ratings);
+  await recordRatings(appId, todaysReadings(readings));
   if (fullSweep) await writeMeta(metaKeys.ratingsSwept(appId), Date.now());
 
   if (live) {

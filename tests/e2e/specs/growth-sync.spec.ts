@@ -334,6 +334,7 @@ test.describe('growth sync', () => {
     await app.dismissStartDialog();
     const view = await syncOnce(page);
     await section(view, 'Reviews').click();
+    await view.getByRole('button', { name: /^All reviews/ }).click();
     const answered = view.locator('[data-review-id="review-2"]');
     await expect(answered).toContainText('Thank you, Mia.');
     await expect(answered).toContainText('Published');

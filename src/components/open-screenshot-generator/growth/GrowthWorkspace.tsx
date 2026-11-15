@@ -46,10 +46,14 @@ import {
   LightbulbIcon,
   Loader2Icon,
   MessageSquareIcon,
+  MessageSquareReplyIcon,
   PlugIcon,
   RefreshCwIcon,
+  SparklesIcon,
   SquareIcon,
+  StarIcon,
   TypeIcon,
+  UsersIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -93,6 +97,9 @@ import { useGrowthData } from '@/lib/growth/useGrowthData';
 import { isScreenshotChange } from '@/lib/growth/rivals';
 import { RIVAL_NEWS_DAYS } from '@/lib/growth/rivalWatch';
 import { useRivals } from '@/lib/growth/useRivals';
+import { clearUntoldReviews } from '@/lib/growth/reviewAlerts';
+import { statusCounts } from '@/lib/growth/reviewInbox';
+import { useReviewInbox } from '@/lib/growth/useReviewInbox';
 import {
   forgetAppStoreToken,
   forgetPlayToken,
@@ -112,7 +119,11 @@ import { GrowthListing } from './GrowthListing';
 import { GrowthMarkets } from './GrowthMarkets';
 import { GrowthOverview } from './GrowthOverview';
 import { GrowthReports } from './GrowthReports';
+import { GrowthRatings } from './GrowthRatings';
+import { GrowthReplies } from './GrowthReplies';
+import { GrowthReviewSummary } from './GrowthReviewSummary';
 import { GrowthReviews } from './GrowthReviews';
+import { GrowthRivalReviews } from './GrowthRivalReviews';
 import { Gated, GrowthProvider, StoreImage, type GrowthTab, type GrowthTabOptions, type GrowthView, type OpenProject } from './GrowthShared';
 import { GrowthTimeline } from './GrowthTimeline';
 
@@ -128,18 +139,45 @@ const RANGES = [
   { days: 365, label: 'Last 12 months' },
 ];
 
-const NAV: Array<{ tab: GrowthTab; label: string; icon: React.ComponentType<{ className?: string }> }> = [
-  { tab: 'ask', label: 'Ask AI', icon: BotIcon },
-  { tab: 'overview', label: 'Overview', icon: LayoutDashboardIcon },
-  { tab: 'insights', label: 'Insights', icon: LightbulbIcon },
-  { tab: 'reviews', label: 'Reviews', icon: MessageSquareIcon },
-  { tab: 'listing', label: 'Store page', icon: TypeIcon },
-  { tab: 'competitors', label: 'Competitors', icon: EyeIcon },
-  { tab: 'markets', label: 'Countries', icon: GlobeIcon },
-  { tab: 'timeline', label: 'Timeline', icon: CalendarClockIcon },
-  { tab: 'reports', label: 'Reports', icon: FileTextIcon },
-  { tab: 'connect', label: 'Setup', icon: PlugIcon },
+interface NavItem {
+  tab: GrowthTab;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+/** The sections, in groups. A group with a label gets a heading over its buttons. */
+const NAV: Array<{ label?: string; items: NavItem[] }> = [
+  {
+    items: [
+      { tab: 'ask', label: 'Ask AI', icon: BotIcon },
+      { tab: 'overview', label: 'Overview', icon: LayoutDashboardIcon },
+      { tab: 'insights', label: 'Insights', icon: LightbulbIcon },
+    ],
+  },
+  {
+    label: 'Ratings and reviews',
+    items: [
+      { tab: 'ratings', label: 'Ratings', icon: StarIcon },
+      { tab: 'reviews', label: 'Reviews', icon: MessageSquareIcon },
+      { tab: 'review-summary', label: 'Review summary', icon: SparklesIcon },
+      { tab: 'rival-reviews', label: 'Competitor reviews', icon: UsersIcon },
+      { tab: 'replies', label: 'Replies', icon: MessageSquareReplyIcon },
+    ],
+  },
+  {
+    items: [
+      { tab: 'listing', label: 'Store page', icon: TypeIcon },
+      { tab: 'competitors', label: 'Competitors', icon: EyeIcon },
+      { tab: 'markets', label: 'Countries', icon: GlobeIcon },
+      { tab: 'timeline', label: 'Timeline', icon: CalendarClockIcon },
+      { tab: 'reports', label: 'Reports', icon: FileTextIcon },
+    ],
+  },
 ];
+
+const SETUP: NavItem = { tab: 'connect', label: 'Setup', icon: PlugIcon };
+
+const REVIEW_TABS: GrowthTab[] = NAV.find((group) => group.label === 'Ratings and reviews')!.items.map((item) => item.tab);
 
 /** A section to show, from whoever switched to Growth. A new nonce navigates again. */
 export interface GrowthRequest {
@@ -600,8 +638,18 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
   // The Ask AI button counts the assistant waiting for the user.
   const assistantNeedsYou = useAssistantNeedsYou();
 
+  const everyApp: GrowthApp[] = useMemo(() => [...apps, ...(playApp ? [playApp] : [])], [apps, playApp]);
+  // The picked app's reviews and marks, for the count of reviews to do on its button.
+  const ownInbox = useReviewInbox(useMemo(() => (picked ? [picked.id] : []), [picked]));
+  const toDo = useMemo(() => statusCounts(ownInbox.reviews, ownInbox.marks).todo, [ownInbox.reviews, ownInbox.marks]);
+  // The reviews are on screen here, so the background message about them is not needed.
+  useEffect(() => {
+    if (active && picked) void clearUntoldReviews(picked.id);
+  }, [active, picked, data.reviews]);
+
   const view: GrowthView = {
     app,
+    apps: everyApp,
     active,
     store,
     words,
@@ -619,6 +667,7 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
     blocked: {
       app: appReason,
       ai: appReason ?? (aiAvailable ? null : aiReason ?? 'Set up an AI first'),
+      aiAlone: !mounted ? 'Loading' : aiAvailable ? null : aiReason ?? 'Set up an AI first',
     },
     aiAvailable: aiAvailable && !appReason,
     aiLabel,
@@ -652,7 +701,7 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
   const badge = (target: GrowthTab): number => {
     if (target === 'ask') return assistantNeedsYou && tab !== 'ask' ? 1 : 0;
     if (target === 'insights') return insights.filter((insight) => insight.tone === 'problem' || insight.tone === 'warning').length;
-    if (target === 'reviews') return data.reviews.filter((review) => review.rating <= 2 && !review.response).length;
+    if (target === 'reviews') return toDo;
     if (target === 'listing') return listingIssues.filter((issue) => issue.severity !== 'tip').length;
     if (target === 'competitors') {
       const since = Date.now() - RIVAL_NEWS_DAYS * 86_400_000;
@@ -711,7 +760,8 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <span className="hidden text-xs text-muted-foreground lg:inline">
-            {data.records.length > 0 ? formatWindow(span) : null}
+            {/* Ratings and reviews count to today, not to the last day every feed reported. */}
+            {data.records.length > 0 && !REVIEW_TABS.includes(tab) ? formatWindow(span) : null}
           </span>
           <Select value={String(rangeDays)} onValueChange={(value) => setRangeDays(Number(value))}>
             <SelectTrigger className="h-8 w-[150px] text-xs" aria-label="Date range">
@@ -756,7 +806,7 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
         )}
       </header>
 
-      {mounted && !picked && tab !== 'competitors' && tab !== 'ask' && (
+      {mounted && !picked && tab !== 'competitors' && tab !== 'ask' && tab !== 'rival-reviews' && tab !== 'review-summary' && (
         <div className="flex flex-wrap items-center gap-2 border-b bg-muted/50 px-4 py-2 text-xs" role="status" data-testid="growth-no-app">
           <span className="min-w-0 flex-1">{appReason}.</span>
           {!desktop ? (
@@ -779,32 +829,29 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
 
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">
         <nav
-          className="flex shrink-0 gap-1 overflow-x-auto border-b p-2 md:w-48 md:flex-col md:overflow-x-visible md:border-b-0 md:border-r"
+          className="flex shrink-0 gap-1 overflow-x-auto border-b p-2 md:w-52 md:flex-col md:overflow-y-auto md:overflow-x-hidden md:border-b-0 md:border-r"
           aria-label="Growth sections"
         >
-          {NAV.map((item) => {
-            const count = badge(item.tab);
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.tab}
-                type="button"
-                onClick={() => goTo(item.tab)}
-                className={cn(
-                  'flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors',
-                  tab === item.tab ? 'bg-muted font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
-                  item.tab === 'connect' && 'md:mt-auto'
-                )}
-                aria-current={tab === item.tab ? 'page' : undefined}
-              >
-                <Icon className="h-4 w-4 shrink-0" />
-                <span className="flex-1">{item.label}</span>
-                {count > 0 && (
-                  <span className="rounded-full bg-amber-500/20 px-1.5 text-[11px] tabular-nums text-amber-700 dark:text-amber-300">{count}</span>
-                )}
-              </button>
-            );
-          })}
+          {NAV.map((group, index) => (
+            <div
+              key={group.label ?? index}
+              role="group"
+              aria-label={group.label}
+              className={cn('flex shrink-0 gap-1 md:flex-col', index > 0 && 'border-l pl-1 md:mt-2 md:border-l-0 md:border-t md:pl-0 md:pt-2')}
+            >
+              {group.label && (
+                <p className="hidden px-3 pb-0.5 pt-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground md:block" aria-hidden>
+                  {group.label}
+                </p>
+              )}
+              {group.items.map((item) => (
+                <NavButton key={item.tab} item={item} current={tab === item.tab} count={badge(item.tab)} onClick={() => goTo(item.tab)} />
+              ))}
+            </div>
+          ))}
+          <div className="flex shrink-0 md:mt-auto md:flex-col md:pt-2">
+            <NavButton item={SETUP} current={tab === SETUP.tab} count={0} onClick={() => goTo(SETUP.tab)} />
+          </div>
         </nav>
 
         <main
@@ -822,7 +869,11 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
             <GrowthProvider value={view}>
               {tab === 'overview' && <GrowthOverview />}
               {tab === 'insights' && <GrowthInsights />}
+              {tab === 'ratings' && <GrowthRatings />}
               {tab === 'reviews' && <GrowthReviews />}
+              {tab === 'review-summary' && <GrowthReviewSummary />}
+              {tab === 'rival-reviews' && <GrowthRivalReviews />}
+              {tab === 'replies' && <GrowthReplies />}
               {tab === 'listing' && <GrowthListing />}
               {tab === 'competitors' && <GrowthCompetitors />}
               {tab === 'markets' && <GrowthMarkets />}
@@ -835,5 +886,26 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
         </main>
       </div>
     </section>
+  );
+}
+
+function NavButton({ item, current, count, onClick }: { item: NavItem; current: boolean; count: number; onClick: () => void }) {
+  const Icon = item.icon;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-colors',
+        current ? 'bg-muted font-medium' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
+      )}
+      aria-current={current ? 'page' : undefined}
+    >
+      <Icon className="h-4 w-4 shrink-0" />
+      <span className="flex-1">{item.label}</span>
+      {count > 0 && (
+        <span className="rounded-full bg-amber-500/20 px-1.5 text-[11px] tabular-nums text-amber-700 dark:text-amber-300">{count > 99 ? '99+' : count}</span>
+      )}
+    </button>
   );
 }

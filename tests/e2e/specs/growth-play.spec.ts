@@ -189,8 +189,8 @@ async function syncOnce(page: Page) {
 /** Put a timeline event in the growth database before the app reads it, as the upload dialog would have. */
 async function seedEvent(page: Page, event: Record<string, unknown>) {
   await page.evaluate(async (event) => {
-    // Dexie's version 1 is IndexedDB's version 10; made with db.ts's stores when the app has not made it yet.
-    const open = indexedDB.open('OpenScreenshotGeneratorGrowth', 10);
+    // Dexie's version 2 is IndexedDB's version 20; made with db.ts's stores when the app has not made it yet.
+    const open = indexedDB.open('OpenScreenshotGeneratorGrowth', 20);
     open.onupgradeneeded = () => {
       const db = open.result;
       const store = (name: string, keyPath: string, indexes: Array<[string, string | string[]]>) => {
@@ -203,6 +203,8 @@ async function seedEvent(page: Page, event: Record<string, unknown>) {
       store('events', 'id', [['appId', 'appId'], ['[appId+date]', ['appId', 'date']]]);
       store('listings', 'appId', []);
       store('meta', 'key', []);
+      store('ratingDays', 'key', [['appId', 'appId'], ['[appId+date]', ['appId', 'date']]]);
+      store('reviewMarks', 'id', [['appId', 'appId']]);
     };
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
       open.onsuccess = () => resolve(open.result);
@@ -308,6 +310,8 @@ test.describe('growth on Google Play', () => {
     await expect(view.getByText('No short description')).toBeVisible();
 
     await section(view, 'Reviews').click();
+    // The review with a reply is under Replied, not To do.
+    await view.getByRole('button', { name: /^All reviews/ }).click();
     await expect(view.locator('[data-review-id="gp:old-1"]')).toContainText('nur die Suche fehlt.');
     await expect(view.locator('[data-review-id="gp:old-1"]')).toContainText('Danke, die Suche kommt.');
     await expect(view.locator('[data-review-id="gp:new-1"]')).toContainText('in British English');
@@ -340,6 +344,7 @@ test.describe('growth on Google Play', () => {
     await app.dismissStartDialog();
     const view = await syncOnce(page);
     await section(view, 'Reviews').click();
+    await view.getByRole('button', { name: /^All reviews/ }).click();
 
     await expect(view.locator('[data-review-id="gp:old-1"]').getByRole('button', { name: 'Edit' })).toBeVisible();
     await expect(view.locator('[data-review-id="gp:old-1"]').getByRole('button', { name: 'Delete' })).toHaveCount(0);

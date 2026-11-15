@@ -706,14 +706,60 @@ fn link_login(home: &Path, user_home: Option<&Path>) -> Result<Login, String> {
             std::fs::hard_link(&target, &fresh).map_err(|e| e.to_string())?;
         }
     }
-    let moved = std::fs::rename(&fresh, &link);
+    let moved = replace_link(&fresh, &link);
     // A rename between two links to one file can leave the source where it
-    // was, which would pile up a name per start.
-    if std::fs::symlink_metadata(&fresh).is_ok() {
+    // was, which would pile up a name per start. A swap on macOS leaves the
+    // old link under the fresh name on purpose, and removes it itself.
+    if !matches!(moved, Ok(true)) && std::fs::symlink_metadata(&fresh).is_ok() {
         let _ = std::fs::remove_file(&fresh);
     }
     moved.map_err(|e| e.to_string())?;
     Ok(Login::Linked)
+}
+
+/// How long a swapped-out login link stays before it is removed (macOS).
+#[cfg(target_os = "macos")]
+const OLD_LINK_KEPT: Duration = Duration::from_millis(250);
+
+/// Put the link at `fresh` where `link` is, in one step. Answers true when the
+/// old link now sits under the fresh name and is removed a moment later.
+///
+/// On macOS a rename over a symbolic link is not one step for whatever opens
+/// it: an open that is following the old link while the rename replaces it
+/// fails with EINVAL (773 of 48,927 opens failed on APFS, measured on
+/// 2026-11-14; renaming a regular file the same way never failed). So there
+/// the two names are swapped (renamex_np with RENAME_SWAP), which keeps the
+/// old link alive under the fresh name, and the old link is removed once no
+/// open can still be following it.
+#[cfg(target_os = "macos")]
+fn replace_link(fresh: &Path, link: &Path) -> std::io::Result<bool> {
+    use std::ffi::CString;
+    use std::os::raw::{c_char, c_int, c_uint};
+    use std::os::unix::ffi::OsStrExt;
+    extern "C" {
+        fn renamex_np(from: *const c_char, to: *const c_char, flags: c_uint) -> c_int;
+    }
+    const RENAME_SWAP: c_uint = 0x2;
+    if std::fs::symlink_metadata(link).is_err() {
+        return std::fs::rename(fresh, link).map(|_| false);
+    }
+    let from = CString::new(fresh.as_os_str().as_bytes())?;
+    let to = CString::new(link.as_os_str().as_bytes())?;
+    // SAFETY: both arguments are NUL-terminated paths that outlive the call.
+    if unsafe { renamex_np(from.as_ptr(), to.as_ptr(), RENAME_SWAP) } != 0 {
+        return Err(std::io::Error::last_os_error());
+    }
+    let old = fresh.to_path_buf();
+    std::thread::spawn(move || {
+        std::thread::sleep(OLD_LINK_KEPT);
+        let _ = std::fs::remove_file(old);
+    });
+    Ok(true)
+}
+
+#[cfg(not(target_os = "macos"))]
+fn replace_link(fresh: &Path, link: &Path) -> std::io::Result<bool> {
+    std::fs::rename(fresh, link).map(|_| false)
 }
 
 /// Whether the user's config keeps the login out of auth.json, which a Codex
@@ -2225,7 +2271,15 @@ mod tests {
         let (reads, misses) = reader.join().unwrap();
         assert_eq!(failed, 0, "every one of 300 links succeeds");
         assert_eq!(misses, 0, "the login was missing in {misses} of {reads} reads");
-        let names: Vec<_> = std::fs::read_dir(&home).unwrap().map(|entry| entry.unwrap().file_name()).collect();
+        // On macOS a swapped-out link goes a moment after the swap.
+        let deadline = Instant::now() + Duration::from_secs(5);
+        let names = loop {
+            let names: Vec<_> = std::fs::read_dir(&home).unwrap().map(|entry| entry.unwrap().file_name()).collect();
+            if names.len() == 1 || Instant::now() > deadline {
+                break names;
+            }
+            std::thread::sleep(Duration::from_millis(50));
+        };
         assert_eq!(names, vec![std::ffi::OsString::from("auth.json")], "no link is left behind");
         let _ = std::fs::remove_dir_all(&dir);
     }

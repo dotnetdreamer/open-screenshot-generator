@@ -17,7 +17,7 @@
 
 import type { PlayCredentials } from '@/lib/publish/types';
 import { combineBatches } from './analyticsReport';
-import { addDays, formatDay, today } from './dates';
+import { addDays, formatDay, today, windowEndingAt } from './dates';
 import { announceGrowthChange, readDays, readMeta, readRatings, readReviews, writeListing, writeMeta, writeRatings, writeReviews } from './db';
 import { formatRating } from './format';
 import {
@@ -33,6 +33,7 @@ import {
 import {
   fillMonthDays,
   parseInstallsReport,
+  parseRatingsHistory,
   parseRatingsReport,
   parseReviewsReport,
   parseStorePerformanceByCountry,
@@ -44,8 +45,13 @@ import {
 } from './playReports';
 import type { FeedBatch } from './records';
 import { packageOf } from './stores';
+import { recordRatings, todaysReadings } from './ratingHistory';
+import { canReadGooglePlay, fetchPlayPage } from './playPage';
+import { byTerritory, indexRecords } from './metrics';
+import { carryAll, carryReviewHistory } from './reviewInbox';
+import { noteNewReviews } from './reviewAlerts';
 import { IDLE_STATUS, describe, exclusiveSync, isAbort, mergeAndWrite, metaKeys, type LiveListing } from './sync';
-import type { FeedId, FeedStatus, GrowthApp, GrowthFeed, StoreReview, SyncProgress, SyncStatus, TerritoryRating } from './types';
+import type { FeedId, FeedStatus, GrowthApp, GrowthFeed, RatingPoint, StoreReview, SyncProgress, SyncStatus, TerritoryRating } from './types';
 
 export interface PlaySyncOptions {
   credentials: PlayCredentials;
@@ -66,6 +72,9 @@ export function syncPlayApp(options: PlaySyncOptions): Promise<SyncStatus> {
 }
 
 const NO_BUCKET = 'Add your Cloud Storage URI under Setup to see downloads, page visits and ratings';
+/** Raised when the ratings history starts keeping something new from the files, so they are read once more. */
+const RATINGS_HISTORY_VERSION = 1;
+const ratingsHistoryKey = (appId: string) => `play:ratings-history:${appId}`;
 const NO_REPORT_ACCESS =
   'Your service account cannot read the report files. In Play Console, under Users and permissions, give the service account the View app information permission for the whole account. The permission can take a day or more to work';
 
@@ -144,12 +153,59 @@ async function runPlaySync(options: PlaySyncOptions): Promise<SyncStatus> {
       announceGrowthChange(appId);
     }
   }
+  if (wanted.has('ratings') && !authFailure) {
+    try {
+      await readOwnPlayPages(options, setProgress);
+    } catch (error) {
+      if (!isAbort(error, options.signal)) console.error('Growth sync: reading the Google Play page of the app failed', error);
+    } finally {
+      setProgress(null);
+    }
+  }
 
   options.onProgress?.(null);
   await writeMeta(metaKeys.status(appId), status);
   if (!options.signal?.aborted) await writeMeta(metaKeys.lastSync(appId), Date.now());
+  if (wanted.has('reviews')) await noteNewReviews(appId, options.app.name).catch((error) => console.error('Looking for new reviews failed', error));
   announceGrowthChange(appId);
   return status;
+}
+
+// --- stars from the app's page ---------------------------------------------------
+
+/** Countries whose Google Play page a refresh reads for the stars, every RATINGS_PAGES_EVERY_MS. */
+const STAR_PAGE_COUNTRIES = 3;
+const RATINGS_PAGES_EVERY_MS = 12 * 3_600_000;
+const pagesReadKey = (appId: string) => `play:pages:${appId}`;
+
+/**
+ * The app's own Google Play page in its busiest countries (desktop only): the
+ * count of ratings and the ratings per star, which the report files do not
+ * have, go into the ratings history. Twice a day at most, since a page is
+ * about 220 KB.
+ */
+async function readOwnPlayPages(options: PlaySyncOptions, setProgress: (value: SyncProgress | null) => void): Promise<void> {
+  if (!canReadGooglePlay()) return;
+  const appId = options.app.id;
+  const packageName = packageOf(appId);
+  if (!packageName) return;
+  const last = (await readMeta<number>(pagesReadKey(appId))) ?? 0;
+  if (Date.now() - last < RATINGS_PAGES_EVERY_MS) return;
+  const records = await readDays(appId);
+  const latest = records.reduce((max, record) => (record.date > max ? record.date : max), '');
+  const busiest = latest ? byTerritory(indexRecords(records), windowEndingAt(latest, 90)).sort((a, b) => b.totals.downloads - a.totals.downloads).map((row) => row.key) : [];
+  const countries = Array.from(new Set([...busiest.filter((code) => /^[A-Z]{2}$/.test(code) && code !== 'ZZ'), 'US'])).slice(0, STAR_PAGE_COUNTRIES);
+  const readings: Record<string, RatingPoint> = {};
+  for (const [index, territory] of countries.entries()) {
+    setProgress({ label: 'Google Play ratings', done: index, total: countries.length });
+    const page = await fetchPlayPage(packageName, territory, { signal: options.signal });
+    const storefront = page?.storefront;
+    if (storefront?.rating !== null && storefront?.rating !== undefined && storefront.ratingCount !== null) {
+      readings[territory] = { average: storefront.rating, count: storefront.ratingCount, ...(storefront.stars ? { stars: storefront.stars } : {}), at: Date.now() };
+    }
+  }
+  await recordRatings(appId, todaysReadings(readings));
+  await writeMeta(pagesReadKey(appId), Date.now());
 }
 
 // --- the store page ----------------------------------------------------------------
@@ -194,7 +250,7 @@ async function syncReviews(options: PlaySyncOptions, setProgress: (value: SyncPr
   setProgress({ label: 'reviews', done: 0, total: 1 });
   try {
     const fresh = await fetchPlayReviews(options.credentials, appId, { signal: options.signal });
-    await writeReviews(fresh);
+    await writeReviews(carryAll(await readReviews(appId), fresh));
     const total = (await readReviews(appId)).length;
     if (total === 0) return { state: 'empty', message: 'No written reviews in the last 7 days' };
     return { state: 'ok', message: `${total} written review${total === 1 ? '' : 's'}` };
@@ -264,9 +320,16 @@ async function syncReports(options: PlaySyncOptions, bucket: string, setProgress
   const ratingMonths = Array.from(new Set(ratingFiles.map((entry) => entry.info.month))).slice(0, 2);
   const ratingWork = ratingFiles.filter((entry) => ratingMonths.includes(entry.info.month));
   const ratingsChanged = ratingWork.some((entry) => changed(entry.object));
+  // The ratings history takes every day of every month, read once. Files read
+  // before the history was kept are read again once for it.
+  const historyRead = ((await readMeta<number>(ratingsHistoryKey(appId))) ?? 0) >= RATINGS_HISTORY_VERSION;
+  const historyWork = ratingFiles.filter(
+    (entry) => (!historyRead || changed(entry.object)) && !(ratingsChanged && ratingMonths.includes(entry.info.month))
+  );
   const reviewWork = files.filter((entry) => entry.info.kind === 'reviews' && entry.info.month >= firstMonth && changed(entry.object));
 
-  const total = numberWork.reduce((sum, group) => sum + group.files.length, 0) + (ratingsChanged ? ratingWork.length : 0) + reviewWork.length;
+  const total =
+    numberWork.reduce((sum, group) => sum + group.files.length, 0) + (ratingsChanged ? ratingWork.length : 0) + historyWork.length + reviewWork.length;
   let done = 0;
   const step = () => {
     done += 1;
@@ -301,12 +364,20 @@ async function syncReports(options: PlaySyncOptions, bucket: string, setProgress
     const newest = new Map<string, TerritoryRating>();
     // Oldest month first, so the newest month's averages win.
     for (const entry of [...ratingWork].reverse()) {
-      for (const rating of parseRatingsReport(await download(entry.object), appId, now)) newest.set(rating.territory, rating);
+      const text = await download(entry.object);
+      for (const rating of parseRatingsReport(text, appId, now)) newest.set(rating.territory, rating);
+      await recordRatings(appId, parseRatingsHistory(text, now));
     }
     await writeRatings(Array.from(newest.values()));
     for (const entry of ratingWork) read[entry.object.name] = entry.object.updated;
     await writeMeta(metaKeys.playFiles(appId), read);
   }
+  for (const entry of historyWork) {
+    await recordRatings(appId, parseRatingsHistory(await download(entry.object), Date.now()));
+    read[entry.object.name] = entry.object.updated;
+    await writeMeta(metaKeys.playFiles(appId), read);
+  }
+  if (!historyRead) await writeMeta(ratingsHistoryKey(appId), RATINGS_HISTORY_VERSION);
 
   let reviewsAdded = 0;
   if (reviewWork.length > 0) {
@@ -319,8 +390,9 @@ async function syncReports(options: PlaySyncOptions, bucket: string, setProgress
         return !stored || (stored.createdDate || '') < (review.createdDate || '');
       });
       reviewsAdded += keep.filter((review) => !known.has(review.id)).length;
-      for (const review of keep) known.set(review.id, review);
-      await writeReviews(keep);
+      const carried = keep.map((review) => carryReviewHistory(known.get(review.id), review));
+      for (const review of carried) known.set(review.id, review);
+      await writeReviews(carried);
       read[entry.object.name] = entry.object.updated;
       await writeMeta(metaKeys.playFiles(appId), read);
     }

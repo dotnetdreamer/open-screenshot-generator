@@ -41,6 +41,7 @@ import { lookupTurn } from './itunes';
 import { PlayPageUnreadable, canReadGooglePlay, fetchPlayStorefront } from './playPage';
 import { playAppId, type GrowthStore } from './stores';
 import { TERRITORY_CODES } from './territories';
+import type { StarCounts } from './types';
 
 /** "A few rival apps": enough to cover a category's leaders, few enough to compare on one screen. */
 export const MAX_RIVALS = 10;
@@ -69,6 +70,8 @@ export interface RivalStorefront {
   releaseNotes: string;
   rating: number | null;
   ratingCount: number | null;
+  /** Ratings per star, one star first: Google Play pages show them, Apple's lookup does not. */
+  stars?: StarCounts;
   price: number | null;
   /** The price as the store prints it there: "Free", "Gratis", "$2.99". */
   priceLabel: string;
