@@ -215,6 +215,8 @@ import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, 
 import { PublishDialog } from './publish/PublishDialog';
 import { GrowthWorkspace, type GrowthRequest } from './growth/GrowthWorkspace';
 import { CaptureWorkspace, type CaptureRequest, type ClipOutcome } from './capture/CaptureWorkspace';
+import { WebsiteWorkspace, type CaptureRequest as WebsiteCaptureRequest, type CapturedBoard } from './website/WebsiteWorkspace';
+import { flushWebsiteSaves } from '@/lib/website/store';
 import { captureTargets } from '@/lib/capture/frames';
 import { placeClip, placeShots, type ClipPlacement, type ShotPlacement } from '@/lib/capture/place';
 import { deviceForQuickCapture, shootDevice } from '@/lib/capture/shoot';
@@ -1646,6 +1648,10 @@ export function OpenScreenshotGeneratorLayout() {
     if (frame) setCaptureRequest((current) => ({ ...frame, nonce: (current?.nonce ?? 0) + 1 }));
     setActivity('capture');
   }, []);
+  // Website: the app's own site, made from the open project (src/lib/website).
+  // Mounted on its first visit and kept, like Growth, so a publish goes on
+  // while the editor is in front.
+  const [websiteMounted, setWebsiteMounted] = useState(false);
   // While the desktop app runs, Growth keeps the apps synced there fresh and
   // says when something new turns up (src/lib/growth/monitor.ts). The main
   // window only: a tab window would sync the same apps a second time.
@@ -1756,6 +1762,7 @@ export function OpenScreenshotGeneratorLayout() {
     (next: ActivityId) => {
       if (next !== 'growth') {
         if (next === 'capture') setCaptureMounted(true);
+        if (next === 'website') setWebsiteMounted(true);
         setActivity(next);
         return;
       }
@@ -6989,9 +6996,9 @@ export function OpenScreenshotGeneratorLayout() {
   );
   beforeWindowCloseRef.current = () => {
     projectTabs.flushSession();
-    // And the agent chat, whose own pagehide flush never runs when a desktop
-    // window closes.
-    return claudeAgent.flush();
+    // And the agent chat and the Website view's site, whose own pagehide
+    // flushes never run when a desktop window closes.
+    return Promise.all([claudeAgent.flush(), flushWebsiteSaves()]);
   };
 
   // The session keeps the active tab's view, read as it is written
@@ -10738,6 +10745,68 @@ const generateRandomProjectName = (): string => {
     }
   };
 
+  // The Website view's screenshots: each artboard in one language, at most
+  // `maxWidth` wide, with the Export dialog's capture recipe. The Website view
+  // is in front while this runs, so the editor is `invisible`, and html-to-
+  // image copies every computed style, that one too: a board captured as it
+  // is comes out blank. Each board is made visible for its own capture; it
+  // sits under the view in front, so nothing of it shows.
+  const captureBoardsForWebsite = async (request: WebsiteCaptureRequest): Promise<CapturedBoard[]> => {
+    if (activeProjectIdRef.current !== request.projectId) {
+      throw new Error('Another project is open now. Open the project again to take its screenshots');
+    }
+    return withLocaleOnCanvas(request.locale, async () => {
+      if (typeof document !== 'undefined' && document.fonts?.ready) {
+        try {
+          await document.fonts.ready;
+        } catch {
+          // A browser that cannot report font loading captures what it has.
+        }
+      }
+      const out: CapturedBoard[] = [];
+      for (const id of request.boardIds) {
+        const board = artboards.find((ab) => ab.id === id);
+        const node = document.querySelector(`[data-artboard-dom-id="${id}"]`) as HTMLElement | null;
+        if (!board || !node) continue;
+        const scale = Math.min(1, request.maxWidth / Math.max(1, board.size.width));
+        const visibility = node.style.visibility;
+        node.style.visibility = 'visible';
+        try {
+          const { backgroundColor, backgroundImage } = artboardBackground(board);
+          const dataUrl = await captureNodeToPng(node, {
+            width: board.size.width,
+            height: board.size.height,
+            backgroundColor,
+            pixelRatio: scale,
+            // A cache-busted blob: URL is an unregistered one (see captureArtboardDataUrl).
+            cacheBust: false,
+            filter: (n) => {
+              const el = n as HTMLElement;
+              return !(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));
+            },
+            style: {
+              transform: 'scale(1)',
+              transformOrigin: 'top left',
+              width: `${board.size.width}px`,
+              height: `${board.size.height}px`,
+              backgroundImage,
+            },
+          });
+          out.push({ boardId: id, dataUrl, width: Math.round(board.size.width * scale), height: Math.round(board.size.height * scale) });
+        } finally {
+          node.style.visibility = visibility;
+        }
+      }
+      return out;
+    });
+  };
+  const captureBoardsForWebsiteRef = useRef(captureBoardsForWebsite);
+  captureBoardsForWebsiteRef.current = captureBoardsForWebsite;
+  // Stable, so the Website view does not start its screenshot work again on every render.
+  const captureForWebsite = useCallback((request: WebsiteCaptureRequest) => captureBoardsForWebsiteRef.current(request), []);
+  const websiteBackToEditor = useCallback(() => setActivity('editor'), []);
+  const websiteProject = useMemo(() => ({ id: activeProjectId, name: currentProjectName, artboards }), [activeProjectId, currentProjectName, artboards]);
+
   // Render one artboard for the MCP export tools. Same capture recipe as the
   // Export dialog (unscale the node, drop editor chrome, restore afterwards),
   // plus the two things an external agent needs: an output scale, so a proof
@@ -13194,6 +13263,16 @@ const generateRandomProjectName = (): string => {
               setIsLanguageManagerOpen(true);
             }}
             onBackToEditor={() => setActivity('editor')}
+          />
+        </div>
+      )}
+      {websiteMounted && (
+        <div className={cn('fixed inset-0 z-30 md:left-12', activity !== 'website' && 'hidden')}>
+          <WebsiteWorkspace
+            active={activity === 'website'}
+            project={websiteProject}
+            captureBoards={captureForWebsite}
+            onBackToEditor={websiteBackToEditor}
           />
         </div>
       )}

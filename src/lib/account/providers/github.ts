@@ -172,6 +172,17 @@ export function hasGithubLogin(): boolean {
   return !!OAUTH_PROXY;
 }
 
+/**
+ * The scopes a sign-in asks GitHub for: always `gist`, which saving projects
+ * needs, and whichever extra ones the caller names. Only scopes from this
+ * list are passed on, and the sign-in Worker checks the same list.
+ */
+const EXTRA_SCOPES = new Set(['public_repo']);
+
+export function githubScope(extra: string[] = []): string {
+  return ['gist', ...extra.filter((scope) => EXTRA_SCOPES.has(scope))].join(' ');
+}
+
 function encodeState(payload: { n: string; o: string }): string {
   return btoa(JSON.stringify(payload)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
@@ -190,7 +201,7 @@ function signInWebPopup(options: SignInOptions = {}): Promise<AccountSession> {
     const proxyOrigin = new URL(OAUTH_PROXY).origin;
 
     const opened = window.open(
-      `${OAUTH_PROXY}/start?state=${encodeURIComponent(state)}`,
+      `${OAUTH_PROXY}/start?state=${encodeURIComponent(state)}&scope=${encodeURIComponent(githubScope(options.scopes))}`,
       'abs-github-signin',
       'width=620,height=780,menubar=no,toolbar=no'
     );
@@ -295,7 +306,7 @@ async function signInDesktop(options: SignInOptions = {}): Promise<AccountSessio
     signal: options.signal,
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded', Accept: 'application/json' },
-    body: formEncode({ client_id: CLIENT_ID, scope: 'gist' }),
+    body: formEncode({ client_id: CLIENT_ID, scope: githubScope(options.scopes) }),
   });
 
   throwIfSignInCancelled(options.signal);

@@ -15,6 +15,10 @@ https://github.com/user-attachments/assets/92348435-668f-4a58-b0be-0b939841150d
 
 ## What's new
 
+### 15 November 2026: Website, support and privacy pages for your app
+
+Apple and Google ask every app for a support page and a privacy policy. Click **Website** on the left, under Discover, and the app makes both, plus a home page with your screenshots, in every language of your project. A few questions about what your app collects write the privacy policy. Claude Code, Codex or the AI you set up writes the rest, and you can ask it for changes. **Publish** puts the site on your own GitHub account with GitHub Pages, for free, and gives you the links to paste into App Store Connect and Play Console. Read [Website](docs/WEBSITE.md).
+
 ### 14 November 2026: Google Play competitors in the desktop app
 
 In the desktop app, Competitors now follows Google Play apps too. Paste the Google Play link of an app, and Growth reads the app's public Google Play page in each country you check: the rating, the price, the version when the page shows one, the day of the last update and the screenshots. Growth tells you when a Google Play app changes its screenshots, the same way as for an App Store app. A Google Play app in Growth is compared with its own Google Play page too. The web version cannot read Google Play pages, so the web version follows App Store apps only. Read [Competitors](docs/GROWTH.md#competitors) in the Growth guide.
@@ -66,6 +70,7 @@ You can also:
 - Save versions of your project, share a copy, or invite others to edit with you.
 - Upload finished screenshots to App Store Connect or Google Play from the desktop app.
 - See your app's App Store downloads, conversion, reviews and listing problems, and whether your new screenshots sold better, in the desktop app.
+- Make a website for your app, with a support page and a privacy policy in every language, and put it online on your own GitHub account.
 
 ## A closer look
 
@@ -101,6 +106,7 @@ Both versions use the same editor. The desktop app adds features that need acces
 | Capture: screenshots and recordings from the iPhone Simulator, Android emulators and phones | No | Yes |
 | Growth: App Store and Google Play numbers, reviews, store page checks, results of new screenshots | Empty screens only | Yes |
 | Growth: competitors' screenshots, ratings, versions and prices in each country, with alerts for new screenshots | App Store apps | App Store and Google Play apps |
+| Website: home, support and privacy pages, put online with your GitHub account | Yes, with a GitHub token until the sign-in service asks for public repositories | Yes |
 
 ## Command line and coding agents
 

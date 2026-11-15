@@ -17,6 +17,15 @@ JavaScript would let anyone impersonate the app.
 Desktop (Tauri) does **not** use this Worker. It uses GitHub's device flow,
 which needs no secret, over the Tauri HTTP bridge.
 
+## Scopes
+
+The Worker asks GitHub for `gist`, which saving projects needs. The editor's
+Website view can ask for `gist public_repo` instead (`/start?scope=...`): it
+publishes the user's app website to a public repository on their account with
+GitHub Pages. Only the scope sets in `ALLOWED_SCOPES` pass; anything else gets
+`gist`. A Worker deployed before this change ignores the parameter, and the
+Website view then asks the user to paste a token with `public_repo` instead.
+
 ## Cost
 
 Cloudflare's free plan covers 100,000 requests per day. A token exchange happens

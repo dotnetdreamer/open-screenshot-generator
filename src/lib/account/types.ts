@@ -208,6 +208,12 @@ export interface AccountSaveOptions {
 export interface SignInOptions {
   /** GitHub on the web needs a pasted token; there is no secretless flow. */
   token?: string;
+  /**
+   * GitHub only: scopes to ask for on top of `gist`. The Website view asks
+   * for `public_repo`, which its site's repository needs. A token from such a
+   * sign-in still saves projects, since it keeps `gist`.
+   */
+  scopes?: string[];
   /** Desktop device-flow: surface the user code + URL while we poll. */
   onUserCode?: (info: { userCode: string; verificationUri: string }) => void;
   signal?: AbortSignal;
