@@ -11,8 +11,12 @@
 // sentences themselves stay these. They are written in English and go
 // through the same translation as the rest of the site.
 //
-// A sentence promises only what an answer said. How soon data is deleted is a
-// question of its own, and without an answer the policy names no time.
+// A sentence says only what an answer said. The policy describes what the
+// app does with each kind of data and makes no promise beyond the answers:
+// no "only for", no "never", no "not to find out who you are". How soon data
+// is deleted is a question of its own, and without an answer the policy names
+// no time. Who gets data comes from the services the developer names, which
+// the view says the policy lists as the only ones.
 //
 // It is a starting point, not legal advice, and the view says so.
 
@@ -35,8 +39,12 @@ export interface PrivacyQuestion {
   label: string;
   /** When to tick it, in a few words. */
   hint: string;
-  /** Examples for the services box, or absent when the use has no service to name. */
-  services?: string;
+  /**
+   * Examples for the services box. Every use has one: the policy names the
+   * services as the only companies that get data, so each kind of data has
+   * to be able to name its own (a maps service, a push service).
+   */
+  services: string;
 }
 
 /** The questions, in the order the view shows them. */
@@ -45,14 +53,14 @@ export const PRIVACY_QUESTIONS: PrivacyQuestion[] = [
   { use: 'analytics', label: 'Usage numbers', hint: 'The app counts how people use it', services: 'Firebase Analytics, TelemetryDeck' },
   { use: 'crashes', label: 'Crash reports', hint: 'The app sends a report when it crashes', services: 'Firebase Crashlytics, Sentry' },
   { use: 'ads', label: 'Ads', hint: 'The app shows ads', services: 'Google AdMob, Unity Ads' },
-  { use: 'purchases', label: 'Purchases', hint: 'People can buy things or subscribe in the app', services: 'RevenueCat' },
-  { use: 'location', label: 'Location', hint: "The app uses where people are" },
-  { use: 'media', label: 'Photos, camera or microphone', hint: 'The app uses photos, the camera or the microphone' },
-  { use: 'contacts', label: 'Contacts', hint: "The app reads people's contacts" },
-  { use: 'health', label: 'Health and fitness', hint: 'The app reads or saves health or fitness data' },
-  { use: 'content', label: 'Things people make', hint: 'People write, post or upload things in the app' },
-  { use: 'sync', label: 'Sync and backup', hint: "The app saves people's data online", services: 'iCloud, Firebase, our own server' },
-  { use: 'notifications', label: 'Notifications', hint: 'The app sends push notifications' },
+  { use: 'purchases', label: 'Purchases', hint: 'People buy things or subscribe through the App Store or Google Play', services: 'RevenueCat' },
+  { use: 'location', label: 'Location', hint: "The app uses where people are", services: 'Google Maps, Mapbox' },
+  { use: 'media', label: 'Photos, camera or microphone', hint: 'The app uses photos, the camera or the microphone', services: 'Cloudinary, Firebase Storage' },
+  { use: 'contacts', label: 'Contacts', hint: "The app reads people's contacts", services: 'Firebase, Supabase' },
+  { use: 'health', label: 'Health and fitness', hint: 'The app reads or saves health or fitness data', services: 'Firebase, Supabase' },
+  { use: 'content', label: 'Things people make', hint: 'People write, post or upload things in the app', services: 'Firebase, Supabase' },
+  { use: 'sync', label: 'Sync and backup', hint: "The app saves people's data online", services: 'iCloud, Firebase, Supabase' },
+  { use: 'notifications', label: 'Notifications', hint: 'The app sends push notifications', services: 'Firebase Cloud Messaging, OneSignal' },
 ];
 
 const ALL_USES = new Set<DataUse>(PRIVACY_QUESTIONS.map((question) => question.use));
@@ -107,9 +115,9 @@ const SUMMARY: Record<DataUse, (answers: PrivacyAnswers) => string> = {
   crashes: () => 'Crash reports, so we can fix problems',
   ads: (answers) => (answers.personalizedAds ? 'Information for ads that match your interests' : 'Information the ad service needs to show ads'),
   purchases: () => 'A record of what you buy, so the app can unlock it',
-  location: () => 'Your location, while you use features that need it',
-  media: () => "The photos, camera or microphone you allow, for the feature you're using",
-  contacts: () => "The contacts you allow, for the feature you're using",
+  location: () => 'Your location, for the features that use it',
+  media: () => 'The photos, camera or microphone you allow',
+  contacts: () => 'The contacts you allow',
   health: () => 'The health and fitness data you allow',
   content: () => 'What you write, post or upload',
   sync: () => 'Your data, to back it up and keep it the same on all your devices',
@@ -137,23 +145,23 @@ function useParagraphs(use: DataUse, app: string, answers: PrivacyAnswers): stri
     case 'account':
       return [`When you make an account, ${app} keeps your account details, such as your name and email address, so you can sign in and use your account on other devices.`];
     case 'analytics':
-      return [`${app} counts how the app is used, such as which screens are opened and for how long, so we can see what to make better. We look at these numbers in total, not to find out who you are.`];
+      return [`${app} counts how the app is used, such as which screens are opened and for how long, so we can see what to make better.`];
     case 'crashes':
-      return [`If ${app} crashes or something goes wrong, it sends a report with what happened and details about your device, such as its model and system version. We use these reports only to find and fix problems.`];
+      return [`If ${app} crashes or something goes wrong, it sends a report with what happened and details about your device, such as its model and system version, so we can find and fix the problem.`];
     case 'ads':
       return answers.personalizedAds
-        ? [`${app} shows ads. The ad service may use your device's advertising identifier and how you use apps to show ads that match your interests. You can turn this off in your device's settings, and ${app} asks for your permission where the law says it must.`]
+        ? [`${app} shows ads. The ad service may use your device's advertising identifier and how you use apps to show ads that match your interests. You can turn this off in your device's settings.`]
         : [`${app} shows ads. They aren't chosen from what you do in other apps, but the ad service still collects some information about your device to show the ads and count them.`];
     case 'purchases':
       return ['Purchases and subscriptions go through the App Store or Google Play. We never see your payment details. We get a record of what you bought, so the app can unlock it on your devices.'];
     case 'location':
-      return [`${app} uses your location only for the features that need it, and only after you allow it. ${settings}`];
+      return [`${app} uses your location for the features that need it, once you allow it. ${settings}`];
     case 'media':
-      return [`${app} asks before it uses your photos, your camera or your microphone, and uses them only for the feature you're using. ${settings}`];
+      return [`${app} asks before it uses your photos, your camera or your microphone, for the features that need them. ${settings}`];
     case 'contacts':
-      return [`${app} asks before it reads your contacts, and uses them only for the feature you're using. ${settings}`];
+      return [`${app} asks before it reads your contacts, for the features that need them. ${settings}`];
     case 'health':
-      return [`${app} asks before it reads or saves health and fitness data. This data is never used for ads, never sold and never shared without your permission.`];
+      return [`${app} asks before it reads or saves health and fitness data, for the features that need it. ${settings}`];
     case 'content':
       return [`What you write, post or upload in ${app} is kept so the app can show it to you, and to other people when you choose to share it.`];
     case 'sync':
@@ -208,7 +216,7 @@ export function buildPolicy(input: { facts: SiteFacts; privacy: PrivacyAnswers; 
     heading: 'The short version',
     blocks: collects
       ? [
-          { kind: 'p', text: `${app} collects only what it needs:` },
+          { kind: 'p', text: `This is what ${app} collects:` },
           { kind: 'ul', items: answers.uses.map((use) => SUMMARY[use](answers)) },
           // Ads picked from what people do can count as selling data under
           // laws such as the CCPA, so the policy promises it only without them.
@@ -249,7 +257,7 @@ export function buildPolicy(input: { facts: SiteFacts; privacy: PrivacyAnswers; 
       blocks: [
         {
           kind: 'p',
-          text: `We keep your data only as long as we need it for the reasons above. ${
+          text: `We keep your data for as long as we need it for the reasons above. ${
             answers.uses.includes('account') ? 'When you delete your account, or ask us to delete your data, we delete it' : 'When you ask us to delete your data, we delete it'
           }${answers.deleteWithinMonth ? ' within one month' : ''}.`,
         },
@@ -275,8 +283,8 @@ export function buildPolicy(input: { facts: SiteFacts; privacy: PrivacyAnswers; 
       {
         kind: 'p',
         text: answers.children
-          ? `${app} is made for children. We collect only what this policy describes, and the app shows no ads chosen from a child's interests. If you're a parent and want us to delete your child's data, ${writeTo}.`
-          : `${app} isn't made for children under 13, and we don't knowingly collect data from them. If you think a child has given us personal data, ${writeTo} and we'll delete it.`,
+          ? `${app} is made for children, and it shows no ads chosen from a child's interests. If you're a parent and want us to delete your child's data, ${writeTo}.`
+          : `${app} isn't made for children under 13, and we don't knowingly collect data from them. If you think a child has given us personal data, ${writeTo}.`,
       },
     ],
   });

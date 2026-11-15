@@ -48,6 +48,8 @@ export interface PublishJob {
   /** The developer has to switch Pages on in the repository's settings. */
   needsPages?: boolean;
   branch?: string;
+  /** Where this publish went: the Pages step is for this repository, whichever site is on screen. */
+  site?: { owner: string; repo: string };
   /** Lines still untranslated after translating, by language: the publish waits for the developer to say go on or stop. */
   untranslated?: Array<{ locale: string; count: number }>;
 }
@@ -86,12 +88,12 @@ function LinkRow({ label, url, note }: { label: string; url: string; note?: stri
 }
 
 /** GitHub turned the app down when it switched Pages on: the one step the developer does in GitHub's settings. */
-function PagesStep({ owner, repo, branch }: { owner: string; repo: string; branch: string }) {
+export function PagesStep({ owner, repo, branch }: { owner: string; repo: string; branch: string }) {
   return (
     <div className="space-y-2 rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-xs" data-testid="site-pages-step">
-      <p className="font-medium">One more step: switch on GitHub Pages</p>
+      <p className="font-medium">One more step: switch on GitHub Pages for {repo}</p>
       <p className="text-muted-foreground">
-        GitHub didn&apos;t let the app do this part. In the repository&apos;s settings, under Build and deployment, choose Deploy from a branch, then {branch} and / (root), and press
+        GitHub didn&apos;t let the app do this part. In the settings of {owner}/{repo}, under Build and deployment, choose Deploy from a branch, then {branch} and / (root), and press
         Save. The app keeps checking while this view is open and shows when the site is online.
       </p>
       <Button type="button" variant="outline" size="sm" className="h-7 gap-1 text-xs" onClick={() => void openExternal(pagesSettingsUrl(owner, repo))}>
@@ -348,7 +350,7 @@ export function WebsitePublish({
               );
             })}
           </ol>
-          {job.needsPages && published && <PagesStep owner={published.owner} repo={published.repo} branch={job.branch ?? published.branch} />}
+          {job.needsPages && job.site && <PagesStep owner={job.site.owner} repo={job.site.repo} branch={job.branch ?? 'main'} />}
           {job.untranslated ? (
             <div className="space-y-2 rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-xs" data-testid="site-untranslated">
               <p className="font-medium">Some lines aren&apos;t translated</p>

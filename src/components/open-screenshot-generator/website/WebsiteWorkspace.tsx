@@ -68,7 +68,7 @@ import {
 } from '@/lib/website/github';
 import { defaultPrivacy, privacyProblems } from '@/lib/website/privacy';
 import { faceCss, pageDir, pageUrl, renderSiteFiles } from '@/lib/website/render';
-import { changeSiteRow, readSiteRow, useSiteDraft, writeSiteRow, type SiteChatItem } from '@/lib/website/store';
+import { changeSite, useSiteDraft, type SiteChatItem } from '@/lib/website/store';
 import { missingCounts, prunedTranslations, siteFingerprint, siteTexts, translator, type TranslationBook } from '@/lib/website/strings';
 import { boardColours, suggestColours, suggestHeading, type Weighted } from '@/lib/website/theme';
 import { projectTranslations, translateSite } from '@/lib/website/translate';
@@ -170,6 +170,60 @@ function mergeBooks(into: TranslationBook, from: TranslationBook): TranslationBo
   return out;
 }
 
+/**
+ * A capture that has not come back in this long is not coming back: a font
+ * file that never answers keeps html-to-image waiting for good. The queue of
+ * captures moves on without it.
+ */
+const CAPTURE_TIMEOUT_MS = 120_000;
+
+function stopped(): DOMException {
+  return new DOMException('Stopped', 'AbortError');
+}
+
+/** `work`, unless `signal` stops first. Work that cannot be stopped carries on unseen. */
+function unlessStopped<T>(work: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return work;
+  if (signal.aborted) return Promise.reject(stopped());
+  return new Promise<T>((resolve, reject) => {
+    const stop = () => reject(stopped());
+    signal.addEventListener('abort', stop, { once: true });
+    work.then(
+      (value) => {
+        signal.removeEventListener('abort', stop);
+        resolve(value);
+      },
+      (error) => {
+        signal.removeEventListener('abort', stop);
+        reject(error);
+      }
+    );
+  });
+}
+
+/** `work`, or an error once `ms` have gone by. */
+function withinTime<T>(work: Promise<T>, ms: number, message: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), ms);
+    work.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      }
+    );
+  });
+}
+
+/** One language's screenshots, and the boardsFingerprint of the artboards they show: null when the artboards changed while they were taken. */
+interface TakenShots {
+  list: SiteShot[];
+  print: string | null;
+}
+
 function captionText(caption: Caption | undefined): string {
   return caption ? [caption.title, caption.body].filter(Boolean).join('. ') : '';
 }
@@ -212,33 +266,54 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
   // By language, with the project and the document they were taken from: a
   // list from an older document of the same project shows until the new one
   // is taken, and one from another project never shows.
-  const [shots, setShots] = useState<Record<string, { projectId: string; doc: ArtboardState[]; list: SiteShot[] }>>({});
+  const [shots, setShots] = useState<Record<string, { projectId: string; doc: ArtboardState[]; list: SiteShot[]; print: string }>>({});
   const shotsRef = useRef(shots);
   shotsRef.current = shots;
   const [capturing, setCapturing] = useState<string | null>(null);
   const queue = useRef<Promise<unknown>>(Promise.resolve());
   const latestProject = useRef(project);
   latestProject.current = project;
+  // Every project the view is given counts one more, in render order. The
+  // canvas only ever shows a project this view has been given, so a capture
+  // that ends under another count saw another project's artboards at some
+  // point, even when its own project is back by then (A, then B, then A
+  // again: two blank projects share their artboard ids).
+  const projectCount = useRef(0);
+  const countedProject = useRef(project.id);
+  if (countedProject.current !== project.id) {
+    countedProject.current = project.id;
+    projectCount.current += 1;
+  }
 
   const takeShots = useCallback(
-    (locale: string, forProject?: string): Promise<SiteShot[]> => {
-      const run = async (): Promise<SiteShot[]> => {
+    (locale: string, forProject?: string): Promise<TakenShots> => {
+      const run = async (): Promise<TakenShots> => {
         const now = latestProject.current;
         // Work for one project never takes another one's screenshots.
         if (forProject && now.id !== forProject) throw new ProjectChangedError();
+        const count = projectCount.current;
         const doc = now.artboards;
         const base = getBaseLocale(doc);
         const own = getProjectLocales(doc).map((entry) => entry.code);
         const target = locale !== base && own.includes(locale) ? locale : null;
         const key = target ?? base;
         const cached = shotsRef.current[key];
-        if (cached && cached.doc === doc && cached.projectId === now.id) return cached.list;
+        if (cached && cached.doc === doc && cached.projectId === now.id) return { list: cached.list, print: cached.print };
+        const print = boardsFingerprint(doc);
         const list = siteBoards(doc);
-        if (!now.id || list.length === 0) return [];
+        if (!now.id || list.length === 0) return { list: [], print };
         setCapturing(key);
         try {
-          const captured = await captureBoards({ projectId: now.id, locale: target, boardIds: list.map((board) => board.id), maxWidth: SHOT_WIDTH });
-          if (latestProject.current.id !== now.id) throw new ProjectChangedError();
+          const captured = await withinTime(
+            captureBoards({ projectId: now.id, locale: target, boardIds: list.map((board) => board.id), maxWidth: SHOT_WIDTH }),
+            CAPTURE_TIMEOUT_MS,
+            'Taking the screenshots took too long. Try again'
+          );
+          if (projectCount.current !== count || latestProject.current.id !== now.id) throw new ProjectChangedError();
+          // An edit that landed while the boards were drawn: the pictures may
+          // show the artboards before it or after it, so they are kept for
+          // nothing and say they are of no one version.
+          const steady = boardsFingerprint(latestProject.current.artboards) === print;
           const localized = (target ? siteBoards(projectArtboards(doc, target)) : list).map(captionOf);
           const made: SiteShot[] = [];
           for (const [index, board] of captured.entries()) {
@@ -253,14 +328,18 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
               url: URL.createObjectURL(new Blob([image.bytes as BlobPart], { type: 'image/jpeg' })),
             });
           }
+          if (!steady) {
+            window.setTimeout(() => made.forEach((shot) => URL.revokeObjectURL(shot.url)), 10_000);
+            return { list: made, print: null };
+          }
           setShots((current) => {
             const old = current[key]?.list ?? [];
             // The preview may still be drawing the old ones for a moment.
             window.setTimeout(() => old.forEach((shot) => URL.revokeObjectURL(shot.url)), 10_000);
-            return { ...current, [key]: { projectId: now.id!, doc, list: made } };
+            return { ...current, [key]: { projectId: now.id!, doc, list: made, print } };
           });
-          shotsRef.current = { ...shotsRef.current, [key]: { projectId: now.id!, doc, list: made } };
-          return made;
+          shotsRef.current = { ...shotsRef.current, [key]: { projectId: now.id!, doc, list: made, print } };
+          return { list: made, print };
         } finally {
           setCapturing(null);
         }
@@ -346,18 +425,8 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
   const [translating, setTranslating] = useState<{ done: number; total: number; engine: string } | null>(null);
   const translateStop = useRef<AbortController | null>(null);
 
-  /** Change the site of `projectId`, whether or not it is the one on screen now. */
-  const updateSiteOf = useCallback(
-    async (projectId: string, change: (draft: SiteDraft) => SiteDraft) => {
-      if (projectIdRef.current === projectId) {
-        site.update(change);
-        return;
-      }
-      const row = await readSiteRow(projectId);
-      if (row) await writeSiteRow({ ...change(row.draft), updatedAt: Date.now() }, row.chat);
-    },
-    [site]
-  );
+  /** Change the site of `projectId`, whether or not it is the one on screen now (store.ts). */
+  const updateSiteOf = useCallback((projectId: string, change: (draft: SiteDraft) => SiteDraft) => changeSite(projectId, (row) => ({ ...row, draft: change(row.draft) })), []);
 
   const runTranslate = useCallback(async () => {
     const current = draftRef.current;
@@ -465,19 +534,14 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
 
   const addChat = useCallback((item: Omit<SiteChatItem, 'id' | 'at'>) => site.setChat((chat) => [...chat, { ...item, id: newId('m'), at: Date.now() }]), [site]);
 
-  /** Whether the site on screen is `projectId`'s, so an answer for it can go straight in. */
-  const showing = useCallback((projectId: string) => projectIdRef.current === projectId && draftRef.current?.projectId === projectId, []);
-
-  /** A chat line for a project whose site is not on screen any more. */
-  const addChatTo = useCallback(async (projectId: string, item: Omit<SiteChatItem, 'id' | 'at'>) => {
-    if (showing(projectId)) {
-      addChat(item);
-      return;
-    }
-    await changeSiteRow(projectId, (row) => ({ ...row, chat: [...row.chat, { ...item, id: newId('m'), at: Date.now() }] })).catch((error) =>
-      console.error('The answer could not be saved with its site', error)
-    );
-  }, [showing, addChat]);
+  /** A chat line for a project's site, on screen or not. */
+  const addChatTo = useCallback(
+    (projectId: string, item: Omit<SiteChatItem, 'id' | 'at'>) =>
+      changeSite(projectId, (row) => ({ ...row, chat: [...row.chat, { ...item, id: newId('m'), at: Date.now() }] })).catch((error) =>
+        console.error('The answer could not be saved with its site', error)
+      ),
+    []
+  );
 
   const runWrite = useCallback(
     async (start: SiteDraft, notes = '') => {
@@ -488,26 +552,15 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
       const text = `I wrote the home and support pages from your screenshots${notes.trim() ? ' and your notes' : ''}. Tell me what to change.`;
       try {
         const written = await writeSite({ draft: start, captions, notes, signal: stop.signal });
-        const apply = (now: SiteDraft) => {
-          const next = applyChanges(now, written.changes, captions.length).draft;
-          return { ...next, content: written.whole ? { ...next.content, lang: next.baseLocale } : next.content, writtenBy: ai.label ?? undefined };
-        };
-        const answer = (before: SiteDraft, next: SiteDraft): Omit<SiteChatItem, 'id' | 'at'> => {
-          const report = applyChanges(before, written.changes, captions.length);
-          return { role: 'assistant', text, changed: report.changed, refused: report.refused, before, after: siteFingerprint(next) };
-        };
-        if (!showing(projectId)) {
-          // Another project was opened meanwhile: its site still gets what was written for it.
-          await changeSiteRow(projectId, ({ draft: now, chat }) => {
-            const next = apply(now);
-            return { draft: next, chat: [...chat, { ...answer(now, next), id: newId('m'), at: Date.now() }] };
-          });
-          return;
-        }
-        const before = draftRef.current!;
-        const next = apply(before);
-        site.update((now) => (now === before ? next : apply(now)));
-        addChat(answer(before, next));
+        const label = ai.label ?? undefined;
+        // Into the site as it is when the answer lands, which can be another
+        // project's than the one on screen by then (store.ts).
+        await changeSite(projectId, ({ draft: now, chat }) => {
+          const report = applyChanges(now, written.changes, captions.length);
+          const next = { ...report.draft, content: written.whole ? { ...report.draft.content, lang: report.draft.baseLocale } : report.draft.content, writtenBy: label };
+          const item: SiteChatItem = { role: 'assistant', text, changed: report.changed, refused: report.refused, before: now, after: siteFingerprint(next), id: newId('m'), at: Date.now() };
+          return { draft: next, chat: [...chat, item] };
+        });
       } catch (error) {
         if (isStop(error)) return;
         await addChatTo(projectId, {
@@ -521,7 +574,7 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
         setWriting(false);
       }
     },
-    [captions, ai.label, site, addChat, addChatTo, showing]
+    [captions, ai.label, addChatTo]
   );
 
   /** Try again under a first write that failed: the same write, with the notes the site was made with. */
@@ -576,36 +629,25 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
       try {
         const answer = await askSite({ draft: current, captions, history, message, signal: stop.signal });
         if (stop.signal.aborted) return;
-        const outcome = (before: SiteDraft): { next: SiteDraft; item: Omit<SiteChatItem, 'id' | 'at'> } => {
-          const report = applyChanges(before, answer.changes, captions.length, context);
+        await changeSite(projectId, ({ draft: now, chat }) => {
+          const report = applyChanges(now, answer.changes, captions.length, context);
           const touched = report.changed.length > 0;
           const suggestion = report.suggested.privacyExtra;
-          return {
-            next: touched ? report.draft : before,
-            item: {
-              role: 'assistant',
-              text:
-                answer.reply ||
-                (touched ? `Done: I changed the ${report.changed.join(', ')}.` : suggestion ? 'I wrote a paragraph for the privacy policy. Put it in if it says what your app does.' : "I didn't change anything."),
-              changed: report.changed,
-              refused: report.refused,
-              before: touched ? before : undefined,
-              after: touched ? siteFingerprint(report.draft) : undefined,
-              suggestion: suggestion ? { privacyExtra: suggestion } : undefined,
-            },
+          const item: SiteChatItem = {
+            role: 'assistant',
+            text:
+              answer.reply ||
+              (touched ? `Done: I changed the ${report.changed.join(', ')}.` : suggestion ? 'I wrote a paragraph for the privacy policy. Put it in if it says what your app does.' : "I didn't change anything."),
+            changed: report.changed,
+            refused: report.refused,
+            before: touched ? now : undefined,
+            after: touched ? siteFingerprint(report.draft) : undefined,
+            suggestion: suggestion ? { privacyExtra: suggestion } : undefined,
+            id: newId('m'),
+            at: Date.now(),
           };
-        };
-        if (!showing(projectId)) {
-          await changeSiteRow(projectId, ({ draft: now, chat }) => {
-            const { next, item } = outcome(now);
-            return { draft: next, chat: [...chat, { ...item, id: newId('m'), at: Date.now() }] };
-          });
-          return;
-        }
-        const before = draftRef.current!;
-        const { next, item } = outcome(before);
-        if (next !== before) site.update((now) => (now === before ? next : outcome(now).next));
-        addChat(item);
+          return { draft: touched ? report.draft : now, chat: [...chat, item] };
+        });
       } catch (error) {
         if (!isStop(error)) await addChatTo(projectId, { role: 'assistant', text: `The AI couldn't answer: ${messageOf(error, 'try again')}`, failed: true });
       } finally {
@@ -613,7 +655,7 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
         setAsking(false);
       }
     },
-    [site, captions, addChat, addChatTo, showing]
+    [site, captions, addChat, addChatTo]
   );
 
   /** Put the paragraph an answer suggested into the privacy policy. */
@@ -712,19 +754,23 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
   const published = draft?.publish;
   // The screenshots and the project's translations of their captions are
   // part of what goes out too, and they change in the editor.
-  const changedSince = !!published && (published.fingerprint !== fingerprint || (!!published.boards && published.boards !== boardsPrint));
+  const changedSince = !!published && (published.fingerprint !== fingerprint || (published.boards !== undefined && published.boards !== boardsPrint));
 
-  /** Every language's screenshots, for the files. */
+  /** Every language's screenshots, for the files, and the boardsFingerprint each was taken from. */
   const allShots = useCallback(
-    async (current: SiteDraft, signal?: AbortSignal): Promise<Record<string, SiteShot[]>> => {
-      const out: Record<string, SiteShot[]> = {};
-      if (!current.options.screenshots || !hasShots) return out;
+    async (current: SiteDraft, signal?: AbortSignal): Promise<{ shots: Record<string, SiteShot[]>; prints: Array<string | null> }> => {
+      const shots: Record<string, SiteShot[]> = {};
+      const prints: Array<string | null> = [];
+      if (!current.options.screenshots || !hasShots) return { shots, prints };
       for (const locale of current.languages) {
-        if (signal?.aborted) throw new DOMException('Stopped', 'AbortError');
+        if (signal?.aborted) throw stopped();
         if (locale !== baseLocale && !projectLocales.includes(locale)) continue;
-        out[locale] = await takeShots(locale, current.projectId);
+        // Stop works while a screenshot is still being taken.
+        const taken = await unlessStopped(takeShots(locale, current.projectId), signal);
+        shots[locale] = taken.list;
+        prints.push(taken.print);
       }
-      return out;
+      return { shots, prints };
     },
     [hasShots, baseLocale, projectLocales, takeShots]
   );
@@ -790,8 +836,15 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
     let sent = false;
     try {
       setPhase({ phase: 'shots' });
-      const shotsByLocale = await allShots(start, stop.signal);
-      const boards = latestProject.current.id === projectId ? boardsFingerprint(latestProject.current.artboards) : undefined;
+      // The artboards the text comes from: the project's translations of the
+      // captions (`known`) were read from them.
+      const textBoards = boardsFingerprint(latestProject.current.artboards);
+      const taken = await allShots(start, stop.signal);
+      const shotsByLocale = taken.shots;
+      // The record says which artboards went out only when every screenshot
+      // and those translations came from the same ones. Otherwise it names
+      // none, and the site shows as changed until it is published again.
+      const boards = taken.prints.every((print) => print === textBoards) ? textBoards : '';
       const latest = draftRef.current;
       let current = latest && latest.projectId === projectId ? latest : start;
       if (Object.values(missingCounts(current, known)).some((count) => count > 0) && availableEngines().length > 0) {
@@ -848,7 +901,7 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
         boards,
       };
       await updateSiteOf(projectId, (now) => ({ ...now, publish: record }));
-      setPhase({ phase: 'live', needsPages: pagesPending, branch: outcome.branch });
+      setPhase({ phase: 'live', needsPages: pagesPending, branch: outcome.branch, site: { owner: who.login, repo } });
       const live = await waitUntilLive({ siteUrl, build, signal: stop.signal, timeoutMs: pagesPending ? 20 * 60_000 : 6 * 60_000 });
       await updateSiteOf(projectId, (now) => (now.publish?.build === build ? { ...now, publish: { ...now.publish, live, pagesPending: live ? false : now.publish.pagesPending } } : now));
       toast(
@@ -886,9 +939,7 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
   const watchBuild = published?.build;
   const watchProject = draft?.projectId;
   const watchPending = !!published?.pagesPending;
-  // Through refs: updateSiteOf is made again on every render, and the look must not start over with it.
-  const updateSiteOfRef = useRef(updateSiteOf);
-  updateSiteOfRef.current = updateSiteOf;
+  // Through a ref, so a new toast function never starts the look over.
   const toastRef = useRef(toast);
   toastRef.current = toast;
   useEffect(() => {
@@ -899,7 +950,7 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
       const live = await isServing({ siteUrl: watchUrl, build: watchBuild, signal: stop.signal }).catch(() => false);
       if (stop.signal.aborted) return;
       if (live) {
-        await updateSiteOfRef.current(watchProject, (now) => (now.publish?.build === watchBuild ? { ...now, publish: { ...now.publish, live: true, pagesPending: false } } : now));
+        await updateSiteOf(watchProject, (now) => (now.publish?.build === watchBuild ? { ...now, publish: { ...now.publish, live: true, pagesPending: false } } : now));
         if (watchPending) toastRef.current({ title: 'Your website is online', description: 'GitHub Pages is on now. The links are under Publish.' });
         return;
       }
@@ -910,14 +961,14 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
       stop.abort();
       window.clearTimeout(timer);
     };
-  }, [active, watchUrl, watchBuild, watchProject, watchPending]);
+  }, [active, watchUrl, watchBuild, watchProject, watchPending, updateSiteOf]);
 
   const saveZip = useCallback(async () => {
     const current = draftRef.current;
     if (!current) return;
     setZipBusy(true);
     try {
-      const shotsByLocale = await allShots(current);
+      const shotsByLocale = (await allShots(current)).shots;
       const face = await headingFace(current);
       const siteUrl = identity.state === 'ready' && !repoNameProblem(repoName) ? siteAddress(identity.who.login, repoName) : undefined;
       const files = renderSiteFiles(current, { shots: shotsByLocale, siteUrl, face, known, build: newId('b') });
