@@ -1,0 +1,4 @@
+# Written by make-tauri-mock.mjs from tests/e2e/fixtures/tauri-runtime.ts
+tauri-init.cjs
+tauri-init-*.json
+.tauri-runtime.mjs
