@@ -876,6 +876,9 @@ h1 {
   font-size: 10px;
   margin-top: 17px;
 }
+.locale-section .feature-note {
+  color: var(--muted);
+}
 .video-editor {
   border: 1px solid #34484a;
   border-radius: 10px;
@@ -1396,6 +1399,24 @@ h1 {
   .footer-top {
     grid-template-columns: 1.4fr 1fr 1fr;
     row-gap: 36px;
+  }
+}
+/* Just above the phone menu, the six links and the button only fit on one
+   line with tighter gaps and without the GitHub icon. The .site-header prefix
+   outranks hero.css, which loads later and sets the gap again. */
+@media (max-width: 900px) {
+  .site-header .site-nav {
+    gap: 12px;
+  }
+  .site-header .site-nav a {
+    white-space: nowrap;
+  }
+  .site-header .github-link {
+    display: none;
+  }
+  .site-header .button.small {
+    gap: 14px;
+    white-space: nowrap;
   }
 }
 @media (max-width: 800px) {

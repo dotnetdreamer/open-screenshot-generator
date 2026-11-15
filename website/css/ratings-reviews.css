@@ -1,0 +1,190 @@
+/* The ratings and reviews page. It loads home.css and hero.css first and
+   reuses their sections, frames, cards and footer; this file only adds the
+   screenshot frames, the close-up cards and the keyboard row. */
+
+/* Full window screenshots inside a window frame */
+.frame-view {
+  overflow: hidden;
+  background: #111719;
+}
+.frame-view img {
+  width: 100%;
+}
+.hero-shell .frame-view {
+  border-block: 1px solid #344545;
+}
+.hero-shell-caption strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* Screenshots cropped to the content, beside the copy */
+.content-shot {
+  border: 1px solid #34484a;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--ink);
+  box-shadow: 0 12px 40px #0a171918;
+}
+.content-shot img {
+  width: 100%;
+}
+.content-shot figcaption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  padding: 14px;
+  font-size: 10px;
+}
+.locale-section .content-shot {
+  border-color: #3b5657;
+  box-shadow: 0 24px 60px #0000002e;
+}
+
+/* Close-ups of one part of a screen, at the top of a card */
+.close-art {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 290px;
+  padding: 30px 28px 52px;
+  overflow: hidden;
+}
+.design-details .close-art {
+  background: #e3ede9;
+}
+.team-card .close-art {
+  background: #20363a;
+}
+.close-art img {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #2f4547;
+  box-shadow: 0 16px 40px #0a171933;
+}
+.close-label {
+  position: absolute;
+  left: 18px;
+  bottom: 13px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 9px;
+  color: #2f5c58;
+  border: 1px solid #a8c4ba;
+  background: #eef4f0;
+}
+.team-card .close-label {
+  color: var(--muted);
+  border-color: #45615f;
+  background: #1a3033;
+}
+.design-details .detail-copy h3 + p,
+.team-card .detail-copy h3 + p {
+  max-width: 520px;
+}
+
+/* A short note under a section, in the homepage's feature note style */
+.section-note {
+  margin-top: 26px;
+  max-width: 720px;
+  color: var(--light-muted);
+  font-size: 12px;
+}
+
+/* The rows under the review cards */
+.detail-lines {
+  margin-top: 32px;
+  border-top: 1px solid var(--line);
+}
+.detail-lines .cli-line {
+  margin-top: 0;
+  border-top: 0;
+  border-bottom: 1px solid var(--line);
+}
+.detail-lines .cli-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  font-family: var(--font-display);
+  font-size: 22px;
+}
+.detail-lines .cli-line p {
+  font-size: 12px;
+  max-width: 760px;
+}
+.keys {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+  flex: none;
+}
+kbd {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 7px;
+  border: 1px solid #496062;
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--text);
+  font: 600 11px/1 var(--font-text);
+}
+
+/* The copy beside the competitor screenshot */
+.locale-section .feature-copy > p:not(.eyebrow):not(.feature-note) {
+  max-width: 440px;
+}
+
+@media (max-width: 1050px) {
+  .close-art {
+    min-height: 250px;
+  }
+}
+
+@media (max-width: 800px) {
+  .detail-lines .cli-line {
+    flex-wrap: wrap;
+    gap: 14px 18px;
+  }
+  .keys {
+    margin-left: 62px;
+  }
+}
+
+@media (max-width: 700px) {
+  /* On a phone the window is too small to read, so the screenshot drops the
+     two sidebars (the left 18.5% of the window) and shows the screen itself
+     a little larger. */
+  .frame-view img {
+    width: 122.7%;
+    max-width: none;
+    transform: translateX(-18.5%);
+  }
+  .close-art {
+    min-height: 0;
+    padding: 22px 16px 48px;
+  }
+}
+
+@media (max-width: 560px) {
+  /* home.css hides the window label on phones; here it says the data is an
+     example, so it stays. */
+  .editor-frame .window-state {
+    display: inline;
+  }
+  .keys {
+    margin-left: 0;
+  }
+  .detail-lines .cli-icon {
+    width: 32px;
+    font-size: 19px;
+  }
+  .hero-shell-caption strong {
+    display: block;
+  }
+}
