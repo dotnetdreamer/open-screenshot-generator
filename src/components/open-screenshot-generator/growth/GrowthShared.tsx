@@ -34,6 +34,7 @@ export type GrowthTab =
   | 'review-summary'
   | 'rival-reviews'
   | 'replies'
+  | 'keywords'
   | 'listing'
   | 'competitors'
   | 'markets'
@@ -54,8 +55,10 @@ export interface GrowthTabOptions {
   reviewPlace?: string;
   /** Listing: open on this language. */
   locale?: string;
-  /** Markets: highlight this storefront. */
+  /** Markets: highlight this storefront. Keywords: open on this country. */
   territory?: string;
+  /** Keywords: open on this keyword. */
+  keyword?: string;
   /** Timeline: scroll to this event. */
   eventId?: string;
   /** Ask: start with this question. */

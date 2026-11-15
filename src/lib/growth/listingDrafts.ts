@@ -145,3 +145,35 @@ export function rebaseChanges(changes: ListingChange[], listing: ListingSnapshot
   }
   return out;
 }
+
+/**
+ * The drafts with these edits in: an edit replaces the waiting change to the
+ * same language and field, its "before" is the text on the store page now,
+ * and an edit back to that text leaves no change.
+ */
+export function upsertListingChanges(current: ListingChange[], entries: ListingChange[], listing: ListingSnapshot): ListingChange[] {
+  const next = [...current];
+  for (const entry of entries) {
+    const index = next.findIndex((item) => item.locale === entry.locale && item.field === entry.field);
+    const base = listing.locales.find((item) => item.locale === entry.locale)?.[entry.field] ?? entry.before;
+    const change = { ...entry, before: base };
+    if (index >= 0) next[index] = change;
+    else next.push(change);
+  }
+  return next.filter((item) => item.after !== item.before);
+}
+
+/** The listing as it would read with these changes applied, for checks that look at the text waiting to go out. */
+export function withChanges(listing: ListingSnapshot, changes: ListingChange[]): ListingSnapshot {
+  if (changes.length === 0) return listing;
+  return {
+    ...listing,
+    locales: listing.locales.map((entry) => {
+      const mine = changes.filter((change) => change.locale === entry.locale);
+      if (mine.length === 0) return entry;
+      const next = { ...entry };
+      for (const change of mine) next[change.field] = change.after;
+      return next;
+    }),
+  };
+}

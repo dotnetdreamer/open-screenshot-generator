@@ -59,6 +59,7 @@ const LABELS: Record<string, ToolLabel> = {
   list_store_insights: { running: 'Reading the insights...', done: 'Read the insights' },
   get_store_listing: { running: 'Reading the store page...', done: 'Read the store page' },
   list_store_events: { running: 'Reading the timeline...', done: 'Read the timeline' },
+  list_store_keywords: { running: 'Reading the keyword ranks...', done: 'Read the keyword ranks' },
   open_project: { running: 'Opening a project...', done: 'Opened a project' },
   rename_project: { running: 'Renaming the project...', done: 'Renamed the project' },
   export_png: { running: 'Looking at the result...', done: 'Looked at the result' },

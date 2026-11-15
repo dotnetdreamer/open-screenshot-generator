@@ -11,6 +11,7 @@
 
 import { addDays, formatWindow, inWindow, type DayWindow } from './dates';
 import { plural } from './format';
+import type { KeywordDigest } from './keywords';
 import { formatChange, eventImpact } from './impact';
 import {
   byTerritory,
@@ -56,6 +57,8 @@ export interface DigestInput {
   /** How many days the comparison covers. 28 by default. */
   days?: number;
   today: string;
+  /** The keywords tracked on Keywords and where the app ranks for them (keywords.ts), when there are any. */
+  keywords?: KeywordDigest | null;
 }
 
 function round(value: number | null, digits = 4): number | null {
@@ -308,6 +311,7 @@ export function buildDigest(input: DigestInput) {
           issues: input.listingIssues.slice(0, 12).map((entry) => `${entry.locale}: ${entry.title}`),
         }
       : null,
+    keywords: input.keywords ?? null,
     notes,
   };
 }

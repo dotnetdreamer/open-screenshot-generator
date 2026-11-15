@@ -12,6 +12,7 @@
 // the reply numbers and the CSV export.
 
 import { addDays, normalizeDay, today, type DayWindow } from './dates';
+import { csvCell } from './csv';
 import { announceGrowthChange, dropTagEverywhere, readMeta, writeMeta } from './db';
 import { REVIEW_TOPIC_LABELS, reviewDay, topicsOf, type ReviewTopic } from './reviewTopics';
 import { listingLanguageName, territoryName, UNKNOWN_TERRITORY } from './territories';
@@ -359,13 +360,6 @@ export function formatHours(hours: number): string {
 }
 
 // --- export -------------------------------------------------------------------------
-
-function csvCell(value: string | number | null | undefined): string {
-  const text = value === null || value === undefined ? '' : String(value);
-  // A cell that a spreadsheet would run as a formula is written as text.
-  const safe = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
-  return /[",\n\r]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
-}
 
 /** The reviews as a CSV file a spreadsheet opens, one review a row. */
 export function reviewsCsv(

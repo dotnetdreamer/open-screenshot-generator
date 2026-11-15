@@ -8,10 +8,11 @@ Growth shows how your app is doing in the App Store and on Google Play, in the s
 - What do people like and dislike about my app, and about my competitors' apps?
 - What on my store page costs me downloads?
 - What do my competitors show in each country, and when do my competitors change their screenshots?
+- Where does my app show up when people search the App Store, and for which words?
 
 To open Growth, click the Growth button (an arrow going up) on the bar at the left of the window. After you upload screenshots to App Store Connect, you can also click **See results in Growth**. The pen button above the Growth button takes you back to the editor, just as you left the editor.
 
-Growth works in the desktop app only, except **Competitors**. Competitors needs no key, so Competitors also works in the web version. Growth opens on **Ask AI**. In the web version, and in the desktop app before you add a key, every other screen of Growth is empty. Buttons that need your app are turned off. Point at a button to see why the button is off.
+Growth works in the desktop app only, except **Competitors** and **Keywords**. Competitors and Keywords need no key, so both also work in the web version. Growth opens on **Ask AI**. In the web version, and in the desktop app before you add a key, every other screen of Growth is empty. Buttons that need your app are turned off. Point at a button to see why the button is off.
 
 At the top of Growth, pick the app. With both keys, the list shows your App Store apps and your Google Play app in two groups.
 
@@ -105,6 +106,8 @@ Competitors checks the apps you follow twice a day while the editor is open, in 
 
 **Ratings and reviews.** Five sections of their own, under **Ratings and reviews** on the left. See [Ratings and reviews](#ratings-and-reviews) below.
 
+**Keywords.** Where your app shows up when people search the App Store, for the words you pick, in each country, every day. See [Keywords](#keywords) below.
+
 **Store page.** Your app's name, subtitle, keywords, promotional text, description and what's new, in every language, with Apple's character limits. The checks on the right find wasted keyword space (spaces after commas, repeated words, and words already in your name or subtitle), a subtitle that repeats the name, text that is not translated, and languages without their own screenshots. Many checks have a **Fix** button.
 
 Every edit, fix and AI suggestion goes to **Changes to apply**. Nothing changes in App Store Connect until you click **Apply in App Store Connect**. Your changes stay until you click **Apply in App Store Connect** or **Discard all**, also when you open another section, close Growth or restart the app. You can change the promotional text at any time. You can change the other fields only while a new version is being prepared.
@@ -185,6 +188,44 @@ In a template, write `{name}` for the reviewer's name and `{app}` for your app's
 
 **Alerts for new reviews:** Growth looks for new reviews each time it refreshes your numbers, also while you work in the editor. A message tells you about every new review, or only about 1 and 2 star reviews, or about none. In the desktop app, Growth can also post new reviews to a Slack channel. In Slack, add the app Incoming Webhooks to your workspace, pick the channel, copy the Webhook URL and paste the URL under **Also post them to Slack**. **Send a test message** checks that the URL works.
 
+## Keywords
+
+Where your app shows up when people search the App Store on an iPhone, for the words you pick, in up to 5 countries, every day. Keywords is for App Store apps. Keywords works in the desktop app and in the web version. In the web version, and without a key, find your app under **Which app is yours?** first. Your app is the same app you named under **Your app** on Competitors.
+
+**Add keywords.** The first time, Growth offers the words on your store page, or the words in your app's name. Pick the words, or type your own words with commas between them, and click **Track**. You can track 50 keywords.
+
+**Your rank.** Growth searches the App Store for each keyword in each country once a day while the app's main window is open, and keeps your rank for each day it checks. Rank 1 is the first app people see. **Not found** means your app isn't among the apps the search lists. Click **Check now** to search again right away.
+
+- At the top, Growth counts your keywords in the top 10, in the top 50, found anywhere and not found, and compares each count with a week ago.
+- The table shows each keyword's rank, how far the rank moved, the last 30 days as a small line, the app people see first, and the rank of each app you follow on Competitors.
+- **Day**, **Week** and **Month** compare with a check from 1 to 3 days, 7 to 10 days, or 30 to 37 days before the latest one. Point at a change to see the day it compares with. Without a check in that time, there's no change to show.
+- Show only the keywords in the **Top 10**, the keywords that **Moved**, the keywords **Not found**, or the keywords **Not on your store page**.
+- With more than one country, pick the country above the summary.
+
+**One keyword up close.** Click a keyword. **Rank over time** draws one point for each day Growth checked, with the apps you follow beside yours, and marks your new versions, new screenshots and store page changes. **Search results** shows the first 10 apps people see for the keyword, with the first three screenshots of the first three apps. Click **Follow** to follow one of the apps on Competitors. Growth also says how many ratings the app with the fewest ratings in the top 10 has, next to the number of ratings your app has.
+
+**Your store page.** The App Store finds your app by the words in its name, subtitle and keywords, and puts single words from the three fields together. For each keyword, Growth says if the words are on the store page that people in that country read. When a word is missing, **Add to keywords** adds the word at the end of your keywords as a change on **Store page**. Nothing changes in App Store Connect until you apply the change on Store page.
+
+On **Store page**, each keyword under your keywords that you track shows its rank in one country whose shoppers read that language. A keyword you don't track yet has a dashed line around it, and **Track** tracks it. Two checks on Store page come from Keywords:
+
+- Keywords you track that aren't on your store page. **Fix** adds the missing words to your keywords, as many words as fit in 100 characters.
+- Keywords on your store page that search didn't find your app for in any of Growth's last 7 checks, when the last check is recent. **Find other keywords** opens Keywords.
+
+**Ideas.** Words worth a look, in four lists:
+
+- **Top apps**: the words the first apps for your keywords put in their names, and how many of those apps use each word.
+- **Your store page**: the words on your store page that you don't track yet.
+- **Competitors**: the words in the names of the apps you follow.
+- **AI**: words the AI you set up thinks people search for. The AI only suggests words. Growth never shows a number the AI wrote.
+
+You can click **Check** to search the App Store for an idea and see where your app is for that word before you track it. **Within reach** means an app with no more ratings than your app is in the top 10 for that word.
+
+**How Growth reads your rank.** Growth reads Apple's public App Store search, which needs no key. That is not the App Store app on an iPhone, and the App Store app can put apps in a different order. On 15 November 2026 we compared Apple's public search with the search on the App Store website, for 18 searches in 8 countries. The first app was the same in all 18 searches. Of the first 10 apps on the website (180 places in all), 108 were at the same place in Apple's public search, 170 were within two places, and one was 30 places off. The App Store app itself wasn't compared. Ads aren't counted. Apple's servers can answer with a copy from up to a day earlier, so a change can show up a day late.
+
+Growth checks only while the app's main window is open, so a day without a check has no rank, and Growth never counts that day as a miss. Apple asks for about 20 searches a minute. 50 keywords in 5 countries take about 13 minutes, and Growth searches in the background while you work.
+
+Google Play's published rules ask programs not to search Google Play, so Keywords is for App Store apps only. **Remove the data** under Setup keeps your keywords and their past ranks: no store keeps past ranks.
+
 ## Competitors
 
 Follow up to 10 apps on the App Store, and in the desktop app on Google Play too. Under **Follow an app**, type the name of an App Store app, or paste the link of an app on the App Store or on Google Play, then click **Follow**. To stop following an app, click the cross on the app.
@@ -230,6 +271,6 @@ On Google Play, the download rate is how many of the people who opened your stor
 
 ## The AI agents
 
-The Claude Code and Codex agents in the desktop app can read the same numbers, for the App Store and for Google Play, with six tools: `get_store_overview`, `get_store_metrics`, `list_store_reviews`, `list_store_insights`, `get_store_listing` and `list_store_events`. The agents can only read. You always send replies and store page changes yourself, from Growth.
+The Claude Code and Codex agents in the desktop app can read the same numbers, for the App Store and for Google Play, with seven tools: `get_store_overview`, `get_store_metrics`, `list_store_reviews`, `list_store_insights`, `get_store_listing`, `list_store_events` and `list_store_keywords`. `list_store_keywords` gives the ranks from Keywords, and `get_store_overview` and **Ask AI** see your best ranks and biggest moves in each country too. The agents can only read, and they never search the App Store themselves: they read the ranks Growth's own checks saved. You always send replies and store page changes yourself, from Growth, and you choose the keywords to track.
 
 Other AI tools connected to the app cannot see your store numbers, because the numbers include your sales. To let other AI tools see your numbers, go to **Setup** and turn on **Let external AI tools see your store numbers**.

@@ -541,7 +541,7 @@ export function GrowthCompetitors() {
 
 // --- pieces ---------------------------------------------------------------------------
 
-function Toggle<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: Array<[T, string]>; onChange: (value: T) => void }) {
+export function Toggle<T extends string>({ label, value, options, onChange }: { label: string; value: T; options: Array<[T, string]>; onChange: (value: T) => void }) {
   return (
     <div className="inline-flex h-8 items-center rounded-md border p-0.5" role="group" aria-label={label}>
       {options.map(([option, text]) => (
@@ -563,7 +563,7 @@ function Toggle<T extends string>({ label, value, options, onChange }: { label: 
 }
 
 /** A store screenshot, small. Google Play's come through the app (StoreImage); Apple's at the size shown. */
-function Shot({ url, alt, className }: { url: string; alt: string; className?: string }) {
+export function Shot({ url, alt, className }: { url: string; alt: string; className?: string }) {
   const [broken, setBroken] = useState(false);
   if (broken) {
     return (
@@ -577,7 +577,7 @@ function Shot({ url, alt, className }: { url: string; alt: string; className?: s
   return <img src={artworkAt(url, 600)} alt={alt} className={className} loading="lazy" onError={() => setBroken(true)} />;
 }
 
-function AppIcon({ url, className }: { url: string | null; className?: string }) {
+export function AppIcon({ url, className }: { url: string | null; className?: string }) {
   if (!url) return <span aria-hidden className={cn('inline-block shrink-0 rounded-xl bg-muted', className)} />;
   if (isGoogleImage(url)) return <StoreImage src={artworkAt(url, 128)} alt="" className={cn('shrink-0 rounded-xl border', className)} />;
   // eslint-disable-next-line @next/next/no-img-element
@@ -662,7 +662,7 @@ function ProjectShots({
   );
 }
 
-function AppFinder({
+export function AppFinder({
   territory,
   label,
   actionLabel,

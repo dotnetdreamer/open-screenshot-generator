@@ -20,8 +20,8 @@
 // Only real apps are shown. Without one (the web build, which cannot reach the
 // stores, or the desktop app before a key is connected) every screen is
 // there and empty, and each action is disabled with the reason (`blocked`).
-// Competitors is the exception: it reads Apple's public lookup, which needs
-// no key, so it works everywhere.
+// Competitors and Keywords are the exceptions: they read Apple's public
+// lookup and search, which need no key, so they work everywhere.
 //
 // Growth opens on Ask AI, whose assistant sets Growth up in a browser beside
 // the chat and answers questions about the numbers (setup/assistant.ts). This
@@ -49,6 +49,7 @@ import {
   MessageSquareReplyIcon,
   PlugIcon,
   RefreshCwIcon,
+  SearchIcon,
   SparklesIcon,
   SquareIcon,
   StarIcon,
@@ -97,6 +98,8 @@ import { useGrowthData } from '@/lib/growth/useGrowthData';
 import { isScreenshotChange } from '@/lib/growth/rivals';
 import { RIVAL_NEWS_DAYS } from '@/lib/growth/rivalWatch';
 import { useRivals } from '@/lib/growth/useRivals';
+import { useKeywords } from '@/lib/growth/useKeywords';
+import { keywordDigest } from '@/lib/growth/keywords';
 import { clearUntoldReviews } from '@/lib/growth/reviewAlerts';
 import { statusCounts } from '@/lib/growth/reviewInbox';
 import { useReviewInbox } from '@/lib/growth/useReviewInbox';
@@ -115,6 +118,7 @@ import { GrowthAsk } from './GrowthAsk';
 import { GrowthCompetitors } from './GrowthCompetitors';
 import { FEEDS, GrowthConnect, STATE_LABEL } from './GrowthConnect';
 import { GrowthInsights } from './GrowthInsights';
+import { GrowthKeywords } from './GrowthKeywords';
 import { GrowthListing } from './GrowthListing';
 import { GrowthMarkets } from './GrowthMarkets';
 import { GrowthOverview } from './GrowthOverview';
@@ -166,6 +170,7 @@ const NAV: Array<{ label?: string; items: NavItem[] }> = [
   },
   {
     items: [
+      { tab: 'keywords', label: 'Keywords', icon: SearchIcon },
       { tab: 'listing', label: 'Store page', icon: TypeIcon },
       { tab: 'competitors', label: 'Competitors', icon: EyeIcon },
       { tab: 'markets', label: 'Countries', icon: GlobeIcon },
@@ -350,6 +355,8 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
   const appKnown = mounted && (!!picked || !desktop || (!key && !playApp) || !!appsError || appsListed === keyId);
   const rivalOwner = picked?.id ?? '';
   const rivals = useRivals(appKnown ? rivalOwner : null);
+  // The keyword ranks of an App Store app, for what Ask AI answers from.
+  const keywordState = useKeywords(appKnown && picked && store === 'appstore' ? rivalOwner : null, { days: 40, searches: false });
 
   const loadedData = useGrowthData(picked);
   // With no app there is nothing to wait for: the screens draw empty at once.
@@ -530,11 +537,11 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
 
   // What the assistant reads when it runs, which can be long after this
   // render: the newest of everything, through a ref.
-  const latestForAssistant = useRef({ picked, apps, appsError, appsListed, keyId, appReason, runSync, syncAfterSetup, data, insights, listingIssues, syncing });
-  latestForAssistant.current = { picked, apps, appsError, appsListed, keyId, appReason, runSync, syncAfterSetup, data, insights, listingIssues, syncing };
+  const latestForAssistant = useRef({ picked, apps, appsError, appsListed, keyId, appReason, runSync, syncAfterSetup, data, insights, listingIssues, syncing, keywordState });
+  latestForAssistant.current = { picked, apps, appsError, appsListed, keyId, appReason, runSync, syncAfterSetup, data, insights, listingIssues, syncing, keywordState };
   // The numbers the assistant answers from, worked out when it asks and kept
   // until the data changes.
-  const digestCache = useRef<{ records: unknown; reviews: unknown; insights: unknown; digest: unknown } | null>(null);
+  const digestCache = useRef<{ records: unknown; reviews: unknown; insights: unknown; keywords: unknown; digest: unknown } | null>(null);
 
   useEffect(() => {
     const latest = () => latestForAssistant.current;
@@ -573,7 +580,7 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
         const app = now.picked;
         if (!app || !now.data.loaded || (now.data.records.length === 0 && now.data.reviews.length === 0 && !now.data.listing)) return null;
         const cached = digestCache.current;
-        if (!cached || cached.records !== now.data.records || cached.reviews !== now.data.reviews || cached.insights !== now.insights) {
+        if (!cached || cached.records !== now.data.records || cached.reviews !== now.data.reviews || cached.insights !== now.insights || cached.keywords !== now.keywordState.history) {
           const digest = buildDigest({
             appId: app.id,
             appName: app.name,
@@ -585,8 +592,9 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
             listing: now.data.listing,
             listingIssues: now.listingIssues,
             today: today(),
+            keywords: now.keywordState.list ? keywordDigest(now.keywordState.list, now.keywordState.history, today()) : null,
           });
-          digestCache.current = { records: now.data.records, reviews: now.data.reviews, insights: now.insights, digest };
+          digestCache.current = { records: now.data.records, reviews: now.data.reviews, insights: now.insights, keywords: now.keywordState.history, digest };
         }
         return { digest: digestCache.current!.digest, appName: app.name };
       },
@@ -806,7 +814,7 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
         )}
       </header>
 
-      {mounted && !picked && tab !== 'competitors' && tab !== 'ask' && tab !== 'rival-reviews' && tab !== 'review-summary' && (
+      {mounted && !picked && tab !== 'competitors' && tab !== 'keywords' && tab !== 'ask' && tab !== 'rival-reviews' && tab !== 'review-summary' && (
         <div className="flex flex-wrap items-center gap-2 border-b bg-muted/50 px-4 py-2 text-xs" role="status" data-testid="growth-no-app">
           <span className="min-w-0 flex-1">{appReason}.</span>
           {!desktop ? (
@@ -874,6 +882,7 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
               {tab === 'review-summary' && <GrowthReviewSummary />}
               {tab === 'rival-reviews' && <GrowthRivalReviews />}
               {tab === 'replies' && <GrowthReplies />}
+              {tab === 'keywords' && <GrowthKeywords />}
               {tab === 'listing' && <GrowthListing />}
               {tab === 'competitors' && <GrowthCompetitors />}
               {tab === 'markets' && <GrowthMarkets />}

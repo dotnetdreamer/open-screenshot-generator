@@ -12,7 +12,7 @@
 // Play key, with the id `play:` and its package name (stores.ts).
 
 import { addDays, isDay, today, type DayWindow } from './dates';
-import { readMeta } from './db';
+import { readListing, readMeta } from './db';
 import { buildDigest } from './digest';
 import { eventImpact } from './impact';
 import { buildInsights } from './insights';
@@ -36,6 +36,9 @@ import { getGrowthSettings, readGrowthSettingsFresh } from './settings';
 import { territoryCode, territoryName } from './territories';
 import { EVENT_KIND_LABELS, SOURCE_TYPES, type GrowthApp, type ListingField, type SourceType } from './types';
 import { loadGrowthData } from './loadData';
+import { keywordDigest, keywordReport, normalizeTerm, rowsByCountryAndTerm, type KeywordDigest } from './keywords';
+import { isAppStoreId, readKeywordHistory, readKeywordList, readKeywordSearches } from './keywordWatch';
+import { readRivalList } from './rivalWatch';
 import { getStoreCredentials } from '@/lib/publish/credentials';
 
 /** Every app the last App Store listing found, and the Google Play app of the Play key. */
@@ -111,6 +114,65 @@ export async function storeOverview(args: { appId?: unknown; days?: unknown }) {
       listingIssues,
       days,
       today: today(),
+      keywords: await keywordSummary(app.id),
+    }),
+  };
+}
+
+/** How many days of ranks the keyword tools read: enough for the month comparison. */
+const KEYWORD_DAYS = 40;
+
+/** The keyword list of an App Store app and its ranks, as Keywords keeps them. Null for none, or a Google Play app. */
+async function keywordData(appId: string) {
+  if (!isAppStoreId(appId)) return null;
+  const list = await readKeywordList(appId);
+  if (!list || list.keywords.length === 0) return null;
+  const countries = list.countries.length > 0 ? list.countries : ['US'];
+  return { list: { ...list, countries }, history: rowsByCountryAndTerm(await readKeywordHistory(appId, countries, KEYWORD_DAYS)) };
+}
+
+/** The few lines about keywords get_store_overview carries. */
+export async function keywordSummary(appId: string): Promise<KeywordDigest | null> {
+  const data = await keywordData(appId);
+  return data ? keywordDigest(data.list, data.history, today()) : null;
+}
+
+/**
+ * list_store_keywords: the keywords tracked on Growth's Keywords screen and
+ * where the app ranks for each in each country, read from what the checks
+ * stored on this computer. It never searches Apple itself, so an agent loop
+ * cannot spend the 20 searches a minute the checks and Competitors share.
+ */
+export async function storeKeywords(args: { appId?: unknown; keyword?: unknown; country?: unknown }) {
+  const app = await resolveApp(args.appId);
+  const base = { app: { id: app.id, name: app.name } };
+  if (!isAppStoreId(app.id)) {
+    return { ...base, notes: ["Keywords tracks App Store apps only: Google Play's published rules ask programs not to search Google Play."] };
+  }
+  const data = await keywordData(app.id);
+  if (!data) return { ...base, tracked: 0, notes: ["No keywords are tracked for this app yet. The user adds them on Growth's Keywords screen."] };
+  const country = typeof args.country === 'string' && args.country.trim() ? territoryCode(args.country.trim()) : undefined;
+  if (country && !data.list.countries.includes(country)) {
+    throw new Error(`Keywords does not check ${territoryName(country)}. It checks ${data.list.countries.map(territoryName).join(', ')}`);
+  }
+  const keyword = typeof args.keyword === 'string' && args.keyword.trim() ? normalizeTerm(args.keyword) : undefined;
+  if (keyword && !data.list.keywords.some((entry) => entry.term === keyword)) {
+    throw new Error(`"${keyword}" is not tracked. Tracked: ${data.list.keywords.map((entry) => entry.term).join(', ')}`);
+  }
+  const followed = ((await readRivalList(app.id))?.rivals ?? []).filter((rival) => isAppStoreId(rival.id)).map((rival) => ({ id: rival.id, name: rival.name }));
+  return {
+    ...base,
+    tracked: data.list.keywords.length,
+    lastCheck: data.list.checkedAt ? new Date(data.list.checkedAt).toISOString() : null,
+    ...keywordReport({
+      list: data.list,
+      history: data.history,
+      searches: keyword ? await readKeywordSearches(country ? [country] : data.list.countries, [keyword]) : new Map(),
+      listing: (await readListing(app.id)) ?? null,
+      followed,
+      today: today(),
+      keyword,
+      country,
     }),
   };
 }

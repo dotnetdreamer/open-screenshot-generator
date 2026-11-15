@@ -225,6 +225,7 @@ import { getGrowthSettings, setGrowthSettings } from '@/lib/growth/settings';
 import { useGrowthMonitor } from '@/lib/growth/useGrowthMonitor';
 import { storeOf } from '@/lib/growth/stores';
 import { useRivalWatch } from '@/lib/growth/useRivalWatch';
+import { useKeywordWatch } from '@/lib/growth/useKeywordWatch';
 import type { GrowthTab, GrowthTabOptions } from './growth/GrowthShared';
 import { localeForAppleLocale, localeForPlayLanguage } from '@/lib/publish/storeTargets';
 import { ProjectNameField } from './ProjectNameField';
@@ -1734,6 +1735,8 @@ export function OpenScreenshotGeneratorLayout() {
     },
     [showGrowth]
   );
+  // The tracked keywords' daily ranks, checked from the main window only (keywordWatch.ts).
+  useKeywordWatch({ enabled: !isSecondaryWindow });
   const rivalWatch = useRivalWatch({
     enabled: !isSecondaryWindow,
     onFound: (news) => {

@@ -36,26 +36,33 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { reviewListingWithAi, suggestListingField, translateListingFields } from '@/lib/growth/ai';
 import { addListingLanguage, applyListingChanges, editableAppInfoId, fetchListing } from '@/lib/growth/asc';
 import { announceGrowthChange, writeListing, writeMeta } from '@/lib/growth/db';
-import { listingFieldLabel, listingFieldsFor, listingLimit } from '@/lib/growth/listingFields';
+import { listingFieldEditable, listingFieldLabel, listingFieldsFor, listingLimit } from '@/lib/growth/listingFields';
 import { applyPlayListingChanges, fetchPlayListing } from '@/lib/growth/play';
 import { metaKeys, type LiveListing } from '@/lib/growth/sync';
 import { recordListingChange } from '@/lib/growth/events';
-import { cleanKeywords, collapseChanges, fieldLength, listingScore } from '@/lib/growth/listingChecks';
+import { cleanKeywords, collapseChanges, fieldLength, listingScore, splitKeywords } from '@/lib/growth/listingChecks';
+import { MAX_KEYWORDS, isKeywordsIssue, keywordListingIssues, listingLocaleFor, normalizeTerm, standingOf, startingKeywordCountries, type KeywordFacts, type KeywordStanding } from '@/lib/growth/keywords';
+import { checkKeywords, trackKeywords } from '@/lib/growth/keywordWatch';
+import { useKeywords } from '@/lib/growth/useKeywords';
+import { localTerritory } from '@/lib/growth/rivals';
+import { today } from '@/lib/growth/dates';
 import {
   rebaseChanges,
   setListingAiIssues,
   setListingChanges,
   setListingJob,
   setListingNote,
+  upsertListingChanges,
   useListingDrafts,
+  withChanges,
   withoutApplied,
   type ListingNote,
 } from '@/lib/growth/listingDrafts';
-import { LISTING_LANGUAGES, listingLanguageName } from '@/lib/growth/territories';
-import { storeOf } from '@/lib/growth/stores';
+import { LISTING_LANGUAGES, TERRITORY_CODES, languageCovers, listingLanguageFor, listingLanguageName, territoryName } from '@/lib/growth/territories';
 import { type ListingChange, type ListingField, type ListingIssue, type ListingSnapshot } from '@/lib/growth/types';
 import { cn } from '@/lib/utils';
 import { EmptyState, Gated, Panel, SectionTitle, StoreImage, useGrowthView } from './GrowthShared';
+import { RankText } from './GrowthKeywords';
 
 const MULTILINE: ListingField[] = ['description', 'whatsNew', 'promotionalText'];
 
@@ -68,19 +75,7 @@ function isLiveState(state: string): boolean {
 
 const SEVERITY_ICON = { problem: OctagonAlertIcon, warning: AlertTriangleIcon, tip: InfoIcon };
 
-function fieldEditable(listing: ListingSnapshot, field: ListingField): { ok: boolean; why?: string } {
-  // Google Play takes a store page change at any time.
-  if (storeOf(listing.appId) === 'playstore') return { ok: true };
-  if (field === 'promotionalText') return { ok: true };
-  if (field === 'name' || field === 'subtitle') {
-    return listing.appInfoEditable
-      ? { ok: true }
-      : { ok: false, why: 'To change the name or subtitle, create a new version in App Store Connect first' };
-  }
-  return listing.editable
-    ? { ok: true }
-    : { ok: false, why: `Version ${listing.versionString} is ${listing.state.toLowerCase().replace(/_/g, ' ')}, so you can only change the promotional text` };
-}
+const fieldEditable = listingFieldEditable;
 
 export function GrowthListing() {
   const view = useGrowthView();
@@ -113,10 +108,33 @@ export function GrowthListing() {
     if (listing && !listing.locales.some((entry) => entry.locale === locale)) setLocale(listing.primaryLocale);
   }, [listing, locale]);
 
+  // The keywords tracked on Keywords, and where each ranks, for the checks
+  // and the ranks under the keywords field. App Store only: Google Play
+  // cannot be searched.
+  const keywordData = useKeywords(!play && view.rivals.loaded ? view.rivalOwner : null, { days: 30, searches: false });
+  const keywordFacts: KeywordFacts | null = useMemo(() => {
+    const list = keywordData.list;
+    if (!list || list.keywords.length === 0 || !listing || keywordData.appId !== listing.appId) return null;
+    const day = today();
+    const standings = new Map<string, Map<string, KeywordStanding>>();
+    for (const country of list.countries) {
+      const rows = keywordData.history.get(country);
+      standings.set(country, new Map(list.keywords.map((keyword) => [keyword.term, standingOf(rows?.get(keyword.term) ?? [], day)])));
+    }
+    return { terms: list.keywords.map((keyword) => keyword.term), countries: list.countries, standings };
+  }, [keywordData.list, keywordData.appId, keywordData.history, listing]);
+  // Checked against the text waiting to go out, so a fix adds to an edit
+  // already made rather than undoing it.
+  const waiting = useMemo(() => collapseChanges(changes), [changes]);
+  const keywordIssues = useMemo(
+    () => (listing && keywordFacts ? keywordListingIssues(withChanges(listing, waiting), keywordFacts) : []),
+    [listing, keywordFacts, waiting]
+  );
+
   const issues = useMemo(() => {
     const ai = aiIssues.filter((issue) => listing?.locales.some((entry) => entry.locale === issue.locale && entry[issue.field!] === issue.fix?.before));
-    return [...view.listingIssues, ...ai];
-  }, [view.listingIssues, aiIssues, listing]);
+    return [...view.listingIssues, ...ai, ...keywordIssues];
+  }, [view.listingIssues, aiIssues, listing, keywordIssues]);
 
   if (!listing) {
     return (
@@ -133,18 +151,7 @@ export function GrowthListing() {
   const score = listingScore(view.listingIssues, listing.locales.length);
   const localeIssues = issues.filter((issue) => issue.locale === current.locale);
 
-  const upsert = (entries: ListingChange[]) =>
-    setChanges((existing) => {
-      const next = [...existing];
-      for (const entry of entries) {
-        const index = next.findIndex((item) => item.locale === entry.locale && item.field === entry.field);
-        const base = listing.locales.find((item) => item.locale === entry.locale)?.[entry.field] ?? entry.before;
-        const change = { ...entry, before: base };
-        if (index >= 0) next[index] = change;
-        else next.push(change);
-      }
-      return next.filter((item) => item.after !== item.before);
-    });
+  const upsert = (entries: ListingChange[]) => setChanges((existing) => upsertListingChanges(existing, entries, listing));
 
   const run = async (label: string, task: () => Promise<void>) => {
     setListingJob(appId, { label });
@@ -240,6 +247,18 @@ export function GrowthListing() {
     });
 
   const applyReason = view.canWrite ? null : view.blocked.app ?? `To apply changes, you need the desktop app and your ${view.words.key}`;
+
+  // The fixes that come from Keywords are worked out again once the other
+  // fixes are in, so adding words never undoes a clean up of the same field.
+  const addEveryFix = () => {
+    // The page's own fixes go first, the clean up of the keywords field included.
+    const plain = localeIssues.filter((issue) => issue.fix && !isKeywordsIssue(issue.id)).map((issue) => issue.fix!);
+    upsert(plain);
+    if (!keywordFacts) return;
+    const after = withChanges(listing, collapseChanges([...waiting, ...plain]));
+    const words = keywordListingIssues(after, keywordFacts).find((issue) => issue.locale === current.locale && issue.fix && isKeywordsIssue(issue.id));
+    if (words?.fix) upsert([words.fix]);
+  };
   const addable = LISTING_LANGUAGES.filter((code) => !listing.locales.some((entry) => entry.locale === code));
 
   return (
@@ -442,6 +461,16 @@ export function GrowthListing() {
                   <Input {...fieldProps} />
                 )}
                 {!editable.ok && <p className="text-[11px] text-muted-foreground">{editable.why}</p>}
+                {field === 'keywords' && !play && (
+                  <KeywordRanks
+                    value={value}
+                    locale={current.locale}
+                    listing={listing}
+                    facts={keywordFacts}
+                    owner={view.rivalOwner}
+                    countries={keywordData.list?.countries ?? []}
+                  />
+                )}
               </div>
             );
           })}
@@ -560,12 +589,7 @@ export function GrowthListing() {
             title={`Checks for ${listingLanguageName(current.locale)}`}
             actions={
               localeIssues.some((issue) => issue.fix) ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 text-xs"
-                  onClick={() => upsert(localeIssues.filter((issue) => issue.fix).map((issue) => issue.fix!))}
-                >
+                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={addEveryFix}>
                   Add every fix
                 </Button>
               ) : undefined
@@ -597,6 +621,11 @@ export function GrowthListing() {
                         {issue.fix && fieldEditable(listing, issue.fix.field).ok && (
                           <button type="button" className="font-medium text-[hsl(var(--growth-series))] hover:underline" onClick={() => upsert([issue.fix!])}>
                             Fix
+                          </button>
+                        )}
+                        {isKeywordsIssue(issue.id) && issue.id.endsWith(':not-found') && (
+                          <button type="button" className="font-medium text-[hsl(var(--growth-series))] hover:underline" onClick={() => view.goTo('keywords')}>
+                            Find other keywords
                           </button>
                         )}
                         {issue.id.endsWith(':screenshots-borrowed') && (
@@ -666,5 +695,88 @@ function LiveScreenshots() {
         ))}
       </div>
     </Panel>
+  );
+}
+
+/**
+ * Each keyword of the field with its rank in the country whose shoppers read
+ * this language, from Keywords. A keyword not tracked yet can be tracked from
+ * here; with nothing tracked, one button tracks the whole field.
+ */
+function KeywordRanks({
+  value,
+  locale,
+  listing,
+  facts,
+  owner,
+  countries,
+}: {
+  value: string;
+  locale: string;
+  listing: ListingSnapshot;
+  facts: KeywordFacts | null;
+  owner: string;
+  countries: string[];
+}) {
+  const view = useGrowthView();
+  const [busy, setBusy] = useState(false);
+  const entries = Array.from(new Set(splitKeywords(value).map(normalizeTerm).filter(Boolean)));
+  if (entries.length === 0) return null;
+  const track = (terms: string[]) => {
+    setBusy(true);
+    const startWith = countries.length > 0 ? countries : startingKeywordCountries([view.rivals.list?.countries[0], localTerritory()], TERRITORY_CODES);
+    void trackKeywords(owner, terms, { source: 'store-page', countries: startWith })
+      .then((result) => {
+        if (result.added.length > 0) return checkKeywords(owner, { only: { terms: result.added }, wait: true }).then(() => undefined);
+      })
+      .catch((error) => console.error('Tracking the store page keywords failed', error))
+      .finally(() => setBusy(false));
+  };
+  if (!facts) {
+    return (
+      <div className="flex flex-wrap items-center gap-2 pt-0.5 text-[11px] text-muted-foreground" data-testid="growth-listing-keyword-ranks">
+        See where these keywords rank in App Store search
+        <button type="button" className="font-medium text-[hsl(var(--growth-series))] hover:underline disabled:opacity-50" disabled={busy} onClick={() => track(entries)}>
+          Track {entries.length === 1 ? 'this keyword' : `these ${entries.length} keywords`}
+        </button>
+      </div>
+    );
+  }
+  // A country whose shoppers read this language: one that speaks it first,
+  // since the main language also stands in for countries without their own.
+  const readers = facts.countries.filter((code) => listingLocaleFor(code, listing) === locale);
+  const country = readers.find((code) => languageCovers(locale, listingLanguageFor(code))) ?? readers[0];
+  if (!country) return null;
+  const untracked = entries.filter((term) => !facts.terms.includes(term));
+  return (
+    <div className="flex flex-wrap items-center gap-1 pt-0.5" data-testid="growth-listing-keyword-ranks">
+      <span className="mr-0.5 text-[11px] text-muted-foreground">Rank in {territoryName(country)}:</span>
+      {entries.map((term) =>
+        facts.terms.includes(term) ? (
+          <span key={term} className="inline-flex items-center gap-1 rounded-full border py-0.5 pl-2 pr-1 text-[11px]">
+            {term}
+            <RankText day={facts.standings.get(country)?.get(term)?.latest} />
+          </span>
+        ) : (
+          <span key={term} className="inline-flex items-center rounded-full border border-dashed px-2 py-0.5 text-[11px] text-muted-foreground" title="Not tracked on Keywords">
+            {term}
+          </span>
+        )
+      )}
+      {untracked.length > 0 && (
+        <button
+          type="button"
+          className="ml-1 text-[11px] font-medium text-[hsl(var(--growth-series))] hover:underline disabled:opacity-50"
+          disabled={busy || facts.terms.length + untracked.length > MAX_KEYWORDS}
+          title={facts.terms.length + untracked.length > MAX_KEYWORDS ? `You can track ${MAX_KEYWORDS} keywords. Stop tracking some on Keywords first` : undefined}
+          onClick={() => track(untracked)}
+        >
+          Track {untracked.length === 1 ? 'the other one' : `the other ${untracked.length}`}
+        </button>
+      )}
+      <button type="button" className="ml-1 text-[11px] font-medium text-[hsl(var(--growth-series))] hover:underline" onClick={() => view.goTo('keywords', { territory: country })}>
+        Open Keywords
+      </button>
+    </div>
   );
 }

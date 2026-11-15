@@ -3,7 +3,7 @@ import { test, expect, type Page } from '../fixtures/test';
 import type { TauriHttpRule } from '../fixtures/tauri-runtime';
 import type { TauriHarness } from '../fixtures/tauri';
 import { FakeAppStore, playListing, playShot, type PlayListing } from '../helpers/appStore';
-import { TEST_ACCOUNT_RULES, TEST_APP, TEST_KEY, backToEditor, openGrowth, section } from '../helpers/growth';
+import { TEST_ACCOUNT_RULES, TEST_APP, TEST_KEY, backToEditor, openGrowth, putGrowthRows, section } from '../helpers/growth';
 
 // Growth for a Google Play app on the desktop build, against answers shaped
 // like Google's: a service account token, the store page read through an
@@ -188,36 +188,7 @@ async function syncOnce(page: Page) {
 
 /** Put a timeline event in the growth database before the app reads it, as the upload dialog would have. */
 async function seedEvent(page: Page, event: Record<string, unknown>) {
-  await page.evaluate(async (event) => {
-    // Dexie's version 2 is IndexedDB's version 20; made with db.ts's stores when the app has not made it yet.
-    const open = indexedDB.open('OpenScreenshotGeneratorGrowth', 20);
-    open.onupgradeneeded = () => {
-      const db = open.result;
-      const store = (name: string, keyPath: string, indexes: Array<[string, string | string[]]>) => {
-        const created = db.createObjectStore(name, { keyPath });
-        for (const [index, path] of indexes) created.createIndex(index, path);
-      };
-      store('days', 'key', [['appId', 'appId'], ['[appId+date]', ['appId', 'date']]]);
-      store('reviews', 'id', [['appId', 'appId'], ['[appId+createdDate]', ['appId', 'createdDate']]]);
-      store('ratings', 'key', [['appId', 'appId']]);
-      store('events', 'id', [['appId', 'appId'], ['[appId+date]', ['appId', 'date']]]);
-      store('listings', 'appId', []);
-      store('meta', 'key', []);
-      store('ratingDays', 'key', [['appId', 'appId'], ['[appId+date]', ['appId', 'date']]]);
-      store('reviewMarks', 'id', [['appId', 'appId']]);
-    };
-    const db = await new Promise<IDBDatabase>((resolve, reject) => {
-      open.onsuccess = () => resolve(open.result);
-      open.onerror = () => reject(open.error);
-    });
-    const tx = db.transaction('events', 'readwrite');
-    tx.objectStore('events').put(event);
-    await new Promise<void>((resolve, reject) => {
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-    db.close();
-  }, event);
+  await putGrowthRows(page, { events: [event] });
 }
 
 async function readEvent(page: Page, id: string): Promise<Record<string, unknown> | undefined> {

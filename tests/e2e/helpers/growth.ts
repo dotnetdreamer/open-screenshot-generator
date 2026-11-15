@@ -166,7 +166,7 @@ export async function connectTestAccount(page: Page): Promise<void> {
 }
 
 /** Rows to put in the growth database, by table. */
-export type GrowthRows = Partial<Record<'days' | 'reviews' | 'ratings' | 'events' | 'listings' | 'meta' | 'ratingDays' | 'reviewMarks', unknown[]>>;
+export type GrowthRows = Partial<Record<'days' | 'reviews' | 'ratings' | 'events' | 'listings' | 'meta' | 'ratingDays' | 'reviewMarks' | 'keywordDays', unknown[]>>;
 
 /**
  * Write rows straight into the growth database. The app reads the database
@@ -174,12 +174,12 @@ export type GrowthRows = Partial<Record<'days' | 'reviews' | 'ratings' | 'events
  */
 export async function putGrowthRows(page: Page, rows: GrowthRows): Promise<void> {
   await page.evaluate(async (rows) => {
-    // Dexie's version 2 is IndexedDB's version 20. When the app has not
+    // Dexie's version 3 is IndexedDB's version 30. When the app has not
     // opened the database yet, it is made here with the stores and indexes
     // src/lib/growth/db.ts declares, so Dexie opens it as its own; when it
     // has, the version the app made is opened as it is.
     const exists = (await indexedDB.databases()).some((database) => database.name === 'OpenScreenshotGeneratorGrowth');
-    const open = exists ? indexedDB.open('OpenScreenshotGeneratorGrowth') : indexedDB.open('OpenScreenshotGeneratorGrowth', 20);
+    const open = exists ? indexedDB.open('OpenScreenshotGeneratorGrowth') : indexedDB.open('OpenScreenshotGeneratorGrowth', 30);
     open.onupgradeneeded = () => {
       const db = open.result;
       const store = (name: string, keyPath: string, indexes: Array<[string, string | string[]]>) => {
@@ -194,6 +194,7 @@ export async function putGrowthRows(page: Page, rows: GrowthRows): Promise<void>
       store('meta', 'key', []);
       store('ratingDays', 'key', [['appId', 'appId'], ['[appId+date]', ['appId', 'date']]]);
       store('reviewMarks', 'id', [['appId', 'appId']]);
+      store('keywordDays', 'key', [['appId', 'appId'], ['[appId+country+date]', ['appId', 'country', 'date']]]);
     };
     const db = await new Promise<IDBDatabase>((resolve, reject) => {
       open.onsuccess = () => resolve(open.result);

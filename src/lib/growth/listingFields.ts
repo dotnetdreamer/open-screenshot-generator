@@ -8,7 +8,7 @@
 // page never offers keywords and never says "subtitle".
 
 import { storeOf, type GrowthStore } from './stores';
-import { LISTING_FIELDS, LISTING_FIELD_LABELS, LISTING_LIMITS, type ListingField } from './types';
+import { LISTING_FIELDS, LISTING_FIELD_LABELS, LISTING_LIMITS, type ListingField, type ListingSnapshot } from './types';
 
 const PLAY_FIELDS: ListingField[] = ['name', 'subtitle', 'description'];
 
@@ -45,4 +45,24 @@ export function listingLimits(appIdOrStore: string): Array<{ field: ListingField
     label: listingFieldLabel(appIdOrStore, field),
     limit: listingLimit(appIdOrStore, field),
   }));
+}
+
+/**
+ * Whether a field can be changed right now, and why not. Google Play takes a
+ * store page change at any time. On the App Store the promotional text can
+ * always change, the name and subtitle live on the app info, which has an
+ * editable state of its own, and the other fields only while a version is
+ * being prepared.
+ */
+export function listingFieldEditable(listing: ListingSnapshot, field: ListingField): { ok: boolean; why?: string } {
+  if (storeFor(listing.appId) === 'playstore') return { ok: true };
+  if (field === 'promotionalText') return { ok: true };
+  if (field === 'name' || field === 'subtitle') {
+    return listing.appInfoEditable
+      ? { ok: true }
+      : { ok: false, why: 'To change the name or subtitle, create a new version in App Store Connect first' };
+  }
+  return listing.editable
+    ? { ok: true }
+    : { ok: false, why: `Version ${listing.versionString} is ${listing.state.toLowerCase().replace(/_/g, ' ')}, so you can only change the promotional text` };
 }

@@ -35,6 +35,7 @@ import {
   STORE_DATA_REFUSAL,
   mayReadStoreData,
   storeEvents,
+  storeKeywords,
   storeInsights,
   storeListing,
   storeMetrics,
@@ -2981,7 +2982,7 @@ const TOOLS: ToolDef[] = [
   ...storeTool({
     name: 'get_store_overview',
     description:
-      "The App Store or Google Play picture for the user's app, as the Growth window shows it: the last N days against the N before (impressions, product page views, first-time downloads, conversion rate, proceeds on the App Store; store listing visitors, acquisitions, the download rate, new downloads and updates on Google Play), the top storefronts, how people find the app, star ratings, recent reviews and their topics, the timeline (releases, and screenshot uploads with the conversion before and after each went live), the insight cards, and the listing with its problems. Call this first for any question about downloads, conversion, reviews, markets or whether new screenshots worked. Pass appId to pick an app (otherwise the one the Growth window last showed; otherApps lists the rest). app.store says which store the app is in, and notes says what the numbers leave out.",
+      "The App Store or Google Play picture for the user's app, as the Growth window shows it: the last N days against the N before (impressions, product page views, first-time downloads, conversion rate, proceeds on the App Store; store listing visitors, acquisitions, the download rate, new downloads and updates on Google Play), the top storefronts, how people find the app, star ratings, recent reviews and their topics, the timeline (releases, and screenshot uploads with the conversion before and after each went live), the insight cards, the listing with its problems, and the keywords tracked on Keywords with the best ranks and biggest moves per country (list_store_keywords has the rest). Call this first for any question about downloads, conversion, reviews, markets, keywords or whether new screenshots worked. Pass appId to pick an app (otherwise the one the Growth window last showed; otherApps lists the rest). app.store says which store the app is in, and notes says what the numbers leave out.",
     properties: {
       appId: { type: 'string', description: 'App Store Connect app id, play: and a Google Play package name, a bundle id or package name, or the app name. Optional.' },
       days: { type: 'number', description: 'Days to compare, 7 to 365. Default 28.' },
@@ -3044,6 +3045,17 @@ const TOOLS: ToolDef[] = [
       'The app timeline, newest first: releases, screenshot uploads from the editor (with the project they came from), listing changes and events the user added, each with the conversion rate (or downloads per day) in the 14 days before and after it went live, the change, and a confidence from a two-proportion test. On the App Store a screenshot upload counts from the release of the version it went to; on Google Play from the upload day, or the day the user set as the day it went live.',
     properties: { appId: { type: 'string', description: 'Optional, see get_store_overview.' } },
     run: storeEvents,
+  }),
+  ...storeTool({
+    name: 'list_store_keywords',
+    description:
+      "Where the user's App Store app ranks in App Store search for each keyword tracked on Growth's Keywords screen, in each country it checks: the rank (null when the search did not list the app), how many apps the search listed, the day of the check, the change since a check 1 to 3, 7 to 10 and 30 to 37 days before (with that check's day, and none when there was no check then), misses in a row, the ranks of the apps followed on Competitors, and whether the keyword's words are in the name, subtitle or keywords of the store page that country reads. Pass keyword for one keyword with the first apps people see for it and its rank at each check, and country to narrow to one. It reads what the checks stored and never searches Apple itself; Google Play apps have no keywords. Suggest keywords for the listing with get_store_listing's limits in mind; the user tracks keywords and applies listing changes in the Growth window.",
+    properties: {
+      appId: { type: 'string', description: 'Optional, see get_store_overview.' },
+      keyword: { type: 'string', description: 'One tracked keyword, for its first apps and every check. Optional.' },
+      country: { type: 'string', description: 'One country Keywords checks, as a two letter code (US) or a name. Optional.' },
+    },
+    run: storeKeywords,
   }),
 ];
 
@@ -3484,6 +3496,7 @@ const READ_ONLY_TOOLS = new Set([
   'list_store_insights',
   'get_store_listing',
   'list_store_events',
+  'list_store_keywords',
 ]);
 
 /**

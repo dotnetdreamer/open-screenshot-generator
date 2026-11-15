@@ -29,6 +29,11 @@ import { listingLanguageName } from './territories';
 
 const NO_SPACES = /^(ja|zh|th|ko)/i;
 
+/** Languages written without spaces between words, which are matched comma by comma or as whole phrases. */
+export function writtenWithoutSpaces(locale: string): boolean {
+  return NO_SPACES.test(locale);
+}
+
 /** Words so common that sharing them between fields is not a waste worth reporting. */
 const STOPWORDS = new Set([
   'a', 'an', 'and', 'the', 'of', 'for', 'to', 'in', 'on', 'with', 'your', 'you', 'my', 'by', 'at', 'or', 'is', 'it',
@@ -54,7 +59,7 @@ export function wordsOf(text: string, locale: string): string[] {
 }
 
 /** "photos" and "photo" are one search term to the store; a rough English-first fold. */
-function stem(word: string): string {
+export function stem(word: string): string {
   if (word.length > 4 && word.endsWith('ies')) return `${word.slice(0, -3)}y`;
   if (word.length > 3 && word.endsWith('es') && /(ss|sh|ch|x|z)es$/.test(word)) return word.slice(0, -2);
   if (word.length > 3 && word.endsWith('s') && !word.endsWith('ss')) return word.slice(0, -1);
@@ -507,7 +512,7 @@ function sameLanguage(a: string, b: string): boolean {
   return a.split('-')[0].toLowerCase() === b.split('-')[0].toLowerCase() && !a.startsWith('zh');
 }
 
-function andList(items: string[]): string {
+export function andList(items: string[]): string {
   if (items.length <= 1) return items[0] ?? '';
   return `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
 }
@@ -516,7 +521,7 @@ function unique(list: string[]): string[] {
   return Array.from(new Set(list.map((item) => item.trim()).filter(Boolean)));
 }
 
-function quoteList(items: string[]): string {
+export function quoteList(items: string[]): string {
   const quoted = items.slice(0, 3).map((item) => `"${item}"`);
   const more = items.length > 3 ? ` and ${items.length - 3} more` : '';
   if (quoted.length <= 1) return `${quoted[0] ?? ''}${more}`;

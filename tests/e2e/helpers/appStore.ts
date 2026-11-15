@@ -2,9 +2,9 @@ import type { Page, Route } from '@playwright/test';
 import type { TauriHttpRule } from '../fixtures/tauri-runtime';
 
 /**
- * Apple's public lookup and search, as Growth's Competitors reaches them
- * (src/lib/growth/rivals.ts), answered from what a spec says each country
- * sells. The web build asks with the page's own fetch, which `page.route`
+ * Apple's public lookup and search, as Growth's Competitors and Keywords
+ * reach them (src/lib/growth/rivals.ts, keywords.ts), answered from what a
+ * spec says each country sells and what each search lists. The web build asks with the page's own fetch, which `page.route`
  * answers, with the CORS header Apple sends. The desktop app asks through
  * tauri-plugin-http, which the Tauri harness answers from its rules; those
  * are read on every request, so a spec can change an answer between checks.
@@ -137,6 +137,8 @@ export class FakeAppStore {
   private countries: Record<string, StoreRow[]> = {};
   /** What a search answers, whatever the words. */
   private found: StoreRow[] = [];
+  /** What Keywords' search for one keyword in one country lists, by `country|term`, in Apple's order. */
+  private keywordSearches: Record<string, StoreRow[]> = {};
   /** Google Play pages, by uppercase country code, then package. */
   private playPages: Record<string, Record<string, PlayListing>> = {};
   /** Google Play pages that answer HTTP 500, as `COUNTRY package`. */
@@ -144,6 +146,10 @@ export class FakeAppStore {
   private held = false;
   private release: (() => void) | null = null;
   private gate: Promise<void> = Promise.resolve();
+  /** Keywords' searches wait while this is set, to do something while one is out. */
+  private searchesHeld = false;
+  private releaseSearch: (() => void) | null = null;
+  private searchGate: Promise<void> = Promise.resolve();
   private webRequests: string[] = [];
 
   constructor(
@@ -169,6 +175,12 @@ export class FakeAppStore {
 
   async searchFinds(rows: StoreRow[]): Promise<void> {
     this.found = rows;
+    await this.sync();
+  }
+
+  /** What Keywords' search for `term` in `country` lists from now on, first app first. */
+  async searchLists(country: string, term: string, rows: StoreRow[]): Promise<void> {
+    this.keywordSearches[`${country.toLowerCase()}|${term}`] = rows;
     await this.sync();
   }
 
@@ -207,6 +219,20 @@ export class FakeAppStore {
     if (this.isDesktop) await this.page.evaluate(() => (window as unknown as { __E2E_TAURI__: { releaseHttp(): number } }).__E2E_TAURI__.releaseHttp());
   }
 
+  /** Keep every Keywords search waiting until `releaseSearches`. */
+  async holdSearches(): Promise<void> {
+    this.searchesHeld = true;
+    this.searchGate = new Promise((resolve) => (this.releaseSearch = resolve));
+    await this.sync();
+  }
+
+  async releaseSearches(): Promise<void> {
+    this.searchesHeld = false;
+    await this.sync();
+    this.releaseSearch?.();
+    if (this.isDesktop) await this.page.evaluate(() => (window as unknown as { __E2E_TAURI__: { releaseHttp(): number } }).__E2E_TAURI__.releaseHttp());
+  }
+
   /** Every lookup and search the app sent, as URLs. */
   async requests(): Promise<URL[]> {
     if (!this.isDesktop) return this.webRequests.map((url) => new URL(url));
@@ -217,7 +243,11 @@ export class FakeAppStore {
   }
 
   private rowsFor(url: URL): StoreRow[] {
-    if (url.pathname === '/search') return this.found;
+    if (url.pathname === '/search') {
+      // Keywords asks for 200 apps; the Competitors finder asks for 10.
+      const listed = this.keywordSearches[`${url.searchParams.get('country')}|${url.searchParams.get('term')}`];
+      return url.searchParams.get('limit') === '200' && listed ? listed : this.found;
+    }
     const ids = (url.searchParams.get('id') ?? '').split(',');
     return (this.countries[url.searchParams.get('country') ?? ''] ?? []).filter((row) => ids.includes(String(row.trackId)));
   }
@@ -226,6 +256,7 @@ export class FakeAppStore {
     const url = new URL(route.request().url());
     this.webRequests.push(url.toString());
     if (url.pathname === '/lookup' && this.held) await this.gate;
+    if (url.pathname === '/search' && url.searchParams.get('limit') === '200' && this.searchesHeld) await this.searchGate;
     await route.fulfill({
       status: 200,
       headers: { 'access-control-allow-origin': '*', 'content-type': 'text/javascript; charset=utf-8' },
@@ -260,6 +291,12 @@ export class FakeAppStore {
       })),
       // A country the spec did not stock sells nothing.
       { match: '^GET https://itunes\\.apple\\.com/lookup\\?', headers: { 'content-type': 'text/javascript; charset=utf-8' }, body: answer([]), hold: this.held },
+      // Keywords' searches, as the app writes them (keywords.ts searchUrl), before the finder's.
+      ...Object.entries(this.keywordSearches).map(([key, rows]) => {
+        const [country, ...words] = key.split('|');
+        const query = new URLSearchParams({ term: words.join('|'), country, entity: 'software', limit: '200' }).toString();
+        return { match: `^GET https://itunes\\.apple\\.com/search\\?${escape(query)}$`, headers: { 'content-type': 'text/javascript; charset=utf-8' }, body: answer(rows), hold: this.searchesHeld };
+      }),
       { match: '^GET https://itunes\\.apple\\.com/search\\?', headers: { 'content-type': 'text/javascript; charset=utf-8' }, body: answer(this.found) },
       ...this.otherRules,
     ];

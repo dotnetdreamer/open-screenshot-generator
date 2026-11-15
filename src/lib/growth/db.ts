@@ -11,6 +11,7 @@
 // this window: a second editor window reads the database when it opens Growth.
 
 import Dexie, { type Table } from 'dexie';
+import type { KeywordDay } from './keywords';
 import type { DayRecord, ListingSnapshot, RatingDay, ReviewMark, StoreReview, TerritoryRating, TimelineEvent } from './types';
 
 export interface MetaRow {
@@ -27,6 +28,7 @@ class GrowthDatabase extends Dexie {
   meta!: Table<MetaRow, string>;
   ratingDays!: Table<RatingDay, string>;
   reviewMarks!: Table<ReviewMark, string>;
+  keywordDays!: Table<KeywordDay, string>;
 
   constructor() {
     super('OpenScreenshotGeneratorGrowth');
@@ -43,6 +45,10 @@ class GrowthDatabase extends Dexie {
     this.version(2).stores({
       ratingDays: 'key, appId, [appId+date]',
       reviewMarks: 'id, appId',
+    });
+    // An app's rank for each keyword, country and day (keywords.ts).
+    this.version(3).stores({
+      keywordDays: 'key, appId, [appId+country+date]',
     });
   }
 }
@@ -136,6 +142,38 @@ export async function updateRatingDays(appId: string, dates: string[], change: (
 export async function deleteRatingDays(appIds: string[]): Promise<void> {
   if (appIds.length === 0) return;
   await db().ratingDays.where('appId').anyOf(appIds).delete();
+}
+
+/** An app's keyword ranks in `country` from `from` on, oldest first. */
+export async function readKeywordDays(appId: string, country: string, from: string): Promise<KeywordDay[]> {
+  return db().keywordDays.where('[appId+country+date]').between([appId, country, from], [appId, country, Dexie.maxKey]).toArray();
+}
+
+/** Write a day's ranks: a search answered again on the same day replaces its row. */
+export async function writeKeywordDays(rows: KeywordDay[]): Promise<void> {
+  if (rows.length === 0) return;
+  await db().keywordDays.bulkPut(rows);
+}
+
+/**
+ * Change rows in one transaction: each is read again inside it, so a check
+ * that wrote a row meanwhile is never undone by a change worked out before.
+ * `change` answers the new row, or null to leave the row as it is.
+ */
+export async function updateKeywordDays(keys: string[], change: (row: KeywordDay) => KeywordDay | null): Promise<number> {
+  if (keys.length === 0) return 0;
+  const database = db();
+  let written = 0;
+  await database.transaction('rw', database.keywordDays, async () => {
+    for (const key of keys) {
+      const row = await database.keywordDays.get(key);
+      const next = row ? change(row) : null;
+      if (!next) continue;
+      await database.keywordDays.put(next);
+      written += 1;
+    }
+  });
+  return written;
 }
 
 export async function readReviewMarks(appIds: string[]): Promise<ReviewMark[]> {
@@ -245,10 +283,12 @@ export async function clearApp(appId: string): Promise<void> {
     // sync skip every day whose rows were just deleted.
     // Competitors (`rivals:` keys) stay: the apps followed are the user's
     // choice, and what those apps showed before cannot be fetched again.
+    // Keywords (`keywords:` keys, and the keywordDays table) stay for the same
+    // reasons: the words are the user's, and no store keeps past ranks.
     const own = new RegExp(`:${appId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(:|$)`);
     const keys = (await database.meta.toCollection().primaryKeys())
       .map(String)
-      .filter((key) => !key.startsWith('rivals:') && (own.test(key) || key.startsWith('sales:days:')));
+      .filter((key) => !key.startsWith('rivals:') && !key.startsWith('keywords:') && (own.test(key) || key.startsWith('sales:days:')));
     await database.meta.bulkDelete(keys);
   });
   announceGrowthChange(appId);
