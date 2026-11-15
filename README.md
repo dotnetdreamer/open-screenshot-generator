@@ -15,37 +15,9 @@ https://github.com/user-attachments/assets/92348435-668f-4a58-b0be-0b939841150d
 
 ## What's new
 
-### 15 November 2026: Website, support and privacy pages for your app
+### 15 November 2026: Growth, Capture and a website for your app
 
-Apple and Google ask every app for a support page and a privacy policy. Click **Website** on the left, under Discover, and the app makes both, plus a home page with your screenshots, in every language of your project. A few questions about what your app collects write the privacy policy. Claude Code, Codex or the AI you set up writes the rest, and you can ask it for changes. **Publish** puts the site on your own GitHub account with GitHub Pages, for free, and gives you the links to paste into App Store Connect and Play Console. Read [Website](docs/WEBSITE.md).
-
-### 15 November 2026: Keywords, your rank in App Store search
-
-Click **Keywords** in Growth to see where your app shows up when people search the App Store, for the words you pick, in up to 5 countries. Growth checks your rank for each word once a day while the app is open. Growth shows how far each rank moved, which apps people see first, and where the apps you follow on Competitors rank. Each keyword says if the keyword is on your store page, and **Add to keywords** puts a missing word on Store page as a change for you to check and apply. Ideas for more keywords come from the names of the apps that rank, your store page, your competitors and AI, and **Check** shows where your app is for a word, if you want to know before you track the word. Keywords reads Apple's public App Store search, which needs no key, so Keywords also works in the web version. Read [Keywords](docs/GROWTH.md#keywords) in the Growth guide.
-
-### 14 November 2026: Google Play competitors in the desktop app
-
-In the desktop app, Competitors now follows Google Play apps too. Paste the Google Play link of an app, and Growth reads the app's public Google Play page in each country you check: the rating, the price, the version when the page shows one, the day of the last update and the screenshots. Growth tells you when a Google Play app changes its screenshots, the same way as for an App Store app. A Google Play app in Growth is compared with its own Google Play page too. The web version cannot read Google Play pages, so the web version follows App Store apps only. Read [Competitors](docs/GROWTH.md#competitors) in the Growth guide.
-
-### 13 November 2026: Watch your competitors in Growth
-
-Follow up to 10 competing apps on the App Store, and see their screenshots, rating, version and price in each country. Growth shows your screenshots next to the competitors' screenshots, the way App Store search shows the apps. The project open in the editor shows there too, so you can compare new screenshots before you upload the new screenshots. Growth checks the competing apps twice a day and tells you when one of the apps changes its screenshots, with the old and the new screenshots side by side. Competitors uses Apple's public App Store lookup, which needs no key, so Competitors also works in the web version. Read [Competitors](docs/GROWTH.md#competitors) in the Growth guide.
-
-### 13 November 2026: Capture, screenshots straight from your app
-
-Click **Capture** (the camera) on the bar at the left to take screenshots of your app on the iPhone Simulator, an Android emulator or an Android phone. The screenshot goes straight into a phone frame of your project, in the language you choose, with the status bar at 9:41 and a full battery. The screen of the device shows live beside your frames.
-
-Tell Capture how to get to each screen, and Capture opens your app in every language of your project and takes every screen in every language for you. Capture also records the screen for preview videos, and the Claude Code and Codex agents can take the screenshots too. Read the [Capture guide](docs/CAPTURE.md).
-
-### 12 November 2026: Growth, your App Store and Google Play numbers beside your screenshots
-
-Click **Growth** on the bar at the left to see how your app is doing in the App Store and on Google Play: downloads, ratings, reviews and your store page. Growth uses the same keys as the screenshot upload: your App Store Connect API key and your Google Play service account key.
-
-After you upload new screenshots, Growth compares what share of visitors downloaded your app before and after the new screenshots went live. Growth also tells you if the difference is a real change or just luck. Growth finds problems on your store page, such as wasted keyword space or text that is not translated. Growth lists the countries where your store page is not in the local language, and the complaints that come up again and again in reviews.
-
-On Google Play, Growth reads your downloads, page visits and ratings from the monthly report files that Google keeps for your account. For the report files, Growth needs the address of the report files and one more permission on your service account. Setup in Growth shows both steps.
-
-AI can write replies to reviews, and weekly, monthly and yearly reports. The AI runs on your Claude Code or Codex plan, or on the AI you set up in the app. Save a report as PDF, Markdown or text. While the desktop app is open, Growth keeps checking your numbers and tells you about a drop in your download rate, a falling rating or a new record. The Claude Code and Codex agents can read your store numbers too. Read the [Growth guide](docs/GROWTH.md).
+See your App Store and Google Play downloads, ratings and reviews in [Growth](docs/GROWTH.md), keep an eye on competing apps and see where your app shows up in App Store search. In the desktop app, [Capture](docs/CAPTURE.md) takes screenshots of your app in every language, right from your computer or Android phone. [Website](docs/WEBSITE.md) makes your app's home, support and privacy pages and puts the pages online for free on GitHub.
 
 ### 14 October 2026: Codex joins Claude Code in the desktop app
 
