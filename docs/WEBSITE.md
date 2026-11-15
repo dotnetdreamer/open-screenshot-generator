@@ -12,7 +12,7 @@ Click **Website** on the left edge of the window, under Discover.
    - **Your app**: the app's name, one line about it, your App Store and Google Play links, your support email and your name or your company's. Paste your App Store link and click **Fill in**, and the app fills in the name, the maker and the icon for you. If Growth knows your apps, click one of them instead.
    - **Privacy**: tick what your app collects, such as usage numbers, crash reports or ads, and name the services you use for each one. If your app collects nothing, tick **Nothing**. The privacy policy is written from these answers. It promises to delete data within a month of being asked only if you turn that on.
    - **Look and languages**: the colors come from your screenshots. Change them if you like, and choose the languages of the site.
-4. Click **Make my website**. If Claude Code, Codex or another AI is set up, the AI writes the home page and the support page from your screenshots. Without an AI, the site uses your screenshots' own words and simple sentences you can change.
+4. Click **Make my website**. If Claude Code, Codex or another AI is set up, the AI writes the home page and the support page from your screenshots. Without an AI, the site uses your screenshots' own words and simple sentences you can change. If the AI couldn't write the pages, its message under **Ask AI** says why. Click **Try again** under it to ask once more.
 
 ## Change your website
 

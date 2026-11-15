@@ -142,6 +142,11 @@ function messageOf(error: unknown, fallback: string): string {
   return error instanceof Error && error.message ? error.message : fallback;
 }
 
+/** A message quoted inside a sentence, without its own full stop, or the sentence ends in two. */
+function inSentence(text: string): string {
+  return text.trim().replace(/[.!?。]+$/u, '');
+}
+
 function isStop(error: unknown): boolean {
   return (error as Error)?.name === 'AbortError';
 }
@@ -505,13 +510,31 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
         addChat(answer(before, next));
       } catch (error) {
         if (isStop(error)) return;
-        await addChatTo(projectId, { role: 'assistant', text: `The AI couldn't write the site: ${messageOf(error, 'try again')}. The site has your screenshots' words for now.`, failed: true });
+        await addChatTo(projectId, {
+          role: 'assistant',
+          text: `The AI couldn't write the site: ${inSentence(messageOf(error, 'try again'))}. The site has your screenshots' words for now.`,
+          failed: true,
+          retry: { notes },
+        });
       } finally {
         writeStop.current = null;
         setWriting(false);
       }
     },
     [captions, ai.label, site, addChat, addChatTo, showing]
+  );
+
+  /** Try again under a first write that failed: the same write, with the notes the site was made with. */
+  const retryWrite = useCallback(
+    (id: string) => {
+      const item = site.chat.find((entry) => entry.id === id);
+      const current = draftRef.current;
+      if (!item?.retry || !current || writeStop.current || askStop.current) return;
+      const { notes } = item.retry;
+      site.setChat((chat) => chat.map((entry) => (entry.id === id ? { ...entry, retry: undefined } : entry)));
+      void runWrite(current, notes);
+    },
+    [site, runWrite]
   );
 
   const finishSetup = useCallback(
@@ -1001,6 +1024,7 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
           }}
           onUndo={undo}
           onUseSuggestion={takeSuggestion}
+          onRetry={retryWrite}
         />
       );
     } else {

@@ -31,6 +31,11 @@ export interface SiteChatItem extends SiteChatTurn {
   /** The answer could not be had: what went wrong. */
   failed?: boolean;
   /**
+   * On a first write that failed: the notes the site was made with, so Try
+   * again under the message writes the pages with them. Gone once pressed.
+   */
+  retry?: { notes: string };
+  /**
    * A paragraph the AI suggested for the privacy policy. It goes in only when
    * the developer presses the button under it, so no sentence of the policy
    * is the AI's without the developer choosing it.

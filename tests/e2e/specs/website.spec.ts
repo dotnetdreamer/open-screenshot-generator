@@ -51,7 +51,7 @@ async function addText(app: { addElement(label: string, id: string): Promise<voi
 }
 
 /** The three steps of Make my website, with no AI writing. */
-async function makeSite(page: Page, view: Locator, options: { ai?: boolean; appName?: string } = {}) {
+async function makeSite(page: Page, view: Locator, options: { ai?: boolean; appName?: string; notes?: string } = {}) {
   await view.getByRole('button', { name: 'Make my website' }).click();
   const dialog = page.getByTestId('website-setup');
   await expect(dialog).toBeVisible();
@@ -66,6 +66,7 @@ async function makeSite(page: Page, view: Locator, options: { ai?: boolean; appN
   const write = dialog.getByRole('switch', { name: 'Write the words with AI' });
   if (options.ai) await expect(write).toBeChecked();
   else await expect(write).toBeDisabled();
+  if (options.notes) await dialog.getByLabel('Anything the AI should know').fill(options.notes);
   await dialog.getByRole('button', { name: 'Make my website' }).click();
   await expect(dialog).toBeHidden();
   await expect(view.getByRole('navigation', { name: 'Website sections' })).toBeVisible();
@@ -288,6 +289,35 @@ test.describe('website', () => {
       await suggestion.getByRole('button', { name: 'Put it in the policy' }).click();
       await expect(site(view).locator('#more')).toContainText('We keep backups for 30 days.');
       await expect(suggestion).toContainText('In the policy now');
+    });
+
+    test('a first write that fails says why in one sentence, and Try again writes the pages with the same notes', async ({ app, page, tauri, isDesktop }) => {
+      test.skip(!isDesktop, 'Claude Code runs in the desktop app');
+      await projectWithText(app);
+      // Claude Code's own message ends with a full stop, as its API errors do.
+      await tauri.setError('abs_claude_prompt', 'Claude Code could not answer: API Error: Connection closed mid-response. The response above may be incomplete.');
+      const view = await openWebsite(page);
+      await makeSite(page, view, { ai: true, notes: 'Pebble is for people who forget to water their plants.' });
+      const failed = view.getByTestId('site-chat-answer').first();
+      await expect(failed).toContainText(
+        "The AI couldn't write the site: Claude Code could not answer: API Error: Connection closed mid-response. The response above may be incomplete. The site has your screenshots' words for now."
+      );
+      await expect(site(view).locator('h1')).toHaveText('New Text');
+
+      await tauri.clearError('abs_claude_prompt');
+      await tauri.setResponse(
+        'abs_claude_prompt',
+        JSON.stringify({ headline: 'Plants that never go thirsty', subhead: 'Pebble reminds you when to water.', supportIntro: 'Questions about Pebble? We read every email.' })
+      );
+      await failed.getByRole('button', { name: 'Try again' }).click();
+      await expect(view.getByTestId('site-chat-answer').last()).toContainText('I wrote the home and support pages from your screenshots and your notes');
+      await expect(site(view).locator('h1')).toHaveText('Plants that never go thirsty');
+      // Pressed once, the button goes, and the failed message stays as it was.
+      await expect(view.getByRole('button', { name: 'Try again' })).toHaveCount(0);
+      await expect(failed).toContainText("The AI couldn't write the site");
+      const calls = await tauri.callsTo('abs_claude_prompt');
+      expect(calls).toHaveLength(2);
+      expect((calls[1].args as { prompt: string }).prompt).toContain('Pebble is for people who forget to water their plants.');
     });
   });
 

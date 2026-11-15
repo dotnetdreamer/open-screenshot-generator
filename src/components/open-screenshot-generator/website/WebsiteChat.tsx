@@ -5,10 +5,12 @@
 // the change at once. The newest change can be undone. When the AI needs
 // something it does not know, such as an email address, it asks, and the
 // answer goes in the same box. A paragraph it suggests for the privacy policy
-// waits under its answer until the developer puts it in.
+// waits under its answer until the developer puts it in. When the first write
+// failed and nothing came after it, Try again under that message writes the
+// pages again.
 
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowUpIcon, Loader2Icon, SparklesIcon, SquareIcon, Undo2Icon } from 'lucide-react';
+import { ArrowUpIcon, Loader2Icon, RotateCcwIcon, SparklesIcon, SquareIcon, Undo2Icon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { SiteChatItem } from '@/lib/website/store';
 import { cn } from '@/lib/utils';
@@ -32,6 +34,7 @@ export function WebsiteChat({
   onStop,
   onUndo,
   onUseSuggestion,
+  onRetry,
 }: {
   chat: SiteChatItem[];
   ai: AiStatus;
@@ -44,6 +47,8 @@ export function WebsiteChat({
   onUndo: (id: string) => void;
   /** Put the privacy paragraph an answer suggested into the policy. */
   onUseSuggestion: (id: string) => void;
+  /** Write the pages again after the first write failed. */
+  onRetry: (id: string) => void;
 }) {
   const [text, setText] = useState('');
   const list = useRef<HTMLDivElement>(null);
@@ -102,6 +107,14 @@ export function WebsiteChat({
                 </span>
                 <div className="min-w-0 max-w-[90%] space-y-1.5">
                   <p className={cn('whitespace-pre-wrap rounded-2xl rounded-tl-md bg-muted px-3 py-2 text-sm', item.failed && 'bg-destructive/10 text-destructive')}>{item.text}</p>
+                  {item.failed && item.retry && item.id === newest?.id && (
+                    <Gated reason={ai.available ? null : ai.reason}>
+                      <Button type="button" variant="outline" size="sm" className="h-7 gap-1 text-xs" disabled={busy} onClick={() => onRetry(item.id)}>
+                        <RotateCcwIcon className="h-3 w-3" />
+                        Try again
+                      </Button>
+                    </Gated>
+                  )}
                   {(item.changed?.length || item.refused?.length) ? (
                     <div className="flex flex-wrap items-center gap-1 text-[11px]">
                       {item.changed?.map((field) => (
