@@ -63,12 +63,16 @@ async function addProjectLanguage(page: Page, code: string, search: string) {
  * Hold the editor's next screenshot at two points: before it reads the canvas
  * (it waits for the fonts first) and after (the picture it made waits to
  * decode). Returns the two releases.
+ *
+ * Both are changed on the prototype. A property set on `document.fonts`
+ * itself is lost when WebKit collects that object's wrapper and makes a new
+ * one, which it did under load: the screenshot then went through unheld.
  */
 async function holdScreenshots(page: Page) {
   await page.evaluate(() => {
     const held = window as unknown as { __releaseFonts?: () => void; __releaseDecode?: () => void; __decodesHeld: number };
     const fonts = new Promise<void>((resolve) => (held.__releaseFonts = resolve));
-    Object.defineProperty(document.fonts, 'ready', { configurable: true, get: () => fonts.then(() => document.fonts) });
+    Object.defineProperty(Object.getPrototypeOf(document.fonts), 'ready', { configurable: true, get: () => fonts.then(() => document.fonts) });
     const decoded = new Promise<void>((resolve) => (held.__releaseDecode = resolve));
     held.__decodesHeld = 0;
     const decode = HTMLImageElement.prototype.decode;
@@ -497,6 +501,29 @@ test.describe('website', () => {
       await expect(back.getByTestId('website-status')).toHaveText('Changes not online yet');
     });
 
+    test('Stop works while the screenshots are being taken, and nothing goes to GitHub', async ({ app, page, isDesktop }) => {
+      test.skip(!isDesktop, "GitHub's device sign-in and the app's HTTP client are the desktop app's");
+      await projectWithText(app);
+      const view = await openWebsite(page);
+      await makeSite(page, view);
+      await signIn(view);
+      // A change since the screenshots were taken, so the publish takes them again.
+      await view.getByRole('button', { name: 'Back to the editor' }).click();
+      await addText(app, page);
+      const hold = await holdScreenshots(page);
+      const again = await openWebsite(page);
+      await again.getByTestId('site-publish').click();
+      const progress = again.getByTestId('site-publish-progress');
+      await expect(progress).toContainText('Getting your screenshots');
+      // The screenshot is still being taken when Stop is pressed.
+      await progress.getByRole('button', { name: 'Stop' }).click();
+      await expect(progress).toBeHidden();
+      await expect(page.getByText('Nothing on GitHub changed after the step that was running.').first()).toBeVisible();
+      await hold.readCanvas();
+      await hold.finish();
+      expect((await requests(page)).filter((request) => request.url.startsWith('https://api.github.com/') && request.url !== 'https://api.github.com/user')).toEqual([]);
+    });
+
     test('a publish stops when another project is opened while its screenshots are taken, and nothing goes to GitHub', async ({ app, page, isDesktop }) => {
       test.skip(!isDesktop, "GitHub's device sign-in and the app's HTTP client are the desktop app's");
       test.setTimeout(180_000);
@@ -520,11 +547,7 @@ test.describe('website', () => {
       await expect(strip.getByRole('tab').first()).toHaveAttribute('aria-selected', 'true');
       await addText(app, page);
       // The editor waits for the fonts before it takes a screenshot: hold them.
-      await page.evaluate(() => {
-        const held = window as unknown as { __releaseFonts?: () => void };
-        const gate = new Promise<void>((resolve) => (held.__releaseFonts = resolve));
-        Object.defineProperty(document.fonts, 'ready', { configurable: true, get: () => gate.then(() => document.fonts) });
-      });
+      const hold = await holdScreenshots(page);
       view = await openWebsite(page);
       await openSection(view, /^Publish/);
       await expect(view.locator('#site-repo')).toHaveValue('pebble');
@@ -534,7 +557,8 @@ test.describe('website', () => {
       await view.getByRole('button', { name: 'Back to the editor' }).click();
       await strip.getByRole('tab').nth(1).click();
       await expect(strip.getByRole('tab').nth(1)).toHaveAttribute('aria-selected', 'true');
-      await page.evaluate(() => (window as unknown as { __releaseFonts: () => void }).__releaseFonts());
+      await hold.readCanvas();
+      await hold.finish();
 
       await expect(page.getByText('Another project was opened while its screenshots were being taken').first()).toBeVisible({ timeout: 30_000 });
       const github = (await requests(page)).filter((request) => request.url.startsWith('https://api.github.com/') && request.url !== 'https://api.github.com/user');

@@ -10,7 +10,7 @@ Click **Website** on the left edge of the window, under Discover.
 2. Click **Website**. You see a preview of the site right away, made from your screenshots.
 3. Click **Make my website** and answer three short steps:
    - **Your app**: the app's name, one line about it, your App Store and Google Play links, your support email and your name or your company's. Paste your App Store link and click **Fill in**, and the app fills in the name, the maker and the icon for you. If Growth knows your apps, click one of them instead.
-   - **Privacy**: tick what your app collects, such as usage numbers, crash reports or ads, and name the services you use for each one. If your app collects nothing, tick **Nothing**. The privacy policy is written from these answers and says nothing your answers don't. It names the services you list as the only companies that get data, so list every one. It promises to delete data within a month of being asked only if you turn that on.
+   - **Privacy**: tick what your app collects, such as usage numbers, crash reports or ads, and name the services you use for each one. If your app collects nothing, tick **Nothing**. The privacy policy is written from these answers and says nothing your answers don't. It names the services you list as the only companies that get data, so list every one: each kind of data has its own box, such as the maps service for location or the push service for notifications. It promises to delete data within a month of being asked only if you turn that on.
    - **Look and languages**: the colors come from your screenshots. Change them if you like, and choose the languages of the site.
 4. Click **Make my website**. If Claude Code, Codex or another AI is set up, the AI writes the home page and the support page from your screenshots. Without an AI, the site uses your screenshots' own words and simple sentences you can change.
 
@@ -77,5 +77,6 @@ To put the site on a server of your own instead of GitHub, click **Save the site
 - The site has no cookies and no tracking. Its headline font is part of the site, so visitors' browsers don't ask Google Fonts for it.
 - **Changes not online yet** also shows after you change the screenshots, or their translations, in the editor, and when you edited while a publish was taking the screenshots.
 - If you open another project while a publish is taking its screenshots, the publish stops, so no screenshot of the wrong project goes out. Open the project again and publish.
+- **Stop** works at any step of publishing, also while the screenshots are being taken.
 - The site is saved with your project on this computer. Your screenshots are taken from the project each time, so the site never shows an old design.
 - In the web version, if GitHub's sign-in window doesn't ask for public repositories, paste a GitHub token with the `public_repo` permission instead.

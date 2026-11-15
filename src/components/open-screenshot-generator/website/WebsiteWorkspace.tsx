@@ -165,6 +165,54 @@ function mergeBooks(into: TranslationBook, from: TranslationBook): TranslationBo
   return out;
 }
 
+/**
+ * A capture that has not come back in this long is not coming back: a font
+ * file that never answers keeps html-to-image waiting for good. The queue of
+ * captures moves on without it.
+ */
+const CAPTURE_TIMEOUT_MS = 120_000;
+
+function stopped(): DOMException {
+  return new DOMException('Stopped', 'AbortError');
+}
+
+/** `work`, unless `signal` stops first. Work that cannot be stopped carries on unseen. */
+function unlessStopped<T>(work: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return work;
+  if (signal.aborted) return Promise.reject(stopped());
+  return new Promise<T>((resolve, reject) => {
+    const stop = () => reject(stopped());
+    signal.addEventListener('abort', stop, { once: true });
+    work.then(
+      (value) => {
+        signal.removeEventListener('abort', stop);
+        resolve(value);
+      },
+      (error) => {
+        signal.removeEventListener('abort', stop);
+        reject(error);
+      }
+    );
+  });
+}
+
+/** `work`, or an error once `ms` have gone by. */
+function withinTime<T>(work: Promise<T>, ms: number, message: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), ms);
+    work.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      }
+    );
+  });
+}
+
 /** One language's screenshots, and the boardsFingerprint of the artboards they show: null when the artboards changed while they were taken. */
 interface TakenShots {
   list: SiteShot[];
@@ -251,7 +299,11 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
         if (!now.id || list.length === 0) return { list: [], print };
         setCapturing(key);
         try {
-          const captured = await captureBoards({ projectId: now.id, locale: target, boardIds: list.map((board) => board.id), maxWidth: SHOT_WIDTH });
+          const captured = await withinTime(
+            captureBoards({ projectId: now.id, locale: target, boardIds: list.map((board) => board.id), maxWidth: SHOT_WIDTH }),
+            CAPTURE_TIMEOUT_MS,
+            'Taking the screenshots took too long. Try again'
+          );
           if (projectCount.current !== count || latestProject.current.id !== now.id) throw new ProjectChangedError();
           // An edit that landed while the boards were drawn: the pictures may
           // show the artboards before it or after it, so they are kept for
@@ -688,9 +740,10 @@ export function WebsiteWorkspace({ active, project, captureBoards, onBackToEdito
       const prints: Array<string | null> = [];
       if (!current.options.screenshots || !hasShots) return { shots, prints };
       for (const locale of current.languages) {
-        if (signal?.aborted) throw new DOMException('Stopped', 'AbortError');
+        if (signal?.aborted) throw stopped();
         if (locale !== baseLocale && !projectLocales.includes(locale)) continue;
-        const taken = await takeShots(locale, current.projectId);
+        // Stop works while a screenshot is still being taken.
+        const taken = await unlessStopped(takeShots(locale, current.projectId), signal);
         shots[locale] = taken.list;
         prints.push(taken.print);
       }

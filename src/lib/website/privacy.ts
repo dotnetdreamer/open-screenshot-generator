@@ -39,8 +39,12 @@ export interface PrivacyQuestion {
   label: string;
   /** When to tick it, in a few words. */
   hint: string;
-  /** Examples for the services box, or absent when the use has no service to name. */
-  services?: string;
+  /**
+   * Examples for the services box. Every use has one: the policy names the
+   * services as the only companies that get data, so each kind of data has
+   * to be able to name its own (a maps service, a push service).
+   */
+  services: string;
 }
 
 /** The questions, in the order the view shows them. */
@@ -50,13 +54,13 @@ export const PRIVACY_QUESTIONS: PrivacyQuestion[] = [
   { use: 'crashes', label: 'Crash reports', hint: 'The app sends a report when it crashes', services: 'Firebase Crashlytics, Sentry' },
   { use: 'ads', label: 'Ads', hint: 'The app shows ads', services: 'Google AdMob, Unity Ads' },
   { use: 'purchases', label: 'Purchases', hint: 'People buy things or subscribe through the App Store or Google Play', services: 'RevenueCat' },
-  { use: 'location', label: 'Location', hint: "The app uses where people are" },
-  { use: 'media', label: 'Photos, camera or microphone', hint: 'The app uses photos, the camera or the microphone' },
-  { use: 'contacts', label: 'Contacts', hint: "The app reads people's contacts" },
-  { use: 'health', label: 'Health and fitness', hint: 'The app reads or saves health or fitness data' },
-  { use: 'content', label: 'Things people make', hint: 'People write, post or upload things in the app' },
-  { use: 'sync', label: 'Sync and backup', hint: "The app saves people's data online", services: 'iCloud, Firebase, our own server' },
-  { use: 'notifications', label: 'Notifications', hint: 'The app sends push notifications' },
+  { use: 'location', label: 'Location', hint: "The app uses where people are", services: 'Google Maps, Mapbox' },
+  { use: 'media', label: 'Photos, camera or microphone', hint: 'The app uses photos, the camera or the microphone', services: 'Cloudinary, Firebase Storage' },
+  { use: 'contacts', label: 'Contacts', hint: "The app reads people's contacts", services: 'Firebase, Supabase' },
+  { use: 'health', label: 'Health and fitness', hint: 'The app reads or saves health or fitness data', services: 'Firebase, Supabase' },
+  { use: 'content', label: 'Things people make', hint: 'People write, post or upload things in the app', services: 'Firebase, Supabase' },
+  { use: 'sync', label: 'Sync and backup', hint: "The app saves people's data online", services: 'iCloud, Firebase, Supabase' },
+  { use: 'notifications', label: 'Notifications', hint: 'The app sends push notifications', services: 'Firebase Cloud Messaging, OneSignal' },
 ];
 
 const ALL_USES = new Set<DataUse>(PRIVACY_QUESTIONS.map((question) => question.use));

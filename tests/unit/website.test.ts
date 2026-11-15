@@ -8,7 +8,8 @@ import assert from 'node:assert/strict';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { WebsitePublish } from '@/components/open-screenshot-generator/website/WebsitePublish';
-import { changeSite, setSiteStorage, type SiteStorage, type StoredSite } from '@/lib/website/store';
+import { PrivacyQuestions } from '@/components/open-screenshot-generator/website/WebsiteShared';
+import { changeSite, setSiteStorage, SiteCopy, type SiteStorage, type StoredSite } from '@/lib/website/store';
 import { applyChanges, boardsFingerprint, captionOf, defaultContent, isLabel, newDraft, cleanText } from '@/lib/website/content';
 import { buildPolicy, cleanPrivacy, defaultPrivacy, policyStrings, serviceNames } from '@/lib/website/privacy';
 import { keepsAddresses, missingFor, prunedTranslations, sameLanguage, siteFingerprint, siteTexts, translator } from '@/lib/website/strings';
@@ -156,6 +157,21 @@ test('the policy makes no promise that no answer gave: no "only", no "never used
   const children = policyStrings(buildPolicy({ facts: facts(), privacy: cleanPrivacy({ ...defaultPrivacy(), answered: true, uses: ['analytics'], children: true }) })).join('\n');
   assert.doesNotMatch(children, /\bonly\b/i);
   assert.match(children, /no ads chosen from a child's interests/);
+});
+
+test('every answer about data can name the services that get it, and the policy names them', () => {
+  const privacy = cleanPrivacy({
+    ...defaultPrivacy(),
+    answered: true,
+    uses: ['location', 'notifications'],
+    services: { location: 'Mapbox', notifications: 'OneSignal' },
+  });
+  const sections = buildPolicy({ facts: facts(), privacy });
+  assert.match(JSON.stringify(sections.find((section) => section.id === 'location')), /We use Mapbox for this/);
+  assert.match(JSON.stringify(sections.find((section) => section.id === 'notifications')), /We use OneSignal for this/);
+  assert.deepEqual(sections.find((section) => section.id === 'sharing')!.blocks.find((block) => block.kind === 'ul'), { kind: 'ul', items: ['Mapbox', 'OneSignal'] });
+  const html = renderToStaticMarkup(React.createElement(PrivacyQuestions, { answers: privacy, onChange: () => undefined, idPrefix: 'q' }));
+  for (const label of ['location', 'notifications']) assert.match(html, new RegExp(`aria-label="Services for ${label}"`));
 });
 
 test("the developer's own paragraphs go in More details", () => {
@@ -777,6 +793,56 @@ test('results that land at once for a site that is not on screen all stay', asyn
     // A project without a site gets none from a change.
     await changeSite('p2', (row) => row);
     assert.equal(rows.has('p2'), false);
+  } finally {
+    setSiteStorage(null);
+  }
+});
+
+/** Wait until `check` is true, a turn of the event loop at a time. */
+async function until(check: () => boolean): Promise<void> {
+  for (let turn = 0; turn < 200 && !check(); turn += 1) await new Promise((resolve) => setTimeout(resolve, 1));
+  assert.ok(check(), 'timed out');
+}
+
+const RECORD = { owner: 'octo', repo: 'pebble', branch: 'main', url: 'https://octo.github.io/pebble/', at: 1, build: 'b1', fingerprint: 'f', live: false };
+
+test('a result that lands while the site is on screen is written by a save straight after it', async () => {
+  const { rows, storage } = memorySites();
+  setSiteStorage(storage);
+  // A long wait before the copy saves by itself, so only the save below can write it.
+  const copy = new SiteCopy('p1', 60_000);
+  try {
+    rows.set('p1', { projectId: 'p1', draft: draft(), chat: [], updatedAt: 0 });
+    copy.hold();
+    await until(() => copy.snapshot().loaded);
+    void changeSite('p1', (row) => ({ ...row, draft: { ...row.draft, publish: RECORD } }));
+    // The window closing: flushWebsiteSaves, with nothing in between.
+    await copy.flush();
+    assert.equal(rows.get('p1')!.draft.publish?.build, 'b1');
+    assert.equal(copy.snapshot().draft?.publish?.build, 'b1');
+  } finally {
+    await copy.release();
+    setSiteStorage(null);
+  }
+});
+
+test('results that land while the site is still being read go in once it is, and letting go writes them', async () => {
+  const { rows, storage } = memorySites();
+  setSiteStorage(storage);
+  const copy = new SiteCopy('p1', 60_000);
+  try {
+    rows.set('p1', { projectId: 'p1', draft: draft(), chat: [], updatedAt: 0 });
+    copy.hold();
+    // Before the read has had a turn to finish.
+    void changeSite('p1', (row) => ({ ...row, chat: [...row.chat, { id: 'm1', at: 1, role: 'assistant' as const, text: 'Early' }] }));
+    await until(() => copy.snapshot().loaded);
+    assert.deepEqual(copy.snapshot().chat.map((item) => item.text), ['Early']);
+    await copy.release();
+    assert.deepEqual(rows.get('p1')!.chat.map((item) => item.text), ['Early']);
+    // Let go of, the site takes changes in the database again.
+    await changeSite('p1', (row) => ({ ...row, draft: { ...row.draft, publish: RECORD } }));
+    assert.equal(rows.get('p1')!.draft.publish?.build, 'b1');
+    assert.equal(copy.snapshot().draft?.publish, undefined);
   } finally {
     setSiteStorage(null);
   }

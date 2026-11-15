@@ -160,7 +160,7 @@ export function PrivacyQuestions({ answers, onChange, idPrefix }: { answers: Pri
                   <span className="block text-xs text-muted-foreground">{question.hint}</span>
                 </span>
               </label>
-              {on && question.services && (
+              {on && (
                 <Input
                   aria-label={`Services for ${question.label.toLowerCase()}`}
                   value={answers.services[question.use] ?? ''}
@@ -187,7 +187,7 @@ export function PrivacyQuestions({ answers, onChange, idPrefix }: { answers: Pri
       </div>
       {answers.uses.length > 0 && (
         <p className="text-xs text-muted-foreground" data-testid="site-privacy-services-note">
-          The policy says the services you name are the only companies that get people&apos;s data, so name every one.
+          The policy says the services you name are the only companies that get people&apos;s data, so name every one. Leave a box empty when that data stays on the phone or with you.
         </p>
       )}
       <label className="flex items-center justify-between gap-3 rounded-lg border p-3">
