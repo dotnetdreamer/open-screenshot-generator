@@ -43,7 +43,6 @@ import {
   storeReviews,
 } from '@/lib/growth/agentTools';
 import type { AlignEdge, DistributeAxis } from '@/lib/elementGeometry';
-import { isOwnEngine, resolveEngines } from '@/lib/i18n/engines';
 import {
   LIBRARY_KINDS,
   device3dOptions,
@@ -514,6 +513,15 @@ export interface McpDesignApi {
   /** The project's languages and the one on screen. Never null; no languages
    *  means a single entry for the base one. */
   listLocales(): McpLocaleState;
+  /**
+   * Whether a translator on the user's own sign-in or key is ready: Claude
+   * Code, Codex or the AI panel's provider. One of those can draft any
+   * language, the free translator only some. In the desktop app the first call
+   * in a window waits while the app looks for Claude Code and Codex. The editor
+   * answers this, not an import here, because cli/scripts/build.mjs runs this
+   * module in Node to list the tools, and the engines load the AI SDK.
+   */
+  hasOwnTranslator(): Promise<boolean>;
   /**
    * Switch the language the editor shows. Null (or the base code) goes back to
    * the base language. Resolves once the canvas has repainted, so an export
@@ -2198,7 +2206,7 @@ const TOOLS: ToolDef[] = [
     run: async (args, api) => {
       const state = api.listLocales();
       const inProject = new Set(state.locales.map((entry) => entry.code));
-      const anyLanguage = (await resolveEngines()).some(isOwnEngine);
+      const anyLanguage = await api.hasOwnTranslator();
       const catalog = listSupportedLocales(typeof args.query === 'string' ? args.query : undefined, { anyLanguage }).map(
         (def) => ({ ...def, inProject: inProject.has(def.code), base: def.code === state.baseLocale })
       );

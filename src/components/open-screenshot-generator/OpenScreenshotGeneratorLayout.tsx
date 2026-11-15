@@ -11722,6 +11722,7 @@ const generateRandomProjectName = (): string => {
     // -- Languages ------------------------------------------------------------
 
     listLocales: () => mcpLocaleState(),
+    hasOwnTranslator: async () => (await resolveEngines()).some(isOwnEngine),
     setLocale: async (locale) => {
       const baseLocale = getBaseLocale(artboards);
       const next = !locale || locale === baseLocale ? null : locale;
