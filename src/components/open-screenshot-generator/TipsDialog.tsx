@@ -3,9 +3,9 @@
 // Startup tips: a small wizard that opens with the app and keeps opening until
 // the user unticks the box in its footer.
 //
-// It covers the two habits that save the most rework: keeping one project per
-// store size instead of one project holding phone, tablet, iOS and Android at
-// once, and keeping a copy of the work somewhere other than this browser.
+// It covers the two habits that save the most rework: one project for each
+// device, rather than one project holding iPhone, iPad and Android at once, and
+// a copy of the work kept somewhere other than this computer.
 //
 // Add a tip by appending to TIPS. The wizard sizes itself to the list.
 
@@ -14,7 +14,9 @@ import {
   ArrowLeftIcon,
   ArrowRightIcon,
   CloudUploadIcon,
-  FileTextIcon,
+  DownloadIcon,
+  FileJsonIcon,
+  HardDriveUploadIcon,
   LayersIcon,
   LightbulbIcon,
   SmartphoneIcon,
@@ -32,6 +34,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { useCoarsePointer } from '@/hooks/use-coarse-pointer';
+import { isTauri } from '@/lib/desktop';
 import { cn } from '@/lib/utils';
 
 const SHOW_ON_STARTUP_KEY = 'open-screenshot-generator.show-startup-tips';
@@ -65,6 +69,10 @@ export function setShowTipsOnStartup(show: boolean): void {
 interface TipContext {
   /** Opens the account dialog, where the storage providers are connected. */
   onConnectStorage?: () => void;
+  /** The desktop app keeps projects on the computer, with no browser to speak of. */
+  desktop: boolean;
+  /** A finger has no right-click, so the tab menu opens with a long press. */
+  touch: boolean;
 }
 
 interface Tip {
@@ -72,11 +80,31 @@ interface Tip {
   icon: LucideIcon;
   title: string;
   /** One sentence, rendered as the dialog's accessible description. */
-  lead: string;
+  lead: (ctx: TipContext) => string;
   body: (ctx: TipContext) => React.ReactNode;
 }
 
-/** Example project names for tip one, with the size each store slot expects. */
+/**
+ * A toolbar button drawn inside a sentence, so the reader knows which icon to
+ * look for. Screen readers skip it, because the sentence names the button.
+ */
+function ToolbarIcon({ icon: Icon }: { icon: LucideIcon }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="mx-0.5 inline-flex h-5 w-6 items-center justify-center rounded-md border bg-background align-middle text-foreground shadow-sm"
+    >
+      <Icon className="h-3 w-3" />
+    </span>
+  );
+}
+
+/** The name of a tab, menu item or button, as the reader will see it on screen. */
+function Control({ children }: { children: React.ReactNode }) {
+  return <span className="font-medium text-foreground">{children}</span>;
+}
+
+/** Example project names for the first tip, with the screenshot size each device needs. */
 const SIZE_EXAMPLES: { icon: LucideIcon; name: string; size: string }[] = [
   { icon: SmartphoneIcon, name: 'MyApp iPhone', size: '1206 × 2622' },
   { icon: TabletIcon, name: 'MyApp iPad 13-inch', size: '2064 × 2752' },
@@ -88,31 +116,52 @@ const TIPS: Tip[] = [
   {
     id: 'one-project-per-size',
     icon: LayersIcon,
-    title: 'One project per store size',
-    lead: 'Give phone, tablet, iOS and Android a project each instead of putting them all in one.',
-    body: () => (
+    title: 'One project for each device',
+    lead: () => 'Keep your iPhone, iPad and Android screenshots in separate projects.',
+    body: ({ touch }) => (
       <div className="space-y-3">
         <p className="text-sm leading-relaxed text-muted-foreground">
-          Every store slot wants its own pixel size, and the format buttons in the toolbar
-          convert a whole project at once. Keep the sizes apart and publishing each one is a
-          quick check and an export. Mix all four into a single project and you rearrange the
-          layout by hand every time.
+          The App Store and Google Play want a different screenshot size for each device. If a
+          project has just one device, the phone button <ToolbarIcon icon={SmartphoneIcon} /> in
+          the toolbar switches the whole project to another device at once. Mix devices in one
+          project and you&apos;ll be fixing layouts by hand.
         </p>
-        <ul className="grid gap-1.5 rounded-lg border bg-muted/30 p-3 sm:grid-cols-2">
-          {SIZE_EXAMPLES.map((example) => (
-            <li key={example.name} className="flex min-w-0 items-center gap-2">
-              <example.icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              <span className="truncate text-xs font-medium">{example.name}</span>
-              <span className="ml-auto shrink-0 text-[11px] tabular-nums text-muted-foreground">
-                {example.size}
-              </span>
+        <div className="rounded-lg border bg-muted/30 p-3">
+          <p className="mb-1.5 text-xs text-muted-foreground">For example:</p>
+          <ul className="grid gap-1.5 sm:grid-cols-2">
+            {SIZE_EXAMPLES.map((example) => (
+              <li key={example.name} className="flex min-w-0 items-center gap-2">
+                <example.icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                <span className="truncate text-xs font-medium">{example.name}</span>
+                <span className="ml-auto shrink-0 text-[11px] tabular-nums text-muted-foreground">
+                  {example.size}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="text-xs leading-relaxed text-muted-foreground">
+          <p>Finished your iPhone project? Turn a copy into the iPad project:</p>
+          <ol className="mt-1 list-decimal space-y-1 pl-4">
+            <li>
+              {touch ? 'Press and hold' : 'Right-click'} the project&apos;s tab at the top and choose{' '}
+              <Control>Duplicate project</Control>.
             </li>
-          ))}
-        </ul>
-        <p className="text-xs leading-relaxed text-muted-foreground">
-          Built one already? Export it as JSON, import it straight back for a fresh copy, rename
-          the copy, then switch that copy to the next format.
-        </p>
+            <li>
+              {touch ? 'Tap' : 'Click'} the phone button <ToolbarIcon icon={SmartphoneIcon} /> and pick{' '}
+              <Control>iPad 13-inch</Control>.
+            </li>
+            <li>
+              {touch ? (
+                <>
+                  Press and hold the copy&apos;s tab, choose <Control>Rename</Control> and type a new name.
+                </>
+              ) : (
+                'Double-click the copy\'s tab and type a new name.'
+              )}
+            </li>
+          </ol>
+        </div>
       </div>
     ),
   },
@@ -120,37 +169,39 @@ const TIPS: Tip[] = [
     id: 'never-lose-work',
     icon: CloudUploadIcon,
     title: 'Keep a copy so you never lose work',
-    lead: 'Projects live in this browser only, so clearing site data takes them with it.',
-    body: ({ onConnectStorage }) => (
+    lead: ({ desktop }) =>
+      desktop ? 'Your projects are saved only on this computer.' : 'Your projects are saved only in this browser.',
+    body: ({ onConnectStorage, desktop, touch }) => (
       <div className="space-y-3">
         <p className="text-sm leading-relaxed text-muted-foreground">
-          Nothing is uploaded anywhere by default. Clearing site data, a new machine or a fresh
-          browser profile all start you from zero. Connect your own Google Drive or GitHub, then
-          use Save to account in the toolbar after each session. The files stay in your storage,
-          we never hold them.
+          {desktop
+            ? 'If this computer breaks, your projects are lost.'
+            : 'If you clear your browser data, your projects are deleted.'}{' '}
+          Got a new computer? Your projects stay on the old one. Two ways to keep a copy:
         </p>
-        <div className="rounded-lg border bg-muted/30 p-3">
+        <div className="space-y-2.5 rounded-lg border bg-muted/30 p-3">
           <div className="flex items-start gap-2">
-            <CloudUploadIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <HardDriveUploadIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <p className="text-xs leading-relaxed text-muted-foreground">
-              <span className="font-medium text-foreground">Google Drive</span> keeps the whole
-              project, uploaded screenshots included.{' '}
-              <span className="font-medium text-foreground">GitHub</span> saves it as a private
-              gist, which holds the design but not video or media files.
+              <Control>Your own Google Drive or GitHub.</Control> Connect your account once. Then{' '}
+              {touch ? 'tap' : 'click'} the Save button <ToolbarIcon icon={CloudUploadIcon} /> in the toolbar and
+              choose <Control>To your own storage</Control> whenever you finish working. Google
+              Drive keeps videos too, but GitHub can&apos;t save a project that has videos.
             </p>
           </div>
-          <div className="mt-2 flex items-start gap-2">
-            <FileTextIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+          <div className="flex items-start gap-2">
+            <FileJsonIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <p className="text-xs leading-relaxed text-muted-foreground">
-              Rather not sign in? The toolbar&apos;s Export menu has Project file, which writes a
-              single .json you can keep beside your app&apos;s assets or commit to your own repo.
+              <Control>A project file.</Control> No sign-in needed. {touch ? 'Tap' : 'Click'} the Export button{' '}
+              <ToolbarIcon icon={DownloadIcon} /> in the toolbar, choose{' '}
+              <Control>Project file</Control>, and keep the file somewhere safe.
             </p>
           </div>
         </div>
         {onConnectStorage && (
           <Button variant="outline" size="sm" onClick={onConnectStorage}>
             <CloudUploadIcon className="mr-1.5 h-3.5 w-3.5" />
-            Connect storage
+            Connect Google Drive or GitHub
           </Button>
         )}
       </div>
@@ -181,6 +232,10 @@ export function TipsDialog({ open, onOpenChange, onConnectStorage }: TipsDialogP
   const tip = TIPS[Math.min(index, TIPS.length - 1)];
   const isLast = index >= TIPS.length - 1;
   const TipIcon = tip.icon;
+  const touch = useCoarsePointer();
+  // The dialog only renders open, which happens after mount, so the server
+  // render never reaches this.
+  const ctx: TipContext = { onConnectStorage, desktop: isTauri(), touch };
 
   // Persist on change rather than on close: closing with Escape or the X still
   // has to honour an unticked box.
@@ -212,12 +267,12 @@ export function TipsDialog({ open, onOpenChange, onConnectStorage }: TipsDialogP
                 Tip {index + 1} of {TIPS.length}
               </p>
               <DialogTitle className="mt-1.5">{tip.title}</DialogTitle>
-              <DialogDescription className="mt-1.5">{tip.lead}</DialogDescription>
+              <DialogDescription className="mt-1.5">{tip.lead(ctx)}</DialogDescription>
             </div>
           </div>
         </DialogHeader>
 
-        {tip.body({ onConnectStorage })}
+        {tip.body(ctx)}
 
         {TIPS.length > 1 && (
           <div className="flex items-center justify-center gap-1.5">

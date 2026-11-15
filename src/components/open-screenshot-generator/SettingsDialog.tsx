@@ -343,7 +343,7 @@ export function SettingsDialog({ open, onOpenChange, onOpenTips }: SettingsDialo
             />
             <SettingsRow
               label="Tips"
-              description="Learn how to organise projects by store size and save a copy of your work"
+              description="Why each device gets its own project, and how to keep a copy of your work"
               control={
                 <Button variant="outline" size="sm" onClick={onOpenTips}>
                   <LightbulbIcon className="mr-1.5 h-3.5 w-3.5" />
