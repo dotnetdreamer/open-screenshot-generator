@@ -1,0 +1,329 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<!--
+  Juniper, the made-up habit tracker the feature reel follows from first
+  screenshot to first review. Five screens in four languages, rendered by
+  render-juniper.js at 402 x 874 CSS px and 3x, the iPhone 6.3" size the editor
+  starts new iPhone work at (1206 x 2622).
+    juniper.html?screen=today&lang=en
+  The app does not exist. The same name runs through the Growth sample data
+  (tests/fixtures/growthSample.ts), so the numbers in chapter three belong to
+  the app whose screens are in chapter one.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Noto+Sans+JP:wght@500;700;800&family=Noto+Sans+Arabic:wght@500;600;700;800&display=block" rel="stylesheet" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --cream: #F6F2E9; --card: #FFFFFF; --ink: #16231C; --sub: #6B7A71; --line: #E7E1D3;
+    --forest: #2D6A4F; --forest2: #1F4E3A; --mint: #DDEDE2; --berry: #4C55C9; --berry2: #7A80E6;
+    --gold: #E3A73B; --coral: #E5735C; --sky: #DCE6FB;
+  }
+  html, body { width: 402px; height: 874px; overflow: hidden; }
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    background: var(--cream); color: var(--ink); position: relative;
+    -webkit-font-smoothing: antialiased;
+  }
+  body.ja { font-family: 'Plus Jakarta Sans', 'Noto Sans JP', sans-serif; }
+  body.ar { font-family: 'Noto Sans Arabic', 'Plus Jakarta Sans', sans-serif; }
+  .status { height: 54px; display: flex; justify-content: space-between; align-items: center; padding: 14px 30px 0 34px; font: 700 16px 'Plus Jakarta Sans', sans-serif; direction: ltr; }
+  .status .ic { display: flex; gap: 6px; align-items: center; }
+  .screen { position: absolute; inset: 54px 0 0 0; display: flex; flex-direction: column; }
+  .pad { padding: 0 20px; }
+  .tabbar { position: absolute; left: 0; right: 0; bottom: 0; height: 84px; background: rgba(255,255,255,.92); border-top: 1px solid var(--line); display: flex; justify-content: space-around; padding-top: 10px; }
+  .tab { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 700; color: #9AA59E; }
+  .tab.on { color: var(--forest); }
+  .tab svg { width: 24px; height: 24px; }
+  .home { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 134px; height: 5px; border-radius: 3px; background: #16231C; }
+  .muted { color: var(--sub); }
+  h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+  .ar h1, .ja h1 { letter-spacing: 0; }
+  .card { background: var(--card); border-radius: 22px; box-shadow: 0 6px 18px rgba(22,35,28,.06); }
+  .row { display: flex; align-items: center; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 99px; font-size: 12px; font-weight: 700; }
+
+  /* today */
+  .hello { padding: 10px 20px 0; display: flex; justify-content: space-between; align-items: flex-start; }
+  .date { font-size: 13px; font-weight: 700; color: var(--sub); text-transform: uppercase; letter-spacing: .08em; }
+  .ar .date, .ja .date { letter-spacing: 0; text-transform: none; }
+  .avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #F2C98B, #E3A73B); display: flex; align-items: center; justify-content: center; font-weight: 800; color: #5A3A08; font-size: 17px; }
+  .hero { margin: 18px 20px 0; border-radius: 26px; padding: 20px; color: #fff; background: linear-gradient(140deg, #2D6A4F 0%, #23593F 55%, #1B4633 100%); display: flex; align-items: center; gap: 18px; position: relative; overflow: hidden; box-shadow: 0 14px 28px rgba(45,106,79,.28); }
+  .hero::after { content: ''; position: absolute; right: -50px; top: -60px; width: 170px; height: 170px; border-radius: 50%; background: rgba(255,255,255,.08); }
+  .ring { width: 104px; height: 104px; position: relative; flex: none; }
+  .ring svg { transform: rotate(-90deg); }
+  .ring .lb { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ring b { font-size: 28px; font-weight: 800; line-height: 1; }
+  .ring i { font-style: normal; font-size: 11.5px; opacity: .8; margin-top: 3px; }
+  .hero h2 { font-size: 19px; font-weight: 800; line-height: 1.25; }
+  .hero p { font-size: 13px; opacity: .85; margin-top: 6px; line-height: 1.4; }
+  .sec { display: flex; justify-content: space-between; align-items: baseline; padding: 22px 20px 10px; }
+  .sec h3 { font-size: 18px; font-weight: 800; }
+  .sec a { font-size: 13px; color: var(--forest); font-weight: 700; }
+  .habits { padding: 0 20px; display: flex; flex-direction: column; gap: 10px; }
+  .habit { padding: 13px 14px; display: flex; align-items: center; gap: 13px; }
+  .hic { width: 44px; height: 44px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex: none; }
+  .hic svg { width: 22px; height: 22px; }
+  .htx { flex: 1; min-width: 0; }
+  .htx b { display: block; font-size: 15.5px; font-weight: 800; }
+  .htx span { font-size: 12.5px; color: var(--sub); font-weight: 600; display: flex; align-items: center; gap: 4px; margin-top: 2px; }
+  .check { width: 32px; height: 32px; border-radius: 50%; border: 2.5px solid #CFD8D2; flex: none; display: flex; align-items: center; justify-content: center; }
+  .check.on { background: var(--forest); border-color: var(--forest); }
+
+  /* detail */
+  .back { padding: 6px 20px 0; display: flex; justify-content: space-between; align-items: center; }
+  .iconbtn { width: 40px; height: 40px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(22,35,28,.06); }
+  .big { margin: 14px 20px 0; padding: 22px; text-align: center; }
+  .bignum { font-size: 64px; font-weight: 800; letter-spacing: -0.03em; color: var(--berry); line-height: 1; }
+  .cal { margin: 14px 20px 0; padding: 18px 16px; }
+  .calgrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 7px; margin-top: 12px; }
+  .dname { text-align: center; font-size: 11px; font-weight: 700; color: var(--sub); }
+  .day { aspect-ratio: 1; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 700; }
+  .stats3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 14px 20px 0; }
+  .mini { padding: 14px 12px; }
+  .mini b { display: block; font-size: 21px; font-weight: 800; }
+  .mini span { font-size: 11.5px; color: var(--sub); font-weight: 700; }
+
+  /* stats */
+  .chartcard { margin: 14px 20px 0; padding: 18px; }
+  .bars { display: flex; align-items: flex-end; gap: 10px; height: 150px; margin-top: 16px; }
+  .bar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+  .bar div { width: 100%; border-radius: 9px 9px 5px 5px; }
+  .bar span { font-size: 11px; font-weight: 700; color: var(--sub); }
+  .insight { margin: 12px 20px 0; padding: 15px; display: flex; gap: 12px; align-items: center; }
+  .insight .hic { width: 40px; height: 40px; }
+  .insight b { font-size: 14.5px; font-weight: 800; display: block; }
+  .insight span { font-size: 12.5px; color: var(--sub); font-weight: 600; }
+
+  /* new habit */
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; top: 70px; background: #fff; border-radius: 30px 30px 0 0; box-shadow: 0 -10px 40px rgba(22,35,28,.14); padding: 14px 20px 0; }
+  .grab { width: 40px; height: 5px; border-radius: 3px; background: #DCD6C8; margin: 0 auto 14px; }
+  .field { margin-top: 16px; }
+  .field label { font-size: 12px; font-weight: 800; color: var(--sub); text-transform: uppercase; letter-spacing: .07em; }
+  .ar .field label, .ja .field label { letter-spacing: 0; text-transform: none; }
+  .input { margin-top: 8px; padding: 14px 16px; border-radius: 16px; background: var(--cream); font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; }
+  .icons { display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
+  .icons div { width: 46px; height: 46px; border-radius: 14px; display: flex; align-items: center; justify-content: center; background: var(--cream); }
+  .icons div.on { background: var(--sky); outline: 2.5px solid var(--berry); }
+  .days { display: flex; gap: 7px; margin-top: 8px; }
+  .days div { flex: 1; height: 42px; border-radius: 13px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; background: var(--cream); color: var(--sub); }
+  .days div.on { background: var(--forest); color: #fff; }
+  .times { display: flex; gap: 8px; margin-top: 8px; }
+  .times div { padding: 10px 14px; border-radius: 13px; background: var(--mint); color: var(--forest2); font-weight: 800; font-size: 14px; direction: ltr; }
+  .cta { margin-top: 22px; height: 56px; border-radius: 18px; background: var(--ink); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16.5px; font-weight: 800; }
+
+  /* trophies */
+  .trophies { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 20px 0; }
+  .trophy { padding: 18px 14px; text-align: center; }
+  .medal { width: 76px; height: 76px; margin: 0 auto; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; }
+  .medal b { font-size: 24px; font-weight: 800; color: #fff; }
+  .trophy h4 { font-size: 14.5px; font-weight: 800; margin-top: 12px; }
+  .trophy span { font-size: 12px; color: var(--sub); font-weight: 600; }
+  .locked { opacity: .45; filter: grayscale(.7); }
+  .level { margin: 14px 20px 0; padding: 18px; display: flex; align-items: center; gap: 14px; }
+  .meter { height: 10px; border-radius: 6px; background: var(--mint); overflow: hidden; margin-top: 8px; }
+  .meter div { height: 100%; background: linear-gradient(90deg, var(--forest), #4E9C75); border-radius: 6px; }
+</style>
+</head>
+<body>
+<div class="status"><span>9:41</span><span class="ic">
+  <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="#16231C"/><rect x="5" y="5.5" width="3" height="6.5" rx="1" fill="#16231C"/><rect x="10" y="3" width="3" height="9" rx="1" fill="#16231C"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#16231C"/></svg>
+  <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 11.5 5.6 9a3.4 3.4 0 0 1 4.8 0zM3.2 6.6a6.8 6.8 0 0 1 9.6 0l-1.2 1.2a5.1 5.1 0 0 0-7.2 0zM.8 4.2a10.2 10.2 0 0 1 14.4 0L14 5.4a8.5 8.5 0 0 0-12 0z" fill="#16231C"/></svg>
+  <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="#16231C" opacity=".4"/><rect x="2" y="2" width="20" height="9" rx="2.2" fill="#16231C"/><path d="M25 4.5v4c.8-.3 1.4-1.1 1.4-2s-.6-1.7-1.4-2z" fill="#16231C" opacity=".45"/></svg>
+</span></div>
+<div id="root"></div>
+<script>
+const params = new URLSearchParams(location.search);
+const SCREEN = params.get('screen') || 'today';
+const LANG = params.get('lang') || 'en';
+
+// Every string, per language. Short and plain, the way a real habit app talks.
+const T = {
+  en: {
+    date: 'Saturday, 14 November', hello: 'Good morning, Sam', ringOf: 'of 6 done',
+    heroH: 'Two more and today is perfect', heroP: 'You are on a 12 day run, keep it going',
+    today: 'Today', seeAll: 'See all', tabs: ['Today', 'Habits', 'Stats', 'Profile'],
+    habits: [['Drink water', '8 glasses', '12 days'], ['Read 20 pages', 'Before bed', '31 days'], ['Morning walk', '8,000 steps', '9 days'], ['Meditate', '10 minutes', '5 days'], ['Journal', 'Three lines', '2 days'], ['Stretch', '5 minutes', 'New']],
+    detailH: 'Read 20 pages', streak: 'day streak', streakSub: 'Your longest run yet', month: 'November',
+    dn: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], best: 'Best streak', thisMonth: 'This month', pages: 'Pages read',
+    statsH: 'Your week', statsSub: '92% of your habits done', wk: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    ins1: ['Mornings suit you', 'You finish 3 in 4 habits before 10 am'], ins2: ['Best day so far', 'Thursday, every habit done'],
+    newH: 'New habit', name: 'Name', nameV: 'Drink water', icon: 'Icon', goal: 'Goal', goalV: '8 glasses a day', repeat: 'Repeat', remind: 'Remind me', create: 'Add habit',
+    trophiesH: 'Trophies', level: 'Level 7', levelSub: '340 points to level 8',
+    tro: [['7 day run', 'Earned in October'], ['30 day run', 'Earned this week'], ['Early bird', '20 mornings'], ['100 day run', '69 days to go']],
+  },
+  de: {
+    date: 'Samstag, 14. November', hello: 'Guten Morgen, Sam', ringOf: 'von 6 erledigt',
+    heroH: 'Noch zwei, dann ist heute perfekt', heroP: 'Du bist seit 12 Tagen dabei, bleib dran',
+    today: 'Heute', seeAll: 'Alle', tabs: ['Heute', 'Gewohnheiten', 'Statistik', 'Profil'],
+    habits: [['Wasser trinken', '8 Gläser', '12 Tage'], ['20 Seiten lesen', 'Vor dem Schlafen', '31 Tage'], ['Morgenspaziergang', '8.000 Schritte', '9 Tage'], ['Meditieren', '10 Minuten', '5 Tage'], ['Tagebuch', 'Drei Zeilen', '2 Tage'], ['Dehnen', '5 Minuten', 'Neu']],
+    detailH: '20 Seiten lesen', streak: 'Tage am Stück', streakSub: 'Deine längste Serie bisher', month: 'November',
+    dn: ['M', 'D', 'M', 'D', 'F', 'S', 'S'], best: 'Beste Serie', thisMonth: 'Diesen Monat', pages: 'Seiten gelesen',
+    statsH: 'Deine Woche', statsSub: '92 % deiner Gewohnheiten erledigt', wk: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
+    ins1: ['Morgens läuft es', '3 von 4 Gewohnheiten schaffst du vor 10 Uhr'], ins2: ['Bester Tag bisher', 'Donnerstag, alles erledigt'],
+    newH: 'Neue Gewohnheit', name: 'Name', nameV: 'Wasser trinken', icon: 'Symbol', goal: 'Ziel', goalV: '8 Gläser am Tag', repeat: 'Wiederholen', remind: 'Erinnern um', create: 'Hinzufügen',
+    trophiesH: 'Trophäen', level: 'Stufe 7', levelSub: 'Noch 340 Punkte bis Stufe 8',
+    tro: [['7 Tage am Stück', 'Im Oktober erreicht'], ['30 Tage am Stück', 'Diese Woche erreicht'], ['Frühaufsteher', '20 Morgen'], ['100 Tage am Stück', 'Noch 69 Tage']],
+  },
+  ja: {
+    date: '11月14日 土曜日', hello: 'おはよう、サムさん', ringOf: '/ 6 完了',
+    heroH: 'あと2つで今日はパーフェクト', heroP: '12日連続で続いています',
+    today: '今日', seeAll: 'すべて', tabs: ['今日', '習慣', '統計', 'プロフィール'],
+    habits: [['水を飲む', '8杯', '12日'], ['20ページ読む', '寝る前に', '31日'], ['朝の散歩', '8,000歩', '9日'], ['瞑想', '10分', '5日'], ['日記', '3行', '2日'], ['ストレッチ', '5分', '新規']],
+    detailH: '20ページ読む', streak: '日連続', streakSub: 'これまでで最長の記録', month: '11月',
+    dn: ['月', '火', '水', '木', '金', '土', '日'], best: '最長記録', thisMonth: '今月', pages: '読んだページ',
+    statsH: '今週の記録', statsSub: '習慣の92%を達成', wk: ['月', '火', '水', '木', '金', '土', '日'],
+    ins1: ['朝が得意です', '習慣の4つに3つを10時前に完了'], ins2: ['これまでのベスト', '木曜日、すべて達成'],
+    newH: '新しい習慣', name: '名前', nameV: '水を飲む', icon: 'アイコン', goal: '目標', goalV: '1日8杯', repeat: '繰り返し', remind: '通知の時刻', create: '習慣を追加',
+    trophiesH: 'トロフィー', level: 'レベル 7', levelSub: 'レベル8まであと340ポイント',
+    tro: [['7日連続', '10月に獲得'], ['30日連続', '今週獲得'], ['早起き', '朝の達成20回'], ['100日連続', 'あと69日']],
+  },
+  ar: {
+    date: 'السبت، 14 نوفمبر', hello: 'صباح الخير يا سام', ringOf: 'من 6 تمت',
+    heroH: 'عادتان فقط ويكتمل يومك', heroP: 'أنت مستمر منذ 12 يومًا، واصل',
+    today: 'اليوم', seeAll: 'الكل', tabs: ['اليوم', 'العادات', 'الإحصاءات', 'حسابي'],
+    habits: [['شرب الماء', '8 أكواب', '12 يومًا'], ['قراءة 20 صفحة', 'قبل النوم', '31 يومًا'], ['مشي الصباح', '8,000 خطوة', '9 أيام'], ['التأمل', '10 دقائق', '5 أيام'], ['اليوميات', 'ثلاثة أسطر', 'يومان'], ['تمارين الإطالة', '5 دقائق', 'جديدة']],
+    detailH: 'قراءة 20 صفحة', streak: 'يومًا متتاليًا', streakSub: 'أطول سلسلة لك حتى الآن', month: 'نوفمبر',
+    dn: ['ن', 'ث', 'ر', 'خ', 'ج', 'س', 'ح'], best: 'أفضل سلسلة', thisMonth: 'هذا الشهر', pages: 'صفحات مقروءة',
+    statsH: 'أسبوعك', statsSub: 'أنجزت 92% من عاداتك', wk: ['ن', 'ث', 'ر', 'خ', 'ج', 'س', 'ح'],
+    ins1: ['الصباح يناسبك', 'تنهي 3 من كل 4 عادات قبل العاشرة'], ins2: ['أفضل يوم حتى الآن', 'الخميس، أنجزت كل العادات'],
+    newH: 'عادة جديدة', name: 'الاسم', nameV: 'شرب الماء', icon: 'الأيقونة', goal: 'الهدف', goalV: '8 أكواب يوميًا', repeat: 'التكرار', remind: 'ذكّرني', create: 'إضافة العادة',
+    trophiesH: 'الجوائز', level: 'المستوى 7', levelSub: '340 نقطة للمستوى 8',
+    tro: [['7 أيام متتالية', 'في أكتوبر'], ['30 يومًا متتاليًا', 'هذا الأسبوع'], ['طائر الصباح', '20 صباحًا'], ['100 يوم متتالٍ', 'باقي 69 يومًا']],
+  },
+};
+const t = T[LANG];
+document.body.className = LANG;
+if (LANG === 'ar') document.documentElement.dir = 'rtl';
+
+// Icons, drawn here so every language renders the same marks.
+const I = {
+  water: '<svg viewBox="0 0 24 24" fill="none"><path d="M12 3s6 6.4 6 11a6 6 0 0 1-12 0c0-4.6 6-11 6-11z" fill="#4C55C9"/><path d="M9.5 15a2.5 2.5 0 0 0 2.5 2.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  book: '<svg viewBox="0 0 24 24" fill="none"><path d="M4 5.5C4 4.7 4.7 4 5.5 4H11v15H5.5A1.5 1.5 0 0 1 4 17.5z" fill="#2D6A4F"/><path d="M20 5.5c0-.8-.7-1.5-1.5-1.5H13v15h5.5c.8 0 1.5-.7 1.5-1.5z" fill="#4E9C75"/></svg>',
+  walk: '<svg viewBox="0 0 24 24" fill="none"><circle cx="13" cy="4.5" r="2.2" fill="#E3A73B"/><path d="M11 8.5 8 12l2.2 1.4L12 11l1 3.2-2.5 6.3 2.2.8 3-7-1.2-4.1 2.6 2.2 2.4-.6-4.3-3.9z" fill="#E3A73B"/></svg>',
+  calm: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="6" r="2.4" fill="#7A80E6"/><path d="M5 18c1.7-3.6 4.2-6 7-6s5.3 2.4 7 6" stroke="#7A80E6" stroke-width="2.4" stroke-linecap="round"/><path d="M3.5 19.5h17" stroke="#7A80E6" stroke-width="2.4" stroke-linecap="round"/></svg>',
+  pen: '<svg viewBox="0 0 24 24" fill="none"><path d="M4 20l1.2-4.6L15.8 4.8a2 2 0 0 1 2.8 0l.6.6a2 2 0 0 1 0 2.8L8.6 18.8z" fill="#E5735C"/></svg>',
+  stretch: '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="4.5" r="2.2" fill="#4E9C75"/><path d="M4 8.5l8 2 8-2M12 10.5v4l-3.5 6M12 14.5l3.5 6" stroke="#4E9C75" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  flame: '<svg width="13" height="13" viewBox="0 0 24 24"><path d="M12 2c1 3.6 5 5.6 5 10.5A5 5 0 0 1 7 12.5C7 9.8 8.6 8.4 9.6 7c.3 2 1.2 3 2.2 3.4C11.3 7.6 11.6 4.6 12 2z" fill="#E3A73B"/></svg>',
+  tick: '<svg width="16" height="16" viewBox="0 0 16 16"><path d="M3.5 8.3 6.6 11.3 12.6 5" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+};
+const HABIT_ICONS = [['water', '#DCE1FB'], ['book', '#DDEDE2'], ['walk', '#FBEBCB'], ['calm', '#E6E7FB'], ['pen', '#FADCD5'], ['stretch', '#DDEDE2']];
+const tabIcons = [
+  '<svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="5" stroke="currentColor" stroke-width="2.2"/><path d="M8.5 12.3l2.4 2.4 4.6-4.9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none"><path d="M5 7h14M5 12h14M5 17h9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none"><path d="M5 19V11M12 19V5M19 19v-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>',
+  '<svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8.5" r="3.6" stroke="currentColor" stroke-width="2.2"/><path d="M5 19.5c1.4-3.2 4-4.8 7-4.8s5.6 1.6 7 4.8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+];
+const tabbar = (on) => `<div class="tabbar">${t.tabs.map((n, i) => `<div class="tab${i === on ? ' on' : ''}">${tabIcons[i]}<span>${n}</span></div>`).join('')}</div><div class="home"></div>`;
+const ring = (pct, size, stroke, color, track) => {
+  const r = (size - stroke) / 2, c = 2 * Math.PI * r;
+  return `<svg width="${size}" height="${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" stroke="${track}" stroke-width="${stroke}" fill="none"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" stroke="${color}" stroke-width="${stroke}" fill="none" stroke-linecap="round" stroke-dasharray="${c * pct} ${c}"/></svg>`;
+};
+
+const screens = {
+  today: () => `
+    <div class="screen">
+      <div class="hello"><div><div class="date">${t.date}</div><h1 style="margin-top:6px">${t.hello}</h1></div><div class="avatar">S</div></div>
+      <div class="hero">
+        <div class="ring">${ring(4 / 6, 104, 11, '#F2C98B', 'rgba(255,255,255,.18)')}<div class="lb"><b>4</b><i>${t.ringOf}</i></div></div>
+        <div style="position:relative;z-index:1"><h2>${t.heroH}</h2><p>${t.heroP}</p></div>
+      </div>
+      <div class="sec"><h3>${t.today}</h3><a>${t.seeAll}</a></div>
+      <div class="habits">
+        ${t.habits.map((h, i) => `
+          <div class="card habit">
+            <div class="hic" style="background:${HABIT_ICONS[i][1]}">${I[HABIT_ICONS[i][0]]}</div>
+            <div class="htx"><b>${h[0]}</b><span>${h[1]} <span style="opacity:.5">·</span> ${I.flame} ${h[2]}</span></div>
+            <div class="check${i < 4 ? ' on' : ''}">${i < 4 ? I.tick : ''}</div>
+          </div>`).join('')}
+      </div>
+      ${tabbar(0)}
+    </div>`,
+
+  detail: () => {
+    const done = new Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
+    const cells = [];
+    // November 2026 starts on a Sunday: six blanks in a Monday-first grid.
+    for (let i = 0; i < 6; i += 1) cells.push('<div></div>');
+    for (let d = 1; d <= 30; d += 1) {
+      const isToday = d === 14;
+      const on = done.has(d);
+      const future = d > 14;
+      const bg = isToday ? 'var(--berry)' : on ? '#C9CCF4' : future ? 'transparent' : '#F0ECE2';
+      const col = isToday ? '#fff' : on ? '#2E3591' : future ? '#B8BFB9' : 'var(--sub)';
+      cells.push(`<div class="day" style="background:${bg};color:${col}">${d}</div>`);
+    }
+    return `
+    <div class="screen">
+      <div class="back"><div class="iconbtn"><svg width="18" height="18" viewBox="0 0 24 24" style="${LANG === 'ar' ? 'transform:scaleX(-1)' : ''}"><path d="M15 5l-7 7 7 7" stroke="#16231C" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="iconbtn"><svg width="18" height="18" viewBox="0 0 24 24"><circle cx="5" cy="12" r="2" fill="#16231C"/><circle cx="12" cy="12" r="2" fill="#16231C"/><circle cx="19" cy="12" r="2" fill="#16231C"/></svg></div></div>
+      <div class="pad" style="margin-top:14px"><div class="row" style="gap:12px"><div class="hic" style="background:#DDEDE2">${I.book}</div><h1 style="font-size:26px">${t.detailH}</h1></div></div>
+      <div class="card big"><div class="bignum">31</div><div style="font-size:16px;font-weight:800;margin-top:6px">${t.streak}</div><div class="muted" style="font-size:13px;font-weight:600;margin-top:4px">${t.streakSub}</div></div>
+      <div class="card cal">
+        <div class="row" style="justify-content:space-between"><b style="font-size:16px;font-weight:800">${t.month}</b><span class="chip" style="background:var(--sky);color:var(--berry)">14 / 14</span></div>
+        <div class="calgrid">${t.dn.map((d) => `<div class="dname">${d}</div>`).join('')}${cells.join('')}</div>
+      </div>
+      <div class="stats3">
+        <div class="card mini"><b>45</b><span>${t.best}</span></div>
+        <div class="card mini"><b>14</b><span>${t.thisMonth}</span></div>
+        <div class="card mini"><b>612</b><span>${t.pages}</span></div>
+      </div>
+    </div>`;
+  },
+
+  stats: () => {
+    const vals = [86, 100, 72, 100, 92, 100, 66];
+    return `
+    <div class="screen">
+      <div class="pad" style="padding-top:12px"><div class="date">${t.date}</div><h1 style="margin-top:6px">${t.statsH}</h1></div>
+      <div class="card chartcard">
+        <div class="row" style="gap:16px">
+          <div style="position:relative;width:74px;height:74px">${ring(0.92, 74, 9, '#2D6A4F', '#DDEDE2')}<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;transform:rotate(0)">92%</div></div>
+          <div><b style="font-size:16.5px;font-weight:800;display:block">${t.statsSub}</b><span class="chip" style="background:var(--mint);color:var(--forest2);margin-top:8px">+8% </span></div>
+        </div>
+        <div class="bars">${vals.map((v, i) => `<div class="bar"><div style="height:${v}%;background:${v === 100 ? 'var(--forest)' : '#9CC7AE'}"></div><span>${t.wk[i]}</span></div>`).join('')}</div>
+      </div>
+      <div class="card insight"><div class="hic" style="background:#FBEBCB">${I.walk}</div><div><b>${t.ins1[0]}</b><span>${t.ins1[1]}</span></div></div>
+      <div class="card insight"><div class="hic" style="background:#E6E7FB">${I.calm}</div><div><b>${t.ins2[0]}</b><span>${t.ins2[1]}</span></div></div>
+      ${tabbar(2)}
+    </div>`;
+  },
+
+  add: () => `
+    <div class="screen" style="background:rgba(22,35,28,.35)">
+      <div class="pad" style="padding-top:12px;opacity:.5"><h1>${t.hello}</h1></div>
+      <div class="sheet">
+        <div class="grab"></div>
+        <div class="row" style="justify-content:space-between"><h1 style="font-size:24px">${t.newH}</h1><div class="iconbtn" style="background:var(--cream);box-shadow:none"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2 2l10 10M12 2 2 12" stroke="#16231C" stroke-width="2.2" stroke-linecap="round"/></svg></div></div>
+        <div class="field"><label>${t.name}</label><div class="input">${t.nameV}</div></div>
+        <div class="field"><label>${t.icon}</label><div class="icons">${HABIT_ICONS.map(([k], i) => `<div class="${i === 0 ? 'on' : ''}">${I[k].replace('<svg', '<svg width="22" height="22"')}</div>`).join('')}</div></div>
+        <div class="field"><label>${t.goal}</label><div class="input">${t.goalV}<span style="color:var(--berry)">−&nbsp;&nbsp;+</span></div></div>
+        <div class="field"><label>${t.repeat}</label><div class="days">${t.dn.map((d, i) => `<div class="${i < 6 ? 'on' : ''}">${d}</div>`).join('')}</div></div>
+        <div class="field"><label>${t.remind}</label><div class="times"><div>08:00</div><div>12:30</div><div>17:00</div></div></div>
+        <div class="cta">${t.create}</div>
+      </div>
+    </div>`,
+
+  trophies: () => {
+    const medals = [['#E3A73B', '#F2C98B', '7'], ['#4C55C9', '#7A80E6', '30'], ['#2D6A4F', '#4E9C75', '20'], ['#9AA59E', '#C4CCC6', '100']];
+    return `
+    <div class="screen">
+      <div class="pad" style="padding-top:12px"><h1>${t.trophiesH}</h1></div>
+      <div class="card level"><div style="position:relative;width:62px;height:62px">${ring(0.66, 62, 8, '#E3A73B', '#F6E7C6')}<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px">7</div></div><div style="flex:1"><b style="font-size:17px;font-weight:800">${t.level}</b><div class="muted" style="font-size:12.5px;font-weight:600;margin-top:2px">${t.levelSub}</div><div class="meter"><div style="width:66%"></div></div></div></div>
+      <div class="trophies">${t.tro.map((tr, i) => `
+        <div class="card trophy${i === 3 ? ' locked' : ''}">
+          <div class="medal" style="background:radial-gradient(circle at 35% 30%, ${medals[i][1]}, ${medals[i][0]})"><b>${medals[i][2]}</b></div>
+          <h4>${tr[0]}</h4><span>${tr[1]}</span>
+        </div>`).join('')}</div>
+      ${tabbar(3)}
+    </div>`;
+  },
+};
+
+document.getElementById('root').innerHTML = (screens[SCREEN] || screens.today)();
+document.fonts.ready.then(() => { document.body.dataset.ready = '1'; });
+</script>
+</body>
+</html>

@@ -7,7 +7,7 @@ A product promo built with [Remotion](https://www.remotion.dev/), three.js and G
 - `PromoMobile` — a portrait 36-second cut for phones, Shorts and Reels (`out/open-screenshot-generator-promo-mobile.mp4`), 1080x1920
 - `PromoAI` — a 10-second cut on the AI features (`out/open-screenshot-generator-promo-ai.mp4`), 1920x1080: the AI agent dialog and the desktop MCP server, shown screen-recording style with an animated cursor and camera zooms onto the UI
 - `PromoAIMobile` — the same 10-second AI cut in portrait for phones, Shorts and Reels (`out/open-screenshot-generator-promo-ai-mobile.mp4`), 1080x1920: deeper zooms since the wide dialog does not fit a phone frame, captions raised above the Shorts UI overlay
-- `PromoFeatures` — the 79-second feature reel (`out/open-screenshot-generator-promo-features.mp4`), 1920x1080: what the editor does, then every release since July in order, each beat dated on a timeline that rides the whole second act, closing on a two column scoreboard. This is the cut to update when something ships
+- `PromoFeatures` — the 118-second feature reel (`out/open-screenshot-generator-promo-features.mp4`), 1920x1080: one made-up app, Juniper, from an empty store page to its first reviews, in three chapters (make the screenshots, get the app out there, see how it is doing), on `intro.mp3` arranged to length. This is the cut to update when something ships
 - `PromoVs` — the 58-second "old way vs new way" hero cut for the top of openscrgen.app (`out/open-screenshot-generator-promo-vs.mp4`), 1920x1080
 - `PromoVsMobile` — the same 58-second edit in portrait (`out/open-screenshot-generator-promo-vs-mobile.mp4`), 1080x1920. One implementation, not two: every scene reads `useVideoConfig()` and reflows
 - `PromoSteps` — a 30-second portrait cut (`out/open-screenshot-generator-promo-steps.mp4`), 1080x1920, walking the three steps to store-ready screenshots: pick a template, drop in your screenshot, preview. Its own visual system under `src/steps/` (not shared with the other cuts): a GLSL aurora + drifting-motes three.js backdrop whose palette and energy pulse follow the step beats, deep camera dives with a touch-ripple pointer and a spotlight highlight over the real UI, and its own music bed (`music-steps.m4a`)
@@ -26,9 +26,9 @@ npm run render:mobile  # render the portrait cut
 npm run render:ai      # render the 10-second AI cut
 npm run render:ai-mobile  # render the portrait 10-second AI cut
 npm run render:steps   # render the 30-second portrait 3-steps cut
-npm run render:features   # render the 79-second feature reel
-npm run capture:features  # re-capture and re-crop the footage the feature reel uses
-npm run gen:music-features # regenerate public/music-features.wav (then convert to m4a with ffmpeg)
+npm run render:features   # render the 118-second feature reel
+npm run music:features    # arrange public/intro.mp3 into public/music-features-intro.m4a
+npm run rects:features    # compile public/features2/*/rects.json for the film's cameras
 npm run render:vs         # render the 58-second landscape hero cut
 npm run render:vs-mobile  # render the 58-second portrait hero cut
 npm run capture:vs        # re-capture and re-crop the app footage the hero cut uses
@@ -98,50 +98,64 @@ the AI agent, and nothing leaving your machine).
 
 ## The feature reel (`src/features/`)
 
-The film that answers "what does this do, and what has it just gained". Two
-acts over 79.2 seconds: five beats on what the editor already did (templates,
-the canvas, export, preview videos, the agent), then a dated run through every
-release from 25 July to 21 August, then a scoreboard and the address.
+The film that answers "what does this do", told as one app's story. It follows
+**Juniper: Habit Tracker**, an app that does not exist, from a store page with
+no screenshots to its first reviews, in three chapters over 118 seconds:
 
-- **Everything is built on a 72 frame bar.** 100 BPM makes a bar exactly 2.4s,
-  and every scene boundary in `style.ts` `T` is a whole number of them, so the
-  cuts land on downbeats without a table of odd seconds. The whole cut is 33
-  bars. `scripts/gen-music-features.js` reads the same numbers; edit the two
-  together.
-- **The release rail is the spine.** `RELEASES` in `style.ts` is the release
-  list, and `RAIL_INDEX` says which node each beat lights. Adding a release
-  means adding a row there, a beat in `Act2.tsx`, and 72 or 144 frames to `T`.
-- **Brand tokens and the type primitives come from the hero cut** (`../vs`), so
-  the two films look like one product. Everything else here is its own.
-- **Footage.** Four capture passes, all against the dev server on :9002:
-  `capture-features.js` (signed out surfaces and the live community feed),
-  `capture-features2.js` (signed in: the Save and Share menus, Versions with
-  real named versions in it, the Languages dialog, the font list),
-  `capture-features3.js` (the agent screen, an App Preview Video project with
-  its timeline, the 3D device palette, the MCP dialog) and
-  `capture-features4.js` (the MCP dialog with its private link masked, and a
-  real detached panel window). `crop-features.js` then cuts each plate down to
-  the region its beat is about.
-- **Signing in for a capture.** Seeding the two localStorage keys is not
-  enough on its own: the seeded token reaches the real backend, comes back 401,
-  and `src/lib/cloud/api.ts` signs the session out mid run, so every cloud row
-  shoots with a "sign in" chip on it. Pass two intercepts the backend in
-  puppeteer and answers it locally instead. Nothing is ever sent to the live box.
-- **The detached panel window is real.** `?panel=dock` is the same bundle in
-  panel mode, and on the web the editor projects the dock over a
-  BroadcastChannel, which two tabs of one browser share, so a second puppeteer
-  page renders the live panels of the first.
-- **Nothing with a code in it goes in a video.** The MCP dialog carries a per
-  tab private link; pass four rewrites it in the DOM before the shutter rather
-  than blurring it afterwards.
-- **Legibility rule, again.** A 1400 CSS px dialog cannot be read in a 1920
-  frame beside a column of copy. Either crop to a region under about 700 CSS px
-  wide, or rebuild the moment: the agent beat runs the real dialog softly out of
-  focus and sets the prompt itself in type, and the operator dashboard is drawn
-  (`DashCard`), because it only exists against a running box with real accounts
-  on it.
-- **One NaN sample kills the whole track.** `idx()` floors, so the first sample
-  of a section can land a hair before its start time, and a negative base under
-  a fractional power is NaN. That one sample took the peak, then the master
-  gain, then every sample. If a generated bed comes out silent, look for a
-  `Math.pow` on a value that can go slightly negative.
+1. **Make your screenshots**: templates, dropping screenshots in, the 3D
+   phones, one picture across several screenshots, every language, preview
+   videos with music, Capture taking the screenshots, the AI agent.
+2. **Get your app out there**: every store size, the upload (it runs through
+   the quiet bar and lands on the drop), the website with its support and
+   privacy pages, launch graphics, the iOS 27 header art.
+3. **See how it's doing**: Growth's numbers, "did the new screenshots work?"
+   (asked on the break, answered on the drop), competitors, keywords, reviews,
+   then a quick montage of the smaller features, what it costs, and the address.
+
+- **The music is `public/intro.mp3`**, a supplied track (the only asset here
+  that was not made in this repo; check its licence before publishing).
+  `scripts/arrange-music-features.js` cuts it into three passes and joins them
+  on downbeats: the track has one lift with a crash (its bar 4), and each
+  chapter opens on that crash. It writes `public/music-features-intro.m4a`,
+  exactly 118.0 s, at -15 LUFS with the true peak under -1 dBTP. The old
+  synthesized bed (`gen-music-features.js`, `music-features.m4a`) is unused.
+- **The picture renders muted and the bed is copied in after**
+  (`scripts/mux-features.js`, part of `npm run render:features`). Remotion's own
+  AAC re-encode came out 58 ms longer than the video with nothing in the file to
+  correct for it, so every hit landed about 45 ms late and the music was encoded
+  twice. Copied in, the downbeats land 9 to 17 ms after their cuts.
+- **Everything is built on a 60 frame bar.** The track is 120 BPM, so a bar is
+  2.0 s, and every boundary in `style.ts` `T` is written in bars. The arranger
+  trims the first 36 ms so every downbeat lands 9 to 17 ms after its frame. The
+  break bars (7, 27, 39) are where the film holds its breath; the logo lands on
+  the final hit (bar 56). Edit `style.ts` and the arranger together.
+- **Every word on screen is in `COPY` in `style.ts`**, so the copy can be read
+  and checked in one place: plain words, no dashes, no full stops, nothing a
+  person who has never shipped an app would need to look up. `New` marks what
+  arrived after the previous cut of this film (21 August), and `In the desktop
+  app` marks what the web build cannot do.
+- **Juniper is one app all the way through.** Its five screens are HTML in
+  `scripts/juniper/juniper.html` (English, German, Japanese, Arabic), rendered
+  by `render-juniper.js` to `public/juniper/`. Its store set was built and
+  exported by the editor itself from the Droply Habits template. The Growth
+  numbers in chapter three are the e2e suite's sample app of the same name
+  (`tests/fixtures/growthSample.ts`), so the lift Growth reports is the lift
+  from the screenshots chapter one made.
+- **The footage is the app, never a drawing of it.** `public/features2/` holds
+  captures of a frozen static build with the e2e Tauri IPC mock injected, so
+  desktop only surfaces (Capture, Growth, the upload dialog, Claude Code)
+  render in a plain browser. `scripts/features2/` has the rig and every capture
+  script; its README says how to rebuild the footage. Each folder has a
+  `rects.json` naming the controls a camera, ring or cursor points at, and
+  `scripts/gather-rects.js` compiles them into `src/features/rects.generated.ts`,
+  so a re-capture that moves a button moves everything aimed at it.
+- **The window has a camera inside it.** `AppWindow` keeps the frame still and
+  moves the capture under it, so a push into one button reads like a screen
+  recording zooming in. Overlays (rings, the cursor) are drawn in the capture's
+  own CSS px and stay glued to the UI while it moves.
+- **No three.js.** Every 3D phone on screen is the app's own 3D Studio render,
+  exported frame by frame; the rest is CSS. Renders are fast and deterministic.
+- **Left from the August cut:** `public/features/`, `scripts/capture-features*.js`,
+  `crop-features.js` and `gen-music-features.js` made the previous version of this
+  film. Nothing in `src/features/` reads them now.
+

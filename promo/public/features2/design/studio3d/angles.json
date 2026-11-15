@@ -1,0 +1,312 @@
+{
+  "model": "iPhone 18 Pro",
+  "lens": 20,
+  "light": {
+    "azimuth": 30,
+    "elevation": 24,
+    "intensity": 1
+  },
+  "finish": "glacier",
+  "reference": {
+    "position": {
+      "x": 476.5346268267843,
+      "y": 133.08126534308292
+    },
+    "size": {
+      "width": 646.9307463464314,
+      "height": 1333.8374693138342
+    },
+    "scale": 1,
+    "rotation": 0
+  },
+  "frames": [
+    {
+      "frame": 0,
+      "yaw": -35,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 1,
+      "yaw": -32.083,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 2,
+      "yaw": -29.167,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 3,
+      "yaw": -26.25,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 4,
+      "yaw": -23.333,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 5,
+      "yaw": -20.417,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 6,
+      "yaw": -17.5,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 7,
+      "yaw": -14.583,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 8,
+      "yaw": -11.667,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 9,
+      "yaw": -8.75,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 10,
+      "yaw": -5.833,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 11,
+      "yaw": -2.917,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 12,
+      "yaw": 0,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 13,
+      "yaw": 2.917,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 14,
+      "yaw": 5.833,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 15,
+      "yaw": 8.75,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 16,
+      "yaw": 11.667,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 17,
+      "yaw": 14.583,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 18,
+      "yaw": 17.5,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 19,
+      "yaw": 20.417,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 20,
+      "yaw": 23.333,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 21,
+      "yaw": 26.25,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 22,
+      "yaw": 29.167,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 23,
+      "yaw": 32.083,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 24,
+      "yaw": 35,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 25,
+      "yaw": 32.083,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 26,
+      "yaw": 29.167,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 27,
+      "yaw": 26.25,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 28,
+      "yaw": 23.333,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 29,
+      "yaw": 20.417,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 30,
+      "yaw": 17.5,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 31,
+      "yaw": 14.583,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 32,
+      "yaw": 11.667,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 33,
+      "yaw": 8.75,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 34,
+      "yaw": 5.833,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 35,
+      "yaw": 2.917,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 36,
+      "yaw": 0,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 37,
+      "yaw": -2.917,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 38,
+      "yaw": -5.833,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 39,
+      "yaw": -8.75,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 40,
+      "yaw": -11.667,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 41,
+      "yaw": -14.583,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 42,
+      "yaw": -17.5,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 43,
+      "yaw": -20.417,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 44,
+      "yaw": -23.333,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 45,
+      "yaw": -26.25,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 46,
+      "yaw": -29.167,
+      "pitch": 0,
+      "roll": 0
+    },
+    {
+      "frame": 47,
+      "yaw": -32.083,
+      "pitch": 0,
+      "roll": 0
+    }
+  ]
+}

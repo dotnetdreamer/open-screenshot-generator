@@ -1,66 +1,38 @@
 import React from "react";
 import { AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame } from "remotion";
-import {
-  CUTS,
-  RAIL_INDEX,
-  RELEASES,
-  T,
-  TOTAL,
-  V,
-  clamp,
-  outQuint,
-  ramp,
-  type SceneKey,
-} from "./style";
-import { Glow, Grain, GridLines, Motes, PAD, Rail, Vignette } from "./ui";
-import { Hook, Outro, RailCard, Score } from "./Bookends";
-import { Agent, Canvas, Export, Templates, Video } from "./Act1";
-import {
-  CloudLink,
-  Collab,
-  Discover,
-  Fonts,
-  Languages,
-  Panels,
-  SaveAnywhere,
-  Versions,
-} from "./Act2";
+import { CHAPTERS, COPY, CRASHES, CUTS, T, TOTAL, V, clamp, outQuint, ramp, type SceneKey } from "./style";
+import { Backdrop, ChapterHud, Flash, Grain, HUES, SceneFx, Vignette } from "./ui";
+import { ChapterCard, HookA, HookB, Reveal } from "./Hook";
+import { Agent, Capture, Drop, Languages, Panorama, Studio3D, Templates, Video } from "./Make";
+import { ExportSizes, Header, Site, Social, Upload } from "./Launch";
+import { Answer, Ask, Keywords, Reviews, Rivals, Stats } from "./Grow";
+import { More, Outro, Recap, Score } from "./Finale";
 
-const ACT2_FROM = T.RAIL[0];
-const ACT2_TO = T.N_PANELS[1];
+/** Frames two neighbouring scenes overlap, so a cut is a short cross rather than a dip. */
+const OVER = 10;
 
-/**
- * The backdrop for the whole cut: two drifting light pools, a faint grid, dust,
- * vignette and grain. It warms from teal to gold across the turn, which is the
- * only palette move in the film, so the release act feels like a second half
- * rather than more of the first.
- */
-const Backdrop: React.FC<{ frame: number }> = ({ frame }) => {
-  const warm = ramp(frame, ACT2_FROM, 40, outQuint);
-  return (
-    <AbsoluteFill>
-      <AbsoluteFill style={{ background: V.bg }} />
-      <AbsoluteFill style={{ opacity: 1 - warm }}>
-        <Glow frame={frame} hue="teal" strength={1} />
-      </AbsoluteFill>
-      <AbsoluteFill style={{ opacity: warm }}>
-        <Glow frame={frame} hue="gold" strength={1.05} />
-      </AbsoluteFill>
-      <Motes frame={frame} count={26} />
-      <GridLines opacity={0.4} size={80} />
-      <Vignette strength={0.56} />
-      <Grain frame={frame} opacity={0.035} />
-    </AbsoluteFill>
-  );
-};
+/** How much of each chapter colour the backdrop carries at a frame. */
+function hueAt(frame: number) {
+  const gold = ramp(frame, T.L_TITLE[0] - 4, 24, outQuint) * (1 - ramp(frame, T.G_TITLE[0] - 4, 24, outQuint));
+  const green = ramp(frame, T.G_TITLE[0] - 4, 24, outQuint) * (1 - ramp(frame, T.OUTRO[0], 40, outQuint));
+  const teal = clamp(1 - gold - green);
+  return { teal, gold, green };
+}
 
-/**
- * A thin light bar that crosses the frame on every cut.
- *
- * Cheaper than a dissolve and it does more: the eye follows the sweep to the
- * new layout instead of hunting for what changed, which matters in a film that
- * changes layout sixteen times.
- */
+/** The groove sections of the track, where the backdrop swells on every half bar. */
+const GROOVES: [number, number][] = [
+  [T.M_TPL[0], T.L_TITLE[0]],
+  [T.L_UPLOAD[0] + 60, T.G_TITLE[0]],
+  [T.G_ANSWER[0], T.OUTRO[0]],
+];
+
+function pulseAt(frame: number) {
+  if (!GROOVES.some(([a, b]) => frame >= a && frame < b)) return 0;
+  const phase = (frame % 30) / 30;
+  return Math.exp(-phase * 6);
+}
+
+/** A thin bar of light across the frame on every cut, so the eye follows the change. */
 const CutSweep: React.FC<{ frame: number }> = ({ frame }) => {
   const at = CUTS.find((cut) => frame >= cut && frame < cut + 12);
   if (at === undefined || at === 0) return null;
@@ -74,10 +46,10 @@ const CutSweep: React.FC<{ frame: number }> = ({ frame }) => {
           top: 0,
           bottom: 0,
           left: `${eased * 130 - 30}%`,
-          width: "22%",
+          width: "20%",
           background:
-            "linear-gradient(90deg, rgba(212,175,55,0) 0%, rgba(212,175,55,0.16) 55%, rgba(255,255,255,0.30) 78%, rgba(212,175,55,0) 100%)",
-          opacity: 1 - p * 0.35,
+            "linear-gradient(90deg, rgba(212,175,55,0) 0%, rgba(212,175,55,0.12) 55%, rgba(255,255,255,0.22) 78%, rgba(212,175,55,0) 100%)",
+          opacity: 1 - p * 0.4,
           filter: "blur(6px)",
         }}
       />
@@ -85,82 +57,97 @@ const CutSweep: React.FC<{ frame: number }> = ({ frame }) => {
   );
 };
 
-/** The release rail, riding the whole second act under the beats. */
-const ActRail: React.FC<{ frame: number }> = ({ frame }) => {
-  if (frame < T.RAIL[1] || frame >= ACT2_TO) return null;
-  const key = (Object.keys(RAIL_INDEX) as SceneKey[]).find(
-    (name) => frame >= T[name][0] && frame < T[name][1]
-  );
-  const active = key ? (RAIL_INDEX[key] ?? -1) : -1;
-  const opacity =
-    ramp(frame, T.RAIL[1] - 30, 30, outQuint) * (1 - ramp(frame, ACT2_TO - 24, 24, outQuint));
-  return (
-    <AbsoluteFill style={{ justifyContent: "flex-end", alignItems: "center", paddingBottom: 54 }}>
-      <Rail items={RELEASES} active={active} opacity={opacity} width={1920 - PAD * 2} />
-    </AbsoluteFill>
-  );
-};
-
 const Scene: React.FC<{
-  span: readonly [number, number];
+  name: SceneKey;
+  hard?: boolean;
+  /** Frames this scene keeps fading under the next one. 0 before a crash, so the hit is a clean cut. */
+  tail?: number;
   children: (p: { local: number; len: number }) => React.ReactNode;
-}> = ({ span, children }) => {
-  const len = span[1] - span[0];
+}> = ({ name, hard, tail = OVER, children }) => {
+  const [from, to] = T[name];
+  const len = to - from;
+  const span = Math.min(len + tail, TOTAL - from);
   return (
-    <Sequence from={span[0]} durationInFrames={len} layout="none">
-      <Inner len={len}>{children}</Inner>
+    <Sequence from={from} durationInFrames={span} layout="none" name={name}>
+      <Inner len={len} hard={hard}>
+        {children}
+      </Inner>
     </Sequence>
   );
 };
 
-const Inner: React.FC<{
-  len: number;
-  children: (p: { local: number; len: number }) => React.ReactNode;
-}> = ({ len, children }) => {
+const Inner: React.FC<{ len: number; hard?: boolean; children: (p: { local: number; len: number }) => React.ReactNode }> = ({
+  len,
+  hard,
+  children,
+}) => {
   const local = useCurrentFrame();
-  return <>{children({ local, len })}</>;
+  return (
+    <SceneFx local={local} len={len} hard={hard}>
+      {children({ local, len })}
+    </SceneFx>
+  );
 };
 
 export const PromoFeatures: React.FC = () => {
   const frame = useCurrentFrame();
   return (
     <AbsoluteFill style={{ background: V.bg }}>
-      <Backdrop frame={frame} />
+      <Backdrop frame={frame} hueAt={hueAt} pulse={pulseAt(frame)} />
 
-      <Scene span={T.HOOK}>{(p) => <Hook {...p} />}</Scene>
-      <Scene span={T.A_TPL}>{(p) => <Templates {...p} />}</Scene>
-      <Scene span={T.A_CANVAS}>{(p) => <Canvas {...p} />}</Scene>
-      <Scene span={T.A_EXPORT}>{(p) => <Export {...p} />}</Scene>
-      <Scene span={T.A_VIDEO}>{(p) => <Video {...p} />}</Scene>
-      <Scene span={T.A_AGENT}>{(p) => <Agent {...p} />}</Scene>
+      <Scene name="HOOK_A">{(p) => <HookA {...p} />}</Scene>
+      <Scene name="HOOK_B" tail={0}>{(p) => <HookB {...p} />}</Scene>
+      <Scene name="REVEAL" hard>{(p) => <Reveal {...p} />}</Scene>
+      <Scene name="BREAK1">
+        {(p) => <ChapterCard {...p} n={CHAPTERS[0].n} title={CHAPTERS[0].title} hue={HUES.teal} wall t0={420} />}
+      </Scene>
 
-      <Scene span={T.RAIL}>{(p) => <RailCard {...p} />}</Scene>
-      <Scene span={T.N_LANG}>{(p) => <Languages {...p} />}</Scene>
-      <Scene span={T.N_FONTS}>{(p) => <Fonts {...p} />}</Scene>
-      <Scene span={T.N_SAVE}>{(p) => <SaveAnywhere {...p} />}</Scene>
-      <Scene span={T.N_CLOUD}>{(p) => <CloudLink {...p} />}</Scene>
-      <Scene span={T.N_VERSIONS}>{(p) => <Versions {...p} />}</Scene>
-      <Scene span={T.N_COLLAB}>{(p) => <Collab {...p} />}</Scene>
-      <Scene span={T.N_DISCOVER}>{(p) => <Discover {...p} />}</Scene>
-      <Scene span={T.N_PANELS}>{(p) => <Panels {...p} />}</Scene>
+      <Scene name="M_TPL" hard>{(p) => <Templates {...p} />}</Scene>
+      <Scene name="M_DROP">{(p) => <Drop {...p} />}</Scene>
+      <Scene name="M_3D">{(p) => <Studio3D {...p} />}</Scene>
+      <Scene name="M_PANO">{(p) => <Panorama {...p} />}</Scene>
+      <Scene name="M_LANG">{(p) => <Languages {...p} />}</Scene>
+      <Scene name="M_VIDEO">{(p) => <Video {...p} />}</Scene>
+      <Scene name="M_CAPTURE">{(p) => <Capture {...p} />}</Scene>
+      <Scene name="M_AGENT" tail={0}>{(p) => <Agent {...p} />}</Scene>
 
-      <Scene span={T.SCORE}>{(p) => <Score {...p} />}</Scene>
-      <Scene span={T.OUTRO}>{(p) => <Outro {...p} />}</Scene>
+      <Scene name="L_TITLE" hard>
+        {(p) => <ChapterCard {...p} n={CHAPTERS[1].n} title={CHAPTERS[1].title} hue={HUES.gold} />}
+      </Scene>
+      <Scene name="L_EXPORT">{(p) => <ExportSizes {...p} />}</Scene>
+      <Scene name="L_UPLOAD">{(p) => <Upload {...p} />}</Scene>
+      <Scene name="L_SITE">{(p) => <Site {...p} />}</Scene>
+      <Scene name="L_SOCIAL">{(p) => <Social {...p} />}</Scene>
+      <Scene name="L_HEADER" tail={0}>{(p) => <Header {...p} />}</Scene>
 
-      <ActRail frame={frame} />
+      <Scene name="G_TITLE" hard>
+        {(p) => <ChapterCard {...p} n={CHAPTERS[2].n} title={CHAPTERS[2].title} hue={HUES.green} />}
+      </Scene>
+      <Scene name="G_STATS">{(p) => <Stats {...p} />}</Scene>
+      <Scene name="G_ASK" tail={0}>{(p) => <Ask {...p} />}</Scene>
+      <Scene name="G_ANSWER" hard>{(p) => <Answer {...p} />}</Scene>
+      <Scene name="G_RIVALS">{(p) => <Rivals {...p} />}</Scene>
+      <Scene name="G_KEYS">{(p) => <Keywords {...p} />}</Scene>
+      <Scene name="G_REVIEWS">{(p) => <Reviews {...p} />}</Scene>
+      <Scene name="G_MORE1">{(p) => <More {...p} items={COPY.more.slice(0, 4)} first={0} />}</Scene>
+      <Scene name="G_MORE2">{(p) => <More {...p} items={COPY.more.slice(4)} first={4} />}</Scene>
+      <Scene name="G_SCORE">{(p) => <Score {...p} />}</Scene>
+      <Scene name="G_RECAP" tail={0}>{(p) => <Recap {...p} />}</Scene>
+      <Scene name="OUTRO" hard>{(p) => <Outro {...p} />}</Scene>
+
+      <ChapterHud frame={frame} />
       <CutSweep frame={frame} />
+      {CRASHES.map((at) => (
+        <Flash key={at} frame={frame} at={at} strength={at === T.OUTRO[0] ? 0.24 : 0.32} />
+      ))}
+      <Vignette strength={0.55} />
+      <Grain frame={frame} opacity={0.04} />
 
-      {/* Out on black, so a loop or an autoplay embed does not snap back */}
-      <AbsoluteFill
-        style={{ background: "#000", opacity: ramp(frame, TOTAL - 16, 16, (t) => t) }}
-      />
+      {/* Out on black, so an autoplay embed does not snap back to the first frame */}
+      <AbsoluteFill style={{ background: "#000", opacity: ramp(frame, TOTAL - 24, 24, (t) => t), pointerEvents: "none" }} />
 
-      <Audio
-        src={staticFile("music-features.m4a")}
-        volume={(f) =>
-          Math.min(ramp(f, 0, 20, (t) => t), 1 - ramp(f, TOTAL - 48, 48, (t) => t))
-        }
-      />
+      {/* The arranged bed is exactly TOTAL frames long and already fades itself out */}
+      <Audio src={staticFile("music-features-intro.m4a")} />
     </AbsoluteFill>
   );
 };
