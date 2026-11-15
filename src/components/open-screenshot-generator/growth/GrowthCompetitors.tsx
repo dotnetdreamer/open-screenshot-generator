@@ -584,10 +584,18 @@ export function AppIcon({ url, className }: { url: string | null; className?: st
   return <img src={artworkAt(url, 128)} alt="" className={cn('shrink-0 rounded-xl border', className)} loading="lazy" />;
 }
 
-/** One board at the width of its cell, for the search results' columns. */
-function FitBoard({ board, spill }: { board: ArtboardState; spill: BoardSpill }) {
+/**
+ * One board of the project row: at the width of its cell in the search
+ * results (`fit`), or at the row's height under All screenshots. One
+ * component for both, so switching the layout only rescales a board. Each 3D
+ * phone builds a WebGL renderer of its own, and building six again kept the
+ * click that switched the layout busy for seconds wherever WebGL is slow.
+ */
+function ProjectBoard({ board, spill, height, fit }: { board: ArtboardState; spill: BoardSpill; height: number; fit: boolean }) {
   const box = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
+  // Measured in both layouts, so the first frame after a switch to the search
+  // results has a width to draw at and the board is not unmounted for it.
   useLayoutEffect(() => {
     const node = box.current;
     if (!node) return;
@@ -597,9 +605,15 @@ function FitBoard({ board, spill }: { board: ArtboardState; spill: BoardSpill })
     observer.observe(node);
     return () => observer.disconnect();
   }, []);
+  const scale = fit ? width / Math.max(1, board.size.width) : height / Math.max(1, board.size.height);
   return (
-    <div ref={box} className="w-full overflow-hidden rounded-md border" style={{ aspectRatio: `${board.size.width} / ${board.size.height}` }} title={board.name}>
-      {width > 0 && <StaticArtboard artboard={board} scale={width / Math.max(1, board.size.width)} spill={spill} />}
+    <div
+      ref={box}
+      className={cn('overflow-hidden rounded-md border', fit ? 'w-full' : 'shrink-0')}
+      style={fit ? { aspectRatio: `${board.size.width} / ${board.size.height}` } : undefined}
+      title={board.name}
+    >
+      {scale > 0 && <StaticArtboard artboard={board} scale={scale} spill={spill} />}
     </div>
   );
 }
@@ -649,15 +663,9 @@ function ProjectShots({
   const shown = useMemo(() => projectShots(boards, spill, limit), [boards, spill, limit]);
   return (
     <>
-      {shown.map(({ board, spill }) =>
-        fit ? (
-          <FitBoard key={board.id} board={board} spill={spill} />
-        ) : (
-          <div key={board.id} className="shrink-0 overflow-hidden rounded-md border" title={board.name}>
-            <StaticArtboard artboard={board} scale={height / Math.max(1, board.size.height)} spill={spill} />
-          </div>
-        )
-      )}
+      {shown.map(({ board, spill }) => (
+        <ProjectBoard key={board.id} board={board} spill={spill} height={height} fit={!!fit} />
+      ))}
     </>
   );
 }

@@ -178,11 +178,16 @@ function requests(page: Page): Promise<Request[]> {
   return page.evaluate(() => (window as unknown as { __E2E_TAURI__: { httpRequests: Request[] } }).__E2E_TAURI__.httpRequests);
 }
 
-/** Open Growth and wait for the first sync, whose last lines are the report files'. */
+/**
+ * Open Growth and wait for the first sync to end. The report files' ratings
+ * line is not its last step: the app's own Google Play pages are read after
+ * it, so the sync is over when the header offers Refresh again.
+ */
 async function syncOnce(page: Page) {
   const view = await openGrowth(page);
   await section(view, 'Setup').click();
   await expect(view.getByText('4.3 stars on average, ratings from 2 countries')).toBeVisible({ timeout: 90_000 });
+  await expect(view.locator('header').getByRole('button', { name: 'Refresh', exact: true })).toBeVisible({ timeout: 90_000 });
   return view;
 }
 

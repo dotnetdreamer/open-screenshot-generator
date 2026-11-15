@@ -511,6 +511,36 @@ test.describe('growth sync', () => {
       expect(await salesRequests()).toBeGreaterThan(0);
       await expect(view.getByText('Add your vendor number to see downloads, purchases and earnings')).toHaveCount(0);
     });
+
+    test('the header keeps its height while the sync runs, so the sections do not move when it ends', async ({ app, page }) => {
+      // When the progress was a line of its own, the sections moved up 24 px
+      // as a sync ended, under the pointer too, and a section clicked just
+      // then could be missed.
+      await connect(page);
+      await app.goto();
+      await app.dismissStartDialog();
+      const view = await openGrowth(page);
+      const held = () => page.evaluate(() => (window as any).__E2E_TAURI__.httpHeld.length as number);
+      await expect.poll(held, { timeout: 30_000 }).toBe(1);
+
+      const header = view.locator('header');
+      const sections = view.getByRole('navigation', { name: 'Growth sections' });
+      await expect(header.getByRole('button', { name: 'Stop', exact: true })).toBeVisible();
+      await expect(header.getByRole('status')).toContainText('Refreshing');
+      const during = { header: await header.evaluate((node) => node.getBoundingClientRect().height), sections: await sections.evaluate((node) => node.getBoundingClientRect().top) };
+
+      await expect
+        .poll(
+          async () => {
+            await page.evaluate(() => (window as any).__E2E_TAURI__.releaseHttp());
+            return header.getByRole('button', { name: 'Refresh', exact: true }).isVisible();
+          },
+          { timeout: 90_000 }
+        )
+        .toBe(true);
+      const after = { header: await header.evaluate((node) => node.getBoundingClientRect().height), sections: await sections.evaluate((node) => node.getBoundingClientRect().top) };
+      expect(after).toEqual(during);
+    });
   });
 
   test.describe('with two apps, while the first sync of the first one is still running', () => {

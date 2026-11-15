@@ -524,18 +524,33 @@ test.describe('growth competitors', () => {
     // On 2026-11-14 the web project's Chromium stalled in the editor with this template's eight 3D phones on the canvas,
     // before Growth opened, in both runs (a menu click, then the start dialog's closing animation). WebKit opens it in seconds.
     test.skip(!isDesktop, 'Chromium stalls in the editor on eight 3D phones on this Mac; the row is the same code in both builds');
+    // Every 3D phone builds a WebGL renderer of its own, the editor's eight and
+    // this row's six, and Windows' WebKit takes seconds for each: under a full
+    // run this is the slowest test here.
+    test.slow();
     const store = new FakeAppStore(page, isDesktop);
     await store.install();
     await putGrowthRows(page, { meta: [unownedList(['US'], Date.now())] });
     await openTemplate(app, 'Verda Eco');
 
-    await openCompetitors(page);
+    const view = await openGrowth(page);
+    // The click that opens Competitors builds the row's six phones before it returns.
+    await section(view, 'Competitors').click({ timeout: 60_000 });
     const compare = competitors(page).getByTestId('growth-competitor-compare');
     const projectRow = compare.getByTestId('growth-competitor-project');
-    await compare.getByRole('button', { name: 'All screenshots' }).click();
     // Two, four and two 3D phones on the first three artboards: six in 3D, then two drawn flat.
     await expect(projectRow).toContainText('Some 3D frames are drawn flat here');
-    await expect(projectRow.locator('canvas')).toHaveCount(6, { timeout: 30_000 });
+    const phones = projectRow.locator('canvas');
+    await expect(phones).toHaveCount(6, { timeout: 30_000 });
+    await phones.evaluateAll((canvases) => canvases.forEach((canvas) => canvas.setAttribute('data-e2e-kept', '')));
+
+    // Every artboard now, and the same six phones: switching the layout
+    // rescales the boards and builds none of them again.
+    await compare.getByRole('button', { name: 'All screenshots' }).click();
+    await expect(compare.getByRole('button', { name: 'All screenshots' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(projectRow).toContainText('Some 3D frames are drawn flat here');
+    await expect(phones).toHaveCount(6, { timeout: 30_000 });
+    await expect(projectRow.locator('canvas[data-e2e-kept]')).toHaveCount(6);
   });
 
   test.describe('on a connected account', () => {
