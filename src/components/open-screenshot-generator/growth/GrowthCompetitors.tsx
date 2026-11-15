@@ -54,6 +54,7 @@ import {
 } from '@/lib/growth/rivals';
 import {
   checkRivals,
+  checkRivalsIfDue,
   followRival,
   isRivalListDue,
   markRivalChangesSeen,
@@ -238,10 +239,12 @@ export function GrowthCompetitors() {
     return () => setRivalsOnScreen(null);
   }, [view.active, owner]);
 
-  // A list due a check is checked on opening; the background pass would get to it later.
+  // A list due a check is checked on opening; the background pass would get to
+  // it later. The list on screen can be older than the stored one, so whether
+  // it is due is read again before anything is looked up (checkRivalsIfDue).
   useEffect(() => {
     if (!view.active || !list || checking || !isRivalListDue(list)) return;
-    void checkRivals(owner, { first: country }).catch((error) => console.error('The competitors check failed', error));
+    void checkRivalsIfDue(owner, { first: country }).catch((error) => console.error('The competitors check failed', error));
     // On opening, and when a list comes due while the screen shows.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view.active, list, owner]);

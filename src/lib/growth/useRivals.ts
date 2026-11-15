@@ -68,13 +68,18 @@ export function useRivals(owner: string | null): RivalsData & { reload: () => vo
     }
     if (owner === null) return;
     let scheduled = false;
-    const read = () =>
+    // Reads can overlap during a check; only the newest one lands, so an older
+    // copy of the list never replaces a newer one on screen.
+    let reads = 0;
+    const read = () => {
+      const ticket = ++reads;
       void load(owner).then(
         (next) => {
-          if (!cancelled) setData(next);
+          if (!cancelled && ticket === reads) setData(next);
         },
         (error) => console.error('The competitors could not be read', error)
       );
+    };
     read();
     const progress = () => {
       const state = rivalCheckState();

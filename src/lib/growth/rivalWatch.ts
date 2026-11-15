@@ -457,6 +457,20 @@ export function checkRivals(owner: string, options: RivalCheckOptions = {}): Pro
   return work;
 }
 
+/**
+ * The check a screen starts because a list looks due. It joins a check of the
+ * list running in this window, and otherwise reads the list again first. A
+ * screen's copy of a list can be out of date: a read that began before a check
+ * wrote its time can land after that check ended, and a check started on that
+ * copy looks every app up a second time.
+ */
+export async function checkRivalsIfDue(owner: string, options: RivalCheckOptions = {}): Promise<RivalCheckResult> {
+  if (running.has(owner)) return checkRivals(owner, options);
+  const list = await readRivalList(owner);
+  if (!list || !isRivalListDue(list)) return { ...NOTHING, skipped: true };
+  return checkRivals(owner, options);
+}
+
 /** One store's part of a check. */
 interface StoreRun {
   ids: string[];
