@@ -5,6 +5,10 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { WebsitePublish } from '@/components/open-screenshot-generator/website/WebsitePublish';
+import { changeSite, setSiteStorage, type SiteStorage, type StoredSite } from '@/lib/website/store';
 import { applyChanges, boardsFingerprint, captionOf, defaultContent, isLabel, newDraft, cleanText } from '@/lib/website/content';
 import { buildPolicy, cleanPrivacy, defaultPrivacy, policyStrings, serviceNames } from '@/lib/website/privacy';
 import { keepsAddresses, missingFor, prunedTranslations, sameLanguage, siteFingerprint, siteTexts, translator } from '@/lib/website/strings';
@@ -133,6 +137,27 @@ test("the policy says the data isn't sold only without ads picked from what peop
   assert.doesNotMatch(text(ads), /wherever you are/);
 });
 
+test('the policy makes no promise that no answer gave: no "only", no "never used", no "not to find out who you are"', () => {
+  const privacy = cleanPrivacy({
+    ...defaultPrivacy(),
+    answered: true,
+    uses: ['account', 'analytics', 'crashes', 'ads', 'purchases', 'location', 'media', 'contacts', 'health', 'content', 'sync', 'notifications'],
+    personalizedAds: true,
+  });
+  const all = policyStrings(buildPolicy({ facts: facts(), privacy })).join('\n');
+  assert.doesNotMatch(all, /\bonly\b/i);
+  assert.doesNotMatch(all, /never (used|sold|shared)/i);
+  assert.doesNotMatch(all, /not to find out/i);
+  assert.doesNotMatch(all, /where the law says it must/i);
+  assert.doesNotMatch(all, /we'll delete it/i);
+  // What each answer does say is still there.
+  assert.match(all, /counts how the app is used/);
+  assert.match(all, /advertising identifier/);
+  const children = policyStrings(buildPolicy({ facts: facts(), privacy: cleanPrivacy({ ...defaultPrivacy(), answered: true, uses: ['analytics'], children: true }) })).join('\n');
+  assert.doesNotMatch(children, /\bonly\b/i);
+  assert.match(children, /no ads chosen from a child's interests/);
+});
+
 test("the developer's own paragraphs go in More details", () => {
   const sections = buildPolicy({ facts: facts(), privacy: { ...defaultPrivacy(), answered: true }, extra: 'First thing.\n\nSecond   thing.' });
   const more = sections.find((section) => section.id === 'more')!;
@@ -173,9 +198,15 @@ test("a screenshot's caption is its headline, set over one layer or several, and
 
 test('a line in a script without capitals is never taken for a badge', () => {
   assert.ok(isLabel('SMART FINANCE'));
+  assert.ok(isLabel('100% FREE'));
   assert.ok(!isLabel('Plan your week'));
   assert.ok(!isLabel('毎日ひとつ'));
   assert.ok(!isLabel('خطط أسبوعك'));
+  // Capitals from a Latin acronym don't make a Japanese or Arabic line a badge.
+  assert.ok(!isLabel('AIで楽に'));
+  assert.ok(!isLabel('تحليلات GPS دقيقة'));
+  assert.equal(captionOf(board('k', { elements: [at(text('t', '家計がひと目でわかる', 90), 0, 100), at(text('b', 'AIで楽に', 44), 0, 330)] })).body, 'AIで楽に');
+  assert.equal(captionOf(board('g', { elements: [at(text('t', 'تتبع رحلاتك', 90), 0, 100), at(text('b', 'تحليلات GPS دقيقة', 44), 0, 330)] })).body, 'تحليلات GPS دقيقة');
   const japanese = captionOf(board('j', { elements: [at(text('t', 'お金の流れが見える', 90), 0, 100), at(text('b', '毎日ひとつ', 44), 0, 330)] }));
   assert.deepEqual(japanese, { title: 'お金の流れが見える', body: '毎日ひとつ' });
   const arabic = captionOf(board('a', { elements: [at(text('t', 'تتبع عاداتك', 90), 0, 100), at(text('b', 'خطوة كل يوم', 44), 0, 330)] }));
@@ -279,6 +310,33 @@ test('an email address or store link the developer never wrote stays off the sit
   assert.deepEqual(report.refused, ['support email', 'App Store link']);
   // Taking a link off needs no address.
   assert.equal(applyChanges(draft(), { appStoreUrl: '' }, 0, {}).draft.facts.appStoreUrl, '');
+});
+
+test('an address goes on the site only when it is a whole one the developer wrote, not part of one', () => {
+  const said = 'Mail support+hello@pebble.app. We are https://apps.apple.com/app/id12345678901 and https://play.google.com/store/apps/details?id=app.pebble.habits.pro';
+  const report = applyChanges(
+    draft(),
+    {
+      supportEmail: 'hello@pebble.app',
+      appStoreUrl: 'https://apps.apple.com/app/id1234567890',
+      playStoreUrl: 'https://play.google.com/store/apps/details?id=app.pebble.habits',
+    },
+    0,
+    { said }
+  );
+  assert.deepEqual(report.refused, ['support email', 'App Store link', 'Google Play link']);
+  const whole = applyChanges(
+    draft(),
+    { supportEmail: 'Support+Hello@pebble.app', appStoreUrl: 'https://apps.apple.com/us/app/pebble/id12345678901', playStoreUrl: 'https://play.google.com/store/apps/details?id=app.pebble.habits.pro' },
+    0,
+    { said }
+  );
+  assert.deepEqual(whole.refused, []);
+  assert.equal(whole.draft.facts.appStoreUrl, 'https://apps.apple.com/us/app/pebble/id12345678901');
+  // In the text too: a longer App Store id is another app.
+  const inText = applyChanges(draft(), { ctaBody: 'Get it at https://apps.apple.com/app/id12345678901.', subhead: 'On https://apps.apple.com/app/id1234567890' }, 0);
+  assert.deepEqual(inText.refused, ['closing line']);
+  assert.equal(inText.draft.content.subhead, 'On https://apps.apple.com/app/id1234567890');
 });
 
 test("a paragraph for the privacy policy from the AI is only a suggestion until the developer puts it in", () => {
@@ -676,6 +734,87 @@ test('a sign-in that ran out says so', async () => {
     publishSite({ token: 't', owner: 'octo', repo: 'pebble', files: SITE_FILES, appName: 'Pebble', siteUrl: 'https://octo.github.io/pebble/', fetchImpl }),
     (error: unknown) => error instanceof GithubPublishError && error.problem === 'auth'
   );
+});
+
+// --- where sites are kept --------------------------------------------------------------------------------
+
+/** Sites in memory, one transaction at a time, as IndexedDB runs them. */
+function memorySites() {
+  const rows = new Map<string, StoredSite>();
+  let chain: Promise<unknown> = Promise.resolve();
+  const storage: SiteStorage = {
+    transaction(work) {
+      const run = chain.then(() =>
+        work({
+          get: async (projectId) => structuredClone(rows.get(projectId)),
+          put: async (row) => {
+            rows.set(row.projectId, structuredClone(row));
+          },
+        })
+      );
+      chain = run.catch(() => undefined);
+      return run;
+    },
+  };
+  return { rows, storage };
+}
+
+test('results that land at once for a site that is not on screen all stay', async () => {
+  const { rows, storage } = memorySites();
+  setSiteStorage(storage);
+  try {
+    rows.set('p1', { projectId: 'p1', draft: draft(), chat: [], updatedAt: 0 });
+    const record = { owner: 'octo', repo: 'pebble', branch: 'main', url: 'https://octo.github.io/pebble/', at: 1, build: 'b1', fingerprint: 'f', live: false };
+    await Promise.all([
+      changeSite('p1', (row) => ({ ...row, draft: { ...row.draft, translations: { 'de-DE': { [hash32('Support')]: 'Hilfe' } } } })),
+      changeSite('p1', (row) => ({ ...row, draft: { ...row.draft, publish: record } })),
+      changeSite('p1', (row) => ({ ...row, chat: [...row.chat, { id: 'm1', at: 1, role: 'assistant' as const, text: 'Done' }] })),
+    ]);
+    const stored = rows.get('p1')!;
+    assert.deepEqual(stored.draft.translations, { 'de-DE': { [hash32('Support')]: 'Hilfe' } });
+    assert.equal(stored.draft.publish?.repo, 'pebble');
+    assert.deepEqual(stored.chat.map((item) => item.text), ['Done']);
+    // A project without a site gets none from a change.
+    await changeSite('p2', (row) => row);
+    assert.equal(rows.has('p2'), false);
+  } finally {
+    setSiteStorage(null);
+  }
+});
+
+// --- the Publish section ------------------------------------------------------------------------------------
+
+test("while one site's publish waits for Pages, the step names that site's repository, whichever site is on screen", () => {
+  const bramble = draft({
+    facts: facts({ appName: 'Bramble' }),
+    publish: { owner: 'octo', repo: 'bramble', branch: 'main', url: 'https://octo.github.io/bramble/', at: 1, build: 'b', fingerprint: 'f', live: true },
+  });
+  const html = renderToStaticMarkup(
+    React.createElement(WebsitePublish, {
+      draft: bramble,
+      desktop: true,
+      identity: { state: 'none' },
+      signingIn: false,
+      deviceCode: null,
+      onSignIn: () => undefined,
+      onCancelSignIn: () => undefined,
+      repo: 'bramble',
+      onRepo: () => undefined,
+      checklist: [],
+      blocked: null,
+      job: { appName: 'Pebble', phase: 'live', needsPages: true, branch: 'main', site: { owner: 'octo', repo: 'pebble' } },
+      onPublish: () => undefined,
+      onStop: () => undefined,
+      onGoOn: () => undefined,
+      onZip: () => undefined,
+      zipBusy: false,
+      changed: false,
+    })
+  );
+  assert.match(html, /Publishing Pebble/);
+  assert.match(html, /switch on GitHub Pages for pebble/);
+  assert.match(html, /octo\/pebble/);
+  assert.doesNotMatch(html, /for bramble|octo\/bramble/);
 });
 
 // --- colours ---------------------------------------------------------------------------------------------

@@ -7,6 +7,13 @@
 //
 // The conversation with the AI is kept with the site, so leaving the view, or
 // the app, and coming back finds it where it was.
+//
+// Work that ends after it started (an AI answer, a translation, a publish)
+// changes its project's site through `changeSite`, which is one change made
+// in one place. While the Website view holds that project's site (on screen,
+// or still being read), the change goes into the view's copy, which saves it
+// with everything else. Otherwise it is read and written back inside one
+// transaction, so two results landing at once never overwrite each other.
 
 import Dexie, { type Table } from 'dexie';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -38,15 +45,26 @@ export interface SiteChatItem extends SiteChatTurn {
   suggestion?: { privacyExtra: string; used?: boolean };
 }
 
-interface SiteRow {
-  projectId: string;
+/** A project's site and its conversation, as a change sees them. */
+export interface SiteRowData {
   draft: SiteDraft;
   chat: SiteChatItem[];
+}
+
+export type SiteChange = (row: SiteRowData) => SiteRowData;
+
+export interface StoredSite extends SiteRowData {
+  projectId: string;
   updatedAt: number;
 }
 
+/** What the store needs from the database: reads and writes inside one transaction. The unit tests pass one of their own. */
+export interface SiteStorage {
+  transaction<T>(work: (tx: { get(projectId: string): Promise<StoredSite | undefined>; put(row: StoredSite): Promise<unknown> }) => Promise<T>): Promise<T>;
+}
+
 class WebsiteDatabase extends Dexie {
-  sites!: Table<SiteRow, string>;
+  sites!: Table<StoredSite, string>;
 
   constructor() {
     super('OpenScreenshotGeneratorWebsite');
@@ -56,38 +74,73 @@ class WebsiteDatabase extends Dexie {
 
 let instance: WebsiteDatabase | null = null;
 
-function db(): WebsiteDatabase {
-  if (!instance) instance = new WebsiteDatabase();
-  return instance;
+function indexedDbSiteStorage(): SiteStorage {
+  return {
+    transaction(work) {
+      instance ??= new WebsiteDatabase();
+      const database = instance;
+      return database.transaction('rw', database.sites, () =>
+        work({
+          get: (projectId) => database.sites.get(projectId),
+          put: (row) => database.sites.put(row),
+        })
+      );
+    },
+  };
+}
+
+let storage: SiteStorage | null = null;
+
+function sites(): SiteStorage {
+  storage ??= indexedDbSiteStorage();
+  return storage;
+}
+
+/** Keep sites somewhere else, for the unit tests; null goes back to IndexedDB. */
+export function setSiteStorage(next: SiteStorage | null): void {
+  storage = next;
 }
 
 /** Messages kept with a site. */
 const CHAT_LIMIT = 40;
 
-export async function readSiteRow(projectId: string): Promise<{ draft: SiteDraft; chat: SiteChatItem[] } | null> {
-  const row = await db().sites.get(projectId);
+function storedSite(draft: SiteDraft, chat: SiteChatItem[]): StoredSite {
+  // Only the newest answer can be undone, so only it keeps the draft before it.
+  const kept = chat.slice(-CHAT_LIMIT).map((item, index, all) => (index === all.length - 1 || !item.before ? item : { ...item, before: undefined }));
+  return { projectId: draft.projectId, draft, chat: kept, updatedAt: Date.now() };
+}
+
+export async function readSiteRow(projectId: string): Promise<SiteRowData | null> {
+  const row = await sites().transaction((tx) => tx.get(projectId));
   return row ? { draft: row.draft, chat: row.chat ?? [] } : null;
 }
 
 export async function writeSiteRow(draft: SiteDraft, chat: SiteChatItem[]): Promise<void> {
-  // Only the newest answer can be undone, so only it keeps the draft before it.
-  const kept = chat.slice(-CHAT_LIMIT).map((item, index, all) => (index === all.length - 1 || !item.before ? item : { ...item, before: undefined }));
-  await db().sites.put({ projectId: draft.projectId, draft, chat: kept, updatedAt: Date.now() });
+  await sites().transaction((tx) => tx.put(storedSite(draft, chat)));
 }
 
+/** The Website view's hold on a project's site, while it has one: a change goes into its copy. */
+const holders = new Map<string, (change: SiteChange) => void>();
+
 /**
- * Change a project's stored site and conversation. For AI work that ends
- * after another project was opened: the answer still lands in the site it
- * was asked about. Nothing happens for a project without a site.
+ * Change a project's site and conversation, wherever the site is: in the
+ * Website view when it holds that project, or else in the database, read and
+ * written in one transaction. For work that started earlier, so its result
+ * lands in the site it was for, whichever project is open by then. Nothing
+ * happens for a project without a site.
  */
-export async function changeSiteRow(
-  projectId: string,
-  change: (row: { draft: SiteDraft; chat: SiteChatItem[] }) => { draft: SiteDraft; chat: SiteChatItem[] }
-): Promise<void> {
-  const row = await readSiteRow(projectId);
-  if (!row) return;
-  const next = change(row);
-  await writeSiteRow({ ...next.draft, updatedAt: Date.now() }, next.chat);
+export async function changeSite(projectId: string, change: SiteChange): Promise<void> {
+  const holder = holders.get(projectId);
+  if (holder) {
+    holder(change);
+    return;
+  }
+  await sites().transaction(async (tx) => {
+    const row = await tx.get(projectId);
+    if (!row) return;
+    const next = change({ draft: row.draft, chat: row.chat ?? [] });
+    await tx.put(storedSite({ ...next.draft, updatedAt: Date.now() }, next.chat));
+  });
 }
 
 /** The saves waiting in each mounted Website view, for the window's close hook. */
@@ -151,6 +204,21 @@ export function useSiteDraft(projectId: string | null): SiteState {
     timer.current = window.setTimeout(() => void flush(), 400);
   }, [flush]);
 
+  /** A change from changeSite, into this copy of the site. */
+  const take = useCallback(
+    (change: SiteChange) => {
+      setState((current) => {
+        if (!current.draft) return current;
+        const next = change({ draft: current.draft, chat: current.chat });
+        const taken = { ...current, draft: { ...next.draft, updatedAt: Date.now() }, chat: next.chat };
+        latest.current = taken;
+        return taken;
+      });
+      schedule();
+    },
+    [schedule]
+  );
+
   useEffect(() => {
     let cancelled = false;
     setState({ projectId, loaded: false, draft: null, chat: [] });
@@ -158,9 +226,23 @@ export function useSiteDraft(projectId: string | null): SiteState {
       setState({ projectId, loaded: true, draft: null, chat: [] });
       return;
     }
+    // From now on this view holds the project's site. Changes that come while
+    // it is still being read wait, and go in once it is.
+    const early: SiteChange[] = [];
+    let ready = false;
+    const holder = (change: SiteChange) => {
+      if (ready) take(change);
+      else early.push(change);
+    };
+    holders.set(projectId, holder);
     void readSiteRow(projectId)
       .then((row) => {
-        if (!cancelled) setState({ projectId, loaded: true, draft: row?.draft ?? null, chat: row?.chat ?? [] });
+        if (cancelled) return;
+        const loaded = { projectId, loaded: true, draft: row?.draft ?? null, chat: row?.chat ?? [] };
+        latest.current = loaded;
+        setState(loaded);
+        ready = true;
+        for (const change of early.splice(0)) take(change);
       })
       .catch((error) => {
         console.error('The website could not be read', error);
@@ -168,10 +250,14 @@ export function useSiteDraft(projectId: string | null): SiteState {
       });
     return () => {
       cancelled = true;
-      // A change still waiting is written before another project's site is read.
+      if (holders.get(projectId) === holder) holders.delete(projectId);
+      // A change still waiting is written before another project's site is
+      // read, and changes that came before this one was read go to the
+      // database, after it.
       void flush();
+      for (const change of early.splice(0)) void changeSite(projectId, change).catch((error) => console.error('The website could not be saved', error));
     };
-  }, [projectId, flush]);
+  }, [projectId, flush, take]);
 
   const update = useCallback(
     (change: (draft: SiteDraft) => SiteDraft) => {

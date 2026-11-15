@@ -43,6 +43,49 @@ async function projectWithText(app: { startBlankProject(): Promise<void>; addEle
   await app.addElementFrom('Basic', 'Text', 'basic:text');
 }
 
+/** Add a language to the open project, as i18n.spec.ts does, with machine translation off. */
+async function addProjectLanguage(page: Page, code: string, search: string) {
+  const collapsed = page.getByRole('button', { name: 'Language', exact: true });
+  const expanded = page.locator('button[title^="Showing "]');
+  await ((await collapsed.count()) ? collapsed : expanded).first().click();
+  await page.getByRole('menuitem', { name: /Add language|Manage languages/ }).first().click();
+  const dialog = page.getByRole('dialog').filter({ hasText: 'Languages' });
+  await expect(dialog).toBeVisible({ timeout: 15_000 });
+  await dialog.getByRole('textbox', { name: 'Search languages' }).fill(search);
+  await dialog.locator(`#locale-${code}`).click();
+  const seed = dialog.getByLabel('Fill in machine translations to start from');
+  if ((await seed.count()) && (await seed.getAttribute('aria-checked')) === 'true') await seed.click();
+  await dialog.getByRole('button', { name: /^(Add \d+ languages?|Save languages)$/ }).click();
+  await expect(dialog).toBeHidden({ timeout: 20_000 });
+}
+
+/**
+ * Hold the editor's next screenshot at two points: before it reads the canvas
+ * (it waits for the fonts first) and after (the picture it made waits to
+ * decode). Returns the two releases.
+ */
+async function holdScreenshots(page: Page) {
+  await page.evaluate(() => {
+    const held = window as unknown as { __releaseFonts?: () => void; __releaseDecode?: () => void; __decodesHeld: number };
+    const fonts = new Promise<void>((resolve) => (held.__releaseFonts = resolve));
+    Object.defineProperty(document.fonts, 'ready', { configurable: true, get: () => fonts.then(() => document.fonts) });
+    const decoded = new Promise<void>((resolve) => (held.__releaseDecode = resolve));
+    held.__decodesHeld = 0;
+    const decode = HTMLImageElement.prototype.decode;
+    HTMLImageElement.prototype.decode = function (this: HTMLImageElement) {
+      // A board's picture is an SVG of the canvas, made before it decodes.
+      if (!this.src.startsWith('data:image/svg+xml')) return decode.call(this);
+      held.__decodesHeld += 1;
+      return decoded.then(() => decode.call(this));
+    };
+  });
+  return {
+    readCanvas: () => page.evaluate(() => (window as unknown as { __releaseFonts: () => void }).__releaseFonts()),
+    canvasRead: () => expect.poll(() => page.evaluate(() => (window as unknown as { __decodesHeld: number }).__decodesHeld), { timeout: 30_000 }).toBeGreaterThan(0),
+    finish: () => page.evaluate(() => (window as unknown as { __releaseDecode: () => void }).__releaseDecode()),
+  };
+}
+
 /** One more text layer. The palette stays on Basic after the first, so its tile may be out already. */
 async function addText(app: { addElement(label: string, id: string): Promise<void>; addElementFrom(category: string, label: string, id: string): Promise<void> }, page: Page) {
   const tile = page.getByRole('button', { name: 'Add Text (basic:text)', exact: true });
@@ -373,6 +416,85 @@ test.describe('website', () => {
       await answerFirst(page, { match: '^GET https://octo\\.github\\.io/pebble/osg-site\\.json\\?look=\\d+$', status: 200, body: JSON.stringify({ build }), headers: { 'content-type': 'application/json' } });
       await expect(view.getByTestId('website-status')).toHaveText('Online', { timeout: 45_000 });
       await expect(step).toBeHidden();
+    });
+
+    /** A project in English and German with a site, signed in to GitHub, its English screenshots taken: the German ones the publish takes itself. */
+    async function germanSite(app: Parameters<typeof projectWithText>[0], page: Page) {
+      await page.route(
+        (url) => /\/(translate|detect|health)$/.test(url.pathname),
+        (route) => route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ error: 'Offline in this test' }) })
+      );
+      await projectWithText(app);
+      await addProjectLanguage(page, 'de-DE', 'German');
+      const view = await openWebsite(page);
+      await makeSite(page, view);
+      await expect(site(view).locator('.fan img')).toHaveCount(1, { timeout: 30_000 });
+      await signIn(view);
+      return view;
+    }
+
+    test('a screenshot taken while another project was on the canvas never goes out, even when the first project is back by then', async ({ app, page, isDesktop }) => {
+      test.skip(!isDesktop, "GitHub's device sign-in and the app's HTTP client are the desktop app's");
+      test.setTimeout(240_000);
+      const strip = page.locator('[data-project-tabs]');
+      let view = await germanSite(app, page);
+      // A second project, whose artboard has the same id as the first one's.
+      await view.getByRole('button', { name: 'Back to the editor' }).click();
+      await strip.getByRole('button', { name: 'New tab', exact: true }).click();
+      await app.startBlankProject();
+      await addText(app, page);
+      const second = await page.locator('[data-artboard-dom-id]').first().getAttribute('data-artboard-dom-id');
+      await strip.getByRole('tab').first().click();
+      await expect(strip.getByRole('tab').first()).toHaveAttribute('aria-selected', 'true');
+      expect(await page.locator('[data-artboard-dom-id]').first().getAttribute('data-artboard-dom-id')).toBe(second);
+
+      view = await openWebsite(page);
+      await openSection(view, /^Publish/);
+      await expect(site(view).locator('.fan img')).toHaveCount(1, { timeout: 30_000 });
+      await expect(view.getByTestId('website-preview').getByRole('status')).toHaveCount(0, { timeout: 30_000 });
+      const hold = await holdScreenshots(page);
+      await view.getByTestId('site-publish').click();
+      await expect(view.getByTestId('site-publish-progress')).toContainText('Getting your screenshots');
+      // The second project on the canvas while the screenshot reads it, then the first one back before it is done.
+      await view.getByRole('button', { name: 'Back to the editor' }).click();
+      await strip.getByRole('tab').nth(1).click();
+      await expect(strip.getByRole('tab').nth(1)).toHaveAttribute('aria-selected', 'true');
+      await hold.readCanvas();
+      await hold.canvasRead();
+      await strip.getByRole('tab').first().click();
+      await expect(strip.getByRole('tab').first()).toHaveAttribute('aria-selected', 'true');
+      await hold.finish();
+
+      await expect(page.getByText('Another project was opened while its screenshots were being taken').first()).toBeVisible({ timeout: 30_000 });
+      expect((await requests(page)).filter((request) => request.url.startsWith('https://api.github.com/') && request.url !== 'https://api.github.com/user')).toEqual([]);
+    });
+
+    test('an edit while a screenshot is drawn leaves the site showing changes after the publish', async ({ app, page, isDesktop }) => {
+      test.skip(!isDesktop, "GitHub's device sign-in and the app's HTTP client are the desktop app's");
+      test.setTimeout(240_000);
+      const view = await germanSite(app, page);
+      await expect(view.getByTestId('website-preview').getByRole('status')).toHaveCount(0, { timeout: 30_000 });
+      const hold = await holdScreenshots(page);
+      await view.getByTestId('site-publish').click();
+      await expect(view.getByTestId('site-publish-progress')).toContainText('Getting your screenshots');
+      await view.getByRole('button', { name: 'Back to the editor' }).click();
+      await hold.readCanvas();
+      await hold.canvasRead();
+      // The canvas is read; the edit lands before the picture is done.
+      await addText(app, page);
+      await hold.finish();
+
+      const back = await openWebsite(page);
+      const untranslated = back.getByTestId('site-untranslated');
+      await expect(untranslated).toBeVisible({ timeout: 90_000 });
+      await untranslated.getByRole('button', { name: 'Publish anyway' }).click();
+      await expect.poll(async () => (await requests(page)).some((request) => request.method === 'POST' && request.url.endsWith('/git/trees')), { timeout: 60_000 }).toBe(true);
+      const tree = JSON.parse((await requests(page)).find((request) => request.method === 'POST' && request.url.endsWith('/git/trees'))!.body!) as { tree: Array<{ path: string; content?: string }> };
+      const { build } = JSON.parse(tree.tree.find((entry) => entry.path === 'osg-site.json')!.content!) as { build: string };
+      await answerFirst(page, { match: '^GET https://octo\\.github\\.io/pebble/osg-site\\.json\\?look=\\d+$', status: 200, body: JSON.stringify({ build }), headers: { 'content-type': 'application/json' } });
+      await expect(back.getByText('Your website is online')).toBeVisible({ timeout: 60_000 });
+      // Some of what went out is from before the edit, so the site is not up to date.
+      await expect(back.getByTestId('website-status')).toHaveText('Changes not online yet');
     });
 
     test('a publish stops when another project is opened while its screenshots are taken, and nothing goes to GitHub', async ({ app, page, isDesktop }) => {

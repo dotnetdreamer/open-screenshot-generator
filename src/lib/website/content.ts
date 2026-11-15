@@ -86,10 +86,11 @@ function readingOrder(a: TextElementProps, b: TextElementProps): number {
 /**
  * A badge such as "SMART FINANCE": a few words in capitals only. Japanese,
  * Chinese, Arabic and other scripts without capitals have no such badges, so
- * their lines are never taken for one.
+ * a line with any of their letters is never one, capitals in it or not:
+ * "AIで楽に" and "تحليلات GPS دقيقة" are subtitles.
  */
 export function isLabel(text: string): boolean {
-  return /\p{Lu}/u.test(text) && !/\p{Ll}/u.test(text) && text.split(/\s+/).length <= 4;
+  return /\p{Lu}/u.test(text) && !/[\p{Ll}\p{Lo}\p{Lm}]/u.test(text) && text.split(/\s+/).length <= 4;
 }
 
 /**
@@ -306,11 +307,17 @@ export function acceptableText(text: string, limit: number, facts: SiteFacts): b
   for (const match of text.match(EMAIL) ?? []) {
     if (match.toLowerCase() !== allowedEmail) return false;
   }
-  const allowedUrls = [facts.appStoreUrl, facts.playStoreUrl].map((url) => url.trim()).filter(Boolean);
+  const allowedUrls = [facts.appStoreUrl, facts.playStoreUrl].map(plainUrl).filter(Boolean);
   for (const match of text.match(URL_PATTERN) ?? []) {
-    if (!allowedUrls.some((url) => match.startsWith(url))) return false;
+    // The whole address: a longer App Store id starts with the real one.
+    if (!allowedUrls.includes(plainUrl(match))) return false;
   }
   return true;
+}
+
+/** An address as it compares: without the punctuation a sentence puts after it, or a closing slash. */
+function plainUrl(url: string): string {
+  return url.trim().replace(/[.,;:!?'"]+$/, '').replace(/\/+$/, '');
 }
 
 function stringOf(value: unknown, limit: number, facts: SiteFacts, multiline = false): string | undefined {
@@ -379,9 +386,26 @@ const EMAIL_ONLY = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
 const APP_STORE_URL = /^https:\/\/apps\.apple\.com\/([a-z]{2}\/)?app\/([^/?#]+\/)?id\d{6,}(\?[^\s]*)?$/i;
 const PLAY_STORE_URL = /^https:\/\/play\.google\.com\/store\/apps\/details\?id=[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)+(&[^\s]*)?$/;
 
-/** Whether the developer wrote `value` in the conversation, ignoring case. */
-function saidBy(context: ChangeContext, value: string): boolean {
-  return !!context.said && context.said.toLowerCase().includes(value.toLowerCase());
+/**
+ * The email addresses, App Store ids and Google Play packages the developer
+ * wrote in the conversation, each whole: "support+help@example.com" gives no
+ * help@example.com, and id12345678901 no id1234567890.
+ */
+function given(context: ChangeContext): { emails: Set<string>; appStoreIds: Set<string>; playPackages: Set<string> } {
+  const said = context.said ?? '';
+  return {
+    emails: new Set((said.match(EMAIL) ?? []).map((email) => email.toLowerCase())),
+    appStoreIds: new Set([...said.matchAll(/apps\.apple\.com\/[^\s]*?\bid(\d{6,})(?!\d)/gi)].map((match) => match[1])),
+    playPackages: new Set([...said.matchAll(/play\.google\.com\/store\/apps\/details\?(?:[^\s]*?&)?id=([A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)+)/g)].map((match) => match[1])),
+  };
+}
+
+function appStoreIdOfUrl(url: string): string | null {
+  return /\/id(\d{6,})(?!\d)/.exec(url)?.[1] ?? null;
+}
+
+function playPackageOfUrl(url: string): string | null {
+  return /[?&]id=([A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)+)(?![A-Za-z0-9_.])/.exec(url)?.[1] ?? null;
 }
 
 /**
@@ -404,9 +428,10 @@ export function applyChanges(draft: SiteDraft, raw: unknown, shots: number, cont
   const note = (key: string, ok: boolean) => (ok ? changed : refused).push(FIELD_WORDS[key] ?? key);
 
   // Facts first, so a new support email is the one the text is checked against.
+  const developer = given(context);
   if ('supportEmail' in changes) {
     const email = typeof changes.supportEmail === 'string' ? changes.supportEmail.trim() : '';
-    if (EMAIL_ONLY.test(email) && (email === facts.supportEmail || saidBy(context, email))) {
+    if (EMAIL_ONLY.test(email) && (email === facts.supportEmail || developer.emails.has(email.toLowerCase()))) {
       if (email !== facts.supportEmail) {
         facts.supportEmail = email;
         note('supportEmail', true);
@@ -419,8 +444,10 @@ export function applyChanges(draft: SiteDraft, raw: unknown, shots: number, cont
   ] as const) {
     if (!(key in changes)) continue;
     const url = typeof changes[key] === 'string' ? (changes[key] as string).trim() : null;
-    // A link comes off when the developer says so; one goes on only as they wrote it.
-    if (url === '' || (url && pattern.test(url) && saidBy(context, url))) {
+    // A link comes off when the developer says so; one goes on only for the app they named.
+    const id = url ? (key === 'appStoreUrl' ? appStoreIdOfUrl(url) : playPackageOfUrl(url)) : null;
+    const theirs = !!id && (key === 'appStoreUrl' ? developer.appStoreIds : developer.playPackages).has(id);
+    if (url === '' || (url && pattern.test(url) && theirs)) {
       if (url !== facts[key]) {
         facts = { ...facts, [key]: url };
         note(key, true);

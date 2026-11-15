@@ -10,7 +10,7 @@ Click **Website** on the left edge of the window, under Discover.
 2. Click **Website**. You see a preview of the site right away, made from your screenshots.
 3. Click **Make my website** and answer three short steps:
    - **Your app**: the app's name, one line about it, your App Store and Google Play links, your support email and your name or your company's. Paste your App Store link and click **Fill in**, and the app fills in the name, the maker and the icon for you. If Growth knows your apps, click one of them instead.
-   - **Privacy**: tick what your app collects, such as usage numbers, crash reports or ads, and name the services you use for each one. If your app collects nothing, tick **Nothing**. The privacy policy is written from these answers. It promises to delete data within a month of being asked only if you turn that on.
+   - **Privacy**: tick what your app collects, such as usage numbers, crash reports or ads, and name the services you use for each one. If your app collects nothing, tick **Nothing**. The privacy policy is written from these answers and says nothing your answers don't. It names the services you list as the only companies that get data, so list every one. It promises to delete data within a month of being asked only if you turn that on.
    - **Look and languages**: the colors come from your screenshots. Change them if you like, and choose the languages of the site.
 4. Click **Make my website**. If Claude Code, Codex or another AI is set up, the AI writes the home page and the support page from your screenshots. Without an AI, the site uses your screenshots' own words and simple sentences you can change.
 
@@ -20,7 +20,7 @@ The sections on the left change one part of the site. The preview on the right s
 
 - **Ask AI**: tell the AI what to change, in your own words. For example: "Make the headline shorter", "Add a question about restoring purchases" or "We use Firebase Analytics". If the AI needs something it doesn't know, like your email address, it asks you first. **Undo** takes back the last change the AI made.
   - The AI can change the words, the questions and answers, the colors, the headline font, the languages, your app's details, whether the screenshots show and the "Made with" line. It can't change your screenshots (change them in the editor), your icon (under **Your app**) or the layout of the pages.
-  - An email address or store link goes on the site only if you wrote it in the chat yourself.
+  - An email address or store link goes on the site only if you wrote that exact address in the chat yourself.
   - The AI doesn't write the privacy policy. It can suggest a paragraph for it, which shows under its answer. Click **Put it in the policy** if it's right.
 - **Your app**: the name, the icon, the store links and your support email.
 - **Look**: the colors, the headline font, and whether the screenshots show. A font you imported yourself goes on the site only if you turn on **Put this font on the website**: anyone can download it from the site, so only do that if its license allows websites.
@@ -75,6 +75,7 @@ To put the site on a server of your own instead of GitHub, click **Save the site
 
 - The privacy policy is a starting point, not legal advice. Read it and make sure every sentence matches what your app really does. Unless your ads are picked from what people do, it says you don't sell anyone's data. If you do, don't use it.
 - The site has no cookies and no tracking. Its headline font is part of the site, so visitors' browsers don't ask Google Fonts for it.
-- **Changes not online yet** also shows after you change the screenshots, or their translations, in the editor.
+- **Changes not online yet** also shows after you change the screenshots, or their translations, in the editor, and when you edited while a publish was taking the screenshots.
+- If you open another project while a publish is taking its screenshots, the publish stops, so no screenshot of the wrong project goes out. Open the project again and publish.
 - The site is saved with your project on this computer. Your screenshots are taken from the project each time, so the site never shows an old design.
 - In the web version, if GitHub's sign-in window doesn't ask for public repositories, paste a GitHub token with the `public_repo` permission instead.

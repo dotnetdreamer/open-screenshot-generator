@@ -185,6 +185,11 @@ export function PrivacyQuestions({ answers, onChange, idPrefix }: { answers: Pri
           );
         })}
       </div>
+      {answers.uses.length > 0 && (
+        <p className="text-xs text-muted-foreground" data-testid="site-privacy-services-note">
+          The policy says the services you name are the only companies that get people&apos;s data, so name every one.
+        </p>
+      )}
       <label className="flex items-center justify-between gap-3 rounded-lg border p-3">
         <span className="min-w-0">
           <span className="block text-sm font-medium">Made for children under 13</span>
