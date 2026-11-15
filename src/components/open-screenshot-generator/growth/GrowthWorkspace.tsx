@@ -718,7 +718,7 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
         Growth
       </h1>
 
-      <header className="flex flex-wrap items-center gap-2 border-b px-4 py-3">
+      <header className="relative flex flex-wrap items-center gap-2 border-b px-4 py-3">
         <div className="flex min-w-0 items-center gap-2">
           {iconUrl ? (
             <StoreImage src={iconUrl} alt="" className="h-8 w-8 shrink-0 rounded-lg border" />
@@ -759,10 +759,24 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
           )}
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2">
-          <span className="hidden text-xs text-muted-foreground lg:inline">
-            {/* Ratings and reviews count to today, not to the last day every feed reported. */}
-            {data.records.length > 0 && !REVIEW_TABS.includes(tab) ? formatWindow(span) : null}
-          </span>
+          {progress ? (
+            // In the dates' place, on the same line. As a line of its own it
+            // made the header 24 px taller while a refresh ran, so everything
+            // under it moved when one started or ended, under the pointer too.
+            // Read out at every width, shown from the width that shows the dates.
+            <span role="status" className="sr-only text-xs text-muted-foreground lg:not-sr-only lg:flex lg:max-w-[260px] lg:items-center lg:gap-1.5">
+              <Loader2Icon className="h-3.5 w-3.5 shrink-0 animate-spin" />
+              <span className="min-w-0 truncate">Refreshing {progress.label}</span>
+              <span className="shrink-0 tabular-nums">
+                {progress.done} of {progress.total}
+              </span>
+            </span>
+          ) : (
+            <span className="hidden text-xs text-muted-foreground lg:inline">
+              {/* Ratings and reviews count to today, not to the last day every feed reported. */}
+              {data.records.length > 0 && !REVIEW_TABS.includes(tab) ? formatWindow(span) : null}
+            </span>
+          )}
           <Select value={String(rangeDays)} onValueChange={(value) => setRangeDays(Number(value))}>
             <SelectTrigger className="h-8 w-[150px] text-xs" aria-label="Date range">
               <SelectValue />
@@ -790,18 +804,12 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
           )}
         </div>
         {progress && (
-          <div className="flex w-full items-center gap-2 text-xs text-muted-foreground" role="status">
-            <Loader2Icon className="h-3.5 w-3.5 animate-spin" />
-            <span className="truncate">Refreshing {progress.label}</span>
-            <div className="h-1 w-40 overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full rounded-full bg-[hsl(var(--growth-series))] transition-[width]"
-                style={{ width: `${progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 5}%` }}
-              />
-            </div>
-            <span className="tabular-nums">
-              {progress.done} of {progress.total}
-            </span>
+          // Over the header's bottom border, so it takes no room of its own.
+          <div className="pointer-events-none absolute inset-x-0 -bottom-px h-0.5 overflow-hidden" aria-hidden>
+            <div
+              className="h-full bg-[hsl(var(--growth-series))] transition-[width]"
+              style={{ width: `${progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 5}%` }}
+            />
           </div>
         )}
       </header>
