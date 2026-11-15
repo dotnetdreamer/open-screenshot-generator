@@ -5,25 +5,29 @@ description = "Open Screenshot Generator, a device mockup and app screenshot des
 authors = ["dotnetdreamer <dotnetdreamer@users.noreply.github.com>"]
 license = "MIT"
 edition = "2021"
-rust-version = "1.77.2"
+rust-version = "1.90"
 
 [lib]
 name = "open_screenshot_generator_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+tauri-build = { version = "2.7", features = [] }
 
 [dependencies]
 # `unstable` is what lets a window hold a second webview (Window::add_child):
 # the browser beside Growth's Ask AI conversation (growth_browser.rs).
-tauri = { version = "2", features = ["unstable"] }
+# At least 2.12, for tao 0.37: tao 0.35 held its keyboard lock across
+# PeekMessageW, so a focus change that came in while it read a key froze the
+# Windows app for good. @tauri-apps/api in package.json is kept on the same
+# minor version.
+tauri = { version = "2.12", features = ["unstable"] }
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-http = "2"
 tauri-plugin-opener = "2"
-# In-app updates from our own update server (updater.rs). Held on 2.12: every
-# 2.13 release needs tauri 2.12, and this app is on 2.11.
+# In-app updates from our own update server (updater.rs). Held on 2.12 until a
+# newer release has been tried against the update server.
 tauri-plugin-updater = "~2.12"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -47,11 +51,11 @@ time = { version = "0.3", features = ["formatting"] }
 # Screenshot capture of the assistant windows for the operation timeline.
 # Windows only: WebView2's CapturePreview renders even while the window is
 # hidden, so a background run is still traceable. Versions must match the ones
-# wry already resolves (webview2-com 0.38 -> windows 0.61) or the COM types the
+# wry already resolves (webview2-com 0.39 -> windows 0.62) or the COM types the
 # `with_webview` controller hands back will not line up.
 [target.'cfg(windows)'.dependencies]
-webview2-com = "0.38"
-windows = { version = "0.61", features = [
+webview2-com = "0.39"
+windows = { version = "0.62", features = [
   "Win32_Foundation",
   # store_package.rs: GetCurrentPackageFullName tells the Store build apart.
   "Win32_Storage_Packaging_Appx",
@@ -71,7 +75,7 @@ windows = { version = "0.61", features = [
 # on macOS, which would put the Mac App Store build (docs/DESKTOP.md) at risk of
 # rejection. Cargo unions features per target, so mac/Linux release builds ship
 # without it and devtools.rs compiles the item out there.
-tauri = { version = "2", features = ["devtools"] }
+tauri = { version = "2.12", features = ["devtools"] }
 
 [profile.release]
 panic = "abort"
