@@ -395,6 +395,54 @@ test.describe("translating with the user's own AI", () => {
     expect(second.localized?.[GERMAN]?.[renamed]).toEqual({ content: TYPED, origin: 'manual' });
     expect(JSON.stringify(stored.projectData)).not.toContain(OVERWRITTEN);
   });
+
+  test("the translations table saves what Translate empty wrote, with nothing typed by hand", async ({
+    app,
+    page,
+    tauri,
+    isDesktop,
+  }) => {
+    test.skip(!isDesktop, 'Claude Code runs in the desktop app');
+    // The table holds a machine run until Save, and Save used to count only
+    // what was typed, so a run on its own could not be saved at all.
+    await openProjectWithText(app);
+    await openLanguageMenu(page);
+    await page.getByRole('menuitem', { name: /Add language|Manage languages/ }).first().click();
+    const manager = page.getByRole('dialog').filter({ hasText: 'Languages' });
+    await expect(manager).toBeVisible({ timeout: 15_000 });
+    await manager.getByRole('textbox', { name: 'Search languages' }).fill('German');
+    await manager.locator(`#locale-${GERMAN}`).click();
+    // Off, and only once it can be on: the switch turns on by itself when the
+    // look for Claude Code lands, and German would then arrive translated.
+    const seed = manager.getByLabel('Fill in machine translations to start from');
+    await expect(seed).toBeEnabled({ timeout: 15_000 });
+    if ((await seed.getAttribute('aria-checked')) === 'true') await seed.click();
+    await manager.getByRole('button', { name: /^(Add \d+ languages?|Save languages)$/ }).click();
+    await expect(manager).toBeHidden({ timeout: 20_000 });
+
+    await openLanguageMenu(page);
+    await page.getByRole('menuitemcheckbox', { name: /Deutsch/ }).click();
+    await openLanguageMenu(page);
+    await page.getByRole('menuitem', { name: 'Translations table' }).click();
+    const table = page.getByRole('dialog').filter({ hasText: 'Translate empty' });
+    await expect(table).toBeVisible({ timeout: 20_000 });
+
+    await table.getByRole('button', { name: 'Translate empty' }).click();
+    await tauri.waitForCall('abs_claude_prompt', 30_000);
+    await expect(table.getByRole('textbox').first()).toHaveValue(GERMAN_COPY, { timeout: 30_000 });
+    const save = table.getByRole('button', { name: 'Save', exact: true });
+    await expect(save).toBeEnabled();
+    await expect(table.getByText('1 string translated, press Save to keep them')).toBeVisible();
+    await save.click();
+    await expect(table).toBeHidden({ timeout: 20_000 });
+
+    const project = await waitForProject(
+      page,
+      (stored) => JSON.stringify(stored.projectData).includes(GERMAN_COPY),
+      30_000
+    );
+    expect(JSON.stringify(project.projectData)).toContain('"origin":"auto"');
+  });
 });
 
 test.describe('removing a language', () => {

@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Loader2Icon } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 // A translation run takes seconds with the user's own AI and can take a minute
 // with the app's free translator, which answers a few requests a minute.
@@ -41,10 +42,19 @@ interface TranslateProgressDialogProps {
 }
 
 export function TranslateProgressDialog({
-  progress,
+  progress: current,
   onCancel,
   isCancelling,
 }: TranslateProgressDialogProps) {
+  // The run sets progress to null when it ends, and the dialog then fades out.
+  // Showing the last reading through the fade keeps the AI's name and the
+  // count on screen, where a null would flash an empty ": " line.
+  const [last, setLast] = useState<TranslateProgress | null>(current);
+  useEffect(() => {
+    if (current) setLast(current);
+  }, [current]);
+  const progress = current ?? last;
+
   // Languages run side by side, so the bar counts strings across all of them.
   // It only ever moves forward.
   const value =
@@ -62,7 +72,7 @@ export function TranslateProgressDialog({
 
   return (
     <Dialog
-      open={progress !== null}
+      open={current !== null}
       // Controlled by the run itself, like the export dialog: the X asks it to
       // stop and the dialog stays up until it has, so work is never left going
       // behind a closed dialog.
