@@ -163,6 +163,15 @@ export function holdUndoStacks(page: Page, storeName: 'stacks' | 'entries' = 'st
   return holdStore(page, UNDO_DB_NAME, storeName);
 }
 
+/**
+ * Hold one of Growth's stores (src/lib/growth/db.ts), the way holdProjects
+ * holds a project store: `meta` parks clearing Apple Ads' popularity reasons,
+ * which runs before an ad account pick is saved.
+ */
+export function holdGrowthStore(page: Page, storeName = 'meta'): Promise<ProjectsHold> {
+  return holdStore(page, 'OpenScreenshotGeneratorGrowth', storeName);
+}
+
 async function holdStore(page: Page, dbName: string, storeName: string): Promise<ProjectsHold> {
   await page.evaluate(
     ({ dbName, storeName }) =>

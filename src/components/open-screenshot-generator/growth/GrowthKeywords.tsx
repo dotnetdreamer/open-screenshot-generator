@@ -12,6 +12,13 @@
 // A keyword the store page lacks can be added to the keywords from here. The
 // edit goes to the Store page's changes (listingDrafts.ts), never to Apple:
 // the user reads it there and applies it with the rest.
+//
+// With Apple Ads connected (desktop only, appleAds.ts), each keyword and idea
+// also shows its popularity, Apple Ads' weekly score from 1 to 100 per
+// country (popularity.ts), and the table can turn into a map of popularity
+// against how strong the top 10 of each search is (GrowthPopularity.tsx).
+// Ideas then come best chance first: the words the app can rank for, most
+// searched first.
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -40,7 +47,6 @@ import {
   addToKeywordField,
   bucketOf,
   coverageOf,
-  fewestRatingsOnTop,
   keywordsCsv,
   listingLocaleFor,
   loneReadings,
@@ -83,18 +89,24 @@ import { checkRivals, followRival, isRivalListDue, setYourApp } from '@/lib/grow
 import { TERRITORY_CODES, listingLanguageFor, listingLanguageName, territoryName } from '@/lib/growth/territories';
 import type { ListingLocale, ListingSnapshot, TimelineEvent } from '@/lib/growth/types';
 import { useKeywords } from '@/lib/growth/useKeywords';
-import { saveBlobToDisk } from '@/lib/desktop';
+import { isAppleAdsConnected, useAppleAdsSetup } from '@/lib/growth/appleAds';
+import { byBestChance, chanceOf, competitionOf, everyCountShown, latestPoint, periodWords, popularityTrend, tierWords, type Chance, type Competition, type KeywordPopularity } from '@/lib/growth/popularity';
+import { refreshPopularity, usePopularity } from '@/lib/growth/popularityWatch';
+import { isTauri, saveBlobToDisk } from '@/lib/desktop';
 import { cn } from '@/lib/utils';
 import { InfoTip } from '../capture/InfoTip';
+import { AppleAdsDialog, PopularityPrompt } from './GrowthAppleAds';
 import { AppFinder, AppIcon, Shot, Toggle } from './GrowthCompetitors';
+import { KeywordMap, PopularityCell, PopularityChart, PopularityMeter, PopularityTrendChip } from './GrowthPopularity';
 import { appColor } from './GrowthRatingCharts';
 import { EmptyState, Gated, Panel, SectionTitle, useGrowthView } from './GrowthShared';
 
 type Span = 'day' | 'week' | 'month';
 type Filter = 'all' | 'top10' | 'moved' | 'unfound' | 'missing';
-type Sort = 'rank' | 'term' | 'change';
-type DetailView = 'ranks' | 'results';
+type Sort = 'rank' | 'term' | 'change' | 'popularity';
+type DetailView = 'ranks' | 'popularity' | 'results';
 type IdeaTab = 'top-apps' | 'store-page' | 'competitors' | 'ai';
+type TableView = 'list' | 'map';
 
 /** Days of ranks the chart draws. */
 const CHART_DAYS = 90;
@@ -108,6 +120,15 @@ interface Row {
   search?: KeywordSearch;
   /** Null when Growth has no store page to check against. */
   coverage: ReturnType<typeof coverageOf> | null;
+  /** Apple Ads' scores, when Apple Ads is connected and was asked. */
+  popularity?: KeywordPopularity;
+  /** How strong the first ten of the newest search are. Null before the first check. */
+  competition: Competition | null;
+}
+
+/** The latest score, for sorting: a keyword with no score goes last. */
+function scoreOf(row: Pick<Row, 'popularity'>): number {
+  return latestPoint(row.popularity)?.score ?? -1;
 }
 
 /** An app followed on Competitors, as the screens name it. */
@@ -189,20 +210,53 @@ export function GrowthKeywords() {
     [view.rivals.list, view.rivals.snapshots, country]
   );
 
+  const ownName = view.app.id ? view.app.name : view.rivals.list?.yourApp?.name ?? 'Your app';
+  // The app's own rating count in this country, one rule everywhere (the map's line, the table, the ideas, Search
+  // results): the count a search shows for the app when it lists it, else the count from the first tracked search
+  // that lists the app (ownCount), else Growth's own count. A stored count can be days older than a search.
+  const ownCount = useMemo(() => {
+    if (!appId) return null;
+    for (const term of terms) {
+      const count = searches.get(`${country}|${term}`)?.top.find((app) => app.id === appId)?.ratingCount;
+      if (typeof count === 'number') return count;
+    }
+    const fromGrowth = view.data.ratings.find((rating) => rating.territory === country)?.count;
+    if (typeof fromGrowth === 'number') return fromGrowth;
+    return view.rivals.snapshots.get(appId)?.countries[country]?.ratingCount ?? null;
+  }, [appId, terms, searches, country, view.data.ratings, view.rivals.snapshots]);
+  const ownFor = useCallback(
+    (search?: KeywordSearch): number | null => {
+      if (!appId) return null;
+      const fromSearch = search?.top.find((app) => app.id === appId)?.ratingCount;
+      return typeof fromSearch === 'number' ? fromSearch : ownCount;
+    },
+    [appId, ownCount]
+  );
+
+  // Popularity, with Apple Ads connected in the desktop app.
+  const adsSetup = useAppleAdsSetup();
+  const popularityOn = isAppleAdsConnected(adsSetup);
+  const [desktop, setDesktop] = useState(false);
+  useEffect(() => setDesktop(isTauri()), []);
+  const popularity = usePopularity(popularityOn ? countries : [], terms);
+
   const day = today();
   const rows: Row[] = useMemo(() => {
     const here = history.get(country);
     return terms.map((term) => {
       const series = here?.get(term) ?? [];
+      const search = searches.get(`${country}|${term}`);
       return {
         term,
         series,
         standing: standingOf(series, day),
-        search: searches.get(`${country}|${term}`),
+        search,
         coverage: pageLocale ? coverageOf(term, pageLocale) : null,
+        popularity: popularity.records.get(`${country}|${term}`),
+        competition: search && appId ? competitionOf(search, appId, ownFor(search)) : null,
       };
     });
-  }, [terms, history, searches, country, pageLocale, day]);
+  }, [terms, history, searches, country, pageLocale, day, popularity.records, appId, ownFor]);
 
   const visible = useMemo(() => {
     const kept = rows.filter((row) => {
@@ -217,25 +271,29 @@ export function GrowthKeywords() {
     return kept.sort((a, b) => {
       if (sort === 'term') return a.term.localeCompare(b.term);
       if (sort === 'change') return moveScore(moveOf(b.standing, span)) - moveScore(moveOf(a.standing, span)) || rankKey(a) - rankKey(b);
+      if (sort === 'popularity' && popularityOn) return scoreOf(b) - scoreOf(a) || rankKey(a) - rankKey(b) || a.term.localeCompare(b.term);
       return rankKey(a) - rankKey(b) || a.term.localeCompare(b.term);
     });
-  }, [rows, filter, sort, span]);
+  }, [rows, filter, sort, span, popularityOn]);
 
   // The keyword the detail shows: the one picked, or the first in the table.
   const current = rows.find((row) => row.term === selected) ?? visible[0] ?? rows[0] ?? null;
+  const [tableView, setTableView] = useState<TableView>('list');
+  const [adsOpen, setAdsOpen] = useState(false);
 
-  const ownName = view.app.id ? view.app.name : view.rivals.list?.yourApp?.name ?? 'Your app';
-  const ownRatings = useCallback(
-    (search?: KeywordSearch): number | null => {
-      if (!appId) return null;
-      const fromSearch = search?.top.find((app) => app.id === appId)?.ratingCount;
-      if (typeof fromSearch === 'number') return fromSearch;
-      const fromGrowth = view.data.ratings.find((rating) => rating.territory === country)?.count;
-      if (typeof fromGrowth === 'number') return fromGrowth;
-      return view.rivals.snapshots.get(appId)?.countries[country]?.ratingCount ?? null;
-    },
-    [appId, view.data.ratings, view.rivals.snapshots, country]
-  );
+  // Scores older than a day are asked for again when the screen shows, the
+  // country on screen first. One request per country covers every keyword.
+  // The refresh waits for one the ideas started, never skips it, and a new
+  // key or ad account asks again.
+  const termsKey = terms.join('\n');
+  const countriesKey = [country, ...countries.filter((code) => code !== country)].join(',');
+  const adsId = popularityOn ? `${adsSetup.key?.clientId}|${adsSetup.key?.keyId}|${adsSetup.account?.id}` : '';
+  useEffect(() => {
+    if (!view.active || !adsId || !desktop || !termsKey) return;
+    void refreshPopularity({ countries: countriesKey.split(','), terms: termsKey.split('\n'), wait: true }).catch((error) =>
+      console.error('Refreshing keyword popularity failed', error)
+    );
+  }, [view.active, adsId, desktop, termsKey, countriesKey]);
 
   // Today's ranks are filled in when the screen shows, as the background pass would.
   const autoChecked = useRef(false);
@@ -277,6 +335,9 @@ export function GrowthKeywords() {
 
   const checkNow = () => {
     setNote(null);
+    if (popularityOn && desktop) {
+      void refreshPopularity({ countries: countriesKey.split(','), terms, wait: true, retryRefused: true }).catch((error) => console.error('Refreshing keyword popularity failed', error));
+    }
     void checkKeywords(owner, { first: country, again: true, wait: true })
       .then((result) => {
         if (result.failed > 0) setNote({ tone: 'error', text: `The App Store didn't answer ${result.failed} ${result.failed === 1 ? 'search' : 'searches'}. Growth tries again in an hour` });
@@ -404,9 +465,19 @@ export function GrowthKeywords() {
               <Panel className="space-y-3 p-0" data-testid="growth-keyword-table">
                 <div className="space-y-3 px-4 pt-4">
                   <AddKeywords count={terms.length} blocked={fullReason} onTrack={(input) => track(input, 'typed')} />
+                  {tableView === 'list' && <PopularityPrompt onConnect={() => setAdsOpen(true)} />}
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <Filters rows={rows} span={span} value={filter} onChange={setFilter} withPage={!!pageLocale} />
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Toggle
+                        label="Show as"
+                        value={tableView}
+                        options={[
+                          ['list', 'List'],
+                          ['map', 'Map'],
+                        ]}
+                        onChange={setTableView}
+                      />
                       <Button
                         variant="ghost"
                         size="sm"
@@ -421,30 +492,53 @@ export function GrowthKeywords() {
                         <DownloadIcon className="mr-1.5 h-3.5 w-3.5" />
                         Export CSV
                       </Button>
-                      <Toggle
-                        label="Change over"
-                        value={span}
-                        options={[
-                          ['day', 'Day'],
-                          ['week', 'Week'],
-                          ['month', 'Month'],
-                        ]}
-                        onChange={setSpan}
-                      />
+                      {tableView === 'list' && (
+                        <Toggle
+                          label="Change over"
+                          value={span}
+                          options={[
+                            ['day', 'Day'],
+                            ['week', 'Week'],
+                            ['month', 'Month'],
+                          ]}
+                          onChange={setSpan}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
-                <KeywordTable
-                  rows={visible}
-                  span={span}
-                  sort={sort}
-                  onSort={setSort}
-                  selected={current?.term ?? null}
-                  onSelect={setSelected}
-                  appId={appId}
-                  followed={followed}
-                  withPage={!!pageLocale}
-                />
+                {tableView === 'list' ? (
+                  <KeywordTable
+                    rows={visible}
+                    span={span}
+                    sort={sort}
+                    onSort={setSort}
+                    selected={current?.term ?? null}
+                    onSelect={setSelected}
+                    appId={appId}
+                    followed={followed}
+                    withPage={!!pageLocale}
+                    country={country}
+                    popularity={popularityOn ? { refreshing: popularity.refreshing } : null}
+                  />
+                ) : popularityOn ? (
+                  <KeywordMap
+                    keywords={visible.map((row) => ({ term: row.term, rank: row.standing.latest?.rank, record: row.popularity, competition: row.competition }))}
+                    ownRatings={ownCount}
+                    appName={ownName}
+                    country={country}
+                    selected={current?.term ?? null}
+                    onSelect={setSelected}
+                    refreshing={popularity.refreshing}
+                  />
+                ) : (
+                  <PopularityPrompt always onConnect={() => setAdsOpen(true)} />
+                )}
+                {popularityOn && popularity.status.get(country) && (
+                  <p className="px-4 pb-3 text-xs text-amber-700 dark:text-amber-300" role="status">
+                    Popularity for {territoryName(country)}: {popularity.status.get(country)!.text}
+                  </p>
+                )}
               </Panel>
               <IdeasPanel
                 owner={owner}
@@ -455,8 +549,9 @@ export function GrowthKeywords() {
                 listing={listing}
                 pageLocale={pageLocale}
                 followed={followed}
-                ownRatings={ownRatings}
+                ownRatings={ownFor}
                 blocked={fullReason}
+                popularityOn={popularityOn && desktop}
                 onTrack={(term, source) => {
                   void track([term], source).then((added) => {
                     if (added.length > 0 && source === 'ai') dropKeywordIdea(owner, country, term);
@@ -476,7 +571,8 @@ export function GrowthKeywords() {
                   followed={followed}
                   listing={listing}
                   pageLocale={pageLocale}
-                  ownRatings={ownRatings(current.search)}
+                  ownRatings={ownFor(current.search)}
+                  popularityOn={popularityOn}
                   onStop={() => {
                     void untrackKeyword(owner, current.term);
                     setSelected(null);
@@ -489,6 +585,7 @@ export function GrowthKeywords() {
           </div>
         </>
       )}
+      <AppleAdsDialog open={adsOpen} onOpenChange={setAdsOpen} />
     </div>
   );
 }
@@ -834,6 +931,8 @@ function KeywordTable({
   appId,
   followed,
   withPage,
+  country,
+  popularity,
 }: {
   rows: Row[];
   span: Span;
@@ -844,13 +943,23 @@ function KeywordTable({
   appId: string;
   followed: Followed[];
   withPage: boolean;
+  country: string;
+  /** Null hides the column: Apple Ads is not connected. */
+  popularity: { refreshing: boolean } | null;
 }) {
-  const header = (id: Sort, label: string, className?: string) => (
-    <th scope="col" className={cn('px-3 py-2 text-left text-[11px] font-medium text-muted-foreground', className)} aria-sort={sort === id ? (id === 'change' ? 'descending' : 'ascending') : undefined}>
-      <button type="button" onClick={() => onSort(id)} className={cn('inline-flex items-center gap-1 hover:text-foreground', sort === id && 'text-foreground')}>
-        {label}
-        {sort === id && <ArrowDownIcon className="h-3 w-3" aria-hidden />}
-      </button>
+  const header = (id: Sort, label: string, className?: string, tip?: React.ReactNode) => (
+    <th
+      scope="col"
+      className={cn('px-3 py-2 text-left text-[11px] font-medium text-muted-foreground', className)}
+      aria-sort={sort === id ? (id === 'change' || id === 'popularity' ? 'descending' : 'ascending') : undefined}
+    >
+      <span className="inline-flex items-center gap-0.5">
+        <button type="button" onClick={() => onSort(id)} className={cn('inline-flex items-center gap-1 hover:text-foreground', sort === id && 'text-foreground')}>
+          {label}
+          {sort === id && <ArrowDownIcon className="h-3 w-3" aria-hidden />}
+        </button>
+        {tip}
+      </span>
     </th>
   );
   if (rows.length === 0) {
@@ -864,6 +973,22 @@ function KeywordTable({
             {header('term', 'Keyword', 'pl-4')}
             {header('rank', 'Rank')}
             {header('change', 'Change')}
+            {popularity &&
+              header(
+                'popularity',
+                'Popularity',
+                undefined,
+                <InfoTip label="About popularity">
+                  <p>
+                    Popularity comes from Apple Ads. Each keyword gets a score from 1 to 100 in each country, and 100 is the word people search most in that country. The
+                    score compares words with each other. It isn&apos;t a number of searches.
+                  </p>
+                  <p>
+                    Apple Ads gives a new score each week, Sunday to Saturday. Apple Ads only lists words with at least 500 searches that week, so people may still search a
+                    keyword with no score.
+                  </p>
+                </InfoTip>
+              )}
             <th scope="col" className="hidden px-3 py-2 text-left text-[11px] font-medium text-muted-foreground sm:table-cell">
               Last 30 days
             </th>
@@ -913,6 +1038,11 @@ function KeywordTable({
                 <td className="px-3 py-2">
                   <MoveChip move={moveOf(row.standing, span)} since={baseOf(row.standing, span)?.date} />
                 </td>
+                {popularity && (
+                  <td className="px-3 py-2" data-popularity-cell>
+                    <PopularityCell record={row.popularity} term={row.term} country={country} refreshing={popularity.refreshing} />
+                  </td>
+                )}
                 <td className="hidden px-3 py-2 sm:table-cell">
                   <RankSpark series={row.series} />
                 </td>
@@ -970,6 +1100,7 @@ function KeywordDetail({
   listing,
   pageLocale,
   ownRatings,
+  popularityOn,
   onStop,
 }: {
   row: Row;
@@ -981,10 +1112,12 @@ function KeywordDetail({
   listing: ListingSnapshot | null;
   pageLocale: ListingLocale | null;
   ownRatings: number | null;
+  popularityOn: boolean;
   onStop: () => void;
 }) {
   const view = useGrowthView();
-  const [show, setShow] = useState<DetailView>('ranks');
+  const [picked, setShow] = useState<DetailView>('ranks');
+  const show: DetailView = picked === 'popularity' && !popularityOn ? 'ranks' : picked;
   const latest = row.standing.latest;
   // The comparisons there is a reading for, each with the day it compares with.
   const moves = [
@@ -1018,17 +1151,29 @@ function KeywordDetail({
         </div>
       </div>
 
+      {popularityOn && <PopularityLine row={row} country={country} />}
+
       <Toggle
         label="Show"
         value={show}
-        options={[
-          ['ranks', 'Rank over time'],
-          ['results', 'Search results'],
-        ]}
+        options={
+          popularityOn
+            ? [
+                ['ranks', 'Rank over time'],
+                ['popularity', 'Popularity'],
+                ['results', 'Search results'],
+              ]
+            : [
+                ['ranks', 'Rank over time'],
+                ['results', 'Search results'],
+              ]
+        }
         onChange={setShow}
       />
       {show === 'ranks' ? (
         <RankChart row={row} appName={appName} followed={followed} events={view.data.events} />
+      ) : show === 'popularity' ? (
+        <PopularityChart record={row.popularity} term={row.term} country={country} />
       ) : (
         <SearchResults row={row} owner={owner} appId={appId} country={country} followed={followed} ownRatings={ownRatings} />
       )}
@@ -1042,6 +1187,28 @@ function KeywordDetail({
         </Button>
       </div>
     </Panel>
+  );
+}
+
+/** A keyword's popularity in one line: the score, its tier, how it moved in about a month, and its week. */
+function PopularityLine({ row, country }: { row: Row; country: string }) {
+  const point = latestPoint(row.popularity);
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md bg-muted/40 px-3 py-2" data-testid="growth-keyword-popularity">
+      <span className="text-xs text-muted-foreground">Popularity</span>
+      {!row.popularity ? (
+        <span className="text-xs text-muted-foreground">Waiting for Apple Ads</span>
+      ) : !point ? (
+        <span className="text-xs text-muted-foreground">No score from Apple Ads in {territoryName(country)}</span>
+      ) : (
+        <>
+          <PopularityMeter point={point} granularity={row.popularity.granularity} large />
+          <span className="text-xs font-medium">{tierWords(point.tier)}</span>
+          <PopularityTrendChip trend={popularityTrend(row.popularity.points)} granularity={row.popularity.granularity} />
+          <span className="text-[11px] text-muted-foreground">{periodWords(point.week, row.popularity.granularity, { withYear: false })}</span>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -1216,7 +1383,11 @@ function SearchResults({
   const search = row.search;
   if (!search) return <p className="py-8 text-center text-xs text-muted-foreground">Search results show here after the first check</p>;
   const rank = rankIn(search, appId);
-  const fewest = fewestRatingsOnTop(search);
+  // The weakest of the other apps, as the map and Within reach count it: the user's own app is left out.
+  // It is said only when every other app shows a count (one with none could have fewer), or when it is 0.
+  const competition = competitionOf(search, appId, ownRatings);
+  const fewest = competition.weakest === 0 || everyCountShown(competition) ? competition.weakest : null;
+  const mineOnTop = search.top.some((app) => app.id === appId);
   const followedIds = new Set(followed.map((app) => app.id));
   const rivalList = view.rivals.list;
   const followFull = (rivalList?.rivals.length ?? 0) >= MAX_RIVALS;
@@ -1305,8 +1476,8 @@ function SearchResults({
       {fewest !== null && (
         <p className="text-[11px] text-muted-foreground">
           {fewest === 0
-            ? 'An app with no ratings yet is in the top 10.'
-            : `The app with the fewest ratings in the top 10 has ${formatExact(fewest)} ${fewest === 1 ? 'rating' : 'ratings'}.`}
+            ? `${mineOnTop ? 'Besides yours, an' : 'An'} app with no ratings yet is in the top 10.`
+            : `The app with the fewest ratings in the top 10${mineOnTop ? ', other than yours,' : ''} has ${formatExact(fewest)} ${fewest === 1 ? 'rating' : 'ratings'}.`}
           {ownRatings !== null ? ` Yours has ${formatExact(ownRatings)} ${ownRatings === 1 ? 'rating' : 'ratings'}.` : ''}
         </p>
       )}
@@ -1421,6 +1592,7 @@ function IdeasPanel({
   followed,
   ownRatings,
   blocked,
+  popularityOn,
   onTrack,
 }: {
   owner: string;
@@ -1431,8 +1603,11 @@ function IdeasPanel({
   listing: ListingSnapshot | null;
   pageLocale: ListingLocale | null;
   followed: Followed[];
+  /** The app's rating count for a search, by the screen's one rule (ownFor). */
   ownRatings: (search?: KeywordSearch) => number | null;
   blocked: string | null;
+  /** Apple Ads is connected, in the desktop app. */
+  popularityOn: boolean;
   onTrack: (term: string, source: KeywordSource) => void;
 }) {
   const view = useGrowthView();
@@ -1512,6 +1687,80 @@ function IdeasPanel({
     }
   };
 
+  // Popularity of the ideas on screen, in the country on screen: one request
+  // for all of them, after any refresh already under way (wait), and again
+  // after a new key or ad account.
+  const ideaPopularity = usePopularity(popularityOn ? [country] : [], ideaTerms ? ideaTerms.split('\n') : []);
+  const adsSetup = useAppleAdsSetup();
+  const adsId = popularityOn ? `${adsSetup.key?.clientId}|${adsSetup.key?.keyId}|${adsSetup.account?.id}` : '';
+  useEffect(() => {
+    if (!adsId || !view.active || !ideaTerms) return;
+    void refreshPopularity({ countries: [country], terms: ideaTerms.split('\n'), wait: true }).catch((error) =>
+      console.error('Refreshing the popularity of keyword ideas failed', error)
+    );
+  }, [adsId, view.active, ideaTerms, country]);
+
+  // While Check all runs the order holds still, so a row never jumps away from the pointer.
+  const [frozen, setFrozen] = useState<string[] | null>(null);
+  const ordered = useMemo(() => {
+    const withFacts = ideas.map((idea) => {
+      const search = checked.get(`${country}|${idea.term}`);
+      const rank = search ? rankIn(search, appId) : undefined;
+      const mine = search ? ownRatings(search) : null;
+      const chance: Chance = search ? chanceOf(rank, competitionOf(search, appId, mine), mine) : 'unknown';
+      const record = ideaPopularity.records.get(`${country}|${idea.term}`);
+      return { ...idea, search, rank, chance, record, score: latestPoint(record)?.score ?? null };
+    });
+    if (!popularityOn) return withFacts;
+    if (frozen) {
+      const place = (term: string) => {
+        const index = frozen.indexOf(term);
+        return index < 0 ? frozen.length : index;
+      };
+      return [...withFacts].sort((a, b) => place(a.term) - place(b.term));
+    }
+    return byBestChance(withFacts);
+  }, [ideas, checked, country, appId, ownRatings, ideaPopularity.records, popularityOn, frozen]);
+
+  const [checkingAll, setCheckingAll] = useState<{ done: number; total: number } | null>(null);
+  const stopAll = useRef<AbortController | null>(null);
+  // The answers only this screen shows stop with it; the searches already made stay stored.
+  useEffect(() => () => stopAll.current?.abort(), []);
+  const unchecked = ordered.filter((idea) => !idea.search).map((idea) => idea.term);
+  const checkAll = async () => {
+    const asked = country;
+    const todo = [...unchecked];
+    if (todo.length === 0) return;
+    const stop = new AbortController();
+    stopAll.current = stop;
+    setFrozen(ordered.map((idea) => idea.term));
+    setCheckingAll({ done: 0, total: todo.length });
+    setProblem(null);
+    let inARow = 0;
+    try {
+      for (const [index, term] of todo.entries()) {
+        try {
+          const search = await freshSearch(term, asked, stop.signal);
+          setChecked((current) => new Map(current).set(`${asked}|${term}`, search));
+          inARow = 0;
+        } catch (error) {
+          if (stop.signal.aborted || (error as Error)?.name === 'AbortError') break;
+          console.error('Checking a keyword idea failed', error);
+          inARow += 1;
+          if (inARow >= 3) {
+            setProblem('The App Store search could not be reached. Check your connection and try again');
+            break;
+          }
+        }
+        setCheckingAll({ done: index + 1, total: todo.length });
+      }
+    } finally {
+      setCheckingAll(null);
+      setFrozen(null);
+      if (stopAll.current === stop) stopAll.current = null;
+    }
+  };
+
   const hints: Record<IdeaTab, string> = {
     'top-apps': 'Words the top apps for your keywords put in their names',
     'store-page': pageLocale ? "Words on your store page you don't track yet" : "Words in your app's name you don't track yet",
@@ -1571,22 +1820,64 @@ function IdeasPanel({
           {ai.error && <span className="text-xs text-destructive">{ai.error}</span>}
         </div>
       )}
+      {/* While Check all runs, its count and Stop stay: with one idea left, and on another tab, even an empty one. */}
+      {((ideas.length > 0 && (popularityOn || unchecked.length > 1)) || checkingAll) && (
+        <div className="flex flex-wrap items-center justify-between gap-2" data-testid="growth-idea-tools">
+          {popularityOn && ideas.length > 0 ? (
+            <span className="inline-flex items-center gap-0.5 text-xs text-muted-foreground">
+              Best chance first
+              <InfoTip label="How the ideas are sorted">
+                <p>Words your app can rank for come first: your app is in the top 10 already, or an app with no more ratings than yours is in the top 10.</p>
+                <p>Then come the words Growth can&apos;t judge yet, like ones not checked, then the rest. In each group, the words people search most come first.</p>
+              </InfoTip>
+            </span>
+          ) : (
+            <span />
+          )}
+          {checkingAll ? (
+            <span className="flex items-center gap-2">
+              <span className="text-xs tabular-nums text-muted-foreground" role="status">
+                Checking {checkingAll.done} of {checkingAll.total}
+              </span>
+              <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => stopAll.current?.abort()} title="Stop checking and keep the ideas checked so far">
+                <SquareIcon className="mr-1 h-3 w-3" />
+                Stop
+              </Button>
+            </span>
+          ) : (
+            unchecked.length > 1 && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs"
+                disabled={checking !== null}
+                onClick={() => void checkAll()}
+                title={`Search the App Store in ${territoryName(country)} for the ${unchecked.length} ideas not checked yet`}
+              >
+                <SearchIcon className="mr-1 h-3 w-3" />
+                Check all
+              </Button>
+            )
+          )}
+        </div>
+      )}
       {ideas.length === 0 ? (
         <IdeasEmpty tab={tab} hasRanks={rows.some((row) => !!row.search)} onCompetitors={() => view.goTo('competitors')} />
       ) : (
         <ul className="divide-y" aria-label="Keyword ideas">
-          {ideas.map((idea) => {
-            const search = checked.get(`${country}|${idea.term}`);
-            const rank = search ? rankIn(search, appId) : undefined;
-            const fewest = search ? fewestRatingsOnTop(search) : null;
-            const mine = search ? ownRatings(search) : null;
-            const reachable = fewest !== null && mine !== null && fewest <= mine && (rank === null || (rank ?? 0) > 10);
+          {ordered.map((idea) => {
+            const { search, rank } = idea;
             return (
-              <li key={idea.term} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2" data-idea={idea.term}>
+              <li key={idea.term} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2" data-idea={idea.term} data-chance={idea.chance}>
                 <div className="min-w-[140px] flex-1">
                   <p className="text-sm font-medium">{idea.term}</p>
                   {idea.why && <p className="text-[11px] text-muted-foreground">{idea.why}</p>}
                 </div>
+                {popularityOn && (
+                  <div className="flex w-[64px] shrink-0 items-center" data-popularity-cell>
+                    <PopularityCell record={idea.record} term={idea.term} country={country} refreshing={ideaPopularity.refreshing} />
+                  </div>
+                )}
                 {search && (
                   <div className="flex min-w-0 items-center gap-2">
                     <RankPill day={{ rank: rank ?? null, total: search.ids.length }} />
@@ -1595,9 +1886,14 @@ function IdeasPanel({
                         First: {search.top[0].id === appId ? 'your app' : search.top[0].name}
                       </span>
                     )}
-                    {reachable && (
+                    {idea.chance === 'reach' && (
                       <span className="rounded-full bg-[hsl(var(--growth-good))]/10 px-2 py-0.5 text-[10px] font-medium text-[hsl(var(--growth-good))]" title="An app with no more ratings than yours is in the top 10 for this search">
                         Within reach
+                      </span>
+                    )}
+                    {idea.chance === 'crowded' && (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground" title="The top 10 for this search is full, and every app there has more ratings than yours">
+                        Crowded
                       </span>
                     )}
                   </div>
@@ -1608,7 +1904,7 @@ function IdeasPanel({
                       variant="ghost"
                       size="sm"
                       className="h-7 px-2 text-xs"
-                      disabled={checking !== null}
+                      disabled={checking !== null || checkingAll !== null}
                       onClick={() => void check(idea.term)}
                       title={`Search the App Store for "${idea.term}" in ${territoryName(country)}`}
                       aria-label={`Check ${idea.term}`}

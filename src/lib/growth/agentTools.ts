@@ -38,6 +38,8 @@ import { EVENT_KIND_LABELS, SOURCE_TYPES, type GrowthApp, type ListingField, typ
 import { loadGrowthData } from './loadData';
 import { keywordDigest, keywordReport, normalizeTerm, rowsByCountryAndTerm, type KeywordDigest } from './keywords';
 import { isAppStoreId, readKeywordHistory, readKeywordList, readKeywordSearches } from './keywordWatch';
+import { latestPoint, popularityTrend, POPULARITY_SOURCE_NOTE, type KeywordPopularity } from './popularity';
+import { readPopularity } from './popularityWatch';
 import { readRivalList } from './rivalWatch';
 import { getStoreCredentials } from '@/lib/publish/credentials';
 
@@ -138,10 +140,26 @@ export async function keywordSummary(appId: string): Promise<KeywordDigest | nul
 }
 
 /**
+ * A keyword's popularity for an agent: the latest week's score and tier, and
+ * the move over about a month with the week it compares with. Null score:
+ * Apple Ads lists none. Undefined: Apple Ads was never asked.
+ */
+function popularityFacts(record: KeywordPopularity | undefined) {
+  if (!record) return undefined;
+  const latest = latestPoint(record);
+  if (!latest) return { score: null, asked: new Date(record.at).toISOString().slice(0, 10) };
+  const trend = popularityTrend(record.points);
+  // Monthly scores, when Apple refused the weekly ranges, are named by their month.
+  const period = record.granularity === 'month' ? { month: latest.week.slice(0, 7) } : { week: latest.week };
+  return { score: latest.score, tier: latest.tier, ...period, ...(trend.since ? { change: { since: trend.since, by: trend.change } } : {}) };
+}
+
+/**
  * list_store_keywords: the keywords tracked on Growth's Keywords screen and
  * where the app ranks for each in each country, read from what the checks
- * stored on this computer. It never searches Apple itself, so an agent loop
- * cannot spend the 20 searches a minute the checks and Competitors share.
+ * stored on this computer, with Apple Ads' popularity when Growth has it. It
+ * never asks Apple anything itself, so an agent loop cannot spend the 20
+ * searches a minute the checks and Competitors share.
  */
 export async function storeKeywords(args: { appId?: unknown; keyword?: unknown; country?: unknown }) {
   const app = await resolveApp(args.appId);
@@ -160,20 +178,32 @@ export async function storeKeywords(args: { appId?: unknown; keyword?: unknown; 
     throw new Error(`"${keyword}" is not tracked. Tracked: ${data.list.keywords.map((entry) => entry.term).join(', ')}`);
   }
   const followed = ((await readRivalList(app.id))?.rivals ?? []).filter((rival) => isAppStoreId(rival.id)).map((rival) => ({ id: rival.id, name: rival.name }));
+  const report = keywordReport({
+    list: data.list,
+    history: data.history,
+    searches: keyword ? await readKeywordSearches(country ? [country] : data.list.countries, [keyword]) : new Map(),
+    listing: (await readListing(app.id)) ?? null,
+    followed,
+    today: today(),
+    keyword,
+    country,
+  });
+  const popularity = await readPopularity(
+    report.countries.map((entry) => entry.code),
+    report.keywords.map((entry) => entry.keyword)
+  );
   return {
     ...base,
     tracked: data.list.keywords.length,
     lastCheck: data.list.checkedAt ? new Date(data.list.checkedAt).toISOString() : null,
-    ...keywordReport({
-      list: data.list,
-      history: data.history,
-      searches: keyword ? await readKeywordSearches(country ? [country] : data.list.countries, [keyword]) : new Map(),
-      listing: (await readListing(app.id)) ?? null,
-      followed,
-      today: today(),
-      keyword,
-      country,
-    }),
+    ...report,
+    ...(popularity.size > 0 ? { popularitySource: POPULARITY_SOURCE_NOTE } : {}),
+    keywords: report.keywords.map((entry) => ({
+      ...entry,
+      countries: Object.fromEntries(
+        Object.entries(entry.countries).map(([code, facts]) => [code, { ...facts, popularity: popularityFacts(popularity.get(`${code}|${entry.keyword}`)) }])
+      ),
+    })),
   };
 }
 

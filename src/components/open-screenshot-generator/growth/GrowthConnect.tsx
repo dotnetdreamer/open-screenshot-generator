@@ -41,6 +41,7 @@ import type { FeedState, GrowthFeed } from '@/lib/growth/types';
 import { forgetAppStoreToken, forgetPlayToken, serviceAccountEmail, useStoreCredentials } from '@/lib/publish';
 import { cn } from '@/lib/utils';
 import { AppStoreCredentialsForm, PlayCredentialsForm } from '../publish/StoreCredentialsForms';
+import { AppleAdsPanel } from './GrowthAppleAds';
 import { Gated, Panel, SectionTitle, useGrowthView } from './GrowthShared';
 
 const DESKTOP_URL = 'https://openscrgen.app';
@@ -337,11 +338,13 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
               {playReportsPanel}
               {appleKeyPanel}
               {vendorPanel}
+              <AppleAdsPanel />
             </>
           ) : (
             <>
               {appleKeyPanel}
               {vendorPanel}
+              <AppleAdsPanel />
               {playKeyPanel}
               {playReportsPanel}
             </>
