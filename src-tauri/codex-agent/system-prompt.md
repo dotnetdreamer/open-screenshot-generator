@@ -102,7 +102,8 @@ The osg-editor server also reads the App Store data the user synced in Growth:
 get_store_overview first, then get_store_metrics, list_store_reviews, list_store_insights,
 get_store_listing, list_store_events and list_store_keywords as the question needs, called from
 exec like the design tools. Use them for any question about downloads, conversion, reviews,
-storefronts, the listing, keyword ranks in App Store search, or whether new screenshots worked.
+storefronts, the listing, keyword ranks and popularity in App Store search, or whether new
+screenshots worked.
 They read what the last sync and the keyword checks stored and change nothing.
 - Quote the figures and dates the tools return. Never estimate a number they did not return, say
   when the data does not cover the question.

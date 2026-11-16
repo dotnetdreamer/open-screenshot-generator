@@ -8,7 +8,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createPublicKey, generateKeyPairSync, verify } from 'node:crypto';
-import { createAppStoreConnectJwt, withoutEcParameters } from '@/lib/publish/jwt';
+import { createAppStoreConnectJwt, createAppleAdsClientSecret, generateEcKeyPair, publicKeyOf, sec1ToPkcs8, withoutEcParameters } from '@/lib/publish/jwt';
 
 /** [0] { prime256v1 }, as it sits in every .p8 from App Store Connect. */
 const CURVE_FIELD = Buffer.from([0xa0, 0x0a, 0x06, 0x08, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07]);
@@ -107,4 +107,89 @@ test('an App Store Connect token is signed with the key as Apple ships it, where
   } finally {
     subtle.importKey = original;
   }
+});
+
+// --- Apple Ads -----------------------------------------------------------------------------
+
+/** WebKit's refusal, played in front of Node's importKey: a DataError for any EC PKCS#8 key that carries the curve field. */
+function refuseCurveField(): { refused: number[]; restore: () => void } {
+  const subtle = globalThis.crypto.subtle;
+  const original = subtle.importKey.bind(subtle);
+  const refused: number[] = [];
+  subtle.importKey = (async (format: KeyFormat, data: BufferSource | JsonWebKey, ...rest: unknown[]) => {
+    if (format === 'pkcs8') {
+      const view = data as Uint8Array;
+      const bytes = data instanceof ArrayBuffer ? Buffer.from(data) : Buffer.from(view.buffer, view.byteOffset, view.byteLength);
+      if (bytes.includes(CURVE_FIELD)) {
+        refused.push(bytes.length);
+        throw new DOMException('Data provided to an operation does not meet requirements', 'DataError');
+      }
+    }
+    return (original as (...args: unknown[]) => Promise<CryptoKey>)(format, data, ...rest);
+  }) as typeof subtle.importKey;
+  return { refused, restore: () => (subtle.importKey = original) };
+}
+
+function claimsOf(token: string): { header: Record<string, unknown>; claims: Record<string, unknown>; signed: Buffer; signature: Buffer } {
+  const [header, claims, signature] = token.split('.');
+  return {
+    header: JSON.parse(Buffer.from(header, 'base64url').toString()),
+    claims: JSON.parse(Buffer.from(claims, 'base64url').toString()),
+    signed: Buffer.from(`${header}.${claims}`),
+    signature: Buffer.from(signature, 'base64url'),
+  };
+}
+
+test('an Apple Ads client secret is signed with a key the app made, and its public key is the one to give Apple Ads', async () => {
+  const made = await generateEcKeyPair();
+  assert.match(made.privateKeyPem, /^-----BEGIN PRIVATE KEY-----\n/);
+  assert.match(made.publicKeyPem, /^-----BEGIN PUBLIC KEY-----\n[A-Za-z0-9+/=\n]+-----END PUBLIC KEY-----\n$/);
+  const secret = await createAppleAdsClientSecret({ clientId: 'SEARCHADS.c', teamId: 'SEARCHADS.t', keyId: 'k-1', privateKeyPem: made.privateKeyPem, now: 1_800_000_000_000 });
+  const { header, claims, signed, signature } = claimsOf(secret);
+  assert.deepEqual(header, { alg: 'ES256', kid: 'k-1' });
+  assert.deepEqual(claims, { sub: 'SEARCHADS.c', aud: 'https://appleid.apple.com', iat: 1_800_000_000 - 60, exp: 1_800_000_000 + 86_400, iss: 'SEARCHADS.t' });
+  assert.ok(verify('sha256', signed, { key: createPublicKey(made.publicKeyPem), dsaEncoding: 'ieee-p1363' }, signature), 'Apple can check the secret with the public key');
+  // The public key read back out of the private one is the same.
+  assert.equal(await publicKeyOf(made.privateKeyPem), made.publicKeyPem);
+  // Apple takes 180 days at most.
+  const long = claimsOf(await createAppleAdsClientSecret({ clientId: 'c', teamId: 't', keyId: 'k', privateKeyPem: made.privateKeyPem, now: 0, lifetimeSeconds: 400 * 86_400 }));
+  assert.ok((long.claims.exp as number) - (long.claims.iat as number) < 180 * 86_400);
+});
+
+test("a key made with OpenSSL, as Apple's guide shows, is wrapped as PKCS#8 and signs, where WebKit refuses the curve field", async () => {
+  const openssl = generateKeyPairSync('ec', { namedCurve: 'P-256' });
+  const sec1 = openssl.privateKey.export({ type: 'sec1', format: 'der' });
+  // OpenSSL's "EC PRIVATE KEY" names the curve inside, as Apple's .p8 files do.
+  assert.ok(sec1.includes(CURVE_FIELD));
+  const wrapped = sec1ToPkcs8(new Uint8Array(sec1));
+  assert.deepEqual(Buffer.from(withoutEcParameters(wrapped)!), openssl.privateKey.export({ type: 'pkcs8', format: 'der' }));
+
+  const pem = openssl.privateKey.export({ type: 'sec1', format: 'pem' }).toString();
+  assert.match(pem, /^-----BEGIN EC PRIVATE KEY-----/);
+  const webkit = refuseCurveField();
+  try {
+    const secret = await createAppleAdsClientSecret({ clientId: 'c', teamId: 't', keyId: 'k', privateKeyPem: pem, now: 1_800_000_000_000 });
+    assert.deepEqual(webkit.refused, [wrapped.length], 'the wrapped key was first tried as it came');
+    const { signed, signature } = claimsOf(secret);
+    assert.ok(verify('sha256', signed, { key: createPublicKey(openssl.privateKey), dsaEncoding: 'ieee-p1363' }, signature));
+    assert.equal(await publicKeyOf(pem), createPublicKey(openssl.privateKey).export({ type: 'spki', format: 'pem' }).toString());
+  } finally {
+    webkit.restore();
+  }
+});
+
+test('a pasted text that is not a key says so', async () => {
+  await assert.rejects(() => publicKeyOf('-----BEGIN PRIVATE KEY-----\nAAAA\n-----END PRIVATE KEY-----'), /could not be read/);
+  await assert.rejects(() => createAppleAdsClientSecret({ clientId: 'c', teamId: 't', keyId: 'k', privateKeyPem: 'hello' }), /not valid PEM|could not be read/);
+});
+
+test('an OpenSSL key file that starts with its EC PARAMETERS block is read by its key block alone', async () => {
+  const openssl = generateKeyPairSync('ec', { namedCurve: 'P-256' });
+  // What `openssl ecparam -genkey -name prime256v1` writes without -noout.
+  const parameters = '-----BEGIN EC PARAMETERS-----\nBggqhkjOPQMBBw==\n-----END EC PARAMETERS-----\n';
+  const pem = parameters + openssl.privateKey.export({ type: 'sec1', format: 'pem' }).toString();
+  const secret = await createAppleAdsClientSecret({ clientId: 'c', teamId: 't', keyId: 'k', privateKeyPem: pem, now: 1_800_000_000_000 });
+  const { signed, signature } = claimsOf(secret);
+  assert.ok(verify('sha256', signed, { key: createPublicKey(openssl.privateKey), dsaEncoding: 'ieee-p1363' }, signature));
+  assert.equal(await publicKeyOf(pem), createPublicKey(openssl.privateKey).export({ type: 'spki', format: 'pem' }).toString());
 });

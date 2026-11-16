@@ -408,6 +408,16 @@ test.describe('growth keywords', () => {
     });
     test('the agents read the keyword ranks through the store tools, and other clients are refused', async ({ app, page, isDesktop, tauri }) => {
       const store = await connect(page, isDesktop);
+      // Apple Ads' scores as popularityWatch.ts stores them: "offline" was asked about and has none.
+      await putGrowthRows(page, {
+        meta: [
+          {
+            key: 'keywords:popularity:US:ludo online',
+            value: { term: 'ludo online', country: 'US', at: Date.now(), points: [{ week: '2026-10-11', score: 40, tier: 2 }, { week: '2026-11-08', score: 46, tier: 3 }] },
+          },
+          { key: 'keywords:popularity:US:offline', value: { term: 'offline', country: 'US', at: Date.parse('2026-11-15T10:00:00Z'), points: [] } },
+        ],
+      });
       await app.goto();
       await store.install();
       await app.startBlankProject();
@@ -428,6 +438,10 @@ test.describe('growth keywords', () => {
       expect(offline.countries.US.rank).toBeNull();
       expect(offline.countries.US.missesInARow).toBe(9);
       expect(offline.countries.US.changes.day).toEqual({ since: dayString(-1), from: null, to: null });
+      // Popularity rides along: the latest week, and the move since a week four to six weeks before it.
+      expect(ranks.popularitySource).toMatch(/Apple Ads/);
+      expect(online.countries.US.popularity).toEqual({ score: 46, tier: 3, week: '2026-11-08', change: { since: '2026-10-11', by: 6 } });
+      expect(offline.countries.US.popularity).toEqual({ score: null, asked: '2026-11-15' });
 
       const one = JSON.parse((await mcpCall(tauri, 'list_store_keywords', { keyword: 'Offline', country: 'United States' }, true)).text);
       expect(one.keywords).toHaveLength(1);

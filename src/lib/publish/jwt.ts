@@ -1,16 +1,20 @@
-// Signed JWTs for the two store APIs, using WebCrypto only.
+// Signed JWTs for the store APIs and Apple Ads, using WebCrypto only.
 //
-// Both stores authenticate a machine, not a person, and both do it with a
-// short-lived self-signed JWT:
+// Each one authenticates a machine, not a person, with a short-lived
+// self-signed JWT:
 //
 //   App Store Connect  ES256 over a P-256 key, `aud: appstoreconnect-v1`
 //   Google Play        RS256 over the service account key, exchanged at
 //                      oauth2.googleapis.com for a real access token
+//   Apple Ads          ES256 over a P-256 key, `aud: https://appleid.apple.com`,
+//                      exchanged at appleid.apple.com for an access token
 //
-// Both private keys arrive as PKCS#8 PEM (Apple's .p8 file, and the
-// `private_key` field inside a Google service account JSON), so one parser
-// covers both. WebCrypto's ECDSA signatures are already raw r||s, which is
-// exactly what JWS ES256 wants, so nothing has to unpack DER.
+// The store keys arrive as PKCS#8 PEM (Apple's .p8 file, and the
+// `private_key` field inside a Google service account JSON). An Apple Ads key
+// is one the app made (PKCS#8) or one made with OpenSSL as Apple's guide
+// shows, which writes an "EC PRIVATE KEY" (SEC1) that is wrapped as PKCS#8
+// before WebCrypto sees it. WebCrypto's ECDSA signatures are already raw
+// r||s, which is exactly what JWS ES256 wants, so nothing has to unpack DER.
 
 /** Base64url with the padding stripped, per RFC 7515. */
 function base64UrlEncode(input: Uint8Array | string): string {
@@ -70,6 +74,16 @@ function derEncode(tag: number, body: Uint8Array): Uint8Array {
   return out;
 }
 
+function concatBytes(parts: Uint8Array[]): Uint8Array {
+  const out = new Uint8Array(parts.reduce((sum, part) => sum + part.length, 0));
+  let at = 0;
+  for (const part of parts) {
+    out.set(part, at);
+    at += part.length;
+  }
+  return out;
+}
+
 function derChildren(der: Uint8Array, start: number, end: number): Uint8Array[] {
   const children: Uint8Array[] = [];
   for (let at = start; at < end; ) {
@@ -100,34 +114,72 @@ export function withoutEcParameters(der: Uint8Array): Uint8Array | null {
     const fields = derChildren(octets, ecKey.start, ecKey.end);
     const kept = fields.filter((field) => field[0] !== 0xa0);
     if (kept.length === fields.length) return null;
-    const join = (parts: Uint8Array[]) => {
-      const out = new Uint8Array(parts.reduce((sum, part) => sum + part.length, 0));
-      let at = 0;
-      for (const part of parts) {
-        out.set(part, at);
-        at += part.length;
-      }
-      return out;
-    };
-    const inner = derEncode(0x04, derEncode(0x30, join(kept)));
-    return derEncode(0x30, join([version, algorithm, inner, ...rest]));
+    const inner = derEncode(0x04, derEncode(0x30, concatBytes(kept)));
+    return derEncode(0x30, concatBytes([version, algorithm, inner, ...rest]));
   } catch {
     return null;
   }
 }
 
+/** A PKCS#8 key's version and algorithm for P-256: 0, then id-ecPublicKey with prime256v1. */
+const P256_PKCS8_HEAD = new Uint8Array([
+  0x02, 0x01, 0x00, 0x30, 0x13, 0x06, 0x07, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01, 0x06, 0x08, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07,
+]);
+
+/**
+ * An "EC PRIVATE KEY" (SEC1, RFC 5915) as a PKCS#8 key, the one EC private
+ * key form WebCrypto imports. `openssl ecparam -genkey`, the command in
+ * Apple's Apple Ads guide, writes SEC1. Exported for tests.
+ */
+export function sec1ToPkcs8(sec1: Uint8Array): Uint8Array {
+  return derEncode(0x30, concatBytes([P256_PKCS8_HEAD, derEncode(0x04, sec1)]));
+}
+
+/**
+ * The DER bytes of a private key PEM, as PKCS#8 whichever of the two forms it
+ * came in. `openssl ecparam -genkey` without `-noout` writes an "EC
+ * PARAMETERS" block before the key, so only the key's own block is read.
+ */
+function privateKeyDer(pem: string): Uint8Array {
+  const text = pem.replace(/\\n/g, '\n');
+  const block = /-----BEGIN (EC )?PRIVATE KEY-----[\s\S]*?-----END (?:EC )?PRIVATE KEY-----/.exec(text);
+  const der = pemToDer(block ? block[0] : text);
+  return block?.[1] ? sec1ToPkcs8(der) : der;
+}
+
+function toPem(label: string, der: Uint8Array): string {
+  let binary = '';
+  der.forEach((byte) => {
+    binary += String.fromCharCode(byte);
+  });
+  const lines = btoa(binary).match(/.{1,64}/g) ?? [];
+  return [`-----BEGIN ${label}-----`, ...lines, `-----END ${label}-----`, ''].join('\n');
+}
+
+/**
+ * A new P-256 key pair as PEM: the private key as PKCS#8, the public key as
+ * the SubjectPublicKeyInfo that `openssl ec -pubout` writes, which is what
+ * Apple Ads asks for.
+ */
+export async function generateEcKeyPair(): Promise<{ privateKeyPem: string; publicKeyPem: string }> {
+  const pair = (await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify'])) as CryptoKeyPair;
+  const [pkcs8, spki] = await Promise.all([crypto.subtle.exportKey('pkcs8', pair.privateKey), crypto.subtle.exportKey('spki', pair.publicKey)]);
+  return { privateKeyPem: toPem('PRIVATE KEY', new Uint8Array(pkcs8)), publicKeyPem: toPem('PUBLIC KEY', new Uint8Array(spki)) };
+}
+
 async function importKey(
   pem: string,
-  algorithm: EcKeyImportParams | RsaHashedImportParams
+  algorithm: EcKeyImportParams | RsaHashedImportParams,
+  extractable = false
 ): Promise<CryptoKey> {
-  const der = pemToDer(pem);
+  const der = algorithm.name === 'ECDSA' ? privateKeyDer(pem) : pemToDer(pem);
   try {
-    return await crypto.subtle.importKey('pkcs8', der as BufferSource, algorithm, false, ['sign']);
+    return await crypto.subtle.importKey('pkcs8', der as BufferSource, algorithm, extractable, ['sign']);
   } catch (error) {
     const plain = algorithm.name === 'ECDSA' ? withoutEcParameters(der) : null;
     if (plain) {
       try {
-        return await crypto.subtle.importKey('pkcs8', plain as BufferSource, algorithm, false, ['sign']);
+        return await crypto.subtle.importKey('pkcs8', plain as BufferSource, algorithm, extractable, ['sign']);
       } catch {
         // Not the curve field, then: reported below.
       }
@@ -137,6 +189,18 @@ async function importKey(
       'That private key could not be read. It has to be the unmodified key file in PKCS#8 PEM form.'
     );
   }
+}
+
+/**
+ * The public half of a P-256 private key, as the SubjectPublicKeyInfo PEM
+ * Apple Ads asks for. The private key's JWK carries the public point, so
+ * nothing has to do curve arithmetic here.
+ */
+export async function publicKeyOf(privateKeyPem: string): Promise<string> {
+  const key = await importKey(privateKeyPem, { name: 'ECDSA', namedCurve: 'P-256' }, true);
+  const jwk = await crypto.subtle.exportKey('jwk', key);
+  const point = await crypto.subtle.importKey('jwk', { kty: jwk.kty, crv: jwk.crv, x: jwk.x, y: jwk.y, ext: true }, { name: 'ECDSA', namedCurve: 'P-256' }, true, ['verify']);
+  return toPem('PUBLIC KEY', new Uint8Array(await crypto.subtle.exportKey('spki', point)));
 }
 
 async function sign(
@@ -180,6 +244,36 @@ export async function createAppStoreConnectJwt(params: {
       iat: now - 60,
       exp: now + Math.min(params.lifetimeSeconds ?? 900, 1200),
       aud: 'appstoreconnect-v1',
+    },
+    key,
+    { name: 'ECDSA', hash: 'SHA-256' }
+  );
+}
+
+/**
+ * The client secret Apple Ads trades for an access token at
+ * appleid.apple.com. Apple takes up to 180 days; a day is plenty, since a new
+ * one is signed for every token.
+ */
+export async function createAppleAdsClientSecret(params: {
+  clientId: string;
+  teamId: string;
+  keyId: string;
+  privateKeyPem: string;
+  lifetimeSeconds?: number;
+  now?: number;
+}): Promise<string> {
+  const key = await importKey(params.privateKeyPem, { name: 'ECDSA', namedCurve: 'P-256' });
+  const now = Math.floor((params.now ?? Date.now()) / 1000);
+  return sign(
+    { alg: 'ES256', kid: params.keyId },
+    {
+      sub: params.clientId,
+      aud: 'https://appleid.apple.com',
+      // A minute back, as for App Store Connect: this computer's clock can run ahead of Apple's.
+      iat: now - 60,
+      exp: now + Math.min(params.lifetimeSeconds ?? 86_400, 179 * 86_400),
+      iss: params.teamId,
     },
     key,
     { name: 'ECDSA', hash: 'SHA-256' }

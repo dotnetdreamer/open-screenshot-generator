@@ -370,6 +370,14 @@ html {
   scroll-behavior: smooth;
 }
 
+/* The page itself never bounces past its edges. In the desktop app's web view
+   a trackpad flick otherwise pulls the whole window's content away and shows
+   the empty view behind it. Panels that scroll keep scrolling. */
+html,
+body {
+  overscroll-behavior: none;
+}
+
 /* Styles for scaled artboards */
 .artboard {
   transform-origin: top left;
