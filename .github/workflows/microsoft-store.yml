@@ -1,0 +1,246 @@
+name: Microsoft Store (Windows)
+# Builds the Windows app as an MSIX and sends it to the Microsoft Store. It
+# makes no GitHub release and doesn't touch the other platforms or the update
+# server, so the Store can get a build without a new desktop release.
+#
+#   version_change: none (default) sends the version that is in the repo now.
+#         patch, minor or major raise it first, for when the Store already has
+#         this version. Each package needs a higher version than the last.
+#   version: an exact version instead, like 1.2.0. It replaces version_change.
+#   dry_run: build the MSIX and attach it to the run without sending it.
+#
+# A raised version is committed to the branch the run started on, but only
+# after the Store accepts the submission. The next desktop release then
+# continues from it rather than reusing a number the Store already has.
+#
+# Setup (the Store credentials and MSSTORE_PRODUCT_ID): docs/DESKTOP.md,
+# "Publishing from GitHub Actions".
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_change:
+        description: 'Usually keep "none": the Store gets the version that is in the repo now. Pick patch, minor or major only if the Store already has that version'
+        type: choice
+        options: [none, patch, minor, major]
+        default: none
+      version:
+        description: 'Usually leave empty. Type a number like 1.2.0 only to pick the version yourself (it replaces the choice above)'
+        type: string
+        default: ''
+      dry_run:
+        description: 'Test run: build the Store package and attach it to the run, but do not send it'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+# The same group as the desktop release. Both can commit a version change to
+# the default branch, so one run waits for the other.
+concurrency:
+  group: desktop-release
+  cancel-in-progress: false
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.pick.outputs.version }}
+      changed: ${{ steps.pick.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Inputs reach the shell through the environment, so nothing typed into
+      # the form runs as code.
+      - name: Pick the version
+        id: pick
+        shell: bash
+        env:
+          EXACT: ${{ inputs.version }}
+          CHANGE: ${{ inputs.version_change }}
+          DRY_RUN: ${{ inputs.dry_run }}
+          PRODUCT_ID: ${{ vars.MSSTORE_PRODUCT_ID }}
+        run: |
+          set -euo pipefail
+          current=$(node -p "require('./src-tauri/tauri.conf.json').version")
+
+          selector="$(echo "$EXACT" | tr -d '[:space:]')"
+          if [ "$selector" = "$current" ]; then selector=''; fi
+          if [ -z "$selector" ] && [ "$CHANGE" != 'none' ]; then selector="$CHANGE"; fi
+
+          # set-version.mjs refuses a version that is not newer than the
+          # current one, so a typo can't send an older build.
+          if [ -n "$selector" ]; then
+            version=$(node scripts/set-version.mjs "$selector" --dry-run)
+          else
+            version="$current"
+          fi
+
+          case "$version" in
+            0.*)
+              echo "::error::The Microsoft Store rejects a version that starts with 0, and this run would send ${version}."
+              exit 1 ;;
+          esac
+          if [ "$DRY_RUN" != 'true' ] && [ -z "$PRODUCT_ID" ]; then
+            echo "::error::The MSSTORE_PRODUCT_ID repository variable is not set. See docs/DESKTOP.md, \"Publishing from GitHub Actions\"."
+            exit 1
+          fi
+
+          changed=false
+          if [ "$version" != "$current" ]; then changed=true; fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "changed=${changed}" >> "$GITHUB_OUTPUT"
+          echo "Microsoft Store package for v${version}. The repo has ${current}. Test run: ${DRY_RUN}." >> "$GITHUB_STEP_SUMMARY"
+
+  build:
+    needs: version
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - run: npm ci
+
+      # Changes this checkout only. The branch gets the new version from the
+      # record-version job, once the Store has accepted the package.
+      - name: Set the version
+        if: needs.version.outputs.changed == 'true'
+        run: node scripts/set-version.mjs '${{ needs.version.outputs.version }}'
+
+      # The same settings as the Windows leg of desktop.yml, which explains
+      # each one. The updater overlay is left out: inside an MSIX the app never
+      # checks for updates, because the Store updates it.
+      - name: Build the exe
+        env:
+          NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_ID: ${{ vars.NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_ID }}
+          NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_SECRET: ${{ secrets.NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_SECRET || vars.NEXT_PUBLIC_GOOGLE_DESKTOP_CLIENT_SECRET }}
+          NEXT_PUBLIC_GITHUB_CLIENT_ID: ${{ vars.NEXT_PUBLIC_GITHUB_CLIENT_ID }}
+          NEXT_PUBLIC_TRANSLATION_PRIMARY_URL: ${{ vars.NEXT_PUBLIC_TRANSLATION_PRIMARY_URL }}
+          NEXT_PUBLIC_TRANSLATION_FALLBACK_URL: ${{ vars.NEXT_PUBLIC_TRANSLATION_FALLBACK_URL }}
+          NEXT_PUBLIC_DISCOVER_URL: ${{ vars.NEXT_PUBLIC_DISCOVER_URL }}
+          NEXT_PUBLIC_COLLAB_URL: ${{ vars.NEXT_PUBLIC_COLLAB_URL }}
+          NEXT_PUBLIC_TURN_ENDPOINT: ${{ vars.NEXT_PUBLIC_TURN_ENDPOINT }}
+          NEXT_PUBLIC_STUN_URLS: ${{ vars.NEXT_PUBLIC_STUN_URLS }}
+          RUSTFLAGS: '-C target-feature=+crt-static'
+        run: npm run tauri -- build --no-bundle
+
+      # Unsigned on purpose: Microsoft signs the package after certification.
+      - name: Pack the MSIX
+        run: node scripts/msix-pack.mjs
+
+      - name: Upload the MSIX as a run artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: microsoft-store-msix
+          if-no-files-found: error
+          path: src-tauri/target/release/bundle/msix/*.msix
+
+  # msstore copies the last published submission, swaps in the new package,
+  # keeps the listing and sends it to certification. It waits until Partner
+  # Center accepts the submission, a few minutes. Certification itself can
+  # take days. The credentials live in the microsoft-store environment, so no
+  # other job can read them.
+  submit:
+    needs: [version, build]
+    if: ${{ !inputs.dry_run }}
+    runs-on: windows-latest
+    environment: microsoft-store
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: microsoft-store-msix
+          path: msix
+
+      - name: Check the Store credentials
+        shell: bash
+        env:
+          TENANT_ID: ${{ secrets.MSSTORE_TENANT_ID }}
+          SELLER_ID: ${{ secrets.MSSTORE_SELLER_ID }}
+          CLIENT_ID: ${{ secrets.MSSTORE_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
+        run: |
+          missing=''
+          [ -n "$TENANT_ID" ] || missing="$missing MSSTORE_TENANT_ID"
+          [ -n "$SELLER_ID" ] || missing="$missing MSSTORE_SELLER_ID"
+          [ -n "$CLIENT_ID" ] || missing="$missing MSSTORE_CLIENT_ID"
+          [ -n "$CLIENT_SECRET" ] || missing="$missing MSSTORE_CLIENT_SECRET"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing secrets in the microsoft-store environment:${missing}. See docs/DESKTOP.md, \"Publishing from GitHub Actions\"."
+            exit 1
+          fi
+
+      # Installs the Microsoft Store Developer CLI (msstore).
+      - uses: microsoft/microsoft-store-apppublisher@v1.4
+
+      - name: Sign in to Partner Center
+        env:
+          TENANT_ID: ${{ secrets.MSSTORE_TENANT_ID }}
+          SELLER_ID: ${{ secrets.MSSTORE_SELLER_ID }}
+          CLIENT_ID: ${{ secrets.MSSTORE_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.MSSTORE_CLIENT_SECRET }}
+        run: msstore reconfigure --tenantId $env:TENANT_ID --sellerId $env:SELLER_ID --clientId $env:CLIENT_ID --clientSecret $env:CLIENT_SECRET
+
+      # The .msix path is the positional argument, which the CLI's MSIX
+      # publisher takes as is. The docs' --inputFile flag does not exist; the
+      # real one is --inputDirectory, for a folder to search.
+      - name: Submit to the Microsoft Store
+        env:
+          PRODUCT_ID: ${{ vars.MSSTORE_PRODUCT_ID }}
+        run: |
+          $msix = Get-ChildItem msix -Filter *.msix | Select-Object -First 1
+          msstore publish $msix.FullName --appId $env:PRODUCT_ID
+
+      - name: Summary
+        run: |
+          "Submitted v${{ needs.version.outputs.version }} to the Microsoft Store. Follow certification at https://partner.microsoft.com/dashboard/products/${{ vars.MSSTORE_PRODUCT_ID }}/overview" >> $env:GITHUB_STEP_SUMMARY
+
+  # Commits a raised version once the Store has it. It checks out the branch as
+  # it is now, not as it was when the run started, so commits pushed during
+  # the run are kept.
+  record-version:
+    needs: [version, submit]
+    if: ${{ !inputs.dry_run && needs.version.outputs.changed == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Commit the version the Store got
+        shell: bash
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          current=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          if ! node scripts/set-version.mjs "$VERSION" --dry-run >/dev/null 2>&1; then
+            echo "The branch already has ${current}, which is not older than ${VERSION}. Nothing to commit."
+            exit 0
+          fi
+          node scripts/set-version.mjs "$VERSION"
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package.json cli/package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml src-tauri/Cargo.lock
+          git commit -m "store: v${VERSION} sent to the Microsoft Store"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+          echo "Committed v${VERSION} to ${GITHUB_REF_NAME}." >> "$GITHUB_STEP_SUMMARY"

@@ -87,7 +87,7 @@ What happens on the way:
 4. Each leg collects its signed payloads with `scripts/updates/collect.mjs` and attaches them to the run.
 5. Once all three legs have built, the `updates` job merges what they collected into one manifest, uploads the files, publishes the manifest, and only then moves the channel to the new version. An installed copy never sees half a release, and a release that failed on one platform reaches none.
 
-A dry run builds and signs everything and attaches the collected files to the run, but publishes nothing. The Microsoft Store and Mac App Store builds are unaffected: the Store takes the MSIX as before, and the App Store build is made by hand without the updater.
+A dry run builds and signs everything and attaches the collected files to the run, but publishes nothing. The Microsoft Store and Mac App Store builds are separate: the Microsoft Store gets its MSIX from the **Microsoft Store (Windows)** workflow, and the App Store build comes from the `mac-app-store-build` skill. Neither includes the updater.
 
 ## Steering a rollout
 

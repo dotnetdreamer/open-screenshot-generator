@@ -110,13 +110,15 @@ tag. Go to **Actions > Release desktop app (Tauri) > Run workflow** and pick:
 | `bump` | `patch` (default), `minor` or `major`, applied to the current version |
 | `version` | An exact version, e.g. `1.2.0`. Overrides `bump` when set. |
 | `dry_run` | Build the installers and attach them to the run as artifacts. No version bump, no tag, no release. |
-| `microsoft_store` | Also pack the Windows exe as an MSIX and submit it to the Microsoft Store. With `dry_run` the MSIX is attached to the run and not submitted. Needs version 1.0.0 or later and the setup in [Publishing from GitHub Actions](#publishing-from-github-actions). |
 | `update_channel`, `update_rollout`, `update_notes`, `update_critical` | How the release reaches copies already installed, through our update server. Only when in-app updates are set up; see [UPDATES.md](UPDATES.md#releasing). |
 
 A real run bumps the four files, commits that as `release: v<version>` on the
 default branch, tags it, builds Windows, macOS and Linux, and publishes a
 GitHub release with the installers attached. Use `dry_run` first when you have
 changed anything that could affect the build.
+
+The Microsoft Store has its own workflow, **Microsoft Store (Windows)**. See
+[Publishing from GitHub Actions](#publishing-from-github-actions).
 
 The bundles are unsigned, so users get a SmartScreen or Gatekeeper prompt on
 first launch (the release notes tell them how to get past it). See the store
@@ -177,7 +179,7 @@ Installer, "Windows 11 SDK").
 4. Upload that file on the submission's Packages page. In the Store listing,
    upload `src-tauri/msix/listing/app-tile-icon-300x300.png` as the "1:1 App
    tile icon". The Store shows it in place of the package's StoreLogo.
-5. For an update, release a new version with `microsoft_store` ticked (see
+5. For an update, run **Microsoft Store (Windows)** from the Actions tab (see
    [Publishing from GitHub Actions](#publishing-from-github-actions)), or run
    `npm run tauri:msix` again and upload the new package by hand. Each upload
    needs a higher version than the last.
@@ -212,19 +214,31 @@ October 2026 (policy 10.6.3).
 
 ### Publishing from GitHub Actions
 
-Once the app is live in the Store, a release can submit its update: tick
-`microsoft_store` when you run **Release desktop app (Tauri)**. The Windows
-leg packs the MSIX with `msix-pack.mjs` and attaches it to the run, then the
-`microsoft-store` job submits it with Microsoft's
+Once the app is live in the Store, send it an update with **Actions >
+Microsoft Store (Windows) > Run workflow**. It builds only the Windows exe,
+packs it with `msix-pack.mjs`, attaches the MSIX to the run, and the `submit`
+job sends it with Microsoft's
 [Store Developer CLI](https://learn.microsoft.com/windows/apps/publish/msstore-dev-cli/overview)
 (`msstore publish`). That job copies the last published submission, swaps in
 the new package, keeps the listing, and sends it to certification. It waits
 only until Partner Center accepts the submission, a few minutes, and
-certification carries on in Partner Center for up to a few days.
+certification carries on in Partner Center for up to a few days. The run makes
+no GitHub release and doesn't touch the update server or the other platforms.
+
+| Input | Effect |
+| --- | --- |
+| `version_change` | `none` (default) sends the version that is in the repo now. `patch`, `minor` or `major` raises it first. Pick one only when the Store already has the current version, because every package needs a higher version than the last. |
+| `version` | An exact version, e.g. `1.2.0`. Replaces `version_change` when set. |
+| `dry_run` | Build the MSIX and attach it to the run as `microsoft-store-msix`, without sending it. |
+
+A raised version is committed to the branch as `store: v<version> sent to the
+Microsoft Store`, and only after the Store accepts the submission. It gets no
+tag or GitHub release. The next desktop release continues from that version,
+so it never reuses a number the Store already has.
 
 `msstore publish` deletes any draft submission you have open in Partner Center
 and starts again from the last published one. Finish or discard a draft before
-you run a Store release.
+you run it.
 
 **One-time setup**
 
@@ -253,27 +267,27 @@ you run a Store release.
 
 5. Under Settings, then Secrets and variables, then Actions, add a repository
    **variable** `MSSTORE_PRODUCT_ID`: the Store ID on the app's Product
-   identity page (it starts with 9). The release workflow checks it before it
-   tags anything, so it has to be a repository variable, not an environment
-   one.
+   identity page (it starts with 9). The workflow's first job checks it before
+   anything is built, so it has to be a repository variable, not an
+   environment one.
 
-Entra client secrets expire (24 months at most). When the `microsoft-store` job
-fails at "Sign in to Partner Center", create a new secret and replace
+Entra client secrets expire (24 months at most). When the `submit` job fails at
+"Sign in to Partner Center", create a new secret and replace
 `MSSTORE_CLIENT_SECRET`.
 
 **The first submission is made by hand.** The Store API only updates an app
 that has been published once, and the first submission also needs the listing
-and the age rating questionnaire, which the release workflow does not fill in.
+and the age rating questionnaire, which the workflow does not fill in.
 
-1. Release 1.0.0 or later with `microsoft_store` left off.
-2. Run the workflow again with `dry_run` and `microsoft_store` ticked. A dry
-   run packs the version already in the repo, so this gives you the released
-   version's MSIX as the `microsoft-store-msix` artifact.
+1. Release 1.0.0 or later with **Release desktop app (Tauri)**.
+2. Run **Microsoft Store (Windows)** with `dry_run` ticked. That gives you the
+   MSIX as the `microsoft-store-msix` artifact.
 3. Upload it on the submission's Packages page, complete the listing (with
    `src-tauri/msix/listing/app-tile-icon-300x300.png` as the 1:1 App tile
    icon), and submit.
 
-From the next release on, tick `microsoft_store` and the workflow submits it.
+After that, run **Microsoft Store (Windows)** without `dry_run` and it submits
+the package itself.
 
 ### Tiles and icons
 
