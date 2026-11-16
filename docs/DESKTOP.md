@@ -384,6 +384,12 @@ membership (99 USD/year) and a Mac (or the macOS CI job) to build and sign.
    processes the build, select it in the version draft and complete the remaining
    listing and compliance requirements before submitting for review.
 
+Steps 4 to 6 are scripted in
+[.claude/skills/mac-app-store-build/build.mjs](../.claude/skills/mac-app-store-build/SKILL.md).
+It builds a clean checkout of one commit, takes the next build number from App
+Store Connect, and validates the package. It uploads only when you pass `--upload`.
+Run it with `--check` first.
+
 For distribution OUTSIDE the Mac App Store (direct .dmg download), use a
 "Developer ID Application" certificate instead, skip the sandbox overlay, and
 notarize: set `APPLE_ID`, `APPLE_PASSWORD` (app-specific password), and
