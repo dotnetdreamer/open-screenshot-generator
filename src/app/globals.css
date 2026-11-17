@@ -612,3 +612,26 @@ html[data-growth-browser] [data-toast-viewport] {
     animation: none;
   }
 }
+
+/* The Every device view (devices/EveryDeviceDialog.tsx): when the device
+   changes, an artboard's preview stays mounted, so its size and every layer's
+   box glide to the new layout instead of jumping. Text size glides with them. */
+.osg-morph,
+.osg-morph > div,
+.osg-morph [data-artboard-surface],
+.osg-morph [data-artboard-surface] > * {
+  transition-property: width, height, left, top, transform;
+  transition-duration: 520ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.osg-morph [data-artboard-surface] > * * {
+  transition-property: font-size;
+  transition-duration: 520ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .osg-morph,
+  .osg-morph * {
+    transition: none !important;
+  }
+}

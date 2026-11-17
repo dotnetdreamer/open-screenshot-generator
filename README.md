@@ -15,6 +15,10 @@ https://github.com/user-attachments/assets/1b1d7ff4-5f89-4fc5-8e48-efbe89782562
 
 ## What's new
 
+### 17 November 2026: Every device
+
+Make your screenshots once and see them laid out again for the iPad, Android phones and tablets, and the Mac. Pick another layout for any screenshot, add an iPad or Mac screenshot where a device needs its own, and export every set with your project. Read [how Every device works](docs/DEVICES.md).
+
 ### 15 November 2026: Growth, Capture and a website for your app
 
 See your App Store and Google Play downloads, ratings and reviews in [Growth](docs/GROWTH.md), keep an eye on competing apps and see where your app shows up in App Store search. In the desktop app, [Capture](docs/CAPTURE.md) takes screenshots of your app in every language, right from your computer or Android phone. [Website](docs/WEBSITE.md) makes your app's home, support and privacy pages and puts the pages online for free on GitHub.
@@ -40,6 +44,7 @@ You can also:
 
 - Choose from 103 templates for app screenshots, Apple Watch, Mac, preview videos, and Google Play feature graphics.
 - Make one layout for several languages and edit each language's text and screenshots.
+- See your design laid out again for the iPad, Android tablets and the Mac, and export every set at once.
 - Make preview videos from a screen recording.
 - Take screenshots of your app straight from the iPhone Simulator or an Android emulator, in every language, in the desktop app.
 - Ask the AI agent to pick a template, place screenshots, and draft text.
@@ -72,6 +77,7 @@ Both versions use the same editor. The desktop app adds features that need acces
 | Feature | Web editor | Desktop app |
 | --- | --- | --- |
 | Templates, design tools, languages, store size PNG export | Yes | Yes |
+| Every device: your design laid out for iPad, Android and Mac sizes | Yes | Yes |
 | Preview video export | In Chrome or Edge | Yes |
 | AI agent with your own API key | Yes | Yes |
 | AI agent with an existing assistant account | Copy and paste, or use the [companion extension](extension/README.md) | Built in assistant window |

@@ -21,6 +21,7 @@ import {
   LightbulbIcon,
   SmartphoneIcon,
   TabletIcon,
+  LaptopIcon,
   type LucideIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -106,25 +107,26 @@ function Control({ children }: { children: React.ReactNode }) {
 
 /** Example project names for the first tip, with the screenshot size each device needs. */
 const SIZE_EXAMPLES: { icon: LucideIcon; name: string; size: string }[] = [
-  { icon: SmartphoneIcon, name: 'MyApp iPhone', size: '1206 × 2622' },
-  { icon: TabletIcon, name: 'MyApp iPad 13-inch', size: '2064 × 2752' },
-  { icon: SmartphoneIcon, name: 'MyApp Android phone', size: '1080 × 1920' },
-  { icon: TabletIcon, name: 'MyApp Android tablet', size: '1440 × 2560' },
+  { icon: SmartphoneIcon, name: 'iPhone', size: '1206 × 2622' },
+  { icon: TabletIcon, name: 'iPad 13-inch', size: '2064 × 2752' },
+  { icon: SmartphoneIcon, name: 'Android phone', size: '1080 × 1920' },
+  { icon: TabletIcon, name: '10-inch tablet', size: '1440 × 2560' },
+  { icon: LaptopIcon, name: 'Mac', size: '2560 × 1600' },
 ];
 
 const TIPS: Tip[] = [
   {
     id: 'one-project-per-size',
     icon: LayersIcon,
-    title: 'One project for each device',
-    lead: () => 'Keep your iPhone, iPad and Android screenshots in separate projects.',
+    title: 'One design for every device',
+    lead: () => 'Make your screenshots once, and the app lays them out again for iPad, Android and Mac.',
     body: ({ touch }) => (
       <div className="space-y-3">
         <p className="text-sm leading-relaxed text-muted-foreground">
-          The App Store and Google Play want a different screenshot size for each device. If a
-          project has just one device, the phone button <ToolbarIcon icon={SmartphoneIcon} /> in
-          the toolbar switches the whole project to another device at once. Mix devices in one
-          project and you&apos;ll be fixing layouts by hand.
+          The App Store and Google Play want a different screenshot size for each device.{' '}
+          {touch ? 'Tap' : 'Click'} the phone button <ToolbarIcon icon={SmartphoneIcon} /> in the toolbar
+          and choose <Control>Every device</Control> to see your screenshots on each one. Turn on
+          Export next to a device there to get its screenshots too.
         </p>
         <div className="rounded-lg border bg-muted/30 p-3">
           <p className="mb-1.5 text-xs text-muted-foreground">For example:</p>
@@ -140,28 +142,11 @@ const TIPS: Tip[] = [
             ))}
           </ul>
         </div>
-        <div className="text-xs leading-relaxed text-muted-foreground">
-          <p>Finished your iPhone project? Turn a copy into the iPad project:</p>
-          <ol className="mt-1 list-decimal space-y-1 pl-4">
-            <li>
-              {touch ? 'Press and hold' : 'Right-click'} the project&apos;s tab at the top and choose{' '}
-              <Control>Duplicate project</Control>.
-            </li>
-            <li>
-              {touch ? 'Tap' : 'Click'} the phone button <ToolbarIcon icon={SmartphoneIcon} /> and pick{' '}
-              <Control>iPad 13-inch</Control>.
-            </li>
-            <li>
-              {touch ? (
-                <>
-                  Press and hold the copy&apos;s tab, choose <Control>Rename</Control> and type a new name.
-                </>
-              ) : (
-                'Double-click the copy\'s tab and type a new name.'
-              )}
-            </li>
-          </ol>
-        </div>
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          Want to change the iPad screenshots by hand? In <Control>Every device</Control>, pick{' '}
+          <Control>iPad 13-inch</Control> and choose <Control>Make an iPad 13-inch project</Control>. Your
+          iPhone project stays the same.
+        </p>
       </div>
     ),
   },

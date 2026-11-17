@@ -176,8 +176,8 @@ export const DEVICE_PICKER_GROUPS: ReadonlyArray<{
 }));
 
 // The Devices toolbar formats combine a phone platform and canvas size, or
-// an App Store or Play Store tablet preset.
-export type DeviceFormat = SwapPlatform | 'ios-large' | 'ipad-pro-13' | 'ipad-11' | 'tablet-7' | 'tablet-10';
+// an App Store or Play Store tablet preset, or the Mac App Store's size.
+export type DeviceFormat = SwapPlatform | 'ios-large' | 'ipad-pro-13' | 'ipad-11' | 'tablet-7' | 'tablet-10' | 'mac';
 
 /**
  * The format the project's device mockups are currently on: a phone platform
@@ -366,6 +366,9 @@ export interface DeviceFormatPreset {
   //   with sides 320-3840px — 1080×1920 portrait.
   // - tablets: Play Store 9:16; 7-inch allows sides 320-3840px, 10-inch
   //   requires 1080-7680px.
+  // - mac: Mac App Store 16:10 at 2560×1600, the size the Mac templates and
+  //   the Canvas Size dialog recommend. 2880×1800, 1440×900 and 1280×800 go
+  //   in the same slot.
   artboard: { width: number; height: number };
 }
 
@@ -377,6 +380,7 @@ export const DEVICE_FORMAT_PRESETS: DeviceFormatPreset[] = [
   { id: 'ipad-11', label: 'iPad 11-inch', artboard: { width: 1668, height: 2420 } },
   { id: 'tablet-7', label: '7-inch tablet', artboard: { width: 1080, height: 1920 } },
   { id: 'tablet-10', label: '10-inch tablet', artboard: { width: 1440, height: 2560 } },
+  { id: 'mac', label: 'Mac', artboard: { width: 2560, height: 1600 } },
 ];
 
 // The formats Apple App Store Connect accepts, in submission-priority order.
@@ -459,6 +463,9 @@ export function convertArtboardsToFormat(
   const isTablet =
     (DEVICE_REGISTRY[preset.id as DeviceType] as DeviceDescriptor | undefined)?.category ===
     'tablet';
+  // The Mac size swaps nothing: a phone has no Mac counterpart, and a Mac
+  // mockup is already on the format. Resizing still happens.
+  const isMac = preset.id === 'mac';
   const phonePlatform = preset.id === 'ios-large' ? 'ios' : preset.id as SwapPlatform;
   const next = artboards.map((ab) => {
     if (isCreativeBoard(ab)) return ab;
@@ -466,7 +473,7 @@ export function convertArtboardsToFormat(
     const sameSize = ab.size.width === newW && ab.size.height === newH;
     let elements = scaleElementsToCanvas(ab.elements, ab.size, preset.artboard);
     if (!sameSize) resized++;
-    const deviceIds = elements.filter((el) => el.type === 'device').map((el) => el.id);
+    const deviceIds = isMac ? [] : elements.filter((el) => el.type === 'device').map((el) => el.id);
     for (const id of deviceIds) {
       const device = elements.find(
         (el): el is DeviceFrameElementProps => el.type === 'device' && el.id === id

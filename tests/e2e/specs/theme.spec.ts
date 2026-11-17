@@ -421,7 +421,7 @@ test.describe('settings persistence', () => {
     const tips = page.getByRole('dialog').filter({ has: page.locator('#tips-show-on-startup') });
     await expect(tips).toBeVisible();
     await expect(tips).toContainText(/Tip 1 of \d+/);
-    await expect(tips.getByRole('heading', { name: 'One project for each device' })).toBeVisible();
+    await expect(tips.getByRole('heading', { name: 'One design for every device' })).toBeVisible();
 
     const back = tips.getByRole('button', { name: 'Back' });
     const advance = tips.getByRole('button', { name: /^(Next|Got it)$/ });
@@ -434,7 +434,7 @@ test.describe('settings persistence', () => {
 
     await back.click();
     await expect(tips).toContainText(/Tip 1 of \d+/);
-    await expect(tips.getByRole('heading', { name: 'One project for each device' })).toBeVisible();
+    await expect(tips.getByRole('heading', { name: 'One design for every device' })).toBeVisible();
 
     // The last step's button closes the wizard rather than walking past the end.
     await advance.click();

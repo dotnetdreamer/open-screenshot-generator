@@ -17,6 +17,7 @@ const FORMAT_ALIASES: Readonly<Record<string, DeviceFormat>> = {
   'ipad-11': 'ipad-11',
   'tablet-7': 'tablet-7',
   'tablet-10': 'tablet-10',
+  mac: 'mac',
   'ios-6-3': 'ios',
   'ios-6-9': 'ios-large',
   iphone: 'ios',
@@ -25,6 +26,7 @@ const FORMAT_ALIASES: Readonly<Record<string, DeviceFormat>> = {
   'play-phone': 'android',
   play: 'android',
   'play-10-hd': 'tablet-10',
+  'mac-2560': 'mac',
 };
 
 /** Ways of saying "export the boards at the size they already are". */

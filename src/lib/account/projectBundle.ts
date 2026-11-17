@@ -71,6 +71,26 @@ function localeOverridesOf(artboard: ArtboardState): Record<string, unknown>[] {
 }
 
 /**
+ * Every screenshot added for another device in the Every device view
+ * (`deviceSets[format].screens[elementId]`, and each language's own under
+ * `.localized`). They are `screenshotSrc` records like an element's, so the
+ * same keys find them.
+ */
+function deviceSetShotsOf(artboard: ArtboardState): Record<string, unknown>[] {
+  const rows: Record<string, unknown>[] = [];
+  for (const set of Object.values(artboard.deviceSets ?? {})) {
+    for (const screen of Object.values(set?.screens ?? {})) {
+      if (!screen) continue;
+      rows.push(screen as unknown as Record<string, unknown>);
+      for (const shot of Object.values(screen.localized ?? {})) {
+        if (shot) rows.push(shot as unknown as Record<string, unknown>);
+      }
+    }
+  }
+  return rows;
+}
+
+/**
  * Every media row the project references. Walks elements generically rather
  * than narrowing by element type so legacy `screenVideoMediaId` devices (see
  * src/lib/video/migrateVideoDevices.ts) are picked up too.
@@ -131,6 +151,7 @@ function walkMediaIds(
       take(element as unknown as Record<string, unknown>);
     }
     for (const override of localeOverridesOf(artboard)) take(override);
+    for (const shot of deviceSetShotsOf(artboard)) take(shot);
   }
   return [...ids];
 }
