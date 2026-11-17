@@ -91,6 +91,7 @@ Both versions use the same editor. The desktop app adds features that need acces
 | Growth: competitors' screenshots, ratings, versions and prices in each country, with alerts for new screenshots | App Store apps | App Store and Google Play apps |
 | Growth: your rank in App Store search for each keyword, every day, with ideas for more keywords | Yes | Yes |
 | Website: home, support and privacy pages, put online with your GitHub account | Yes, with a GitHub token until the sign-in service asks for public repositories | Yes |
+| Store compliance: why the stores turn apps down and how to fix it, explained in plain words, plus a checklist before review, the dates new laws and store rules start, and an AI check of your screenshots' words | Yes (the AI check needs an AI set up in the AI panel) | Yes |
 
 ## Command line and coding agents
 
