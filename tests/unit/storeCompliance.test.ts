@@ -378,7 +378,7 @@ test('paths: which files are core, which are guides', () => {
 
 // --- the plain words ----------------------------------------------------------------
 
-/** data/plain-language.json for the made-up playbook, as scripts/plain-language.ts writes it. */
+/** data/plain-language.json for the made-up playbook, as the playbook repository's scripts/plain-language.py writes it. */
 function plainFile(rulesSource = JSON.stringify(RULES), deadlinesSource = JSON.stringify(DEADLINES)): string {
   const rules = parseRules(rulesSource).rules;
   const deadlines = parseDeadlines(deadlinesSource);
@@ -443,6 +443,25 @@ test('plain: the plain words show while they match the playbook, its own words o
   const broken = libraryWith({ 'data/plain-language.json': '{ not json' });
   assert.equal(broken.rules.length, 7);
   assert.ok(broken.rules.every((entry) => !entry.plain));
+});
+
+test('plain: the fingerprints are the ones the playbook repository writes', () => {
+  // The same values as the playbook repository's scripts/test-plain-language.py:
+  // change how either side reads or fingerprints the playbook and one fails.
+  assert.equal(
+    ruleFingerprint({ store: 'apple', guideline: '2.1', title: 'No demo account for the reviewer', detection: 'A login with no demo account in the notes.', fix: 'Put a working demo account in the review notes.' }),
+    '4e5dba76'
+  );
+  assert.equal(ruleFingerprint({ store: 'both', guideline: '', title: 'Café ✓ 😀 “quotes”', detection: 'Naïve résumé\ttab', fix: '' }), '6e9361c5', 'UTF-16 code units');
+  assert.equal(
+    deadlineFingerprint({ jurisdiction: 'European Union (EU)', law: 'EU AI Act Article 50', requirement: 'Tell people they are talking to an AI.', effective: '2024-08-01', grace: '24 months', mandatory: '2026-08-02', enforcement: '2026-08-02' }),
+    '8294a387'
+  );
+  assert.equal(deadlineFingerprint({ jurisdiction: 'Worldwide', law: 'A law', requirement: '', effective: null, grace: null, mandatory: null, enforcement: null }), 'aa227a91');
+  const boxes = checklistItems(
+    parseChecklist('# Checklist\n\n- [ ] Before any section: not a box.\n\n## Start here\n\n- [ ] A working **demo** account is in the review notes.\n- [x] A box that goes on\n  over two lines, with  extra   spaces.\n\n### Group\n\n* [ ] Café ✓ 😀 box.\n')
+  );
+  assert.deepEqual(boxes.map((box) => checklistKey(box.id)), ['2dddae10', '35b8c0d1', '3ac9ecd7']);
 });
 
 test('plain: where a deadline applies, in short words', () => {

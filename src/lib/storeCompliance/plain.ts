@@ -2,9 +2,15 @@
 // lawyers ("QUERY_ALL_PACKAGES declared in AndroidManifest", "Article 50(2)"),
 // and most people who make screenshots are neither. The repository can carry
 // data/plain-language.json beside the playbook's own files: each rule,
-// deadline and checklist box rewritten in plain words, made by
-// scripts/plain-language.ts. The screens show those words and keep the
-// playbook's own a click away, for the developer and for the AI.
+// deadline and checklist box rewritten in plain words. The repository makes
+// and keeps that file itself (its scripts/plain-language.py and the
+// plain-language skill in .claude/skills); this app only reads it. The
+// screens show those words and keep the playbook's own a click away, for
+// the developer and for the AI.
+//
+// The fingerprints below are a contract with that script, which writes them
+// into the file: tests/unit/storeCompliance.test.ts pins their values, and the
+// repository's scripts/test-plain-language.py pins the same ones.
 //
 // Each rule and deadline entry keeps the fingerprint of the playbook's text it
 // was written from. When the playbook rewords a rule or moves a date, the

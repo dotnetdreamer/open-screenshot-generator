@@ -90,7 +90,7 @@ function files(overrides: Record<string, string> = {}): Record<string, string> {
 }
 
 /**
- * plain.ts's fingerprint (FNV-1a, 32 bits), the one scripts/plain-language.ts
+ * plain.ts's fingerprint (FNV-1a, 32 bits), the one the playbook repository's scripts/plain-language.py
  * writes into data/plain-language.json. Copied rather than imported, so a
  * change to it on one side fails here.
  */
