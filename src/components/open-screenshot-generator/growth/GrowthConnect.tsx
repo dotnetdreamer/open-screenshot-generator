@@ -55,6 +55,11 @@ export const FEEDS: Record<GrowthStore, Array<{ feed: GrowthFeed; label: string;
     { feed: 'sales', label: 'Sales and Trends (downloads and earnings)', needs: 'Needs a key with the Admin, Finance or Sales role, and your vendor number' },
     { feed: 'analytics', label: 'App Analytics (times seen and download rate)', needs: 'Needs an Admin key the first time, to turn on App Analytics' },
     { feed: 'ratings', label: 'Ratings per country', needs: 'Needs no key, because ratings are public' },
+    {
+      feed: 'health',
+      label: 'Crashes and freezes',
+      needs: 'From App Analytics too. Apple counts crashes only from people who share analytics with developers',
+    },
   ],
   playstore: [
     { feed: 'listing', label: 'Store page', needs: 'Needs the service account to have access to your app in Play Console' },
@@ -65,6 +70,11 @@ export const FEEDS: Record<GrowthStore, Array<{ feed: GrowthFeed; label: string;
       needs: 'Needs your Cloud Storage URI and the permission to download bulk reports',
     },
     { feed: 'ratings', label: 'Ratings', needs: 'From the same report files as the downloads' },
+    {
+      feed: 'health',
+      label: 'Crashes and freezes',
+      needs: 'Needs the Google Play Developer Reporting API turned on in the Cloud project of your service account',
+    },
   ],
 };
 
@@ -381,6 +391,12 @@ export function GrowthConnect({ desktop, onSync }: { desktop: boolean; onSync: (
                         </span>
                       </p>
                       {status.message && <p className="text-xs">{status.message}</p>}
+                      {status.link && (
+                        <Button size="sm" variant="outline" className="mt-1 h-7 text-xs" onClick={() => void openExternal(status.link!.url)}>
+                          {status.link.label}
+                          <ExternalLinkIcon className="ml-1.5 h-3 w-3" />
+                        </Button>
+                      )}
                       <p className="text-[11px] text-muted-foreground">{needs}</p>
                     </div>
                   </li>

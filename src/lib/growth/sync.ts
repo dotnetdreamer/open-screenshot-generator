@@ -38,6 +38,8 @@ import {
 } from './analyticsReport';
 import { addDays, dayRange, formatDay, normalizeDay, today, windowEndingAt } from './dates';
 import { reportText } from './delimited';
+import { syncAppleHealth } from './healthSync';
+import { instanceDays } from './reportDays';
 import { plural } from './format';
 import {
   announceGrowthChange,
@@ -69,6 +71,7 @@ export const IDLE_STATUS: SyncStatus = {
   sales: { state: 'idle' },
   analytics: { state: 'idle' },
   ratings: { state: 'idle' },
+  health: { state: 'idle' },
 };
 
 export interface SyncOptions {
@@ -114,6 +117,8 @@ export const metaKeys = {
   /** Google Play: the app's name and icon, from its store page, for the app picker. */
   playApp: (appId: string) => `play:app:${appId}`,
 };
+
+export { instanceDays };
 
 const running = new Map<string, Promise<SyncStatus>>();
 
@@ -212,7 +217,7 @@ export function describe(error: unknown): string {
 
 async function runSync(options: SyncOptions): Promise<SyncStatus> {
   const appId = options.app.id;
-  const wanted = new Set<GrowthFeed>(options.feeds ?? ['listing', 'reviews', 'sales', 'analytics', 'ratings']);
+  const wanted = new Set<GrowthFeed>(options.feeds ?? ['listing', 'reviews', 'sales', 'analytics', 'ratings', 'health']);
   const status: SyncStatus = { ...IDLE_STATUS, ...((await readMeta<SyncStatus>(metaKeys.status(appId))) ?? {}) };
   for (const feed of wanted) status[feed] = { ...status[feed], state: 'syncing' };
   const emit = () => options.onStatus?.({ ...status });
@@ -272,7 +277,10 @@ async function runSync(options: SyncOptions): Promise<SyncStatus> {
     run('sales', () => syncSales(options, (value) => setProgress('sales', value))),
     run('analytics', () => syncAnalytics(options, (value) => setProgress('analytics', value))),
   ]);
+  // After App Analytics, whose report request holds the crash and session reports.
+  await run('health', () => syncAppleHealth(options, (value) => setProgress('health', value)));
   // After the numbers, so the sweep can start with the storefronts that matter.
+  // Last of all: its line is the one that says the sync is over.
   await run('ratings', () => syncRatings(options, (value) => setProgress('ratings', value)));
 
   options.onProgress?.(null);
@@ -537,14 +545,6 @@ const DAY_MS = 86_400_000;
  */
 const SNAPSHOT_EVERY_MS = 31 * DAY_MS;
 
-/**
- * How far back a daily file's own days reach. Apple re-sends the last days in
- * full until they are complete: two for App Downloads and three for Discovery
- * and Engagement in Ludo Wala's files of November 2026. An older date in a
- * daily file is a correction.
- */
-const RECENT_DAYS = 4;
-
 /** What the analytics import knows about an app's history, kept between syncs. */
 export interface AnalyticsHistory {
   /**
@@ -693,35 +693,6 @@ async function syncAnalytics(options: SyncOptions, setProgress: (value: SyncProg
   return { state: 'ok', message: asked ? `${reach}. ${gap}, and Growth asked Apple for them again` : `${reach}. ${gap}. The next refresh asks Apple for them again` };
 }
 
-/**
- * The days one analytics file answers for, rows or not. A day in there with
- * no rows is a zero of that report. A day no file answers for stays unknown,
- * and the overview takes its downloads from Sales and Trends (`dayValues`).
- *
- * A snapshot holds the history up to its processing date, quiet days and all.
- * Ludo Wala's, in November 2026, had no rows for Oct 31 and Nov 1: Sales and
- * Trends had no report for Oct 31, and its one download on Nov 1 is the
- * second one App Analytics counts on Nov 2. A daily file holds the day before
- * its processing date and the few before that still filling in, so its days
- * run from its oldest recent row. An older date in it is a correction and
- * stands alone. A day between two files is no file's: Apple deletes a file
- * after 35 days, and developers report daily files that skip a day (forums,
- * thread 825231), so a zero there would be made up.
- */
-export function instanceDays(processingDate: string, snapshot: boolean, rowDates: Iterable<DayString>): DayString[] {
-  const dates = [...new Set(rowDates)].sort();
-  const processed = normalizeDay(processingDate);
-  if (!processed) return dates;
-  if (snapshot) {
-    if (dates.length === 0) return [];
-    const last = dates[dates.length - 1];
-    return dayRange(dates[0], last > processed ? last : processed);
-  }
-  const newest = addDays(processed, -1);
-  const recentFrom = addDays(processed, -RECENT_DAYS);
-  const from = dates.find((date) => date >= recentFrom && date <= newest) ?? newest;
-  return [...new Set([...dates, ...dayRange(from, newest)])].sort();
-}
 
 /**
  * The newest day App Analytics covers, and the days between each report's

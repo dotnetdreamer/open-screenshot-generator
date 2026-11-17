@@ -27,11 +27,15 @@ import type { ListingChange, ListingLocale, ListingSnapshot, ReviewResponse, Sto
 const API = 'https://androidpublisher.googleapis.com/androidpublisher/v3';
 const STORAGE = 'https://storage.googleapis.com/storage/v1';
 
-/** The Play Developer API, and reading the report files in Cloud Storage. */
+/** The Play Developer API, reading the report files in Cloud Storage, and Android vitals (app health). */
 export const GROWTH_PLAY_SCOPE = [
   'https://www.googleapis.com/auth/androidpublisher',
   'https://www.googleapis.com/auth/devstorage.read_only',
+  'https://www.googleapis.com/auth/playdeveloperreporting',
 ].join(' ');
+
+/** Android vitals: the Play Developer Reporting API, a Cloud API of its own that the key's project has to have turned on. */
+const REPORTING = 'https://playdeveloperreporting.googleapis.com/v1beta1';
 
 /** Google refused the key itself: revoked, deleted, or not a service account key. */
 export class PlayAuthError extends Error {
@@ -46,6 +50,21 @@ export class PlayForbiddenError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'PlayForbiddenError';
+  }
+}
+
+/**
+ * The key's Cloud project has the Play Developer Reporting API turned off:
+ * Google answers 403 with reason SERVICE_DISABLED and, in the error's
+ * details, the page that turns it on (measured November 2026).
+ */
+export class PlayApiDisabledError extends Error {
+  constructor(
+    message: string,
+    readonly url: string | null
+  ) {
+    super(message);
+    this.name = 'PlayApiDisabledError';
   }
 }
 
@@ -331,6 +350,7 @@ interface PlayComment {
     lastModified?: { seconds?: string | number; nanos?: number };
     starRating?: number;
     reviewerLanguage?: string;
+    appVersionCode?: number | string;
     appVersionName?: string;
   };
   developerComment?: {
@@ -355,6 +375,12 @@ export function splitReviewText(text: string): { title: string; body: string } {
   return { title: text.slice(0, tab).trim(), body: text.slice(tab + 1).trim() };
 }
 
+/** A build number as Google sends it, a number in the Reviews API and text in the report files. */
+export function buildOf(value: number | string | undefined | null): string | undefined {
+  const text = value === undefined || value === null ? '' : String(value).trim();
+  return /^\d+$/.test(text) && Number(text) > 0 ? text : undefined;
+}
+
 export function readPlayReview(appId: string, row: PlayReviewRow): StoreReview | null {
   if (!row.reviewId) return null;
   const user = row.comments?.find((comment) => comment.userComment)?.userComment;
@@ -372,6 +398,7 @@ export function readPlayReview(appId: string, row: PlayReviewRow): StoreReview |
     territory: 'ZZ',
     language: playLanguageTag(user.reviewerLanguage),
     appVersion: user.appVersionName || undefined,
+    appBuild: buildOf(user.appVersionCode),
     response: reply?.text
       ? { id: row.reviewId, body: reply.text, lastModified: isoFrom(reply.lastModified), state: 'PUBLISHED' }
       : undefined,
@@ -483,4 +510,96 @@ export async function downloadReportObject(credentials: PlayCredentials, bucket:
   const response = await send(credentials, `${STORAGE}/b/${encodeURIComponent(bucket)}/o/${encodeURIComponent(name)}?alt=media`, { signal });
   if (!response.ok) await fail(response);
   return new Uint8Array(await response.arrayBuffer());
+}
+
+// --- app health -------------------------------------------------------------------------
+
+/** The page that turns the API on, from a SERVICE_DISABLED answer, or null for any other answer. */
+export function disabledApiUrl(status: number, text: string): string | null {
+  if (status !== 403) return null;
+  try {
+    const details = (JSON.parse(text) as { error?: { details?: Array<{ reason?: string; metadata?: { activationUrl?: string } }> } }).error?.details ?? [];
+    const off = details.find((entry) => entry.reason === 'SERVICE_DISABLED');
+    if (!off) return null;
+    const url = off.metadata?.activationUrl ?? '';
+    return /^https:\/\/console\.(developers|cloud)\.google\.com\//.test(url) ? url : '';
+  } catch {
+    return null;
+  }
+}
+
+async function reportingJson<T>(credentials: PlayCredentials, url: string, init: RequestInitLite = {}): Promise<T> {
+  const response = await send(credentials, url, init);
+  if (!response.ok) {
+    const text = await response.text().catch(() => '');
+    const activation = disabledApiUrl(response.status, text);
+    if (activation !== null) {
+      throw new PlayApiDisabledError(
+        'Turn on the Google Play Developer Reporting API for the Cloud project of your service account. It can take a few minutes to work',
+        activation || null
+      );
+    }
+    const message = describeGoogleError(response.status, text);
+    if (response.status === 401) throw new PlayAuthError(`${message}. Check your service account key under Setup`);
+    if (response.status === 403) throw new PlayForbiddenError(message);
+    if (response.status === 404) throw new PlayNotFoundError(message);
+    throw new Error(message);
+  }
+  const text = await response.text();
+  return (text ? JSON.parse(text) : {}) as T;
+}
+
+export type VitalsSet = 'crashRateMetricSet' | 'anrRateMetricSet';
+
+const vitalsUrl = (credentials: PlayCredentials, set: VitalsSet) => `${REPORTING}/apps/${encodeURIComponent(credentials.packageName.trim())}/${set}`;
+
+/** The last day a vitals set has numbers for, in Google's days, or null when it has none yet. */
+export async function vitalsLastDay(credentials: PlayCredentials, set: VitalsSet, signal?: AbortSignal): Promise<string | null> {
+  const body = await reportingJson<{ freshnessInfo?: { freshnesses?: Array<{ aggregationPeriod?: string; latestEndTime?: { year?: number; month?: number; day?: number } }> } }>(
+    credentials,
+    vitalsUrl(credentials, set),
+    { signal }
+  );
+  const end = body.freshnessInfo?.freshnesses?.find((entry) => entry.aggregationPeriod === 'DAILY')?.latestEndTime;
+  if (!end?.year || !end.month || !end.day) return null;
+  // The end is exclusive: data up to 2021-06-24 00:00 is data for 2021-06-23.
+  const exclusive = new Date(Date.UTC(end.year, end.month - 1, end.day));
+  return new Date(exclusive.getTime() - 86_400_000).toISOString().slice(0, 10);
+}
+
+/** Every page of one vitals query, its rows pooled. */
+export async function queryVitals(credentials: PlayCredentials, set: VitalsSet, request: Record<string, unknown>, signal?: AbortSignal): Promise<{ rows: unknown[] }> {
+  const rows: unknown[] = [];
+  let pageToken: string | undefined;
+  for (let page = 0; page < 20; page += 1) {
+    const body = await reportingJson<{ rows?: unknown[]; nextPageToken?: string }>(credentials, `${vitalsUrl(credentials, set)}:query`, {
+      method: 'POST',
+      body: { ...request, pageSize: 10_000, ...(pageToken ? { pageToken } : {}) },
+      signal,
+    });
+    rows.push(...(body.rows ?? []));
+    pageToken = body.nextPageToken || undefined;
+    if (!pageToken) break;
+  }
+  return { rows };
+}
+
+/**
+ * Play Console's tracks, for the names of the releases that carry each build
+ * (health.ts releaseNamesOf). Read through an edit that is deleted again, like
+ * the store page, so nothing changes on the store.
+ */
+export async function fetchPlayTracks(credentials: PlayCredentials, signal?: AbortSignal): Promise<unknown> {
+  return withPlayEdit(
+    credentials,
+    async () => {
+      const editId = await openEdit(credentials, signal);
+      try {
+        return await playJson<unknown>(credentials, `${app(credentials)}/edits/${encodeURIComponent(editId)}/tracks`, { signal });
+      } finally {
+        await deleteEdit(credentials, editId);
+      }
+    },
+    signal
+  );
 }

@@ -214,8 +214,9 @@ test.describe('growth ratings and reviews', () => {
       await expect(ratings.getByRole('combobox', { name: 'Country' })).toHaveText('United Kingdom');
       await expect(ratings.getByTestId('growth-ratings-new')).toHaveText('2');
 
-      await expect(ratings.getByText('Version 2.4', { exact: true })).toBeVisible();
-      await expect(ratings.getByText('10 new, 4.2 stars')).toBeVisible();
+      // The versions table: 10 new ratings while 2.4 was on sale, 4.2 stars on average.
+      const version = ratings.getByTestId('growth-health-versions').locator('tr[data-version="2.4"]');
+      await expect(version.locator('td').nth(2)).toHaveText('10 ratings, 4.2 stars');
       expect(await tauri.unhandled()).toEqual([]);
     });
 

@@ -30,6 +30,7 @@ import {
   replyStats,
   reviewerName,
   reviewsCsv,
+  reviewsFromFile,
   statusCounts,
   statusOf,
   toggledTag,
@@ -379,6 +380,31 @@ test('a refresh carries the rating changes over, and records a new one with the 
   assert.equal(carryReviewHistory(stored, { ...stored, rating: 3 }, 1234).ratingChanges![0].at, 1234);
   assert.deepEqual(changeAfterReply(carried), { from: 2, to: 5, at: Date.parse('2026-11-04T10:00:00Z') });
   assert.equal(changeAfterReply({ ...carried, response: undefined }), null);
+});
+
+test("a Google Play review file adds new reviews and newer copies, and gives a stored review only its build", () => {
+  const stored = review('kept', { rating: 2, body: 'Edited in the app', appVersion: '1.4.65', createdDate: '2026-11-03T10:00:00Z', ratingChanges: [{ from: 1, to: 2, at: 5 }] });
+  const older = review('older', { rating: 4, appVersion: '1.4.60', appBuild: '200', createdDate: '2026-11-01T10:00:00Z' });
+  const changed = review('changed', { rating: 1, createdDate: '2026-11-02T10:00:00Z' });
+  const known = new Map([stored, older, changed].map((entry) => [entry.id, entry]));
+  const { write, added } = reviewsFromFile(
+    known,
+    [
+      // The same copy as stored, from a file read again for builds: only the build is taken.
+      { ...stored, body: 'Text from the file', ratingChanges: undefined, appBuild: '205' },
+      // A stored review that has its build already is left alone.
+      { ...older, appBuild: '201' },
+      // Changed since: the newer copy, with the stored rating changes carried over.
+      { ...changed, rating: 4, createdDate: '2026-11-05T10:00:00Z', appBuild: '204' },
+      review('new', { appBuild: '205', appVersion: '1.4.65' }),
+    ],
+    99
+  );
+  assert.equal(added, 1);
+  const byId = new Map(write.map((entry) => [entry.id, entry]));
+  assert.deepEqual([...byId.keys()].sort(), ['changed', 'kept', 'new']);
+  assert.deepEqual(byId.get('kept'), { ...stored, appBuild: '205' }, 'nothing else of the stored review changes');
+  assert.deepEqual([byId.get('changed')!.rating, byId.get('changed')!.appBuild, byId.get('changed')!.ratingChanges], [4, '204', [{ from: 1, to: 4, at: Date.parse('2026-11-05T10:00:00Z') }]]);
 });
 
 test('the reply numbers: share with a reply, the middle time, what waits, and stars after a reply', () => {

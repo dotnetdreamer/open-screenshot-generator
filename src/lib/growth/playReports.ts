@@ -21,7 +21,7 @@
 import { columnIndex, isGzip, gunzip, numberCell } from './delimited';
 import { dayRange, monthStart, normalizeDay } from './dates';
 import { bucket, emptyFeedDay, feedDayFor, type FeedBatch } from './records';
-import { playLanguageTag, splitReviewText } from './play';
+import { buildOf, playLanguageTag, splitReviewText } from './play';
 import { territoryCode, UNKNOWN_TERRITORY } from './territories';
 import type { RatingPoint, SourceType, StoreReview, TerritoryRating } from './types';
 
@@ -319,6 +319,7 @@ export function parseReviewsReport(text: string, appId: string): StoreReview[] {
   const columns = {
     language: columnIndex(header, 'Reviewer Language'),
     version: columnIndex(header, 'App Version Name'),
+    build: columnIndex(header, 'App Version Code'),
     submitted: columnIndex(header, 'Review Submit Date and Time'),
     submittedMillis: columnIndex(header, 'Review Submit Millis Since Epoch'),
     updated: columnIndex(header, 'Review Last Update Date and Time'),
@@ -355,6 +356,7 @@ export function parseReviewsReport(text: string, appId: string): StoreReview[] {
       territory: UNKNOWN_TERRITORY,
       language: playLanguageTag(cell(row, columns.language)),
       appVersion: cell(row, columns.version) || undefined,
+      appBuild: buildOf(cell(row, columns.build)),
       response: reply
         ? { id, body: reply, lastModified: timeCell(cell(row, columns.repliedMillis), cell(row, columns.replied)), state: 'PUBLISHED' }
         : undefined,

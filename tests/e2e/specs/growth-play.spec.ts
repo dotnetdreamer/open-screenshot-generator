@@ -213,6 +213,27 @@ async function readEvent(page: Page, id: string): Promise<Record<string, unknown
   }, id);
 }
 
+/** A row of the growth database, as the app stored it. */
+async function readRow(page: Page, store: string, key: string): Promise<Record<string, unknown> | undefined> {
+  return page.evaluate(
+    async ({ store, key }) => {
+      const open = indexedDB.open('OpenScreenshotGeneratorGrowth');
+      const db = await new Promise<IDBDatabase>((resolve, reject) => {
+        open.onsuccess = () => resolve(open.result);
+        open.onerror = () => reject(open.error);
+      });
+      const request = db.transaction(store).objectStore(store).get(key);
+      const row = await new Promise<Record<string, unknown> | undefined>((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result as Record<string, unknown> | undefined);
+        request.onerror = () => reject(request.error);
+      });
+      db.close();
+      return row;
+    },
+    { store, key }
+  );
+}
+
 let mcpCalls = 0;
 
 async function mcpCall(tauri: TauriHarness, name: string, args: Record<string, unknown>) {
@@ -301,7 +322,8 @@ test.describe('growth on Google Play', () => {
     const token = sent.find((request) => request.url === 'https://oauth2.googleapis.com/token');
     const assertion = new URLSearchParams(token!.body!).get('assertion')!;
     const claims = JSON.parse(Buffer.from(assertion.split('.')[1], 'base64url').toString());
-    expect(claims.scope).toBe('https://www.googleapis.com/auth/androidpublisher https://www.googleapis.com/auth/devstorage.read_only');
+    // One token for the Play Developer API, the report files and Android vitals (app health).
+    expect(claims.scope).toBe('https://www.googleapis.com/auth/androidpublisher https://www.googleapis.com/auth/devstorage.read_only https://www.googleapis.com/auth/playdeveloperreporting');
     expect(claims.iss).toBe('growth@pebble-play.iam.gserviceaccount.com');
     // The store page was read through an edit that was deleted again, never committed.
     const opened = sent.filter((request) => request.method === 'POST' && /\/edits$/.test(request.url)).length;
@@ -312,6 +334,29 @@ test.describe('growth on Google Play', () => {
     // The breakdown Growth does not read was never downloaded.
     expect(sent.some((request) => request.url.includes('_device.csv'))).toBe(false);
     expect(await tauri.unhandled()).toEqual([]);
+  });
+
+  test('a review stored before Growth kept builds gets its build from its month file, read again once, and keeps the rest', async ({ app, page }) => {
+    await connect(page);
+    await app.goto();
+    await app.dismissStartDialog();
+    const file = `reviews/reviews_${PACKAGE}_${MONTH}.csv`;
+    await putGrowthRows(page, {
+      // As an earlier sync stored it: the same copy as the file's, with no build.
+      reviews: [
+        { id: 'gp:old-1', appId: APP_ID, rating: 4, title: '', body: 'Stored before builds were kept.', nickname: '', createdDate: `${DAY}T09:00:00.000Z`, territory: 'ZZ', language: 'de', appVersion: '3.0' },
+      ],
+      // And the file marked as read, unchanged since.
+      meta: [{ key: `play:files:${APP_ID}`, value: { [file]: `${DAY}T23:00:00Z` } }],
+    });
+    await app.goto();
+    await app.dismissStartDialog();
+    await syncOnce(page);
+    await expect.poll(async () => (await readRow(page, 'reviews', 'gp:old-1'))?.appBuild).toBe('30');
+    const stored = await readRow(page, 'reviews', 'gp:old-1');
+    expect([stored?.body, stored?.appVersion, stored?.rating]).toEqual(['Stored before builds were kept.', '3.0', 4]);
+    expect((await readRow(page, 'meta', `play:review-builds:${APP_ID}`))?.value).toBe(1);
+    expect((await requests(page)).filter((request) => request.url.includes(encodeURIComponent(file)) && request.url.endsWith('?alt=media'))).toHaveLength(1);
   });
 
   test('a reply goes to Google Play within its 350 characters, and a reply cannot be deleted there', async ({ app, page }) => {

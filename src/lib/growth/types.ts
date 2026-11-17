@@ -165,6 +165,8 @@ export interface StoreReview {
   language?: string;
   /** Google Play only: the app version the reviewer had. */
   appVersion?: string;
+  /** Google Play only: the build number (version code) the reviewer had, which is how Android vitals name a version. */
+  appBuild?: string;
   response?: ReviewResponse;
   /**
    * Every time a refresh found the stars changed, oldest first. A reviewer
@@ -504,6 +506,8 @@ export type FeedState =
 export interface FeedStatus {
   state: FeedState;
   message?: string;
+  /** A page that fixes what the message says, such as the one that turns an API on. */
+  link?: { label: string; url: string };
   updatedAt?: number;
   /**
    * Sales and Trends only: the first of the days read without a gap up to the
@@ -513,7 +517,7 @@ export interface FeedStatus {
   since?: DayString;
 }
 
-export type GrowthFeed = 'reviews' | 'sales' | 'analytics' | 'ratings' | 'listing';
+export type GrowthFeed = 'reviews' | 'sales' | 'analytics' | 'ratings' | 'listing' | 'health';
 
 export type SyncStatus = Record<GrowthFeed, FeedStatus>;
 
