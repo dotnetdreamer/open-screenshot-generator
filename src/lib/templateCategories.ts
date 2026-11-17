@@ -45,6 +45,8 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     previewFit: 'contain',
     gridClassName: 'grid-cols-1 lg:grid-cols-2',
     files: [
+      'sunup-missions.json',
+      'sunup-alarm.json',
       'somnia-sleep.json',
       'kassa-money.json',
       'pixara-ai.json',

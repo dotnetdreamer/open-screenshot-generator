@@ -27,6 +27,7 @@ const MAX_SCREENS = 6;
 
 // The App Screenshots category, in gallery order.
 const SLUGS = [
+  'sunup-missions', 'sunup-alarm',
   'somnia-sleep', 'kassa-money', 'pixara-ai', 'amoura-dating', 'scrappi-journal',
   'plannio-student',
   'calora-macros', 'puzzlo-word', 'sproutly-parenting',

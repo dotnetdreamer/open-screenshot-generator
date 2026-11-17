@@ -8,6 +8,8 @@ const path = require('path');
 const { launch, startBlankProject, sleep, exportArtboards, clickTab, dismissTipsDialog, waitForProjectFonts, APP_URL } = require('./lib');
 
 const TEMPLATES = [
+  { slug: 'sunup-missions', card: 'Sunup Missions', boards: 6 },
+  { slug: 'sunup-alarm', card: 'Sunup Alarm', boards: 6 },
   { slug: 'somnia-sleep', card: 'Somnia Sleep', boards: 5 },
   { slug: 'kassa-money', card: 'Kassa Money', boards: 5 },
   { slug: 'pixara-ai', card: 'Pixara AI', boards: 5 },

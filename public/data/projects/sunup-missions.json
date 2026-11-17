@@ -1,0 +1,5986 @@
+{
+  "id": "template_sunup_missions",
+  "name": "Sunup Missions",
+  "description": "App Store & Play Store screenshots for an alarm clock or wake-up app. Warm glow on near black, heavy two-tone headlines, a sun mascot, and app UI built as grouped layers you can edit: an alarm card over a tilted phone, a mission grid, a maze, chained missions, difficulty levels and a streak calendar.",
+  "previewImage": "/data/projects/previews/sunup-missions.png",
+  "timestamp": "2026-11-17T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "sm-board-1",
+      "name": "No Snooze",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0D0A09",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "sm-b1-glow",
+          "type": "image",
+          "name": "Glow",
+          "position": {
+            "x": 150,
+            "y": -1040
+          },
+          "size": {
+            "width": 1940,
+            "height": 1940
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.92,
+          "objectFit": "fill",
+          "imageSrc": "/data/projects/sunup-glow.png",
+          "groupId": "sm-b1-g-background",
+          "groupName": "Background glow"
+        },
+        {
+          "id": "sm-b1-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 78,
+            "y": 113.88
+          },
+          "size": {
+            "width": 1098,
+            "height": 402.48
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "No snooze.\nNo excuses.",
+          "fontSize": 51.6,
+          "color": "#FFF4EA",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 0.96,
+          "letterSpacing": -2.32,
+          "groupId": "sm-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sm-b1-headline-accent",
+          "type": "text",
+          "name": "Headline accent",
+          "position": {
+            "x": 78,
+            "y": 444.12
+          },
+          "size": {
+            "width": 1098,
+            "height": 237.36
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Just up.",
+          "fontSize": 51.6,
+          "color": "#FF7B22",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 0.96,
+          "letterSpacing": -2.32,
+          "groupId": "sm-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sm-b1-subtitle",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 82,
+            "y": 669.7
+          },
+          "size": {
+            "width": 1098,
+            "height": 74.52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "The mission alarm for heavy sleepers.",
+          "fontSize": 13.8,
+          "color": "#D3C7BF",
+          "fontFamily": "Outfit",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.2,
+          "groupId": "sm-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sm-b1-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 178,
+            "y": 905
+          },
+          "size": {
+            "width": 960,
+            "height": 2085.82
+          },
+          "rotation": -4,
+          "scale": 1,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "normal",
+          "frameColor": "#1C1614",
+          "screenshotSrc": "/data/projects/sunup-missions-screen-alarms.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "sm-b1-mascot",
+          "type": "image",
+          "name": "Sun mascot",
+          "position": {
+            "x": 800,
+            "y": 850
+          },
+          "size": {
+            "width": 372,
+            "height": 372
+          },
+          "rotation": 10,
+          "scale": 1,
+          "imageSrc": "/data/projects/sunup-mascot-wink.png",
+          "objectFit": "contain",
+          "groupId": "sm-b1-g-mascot",
+          "groupName": "Mascot"
+        },
+        {
+          "id": "sm-b1-sparks",
+          "type": "shape",
+          "name": "Sparkles",
+          "position": {
+            "x": 1058,
+            "y": 772
+          },
+          "size": {
+            "width": 112,
+            "height": 116
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFB259",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M14 70 L28 44 M50 84 L76 66 M66 110 L98 104",
+          "specialProps": {
+            "viewBox": "0 0 112 116",
+            "strokeOnly": true,
+            "baseStrokeWidth": 9
+          },
+          "groupId": "sm-b1-g-mascot",
+          "groupName": "Mascot"
+        },
+        {
+          "id": "sm-b1-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 87.67,
+            "y": 1153.11
+          },
+          "size": {
+            "width": 1060,
+            "height": 436
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 0,
+            "blur": 56,
+            "color": "rgba(255,112,32,0.45)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#221A16",
+          "strokeColor": "#FF8A33",
+          "strokeWidth": 3,
+          "borderRadius": 72,
+          "fillGradient": {
+            "color1": "#2D221D",
+            "color2": "#1A1311",
+            "angle": 160
+          },
+          "groupId": "sm-b1-g-alarm-card",
+          "groupName": "Alarm card"
+        },
+        {
+          "id": "sm-b1-card-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 138.15,
+            "y": 1207.94
+          },
+          "size": {
+            "width": 420,
+            "height": 72.22
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Early run",
+          "fontSize": 13.8,
+          "color": "#FF9A45",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "groupId": "sm-b1-g-alarm-card",
+          "groupName": "Alarm card"
+        },
+        {
+          "id": "sm-b1-card-time",
+          "type": "text",
+          "name": "Time",
+          "position": {
+            "x": 137.61,
+            "y": 1240.72
+          },
+          "size": {
+            "width": 640,
+            "height": 213
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "06:15",
+          "fontSize": 45,
+          "color": "#FFF4EA",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -1.35,
+          "groupId": "sm-b1-g-alarm-card",
+          "groupName": "Alarm card"
+        },
+        {
+          "id": "sm-b1-chip",
+          "type": "shape",
+          "name": "Chip",
+          "position": {
+            "x": 155.73,
+            "y": 1481.17
+          },
+          "size": {
+            "width": 245,
+            "height": 92
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#372A57",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 46,
+          "groupId": "sm-b1-g-alarm-card",
+          "groupName": "Alarm card"
+        },
+        {
+          "id": "sm-b1-chip-icon-bg",
+          "type": "shape",
+          "name": "Chip icon background",
+          "position": {
+            "x": 166.92,
+            "y": 1497.5
+          },
+          "size": {
+            "width": 70,
+            "height": 70
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#7360FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#8C7BFF",
+            "color2": "#5B45F0",
+            "angle": 135
+          },
+          "groupId": "sm-b1-g-alarm-card",
+          "groupName": "Alarm card"
+        },
+        {
+          "id": "sm-b1-chip-icon",
+          "type": "shape",
+          "name": "Chip icon",
+          "position": {
+            "x": 181.92,
+            "y": 1512.5
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z M9 18h7.5a3.5 3.5 0 0 0 0-7h-9a3.5 3.5 0 0 1 0-7H15",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4
+          },
+          "groupId": "sm-b1-g-alarm-card",
+          "groupName": "Alarm card"
+        },
+        {
+          "id": "sm-b1-chip-text",
+          "type": "text",
+          "name": "Chip text",
+          "position": {
+            "x": 254.62,
+            "y": 1478.06
+          },
+          "size": {
+            "width": 136,
+            "height": 92
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Maze",
+          "fontSize": 13.8,
+          "color": "#C4BAFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "groupId": "sm-b1-g-alarm-card",
+          "groupName": "Alarm card"
+        },
+        {
+          "id": "sm-b1-card-days",
+          "type": "text",
+          "name": "Days",
+          "position": {
+            "x": 429.94,
+            "y": 1458.67
+          },
+          "size": {
+            "width": 340,
+            "height": 92
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Tue, Thu",
+          "fontSize": 13.8,
+          "color": "#CDBFB6",
+          "fontFamily": "Outfit",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "groupId": "sm-b1-g-alarm-card",
+          "groupName": "Alarm card"
+        },
+        {
+          "id": "sm-b1-toggle",
+          "type": "shape",
+          "name": "Toggle",
+          "position": {
+            "x": 894.75,
+            "y": 1288.88
+          },
+          "size": {
+            "width": 196,
+            "height": 112
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 0,
+            "blur": 26,
+            "color": "rgba(255,120,30,0.55)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FF7A1F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 56,
+          "fillGradient": {
+            "color1": "#FF6A12",
+            "color2": "#FFA040",
+            "angle": 90
+          },
+          "groupId": "sm-b1-g-alarm-card",
+          "groupName": "Alarm card"
+        },
+        {
+          "id": "sm-b1-toggle-knob",
+          "type": "shape",
+          "name": "Toggle knob",
+          "position": {
+            "x": 986.65,
+            "y": 1293.95
+          },
+          "size": {
+            "width": 96,
+            "height": 96
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 4,
+            "blur": 10,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "sm-b1-g-alarm-card",
+          "groupName": "Alarm card"
+        }
+      ]
+    },
+    {
+      "id": "sm-board-2",
+      "name": "Nine Missions",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0D0A09",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "sm-b2-glow",
+          "type": "image",
+          "name": "Glow",
+          "position": {
+            "x": -760,
+            "y": 1760
+          },
+          "size": {
+            "width": 2000,
+            "height": 1800
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.85,
+          "objectFit": "fill",
+          "imageSrc": "/data/projects/sunup-glow.png",
+          "groupId": "sm-b2-g-background",
+          "groupName": "Background glow"
+        },
+        {
+          "id": "sm-b2-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 78,
+            "y": 113.88
+          },
+          "size": {
+            "width": 1098,
+            "height": 402.48
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Nine ways\nto prove",
+          "fontSize": 51.6,
+          "color": "#FFF4EA",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 0.96,
+          "letterSpacing": -2.32,
+          "groupId": "sm-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sm-b2-headline-accent",
+          "type": "text",
+          "name": "Headline accent",
+          "position": {
+            "x": 78,
+            "y": 444.12
+          },
+          "size": {
+            "width": 1098,
+            "height": 237.36
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "you’re up.",
+          "fontSize": 51.6,
+          "color": "#FF7B22",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 0.96,
+          "letterSpacing": -2.32,
+          "groupId": "sm-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sm-b2-subtitle",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 82,
+            "y": 669.7
+          },
+          "size": {
+            "width": 1098,
+            "height": 74.52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Math, mazes, shakes, memory and more.",
+          "fontSize": 13.8,
+          "color": "#D3C7BF",
+          "fontFamily": "Outfit",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.2,
+          "groupId": "sm-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sm-b2-catch-tile",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 56,
+            "y": 860
+          },
+          "size": {
+            "width": 344,
+            "height": 500
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#15110F",
+          "strokeColor": "#2A2320",
+          "strokeWidth": 2,
+          "borderRadius": 46,
+          "fillGradient": {
+            "color1": "#443618",
+            "color2": "#110E0D",
+            "angle": 180
+          },
+          "groupId": "sm-b2-g-mission-catch",
+          "groupName": "Mission: Catch"
+        },
+        {
+          "id": "sm-b2-catch-icon-bg",
+          "type": "shape",
+          "name": "Icon background",
+          "position": {
+            "x": 78,
+            "y": 882
+          },
+          "size": {
+            "width": 72,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFC83D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 22,
+          "fillGradient": {
+            "color1": "#FFD84A",
+            "color2": "#F2A600",
+            "angle": 135
+          },
+          "groupId": "sm-b2-g-mission-catch",
+          "groupName": "Mission: Catch"
+        },
+        {
+          "id": "sm-b2-catch-icon",
+          "type": "shape",
+          "name": "Icon",
+          "position": {
+            "x": 93,
+            "y": 897
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M9 13.5V5.5a1.75 1.75 0 0 1 3.5 0V12 M12.5 11.5v-1.25a1.75 1.75 0 0 1 3.5 0v1.5 M16 11.5a1.75 1.75 0 0 1 3.5 0v3a6.5 6.5 0 0 1-6.5 6.5h-1.5a6 6 0 0 1-4.9-2.6L4 15.5a1.6 1.6 0 0 1 2.6-1.9L9 16",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4.2
+          },
+          "groupId": "sm-b2-g-mission-catch",
+          "groupName": "Mission: Catch"
+        },
+        {
+          "id": "sm-b2-catch-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 164,
+            "y": 882
+          },
+          "size": {
+            "width": 226,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Catch",
+          "fontSize": 13.2,
+          "color": "#FFF4EA",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "letterSpacing": -0.26,
+          "groupId": "sm-b2-g-mission-catch",
+          "groupName": "Mission: Catch"
+        },
+        {
+          "id": "sm-b2-catch-panel",
+          "type": "shape",
+          "name": "Preview panel",
+          "position": {
+            "x": 78,
+            "y": 976
+          },
+          "size": {
+            "width": 300,
+            "height": 362
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#100D0C",
+          "strokeColor": "#231D1A",
+          "strokeWidth": 1.5,
+          "borderRadius": 32,
+          "fillGradient": {
+            "color1": "#100D0C",
+            "color2": "#403216",
+            "angle": 180
+          },
+          "groupId": "sm-b2-g-mission-catch",
+          "groupName": "Mission: Catch"
+        },
+        {
+          "id": "sm-b2-catch-cell-00",
+          "type": "shape",
+          "name": "Hole",
+          "position": {
+            "x": 99,
+            "y": 1068
+          },
+          "size": {
+            "width": 78,
+            "height": 78
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#211A17",
+          "strokeColor": "#2E2622",
+          "strokeWidth": 1.5,
+          "borderRadius": 20,
+          "groupId": "sm-b2-g-mission-catch",
+          "groupName": "Mission: Catch"
+        },
+        {
+          "id": "sm-b2-catch-cell-01",
+          "type": "shape",
+          "name": "Hole",
+          "position": {
+            "x": 189,
+            "y": 1068
+          },
+          "size": {
+            "width": 78,
+            "height": 78
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#211A17",
+          "strokeColor": "#2E2622",
+          "strokeWidth": 1.5,
+          "borderRadius": 20,
+          "groupId": "sm-b2-g-mission-catch",
+          "groupName": "Mission: Catch"
+        },
+        {
+          "id": "sm-b2-catch-cell-02",
+          "type": "shape",
+          "name": "Hole",
+          "position": {
+            "x": 279,
+            "y": 1068
+          },
+          "size": {
+            "width": 78,
+            "height": 78
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#211A17",
+          "strokeColor": "#2E2622",
+          "strokeWidth": 1.5,
+          "borderRadius": 20,
+          "groupId": "sm-b2-g-mission-catch",
+          "groupName": "Mission: Catch"
+        },
+        {
+          "id": "sm-b2-catch-cell-10",
+          "type": "shape",
+          "name": "Hole",
+          "position": {
+            "x": 99,
+            "y": 1158
+          },
+          "size": {
+            "width": 78,
+            "height": 78
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#211A17",
+          "strokeColor": "#2E2622",
+          "strokeWidth": 1.5,
+          "borderRadius": 20,
+          "groupId": "sm-b2-g-mission-catch",
+          "groupName": "Mission: Catch"
+        },
+        {
+          "id": "sm-b2-catch-cell-11",
+          "type": "shape",
+          "name": "Hole with sun",
+          "position": {
+            "x": 189,
+            "y": 1158
+          },
+          "size": {
+            "width": 78,
+            "height": 78
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#2C2210",
+          "strokeColor": "#FFC83D",
+          "strokeWidth": 3,
+          "borderRadius": 20,
+          "groupId": "sm-b2-g-mission-catch",
+          "groupName": "Mission: Catch"
+        },
+        {
+          "id": "sm-b2-catch-cell-12",
+          "type": "shape",
+          "name": "Hole",
+          "position": {
+            "x": 279,
+            "y": 1158
+          },
+          "size": {
+            "width": 78,
+            "height": 78
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#211A17",
+          "strokeColor": "#2E2622",
+          "strokeWidth": 1.5,
+          "borderRadius": 20,
+          "groupId": "sm-b2-g-mission-catch",
+          "groupName": "Mission: Catch"
+        },
+        {
+          "id": "sm-b2-catch-sun",
+          "type": "image",
+          "name": "Sun mascot",
+          "position": {
+            "x": 192,
+            "y": 1161
+          },
+          "size": {
+            "width": 72,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/sunup-mascot-happy.png",
+          "objectFit": "contain",
+          "groupId": "sm-b2-g-mission-catch",
+          "groupName": "Mission: Catch"
+        },
+        {
+          "id": "sm-b2-smile-tile",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 431,
+            "y": 860
+          },
+          "size": {
+            "width": 344,
+            "height": 500
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#15110F",
+          "strokeColor": "#2A2320",
+          "strokeWidth": 2,
+          "borderRadius": 46,
+          "fillGradient": {
+            "color1": "#44242F",
+            "color2": "#110E0D",
+            "angle": 180
+          },
+          "groupId": "sm-b2-g-mission-smile",
+          "groupName": "Mission: Smile"
+        },
+        {
+          "id": "sm-b2-smile-icon-bg",
+          "type": "shape",
+          "name": "Icon background",
+          "position": {
+            "x": 453,
+            "y": 882
+          },
+          "size": {
+            "width": 72,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF6FB1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 22,
+          "fillGradient": {
+            "color1": "#FF8AC8",
+            "color2": "#EE4498",
+            "angle": 135
+          },
+          "groupId": "sm-b2-g-mission-smile",
+          "groupName": "Mission: Smile"
+        },
+        {
+          "id": "sm-b2-smile-icon",
+          "type": "shape",
+          "name": "Icon",
+          "position": {
+            "x": 468,
+            "y": 897
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z M8.5 14a4.5 4.5 0 0 0 7 0 M9 9.5h.01 M15 9.5h.01",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4.2
+          },
+          "groupId": "sm-b2-g-mission-smile",
+          "groupName": "Mission: Smile"
+        },
+        {
+          "id": "sm-b2-smile-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 539,
+            "y": 882
+          },
+          "size": {
+            "width": 226,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Smile",
+          "fontSize": 13.2,
+          "color": "#FFF4EA",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "letterSpacing": -0.26,
+          "groupId": "sm-b2-g-mission-smile",
+          "groupName": "Mission: Smile"
+        },
+        {
+          "id": "sm-b2-smile-panel",
+          "type": "shape",
+          "name": "Preview panel",
+          "position": {
+            "x": 453,
+            "y": 976
+          },
+          "size": {
+            "width": 300,
+            "height": 362
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#100D0C",
+          "strokeColor": "#231D1A",
+          "strokeWidth": 1.5,
+          "borderRadius": 32,
+          "fillGradient": {
+            "color1": "#100D0C",
+            "color2": "#40212D",
+            "angle": 180
+          },
+          "groupId": "sm-b2-g-mission-smile",
+          "groupName": "Mission: Smile"
+        },
+        {
+          "id": "sm-b2-smile-frame",
+          "type": "shape",
+          "name": "Camera frame",
+          "position": {
+            "x": 519,
+            "y": 1068
+          },
+          "size": {
+            "width": 168,
+            "height": 168
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF6FB1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4 30V16A12 12 0 0 1 16 4H30 M70 4H84A12 12 0 0 1 96 16V30 M96 70V84A12 12 0 0 1 84 96H70 M30 96H16A12 12 0 0 1 4 84V70",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 8
+          },
+          "groupId": "sm-b2-g-mission-smile",
+          "groupName": "Mission: Smile"
+        },
+        {
+          "id": "sm-b2-smile-sun",
+          "type": "image",
+          "name": "Sun mascot",
+          "position": {
+            "x": 541,
+            "y": 1090
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/sunup-mascot-happy.png",
+          "objectFit": "contain",
+          "groupId": "sm-b2-g-mission-smile",
+          "groupName": "Mission: Smile"
+        },
+        {
+          "id": "sm-b2-clock-tile",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 806,
+            "y": 860
+          },
+          "size": {
+            "width": 344,
+            "height": 500
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#15110F",
+          "strokeColor": "#2A2320",
+          "strokeWidth": 2,
+          "borderRadius": 46,
+          "fillGradient": {
+            "color1": "#3E2C1D",
+            "color2": "#110E0D",
+            "angle": 180
+          },
+          "groupId": "sm-b2-g-mission-clock",
+          "groupName": "Mission: Clock"
+        },
+        {
+          "id": "sm-b2-clock-icon-bg",
+          "type": "shape",
+          "name": "Icon background",
+          "position": {
+            "x": 828,
+            "y": 882
+          },
+          "size": {
+            "width": 72,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#E39A55",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 22,
+          "fillGradient": {
+            "color1": "#EBA864",
+            "color2": "#B9692A",
+            "angle": 135
+          },
+          "groupId": "sm-b2-g-mission-clock",
+          "groupName": "Mission: Clock"
+        },
+        {
+          "id": "sm-b2-clock-icon",
+          "type": "shape",
+          "name": "Icon",
+          "position": {
+            "x": 843,
+            "y": 897
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z M12 7v5l3.5 2",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4.2
+          },
+          "groupId": "sm-b2-g-mission-clock",
+          "groupName": "Mission: Clock"
+        },
+        {
+          "id": "sm-b2-clock-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 914,
+            "y": 882
+          },
+          "size": {
+            "width": 226,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Clock",
+          "fontSize": 13.2,
+          "color": "#FFF4EA",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "letterSpacing": -0.26,
+          "groupId": "sm-b2-g-mission-clock",
+          "groupName": "Mission: Clock"
+        },
+        {
+          "id": "sm-b2-clock-panel",
+          "type": "shape",
+          "name": "Preview panel",
+          "position": {
+            "x": 828,
+            "y": 976
+          },
+          "size": {
+            "width": 300,
+            "height": 362
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#100D0C",
+          "strokeColor": "#231D1A",
+          "strokeWidth": 1.5,
+          "borderRadius": 32,
+          "fillGradient": {
+            "color1": "#100D0C",
+            "color2": "#3A291B",
+            "angle": 180
+          },
+          "groupId": "sm-b2-g-mission-clock",
+          "groupName": "Mission: Clock"
+        },
+        {
+          "id": "sm-b2-clock-art",
+          "type": "image",
+          "name": "Alarm clock",
+          "position": {
+            "x": 870,
+            "y": 1048
+          },
+          "size": {
+            "width": 216,
+            "height": 216
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/sunup-clock.png",
+          "objectFit": "contain",
+          "groupId": "sm-b2-g-mission-clock",
+          "groupName": "Mission: Clock"
+        },
+        {
+          "id": "sm-b2-math-tile",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 56,
+            "y": 1394
+          },
+          "size": {
+            "width": 344,
+            "height": 500
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#15110F",
+          "strokeColor": "#2A2320",
+          "strokeWidth": 2,
+          "borderRadius": 46,
+          "fillGradient": {
+            "color1": "#441D18",
+            "color2": "#110E0D",
+            "angle": 180
+          },
+          "groupId": "sm-b2-g-mission-math",
+          "groupName": "Mission: Math"
+        },
+        {
+          "id": "sm-b2-math-icon-bg",
+          "type": "shape",
+          "name": "Icon background",
+          "position": {
+            "x": 78,
+            "y": 1416
+          },
+          "size": {
+            "width": 72,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF4D3E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 22,
+          "fillGradient": {
+            "color1": "#FF6B5B",
+            "color2": "#E0322A",
+            "angle": 135
+          },
+          "groupId": "sm-b2-g-mission-math",
+          "groupName": "Mission: Math"
+        },
+        {
+          "id": "sm-b2-math-icon",
+          "type": "shape",
+          "name": "Icon",
+          "position": {
+            "x": 93,
+            "y": 1431
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M2.5 13.5h2.5l3 6 4.5-15h9.5 M14.5 10.5l5.5 7 M20 10.5l-5.5 7",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4.2
+          },
+          "groupId": "sm-b2-g-mission-math",
+          "groupName": "Mission: Math"
+        },
+        {
+          "id": "sm-b2-math-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 164,
+            "y": 1416
+          },
+          "size": {
+            "width": 226,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Math",
+          "fontSize": 13.2,
+          "color": "#FFF4EA",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "letterSpacing": -0.26,
+          "groupId": "sm-b2-g-mission-math",
+          "groupName": "Mission: Math"
+        },
+        {
+          "id": "sm-b2-math-panel",
+          "type": "shape",
+          "name": "Preview panel",
+          "position": {
+            "x": 78,
+            "y": 1510
+          },
+          "size": {
+            "width": 300,
+            "height": 362
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#100D0C",
+          "strokeColor": "#231D1A",
+          "strokeWidth": 1.5,
+          "borderRadius": 32,
+          "fillGradient": {
+            "color1": "#100D0C",
+            "color2": "#401A16",
+            "angle": 180
+          },
+          "groupId": "sm-b2-g-mission-math",
+          "groupName": "Mission: Math"
+        },
+        {
+          "id": "sm-b2-math-sum",
+          "type": "text",
+          "name": "Sum",
+          "position": {
+            "x": 87.56,
+            "y": 1659
+          },
+          "size": {
+            "width": 220.88,
+            "height": 64
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "24 − 9 + 13 =",
+          "fontSize": 12,
+          "color": "#FF5B4E",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "groupId": "sm-b2-g-mission-math",
+          "groupName": "Mission: Math"
+        },
+        {
+          "id": "sm-b2-math-q-bg",
+          "type": "shape",
+          "name": "Answer box",
+          "position": {
+            "x": 314.44,
+            "y": 1666
+          },
+          "size": {
+            "width": 50,
+            "height": 50
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF453A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 13,
+          "groupId": "sm-b2-g-mission-math",
+          "groupName": "Mission: Math"
+        },
+        {
+          "id": "sm-b2-math-q",
+          "type": "text",
+          "name": "Answer",
+          "position": {
+            "x": 314.44,
+            "y": 1666
+          },
+          "size": {
+            "width": 50,
+            "height": 50
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "?",
+          "fontSize": 10.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sm-b2-g-mission-math",
+          "groupName": "Mission: Math"
+        },
+        {
+          "id": "sm-b2-maze-tile",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 431,
+            "y": 1394
+          },
+          "size": {
+            "width": 344,
+            "height": 500
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 44,
+            "color": "rgba(112,82,255,0.5)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#7A66FF",
+          "strokeColor": "#BBAFFF",
+          "strokeWidth": 3,
+          "borderRadius": 46,
+          "fillGradient": {
+            "color1": "#9480FF",
+            "color2": "#5A40E6",
+            "angle": 180
+          },
+          "groupId": "sm-b2-g-mission-maze",
+          "groupName": "Mission: Maze"
+        },
+        {
+          "id": "sm-b2-maze-icon-bg",
+          "type": "shape",
+          "name": "Icon background",
+          "position": {
+            "x": 453,
+            "y": 1416
+          },
+          "size": {
+            "width": 72,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#AEA1FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 22,
+          "groupId": "sm-b2-g-mission-maze",
+          "groupName": "Mission: Maze"
+        },
+        {
+          "id": "sm-b2-maze-icon",
+          "type": "shape",
+          "name": "Icon",
+          "position": {
+            "x": 468,
+            "y": 1431
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z M9 18h7.5a3.5 3.5 0 0 0 0-7h-9a3.5 3.5 0 0 1 0-7H15",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4.2
+          },
+          "groupId": "sm-b2-g-mission-maze",
+          "groupName": "Mission: Maze"
+        },
+        {
+          "id": "sm-b2-maze-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 539,
+            "y": 1416
+          },
+          "size": {
+            "width": 226,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Maze",
+          "fontSize": 13.2,
+          "color": "#FFF4EA",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "letterSpacing": -0.26,
+          "groupId": "sm-b2-g-mission-maze",
+          "groupName": "Mission: Maze"
+        },
+        {
+          "id": "sm-b2-maze-panel",
+          "type": "shape",
+          "name": "Preview panel",
+          "position": {
+            "x": 453,
+            "y": 1510
+          },
+          "size": {
+            "width": 300,
+            "height": 362
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0F0C0B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "groupId": "sm-b2-g-mission-maze",
+          "groupName": "Mission: Maze"
+        },
+        {
+          "id": "sm-b2-maze-walls",
+          "type": "shape",
+          "name": "Maze walls",
+          "position": {
+            "x": 475,
+            "y": 1582.39
+          },
+          "size": {
+            "width": 256,
+            "height": 217.21
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#5A524E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M3 3L63 3M33 13L53 13M23 23L53 23M53 33L63 33M33 43L43 43M3 53L63 53M3 3L3 53M13 3L13 43M23 13L23 53M33 3L33 13M33 33L33 43M43 23L43 43M53 33L53 43M63 3L63 43",
+          "specialProps": {
+            "viewBox": "0 0 66 56",
+            "strokeOnly": true,
+            "baseStrokeWidth": 9
+          },
+          "groupId": "sm-b2-g-mission-maze",
+          "groupName": "Mission: Maze"
+        },
+        {
+          "id": "sm-b2-maze-route",
+          "type": "shape",
+          "name": "Route",
+          "position": {
+            "x": 475,
+            "y": 1582.39
+          },
+          "size": {
+            "width": 256,
+            "height": 217.21
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 0,
+            "blur": 8,
+            "color": "rgba(255,120,30,0.95)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#FF8A2A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M8 8L8 48L18 48L18 8L28 8L28 18",
+          "specialProps": {
+            "viewBox": "0 0 66 56",
+            "strokeOnly": true,
+            "baseStrokeWidth": 6
+          },
+          "groupId": "sm-b2-g-mission-maze",
+          "groupName": "Mission: Maze"
+        },
+        {
+          "id": "sm-b2-maze-ball",
+          "type": "shape",
+          "name": "Ball",
+          "position": {
+            "x": 572.61,
+            "y": 1641.21
+          },
+          "size": {
+            "width": 22,
+            "height": 22
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 0,
+            "blur": 10,
+            "color": "rgba(255,130,40,0.95)"
+          },
+          "shapeType": "circle",
+          "fillColor": "#FF9A3D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#FFD08A",
+            "color2": "#FF7A1A",
+            "angle": 135
+          },
+          "groupId": "sm-b2-g-mission-maze",
+          "groupName": "Mission: Maze"
+        },
+        {
+          "id": "sm-b2-maze-exit",
+          "type": "shape",
+          "name": "Exit",
+          "position": {
+            "x": 688.97,
+            "y": 1757.58
+          },
+          "size": {
+            "width": 22,
+            "height": 22
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#FF8A2A",
+          "strokeWidth": 4,
+          "groupId": "sm-b2-g-mission-maze",
+          "groupName": "Mission: Maze"
+        },
+        {
+          "id": "sm-b2-maze-badge",
+          "type": "shape",
+          "name": "Selected badge",
+          "position": {
+            "x": 723,
+            "y": 1368
+          },
+          "size": {
+            "width": 80,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FF7A1F",
+          "strokeColor": "#0D0A09",
+          "strokeWidth": 7,
+          "fillGradient": {
+            "color1": "#FFA040",
+            "color2": "#FF6A12",
+            "angle": 135
+          },
+          "groupId": "sm-b2-g-mission-maze",
+          "groupName": "Mission: Maze"
+        },
+        {
+          "id": "sm-b2-maze-badge-check",
+          "type": "shape",
+          "name": "Selected check",
+          "position": {
+            "x": 742,
+            "y": 1387
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M5 12.5l4.5 4.5L19 7.5",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5.6
+          },
+          "groupId": "sm-b2-g-mission-maze",
+          "groupName": "Mission: Maze"
+        },
+        {
+          "id": "sm-b2-shake-tile",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 806,
+            "y": 1394
+          },
+          "size": {
+            "width": 344,
+            "height": 500
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#15110F",
+          "strokeColor": "#2A2320",
+          "strokeWidth": 2,
+          "borderRadius": 46,
+          "fillGradient": {
+            "color1": "#1A293F",
+            "color2": "#110E0D",
+            "angle": 180
+          },
+          "groupId": "sm-b2-g-mission-shake",
+          "groupName": "Mission: Shake"
+        },
+        {
+          "id": "sm-b2-shake-icon-bg",
+          "type": "shape",
+          "name": "Icon background",
+          "position": {
+            "x": 828,
+            "y": 1416
+          },
+          "size": {
+            "width": 72,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#2E8BFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 22,
+          "fillGradient": {
+            "color1": "#4AA8FF",
+            "color2": "#1574E8",
+            "angle": 135
+          },
+          "groupId": "sm-b2-g-mission-shake",
+          "groupName": "Mission: Shake"
+        },
+        {
+          "id": "sm-b2-shake-icon",
+          "type": "shape",
+          "name": "Icon",
+          "position": {
+            "x": 843,
+            "y": 1431
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M9.5 4h5A1.5 1.5 0 0 1 16 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-5A1.5 1.5 0 0 1 8 18.5v-13A1.5 1.5 0 0 1 9.5 4Z M4.5 9v6 M19.5 9v6 M1.5 11v2 M22.5 11v2",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4.2
+          },
+          "groupId": "sm-b2-g-mission-shake",
+          "groupName": "Mission: Shake"
+        },
+        {
+          "id": "sm-b2-shake-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 914,
+            "y": 1416
+          },
+          "size": {
+            "width": 226,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Shake",
+          "fontSize": 13.2,
+          "color": "#FFF4EA",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "letterSpacing": -0.26,
+          "groupId": "sm-b2-g-mission-shake",
+          "groupName": "Mission: Shake"
+        },
+        {
+          "id": "sm-b2-shake-panel",
+          "type": "shape",
+          "name": "Preview panel",
+          "position": {
+            "x": 828,
+            "y": 1510
+          },
+          "size": {
+            "width": 300,
+            "height": 362
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#100D0C",
+          "strokeColor": "#231D1A",
+          "strokeWidth": 1.5,
+          "borderRadius": 32,
+          "fillGradient": {
+            "color1": "#100D0C",
+            "color2": "#16263D",
+            "angle": 180
+          },
+          "groupId": "sm-b2-g-mission-shake",
+          "groupName": "Mission: Shake"
+        },
+        {
+          "id": "sm-b2-shake-phone",
+          "type": "shape",
+          "name": "Phone",
+          "position": {
+            "x": 935,
+            "y": 1618
+          },
+          "size": {
+            "width": 86,
+            "height": 146
+          },
+          "rotation": -12,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#F4F2F7",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 24,
+          "groupId": "sm-b2-g-mission-shake",
+          "groupName": "Mission: Shake"
+        },
+        {
+          "id": "sm-b2-shake-speaker",
+          "type": "shape",
+          "name": "Phone speaker",
+          "position": {
+            "x": 964,
+            "y": 1632
+          },
+          "size": {
+            "width": 28,
+            "height": 8
+          },
+          "rotation": -12,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#C9C6D1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 4,
+          "groupId": "sm-b2-g-mission-shake",
+          "groupName": "Mission: Shake"
+        },
+        {
+          "id": "sm-b2-shake-waves-left",
+          "type": "shape",
+          "name": "Waves left",
+          "position": {
+            "x": 854,
+            "y": 1636
+          },
+          "size": {
+            "width": 60,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#3D8BFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M42 14 Q16 55 42 96 M22 32 Q10 55 22 78",
+          "specialProps": {
+            "viewBox": "0 0 60 110",
+            "strokeOnly": true,
+            "baseStrokeWidth": 7
+          },
+          "groupId": "sm-b2-g-mission-shake",
+          "groupName": "Mission: Shake"
+        },
+        {
+          "id": "sm-b2-shake-waves-right",
+          "type": "shape",
+          "name": "Waves right",
+          "position": {
+            "x": 1042,
+            "y": 1636
+          },
+          "size": {
+            "width": 60,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#3D8BFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M18 14 Q44 55 18 96 M38 32 Q50 55 38 78",
+          "specialProps": {
+            "viewBox": "0 0 60 110",
+            "strokeOnly": true,
+            "baseStrokeWidth": 7
+          },
+          "groupId": "sm-b2-g-mission-shake",
+          "groupName": "Mission: Shake"
+        },
+        {
+          "id": "sm-b2-memory-tile",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 56,
+            "y": 1928
+          },
+          "size": {
+            "width": 344,
+            "height": 500
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#15110F",
+          "strokeColor": "#2A2320",
+          "strokeWidth": 2,
+          "borderRadius": 46,
+          "fillGradient": {
+            "color1": "#153637",
+            "color2": "#110E0D",
+            "angle": 180
+          },
+          "groupId": "sm-b2-g-mission-memory",
+          "groupName": "Mission: Memory"
+        },
+        {
+          "id": "sm-b2-memory-icon-bg",
+          "type": "shape",
+          "name": "Icon background",
+          "position": {
+            "x": 78,
+            "y": 1950
+          },
+          "size": {
+            "width": 72,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#14C8D6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 22,
+          "fillGradient": {
+            "color1": "#3ADCE6",
+            "color2": "#0BA5B8",
+            "angle": 135
+          },
+          "groupId": "sm-b2-g-mission-memory",
+          "groupName": "Mission: Memory"
+        },
+        {
+          "id": "sm-b2-memory-icon",
+          "type": "shape",
+          "name": "Icon",
+          "position": {
+            "x": 93,
+            "y": 1965
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4 6.5A2.5 2.5 0 0 1 6.5 4h2A2.5 2.5 0 0 1 11 6.5v2A2.5 2.5 0 0 1 8.5 11h-2A2.5 2.5 0 0 1 4 8.5Z M13 6.5A2.5 2.5 0 0 1 15.5 4h2A2.5 2.5 0 0 1 20 6.5v2a2.5 2.5 0 0 1-2.5 2.5h-2A2.5 2.5 0 0 1 13 8.5Z M4 15.5A2.5 2.5 0 0 1 6.5 13h2a2.5 2.5 0 0 1 2.5 2.5v2A2.5 2.5 0 0 1 8.5 20h-2A2.5 2.5 0 0 1 4 17.5Z M13 15.5a2.5 2.5 0 0 1 2.5-2.5h2a2.5 2.5 0 0 1 2.5 2.5v2a2.5 2.5 0 0 1-2.5 2.5h-2a2.5 2.5 0 0 1-2.5-2.5Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "fillRule": "evenodd"
+          },
+          "groupId": "sm-b2-g-mission-memory",
+          "groupName": "Mission: Memory"
+        },
+        {
+          "id": "sm-b2-memory-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 164,
+            "y": 1950
+          },
+          "size": {
+            "width": 226,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Memory",
+          "fontSize": 13.2,
+          "color": "#FFF4EA",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "letterSpacing": -0.26,
+          "groupId": "sm-b2-g-mission-memory",
+          "groupName": "Mission: Memory"
+        },
+        {
+          "id": "sm-b2-memory-panel",
+          "type": "shape",
+          "name": "Preview panel",
+          "position": {
+            "x": 78,
+            "y": 2044
+          },
+          "size": {
+            "width": 300,
+            "height": 362
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#100D0C",
+          "strokeColor": "#231D1A",
+          "strokeWidth": 1.5,
+          "borderRadius": 32,
+          "fillGradient": {
+            "color1": "#100D0C",
+            "color2": "#113234",
+            "angle": 180
+          },
+          "groupId": "sm-b2-g-mission-memory",
+          "groupName": "Mission: Memory"
+        },
+        {
+          "id": "sm-b2-memory-n1",
+          "type": "text",
+          "name": "Step 1",
+          "position": {
+            "x": 113,
+            "y": 2160
+          },
+          "size": {
+            "width": 66,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "1",
+          "fontSize": 7.8,
+          "color": "#8E8580",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sm-b2-g-mission-memory",
+          "groupName": "Mission: Memory"
+        },
+        {
+          "id": "sm-b2-memory-t1",
+          "type": "shape",
+          "name": "Tile 1",
+          "position": {
+            "x": 113,
+            "y": 2212
+          },
+          "size": {
+            "width": 66,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF9A2E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 18,
+          "groupId": "sm-b2-g-mission-memory",
+          "groupName": "Mission: Memory"
+        },
+        {
+          "id": "sm-b2-memory-i1",
+          "type": "shape",
+          "name": "Tile 1 icon",
+          "position": {
+            "x": 127,
+            "y": 2226
+          },
+          "size": {
+            "width": 38,
+            "height": 38
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z M12 2.5v1.5 M12 20v1.5 M5.3 5.3l1.05 1.05 M17.65 17.65l1.05 1.05 M2.5 12H4 M20 12h1.5 M5.3 18.7l1.05-1.05 M17.65 6.35l1.05-1.05",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 3.8
+          },
+          "groupId": "sm-b2-g-mission-memory",
+          "groupName": "Mission: Memory"
+        },
+        {
+          "id": "sm-b2-memory-n2",
+          "type": "text",
+          "name": "Step 2",
+          "position": {
+            "x": 195,
+            "y": 2160
+          },
+          "size": {
+            "width": 66,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "2",
+          "fontSize": 7.8,
+          "color": "#8E8580",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sm-b2-g-mission-memory",
+          "groupName": "Mission: Memory"
+        },
+        {
+          "id": "sm-b2-memory-t2",
+          "type": "shape",
+          "name": "Tile 2",
+          "position": {
+            "x": 195,
+            "y": 2212
+          },
+          "size": {
+            "width": 66,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#7B6AFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 18,
+          "groupId": "sm-b2-g-mission-memory",
+          "groupName": "Mission: Memory"
+        },
+        {
+          "id": "sm-b2-memory-i2",
+          "type": "shape",
+          "name": "Tile 2 icon",
+          "position": {
+            "x": 209,
+            "y": 2226
+          },
+          "size": {
+            "width": 38,
+            "height": 38
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "fillRule": "evenodd"
+          },
+          "groupId": "sm-b2-g-mission-memory",
+          "groupName": "Mission: Memory"
+        },
+        {
+          "id": "sm-b2-memory-n3",
+          "type": "text",
+          "name": "Step 3",
+          "position": {
+            "x": 277,
+            "y": 2160
+          },
+          "size": {
+            "width": 66,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "3",
+          "fontSize": 7.8,
+          "color": "#8E8580",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sm-b2-g-mission-memory",
+          "groupName": "Mission: Memory"
+        },
+        {
+          "id": "sm-b2-memory-t3",
+          "type": "shape",
+          "name": "Tile 3",
+          "position": {
+            "x": 277,
+            "y": 2212
+          },
+          "size": {
+            "width": 66,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#2FC75E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 18,
+          "groupId": "sm-b2-g-mission-memory",
+          "groupName": "Mission: Memory"
+        },
+        {
+          "id": "sm-b2-memory-i3",
+          "type": "shape",
+          "name": "Tile 3 icon",
+          "position": {
+            "x": 291,
+            "y": 2226
+          },
+          "size": {
+            "width": 38,
+            "height": 38
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M20.5 3.5C11 3.6 4.6 8.4 4.6 15.4c0 1.6.5 3 1.3 4.1L3.8 21.6l1.4 1.4 2.1-2.1c1.1.7 2.4 1.1 3.9 1.1 6.4 0 9.6-6.1 9.3-18.5Z M8.4 17.1c2-3 4.4-5.1 7.6-6.6-3.4 2.2-5.4 4.3-7 6.9Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "fillRule": "evenodd"
+          },
+          "groupId": "sm-b2-g-mission-memory",
+          "groupName": "Mission: Memory"
+        },
+        {
+          "id": "sm-b2-scan-tile",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 431,
+            "y": 1928
+          },
+          "size": {
+            "width": 344,
+            "height": 500
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#15110F",
+          "strokeColor": "#2A2320",
+          "strokeWidth": 2,
+          "borderRadius": 46,
+          "fillGradient": {
+            "color1": "#442D15",
+            "color2": "#110E0D",
+            "angle": 180
+          },
+          "groupId": "sm-b2-g-mission-scan",
+          "groupName": "Mission: Scan"
+        },
+        {
+          "id": "sm-b2-scan-icon-bg",
+          "type": "shape",
+          "name": "Icon background",
+          "position": {
+            "x": 453,
+            "y": 1950
+          },
+          "size": {
+            "width": 72,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF9F2E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 22,
+          "fillGradient": {
+            "color1": "#FFB24F",
+            "color2": "#F07E14",
+            "angle": 135
+          },
+          "groupId": "sm-b2-g-mission-scan",
+          "groupName": "Mission: Scan"
+        },
+        {
+          "id": "sm-b2-scan-icon",
+          "type": "shape",
+          "name": "Icon",
+          "position": {
+            "x": 468,
+            "y": 1965
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M3 8V6a3 3 0 0 1 3-3h2 M16 3h2a3 3 0 0 1 3 3v2 M21 16v2a3 3 0 0 1-3 3h-2 M8 21H6a3 3 0 0 1-3-3v-2 M7 12h10",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4.2
+          },
+          "groupId": "sm-b2-g-mission-scan",
+          "groupName": "Mission: Scan"
+        },
+        {
+          "id": "sm-b2-scan-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 539,
+            "y": 1950
+          },
+          "size": {
+            "width": 226,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Scan",
+          "fontSize": 13.2,
+          "color": "#FFF4EA",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "letterSpacing": -0.26,
+          "groupId": "sm-b2-g-mission-scan",
+          "groupName": "Mission: Scan"
+        },
+        {
+          "id": "sm-b2-scan-panel",
+          "type": "shape",
+          "name": "Preview panel",
+          "position": {
+            "x": 453,
+            "y": 2044
+          },
+          "size": {
+            "width": 300,
+            "height": 362
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#100D0C",
+          "strokeColor": "#231D1A",
+          "strokeWidth": 1.5,
+          "borderRadius": 32,
+          "fillGradient": {
+            "color1": "#100D0C",
+            "color2": "#402A13",
+            "angle": 180
+          },
+          "groupId": "sm-b2-g-mission-scan",
+          "groupName": "Mission: Scan"
+        },
+        {
+          "id": "sm-b2-scan-frame",
+          "type": "shape",
+          "name": "Scan frame",
+          "position": {
+            "x": 523,
+            "y": 2150
+          },
+          "size": {
+            "width": 160,
+            "height": 160
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF9F2E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4 30V16A12 12 0 0 1 16 4H30 M70 4H84A12 12 0 0 1 96 16V30 M96 70V84A12 12 0 0 1 84 96H70 M30 96H16A12 12 0 0 1 4 84V70",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 8
+          },
+          "groupId": "sm-b2-g-mission-scan",
+          "groupName": "Mission: Scan"
+        },
+        {
+          "id": "sm-b2-scan-check",
+          "type": "shape",
+          "name": "Check",
+          "position": {
+            "x": 559,
+            "y": 2186
+          },
+          "size": {
+            "width": 88,
+            "height": 88
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF9F2E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M5 12.5l4.5 4.5L19 7.5",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 8.8
+          },
+          "groupId": "sm-b2-g-mission-scan",
+          "groupName": "Mission: Scan"
+        },
+        {
+          "id": "sm-b2-typing-tile",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 806,
+            "y": 1928
+          },
+          "size": {
+            "width": 344,
+            "height": 500
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#15110F",
+          "strokeColor": "#2A2320",
+          "strokeWidth": 2,
+          "borderRadius": 46,
+          "fillGradient": {
+            "color1": "#1D3721",
+            "color2": "#110E0D",
+            "angle": 180
+          },
+          "groupId": "sm-b2-g-mission-typing",
+          "groupName": "Mission: Typing"
+        },
+        {
+          "id": "sm-b2-typing-icon-bg",
+          "type": "shape",
+          "name": "Icon background",
+          "position": {
+            "x": 828,
+            "y": 1950
+          },
+          "size": {
+            "width": 72,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3BD16A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 22,
+          "fillGradient": {
+            "color1": "#4BE07A",
+            "color2": "#1EAE48",
+            "angle": 135
+          },
+          "groupId": "sm-b2-g-mission-typing",
+          "groupName": "Mission: Typing"
+        },
+        {
+          "id": "sm-b2-typing-icon",
+          "type": "shape",
+          "name": "Icon",
+          "position": {
+            "x": 843,
+            "y": 1965
+          },
+          "size": {
+            "width": 42,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4.5 6h15A2.5 2.5 0 0 1 22 8.5v7a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 15.5v-7A2.5 2.5 0 0 1 4.5 6Z M6 10h.01 M10 10h.01 M14 10h.01 M18 10h.01 M8 14h8",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4.2
+          },
+          "groupId": "sm-b2-g-mission-typing",
+          "groupName": "Mission: Typing"
+        },
+        {
+          "id": "sm-b2-typing-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 914,
+            "y": 1950
+          },
+          "size": {
+            "width": 226,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Typing",
+          "fontSize": 13.2,
+          "color": "#FFF4EA",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "letterSpacing": -0.26,
+          "groupId": "sm-b2-g-mission-typing",
+          "groupName": "Mission: Typing"
+        },
+        {
+          "id": "sm-b2-typing-panel",
+          "type": "shape",
+          "name": "Preview panel",
+          "position": {
+            "x": 828,
+            "y": 2044
+          },
+          "size": {
+            "width": 300,
+            "height": 362
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#100D0C",
+          "strokeColor": "#231D1A",
+          "strokeWidth": 1.5,
+          "borderRadius": 32,
+          "fillGradient": {
+            "color1": "#100D0C",
+            "color2": "#19341F",
+            "angle": 180
+          },
+          "groupId": "sm-b2-g-mission-typing",
+          "groupName": "Mission: Typing"
+        },
+        {
+          "id": "sm-b2-typing-done",
+          "type": "text",
+          "name": "Typed text",
+          "position": {
+            "x": 844.49,
+            "y": 2195
+          },
+          "size": {
+            "width": 200.25,
+            "height": 60
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Good morn",
+          "fontSize": 11.4,
+          "color": "#4BE07A",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "groupId": "sm-b2-g-mission-typing",
+          "groupName": "Mission: Typing"
+        },
+        {
+          "id": "sm-b2-typing-caret",
+          "type": "shape",
+          "name": "Caret",
+          "position": {
+            "x": 1047.74,
+            "y": 2201
+          },
+          "size": {
+            "width": 4,
+            "height": 48
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#4BE07A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 2,
+          "groupId": "sm-b2-g-mission-typing",
+          "groupName": "Mission: Typing"
+        },
+        {
+          "id": "sm-b2-typing-rest",
+          "type": "text",
+          "name": "Text to type",
+          "position": {
+            "x": 1052.74,
+            "y": 2195
+          },
+          "size": {
+            "width": 58.77,
+            "height": 60
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "ing",
+          "fontSize": 11.4,
+          "color": "#2E6B44",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "groupId": "sm-b2-g-mission-typing",
+          "groupName": "Mission: Typing"
+        }
+      ]
+    },
+    {
+      "id": "sm-board-3",
+      "name": "Solve to Stop",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0D0A09",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "sm-b3-glow",
+          "type": "image",
+          "name": "Glow",
+          "position": {
+            "x": 180,
+            "y": -1060
+          },
+          "size": {
+            "width": 1940,
+            "height": 1940
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.92,
+          "objectFit": "fill",
+          "imageSrc": "/data/projects/sunup-glow.png",
+          "groupId": "sm-b3-g-background",
+          "groupName": "Background glow"
+        },
+        {
+          "id": "sm-b3-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 78,
+            "y": 113.88
+          },
+          "size": {
+            "width": 1098,
+            "height": 237.36
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "No mission,",
+          "fontSize": 51.6,
+          "color": "#FFF4EA",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 0.96,
+          "letterSpacing": -2.32,
+          "groupId": "sm-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sm-b3-headline-accent",
+          "type": "text",
+          "name": "Headline accent",
+          "position": {
+            "x": 78,
+            "y": 279
+          },
+          "size": {
+            "width": 1098,
+            "height": 237.36
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "no silence.",
+          "fontSize": 51.6,
+          "color": "#FF7B22",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 0.96,
+          "letterSpacing": -2.32,
+          "groupId": "sm-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sm-b3-subtitle",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 82,
+            "y": 504.58
+          },
+          "size": {
+            "width": 1098,
+            "height": 74.52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Doze off midway and it rings again.",
+          "fontSize": 13.8,
+          "color": "#D3C7BF",
+          "fontFamily": "Outfit",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.2,
+          "groupId": "sm-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sm-b3-mascot",
+          "type": "image",
+          "name": "Sun mascot",
+          "position": {
+            "x": 646,
+            "y": 604
+          },
+          "size": {
+            "width": 470,
+            "height": 470
+          },
+          "rotation": -6,
+          "scale": 1,
+          "imageSrc": "/data/projects/sunup-mascot-happy.png",
+          "objectFit": "contain",
+          "groupId": "sm-b3-g-mascot",
+          "groupName": "Mascot"
+        },
+        {
+          "id": "sm-b3-sparks",
+          "type": "shape",
+          "name": "Sparkles",
+          "position": {
+            "x": 560,
+            "y": 650
+          },
+          "size": {
+            "width": 112,
+            "height": 116
+          },
+          "rotation": -96,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFB259",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M14 70 L28 44 M50 84 L76 66 M66 110 L98 104",
+          "specialProps": {
+            "viewBox": "0 0 112 116",
+            "strokeOnly": true,
+            "baseStrokeWidth": 9
+          },
+          "groupId": "sm-b3-g-mascot",
+          "groupName": "Mascot"
+        },
+        {
+          "id": "sm-b3-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 63,
+            "y": 992
+          },
+          "size": {
+            "width": 1080,
+            "height": 1500
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#191412",
+          "strokeColor": "#2C2521",
+          "strokeWidth": 2,
+          "borderRadius": 66,
+          "fillGradient": {
+            "color1": "#1E1916",
+            "color2": "#141110",
+            "angle": 180
+          },
+          "groupId": "sm-b3-g-maze-card",
+          "groupName": "Maze card"
+        },
+        {
+          "id": "sm-b3-alarm-pill",
+          "type": "shape",
+          "name": "Alarm pill",
+          "position": {
+            "x": 105,
+            "y": 1040
+          },
+          "size": {
+            "width": 366.66,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#2A1C15",
+          "strokeColor": "#5A3418",
+          "strokeWidth": 2,
+          "borderRadius": 70,
+          "groupId": "sm-b3-g-maze-card",
+          "groupName": "Maze card"
+        },
+        {
+          "id": "sm-b3-alarm-bell-bg",
+          "type": "shape",
+          "name": "Bell background",
+          "position": {
+            "x": 121,
+            "y": 1056
+          },
+          "size": {
+            "width": 108,
+            "height": 108
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FF8A2A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#FFA645",
+            "color2": "#FF6A10",
+            "angle": 135
+          },
+          "groupId": "sm-b3-g-maze-card",
+          "groupName": "Maze card"
+        },
+        {
+          "id": "sm-b3-alarm-bell",
+          "type": "shape",
+          "name": "Bell",
+          "position": {
+            "x": 147,
+            "y": 1082
+          },
+          "size": {
+            "width": 56,
+            "height": 56
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#3A1806",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M12 2.5c-3.6 0-6.2 2.8-6.2 6.4v3.6L4 15.6c-.4.8.2 1.7 1 1.7h14c.9 0 1.4-.9 1-1.7l-1.8-3.1V8.9c0-3.6-2.6-6.4-6.2-6.4Z M9.2 18.8a2.9 2.9 0 0 0 5.6 0Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "fillRule": "evenodd"
+          },
+          "groupId": "sm-b3-g-maze-card",
+          "groupName": "Maze card"
+        },
+        {
+          "id": "sm-b3-alarm-time",
+          "type": "text",
+          "name": "Alarm time",
+          "position": {
+            "x": 255,
+            "y": 1040
+          },
+          "size": {
+            "width": 202.66,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "06:15",
+          "fontSize": 21,
+          "color": "#FFF4EA",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "groupId": "sm-b3-g-maze-card",
+          "groupName": "Maze card"
+        },
+        {
+          "id": "sm-b3-timer-text",
+          "type": "text",
+          "name": "Timer",
+          "position": {
+            "x": 950.33,
+            "y": 1040
+          },
+          "size": {
+            "width": 150.67,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "16 sec",
+          "fontSize": 16.2,
+          "color": "#EFE6E0",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "right",
+          "lineHeight": 1.15,
+          "groupId": "sm-b3-g-maze-card",
+          "groupName": "Maze card"
+        },
+        {
+          "id": "sm-b3-timer-icon",
+          "type": "shape",
+          "name": "Timer icon",
+          "position": {
+            "x": 876.33,
+            "y": 1081
+          },
+          "size": {
+            "width": 58,
+            "height": 58
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF8A2A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M12 21.5a8 8 0 1 0 0-16 8 8 0 0 0 0 16Z M12 9.5v4l2.5 1.5 M9.5 2.5h5 M19 6l1.5-1.5",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5.32
+          },
+          "groupId": "sm-b3-g-maze-card",
+          "groupName": "Maze card"
+        },
+        {
+          "id": "sm-b3-progress-track",
+          "type": "shape",
+          "name": "Progress track",
+          "position": {
+            "x": 105,
+            "y": 1222
+          },
+          "size": {
+            "width": 996,
+            "height": 24
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3A302B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 12,
+          "groupId": "sm-b3-g-maze-card",
+          "groupName": "Maze card"
+        },
+        {
+          "id": "sm-b3-progress-fill",
+          "type": "shape",
+          "name": "Progress",
+          "position": {
+            "x": 105,
+            "y": 1222
+          },
+          "size": {
+            "width": 640,
+            "height": 24
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF8A2A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 12,
+          "fillGradient": {
+            "color1": "#FF6E14",
+            "color2": "#FFA040",
+            "angle": 90
+          },
+          "groupId": "sm-b3-g-maze-card",
+          "groupName": "Maze card"
+        },
+        {
+          "id": "sm-b3-maze-panel",
+          "type": "shape",
+          "name": "Maze panel",
+          "position": {
+            "x": 105,
+            "y": 1290
+          },
+          "size": {
+            "width": 996,
+            "height": 996
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0E0B0A",
+          "strokeColor": "#221C19",
+          "strokeWidth": 2,
+          "borderRadius": 46,
+          "groupId": "sm-b3-g-maze-card",
+          "groupName": "Maze card"
+        },
+        {
+          "id": "sm-b3-maze-walls",
+          "type": "shape",
+          "name": "Maze walls",
+          "position": {
+            "x": 141,
+            "y": 1326
+          },
+          "size": {
+            "width": 924,
+            "height": 924
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#5A524E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M3 3L83 3M23 13L63 13M3 23L23 23M43 23L73 23M13 33L43 33M63 33L73 33M23 43L33 43M53 43L63 43M13 53L23 53M3 63L23 63M53 63L73 63M13 73L23 73M43 73L73 73M3 83L83 83M3 3L3 83M13 3L13 13M13 33L13 43M23 13L23 23M23 43L23 53M23 63L23 73M33 13L33 33M33 43L33 83M43 33L43 73M53 23L53 63M63 43L63 53M73 3L73 23M73 33L73 63M83 3L83 73",
+          "specialProps": {
+            "viewBox": "0 0 86 86",
+            "strokeOnly": true,
+            "baseStrokeWidth": 26
+          },
+          "groupId": "sm-b3-g-maze-card",
+          "groupName": "Maze card"
+        },
+        {
+          "id": "sm-b3-maze-route-glow",
+          "type": "shape",
+          "name": "Route glow",
+          "position": {
+            "x": 141,
+            "y": 1326
+          },
+          "size": {
+            "width": 924,
+            "height": 924
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.8,
+          "blur": 14,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF7A1F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M8 8L8 18L18 18L18 8L68 8L68 18L38 18L38 28",
+          "specialProps": {
+            "viewBox": "0 0 86 86",
+            "strokeOnly": true,
+            "baseStrokeWidth": 26
+          },
+          "groupId": "sm-b3-g-maze-card",
+          "groupName": "Maze card"
+        },
+        {
+          "id": "sm-b3-maze-route",
+          "type": "shape",
+          "name": "Route",
+          "position": {
+            "x": 141,
+            "y": 1326
+          },
+          "size": {
+            "width": 924,
+            "height": 924
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF9A3D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M8 8L8 18L18 18L18 8L68 8L68 18L38 18L38 28",
+          "specialProps": {
+            "viewBox": "0 0 86 86",
+            "strokeOnly": true,
+            "baseStrokeWidth": 14
+          },
+          "groupId": "sm-b3-g-maze-card",
+          "groupName": "Maze card"
+        },
+        {
+          "id": "sm-b3-maze-ball",
+          "type": "shape",
+          "name": "Ball",
+          "position": {
+            "x": 521.28,
+            "y": 1598.84
+          },
+          "size": {
+            "width": 56,
+            "height": 56
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 0,
+            "blur": 26,
+            "color": "rgba(255,130,40,0.95)"
+          },
+          "shapeType": "circle",
+          "fillColor": "#FF9A3D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#FFD58F",
+            "color2": "#FF7A1A",
+            "angle": 135
+          },
+          "groupId": "sm-b3-g-maze-card",
+          "groupName": "Maze card"
+        },
+        {
+          "id": "sm-b3-maze-exit",
+          "type": "shape",
+          "name": "Exit",
+          "position": {
+            "x": 949.05,
+            "y": 2134.05
+          },
+          "size": {
+            "width": 60,
+            "height": 60
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#FF8A2A",
+          "strokeWidth": 9,
+          "groupId": "sm-b3-g-maze-card",
+          "groupName": "Maze card"
+        },
+        {
+          "id": "sm-b3-footer-icon-bg",
+          "type": "shape",
+          "name": "Mission icon background",
+          "position": {
+            "x": 371.23,
+            "y": 2340
+          },
+          "size": {
+            "width": 92,
+            "height": 92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#7360FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 26,
+          "fillGradient": {
+            "color1": "#9C8CFF",
+            "color2": "#5B45F0",
+            "angle": 135
+          },
+          "groupId": "sm-b3-g-maze-card",
+          "groupName": "Maze card"
+        },
+        {
+          "id": "sm-b3-footer-icon",
+          "type": "shape",
+          "name": "Mission icon",
+          "position": {
+            "x": 392.23,
+            "y": 2361
+          },
+          "size": {
+            "width": 50,
+            "height": 50
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z M9 18h7.5a3.5 3.5 0 0 0 0-7h-9a3.5 3.5 0 0 1 0-7H15",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5
+          },
+          "groupId": "sm-b3-g-maze-card",
+          "groupName": "Maze card"
+        },
+        {
+          "id": "sm-b3-footer-text",
+          "type": "text",
+          "name": "Mission name",
+          "position": {
+            "x": 491.23,
+            "y": 2340
+          },
+          "size": {
+            "width": 363.55,
+            "height": 92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Find the exit",
+          "fontSize": 18.6,
+          "color": "#FFF4EA",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "groupId": "sm-b3-g-maze-card",
+          "groupName": "Maze card"
+        }
+      ]
+    },
+    {
+      "id": "sm-board-4",
+      "name": "Chain Missions",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0D0A09",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "sm-b4-glow",
+          "type": "image",
+          "name": "Glow",
+          "position": {
+            "x": 300,
+            "y": 1640
+          },
+          "size": {
+            "width": 1800,
+            "height": 1800
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.88,
+          "objectFit": "fill",
+          "imageSrc": "/data/projects/sunup-glow.png",
+          "groupId": "sm-b4-g-background",
+          "groupName": "Background glow"
+        },
+        {
+          "id": "sm-b4-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 78,
+            "y": 113.88
+          },
+          "size": {
+            "width": 1098,
+            "height": 237.36
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Stack up to",
+          "fontSize": 51.6,
+          "color": "#FFF4EA",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 0.96,
+          "letterSpacing": -2.32,
+          "groupId": "sm-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sm-b4-headline-accent",
+          "type": "text",
+          "name": "Headline accent",
+          "position": {
+            "x": 78,
+            "y": 279
+          },
+          "size": {
+            "width": 1098,
+            "height": 237.36
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "3 missions.",
+          "fontSize": 51.6,
+          "color": "#FF7B22",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 0.96,
+          "letterSpacing": -2.32,
+          "groupId": "sm-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sm-b4-subtitle",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 82,
+            "y": 504.58
+          },
+          "size": {
+            "width": 1098,
+            "height": 74.52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "For mornings when one isn’t enough.",
+          "fontSize": 13.8,
+          "color": "#D3C7BF",
+          "fontFamily": "Outfit",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.2,
+          "groupId": "sm-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sm-b4-m1-tile",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 78,
+            "y": 1562
+          },
+          "size": {
+            "width": 352,
+            "height": 880
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 50,
+            "color": "rgba(0,0,0,0.5)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#46D8E4",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 50,
+          "fillGradient": {
+            "color1": "#46D8E4",
+            "color2": "#1093A4",
+            "angle": 180
+          },
+          "groupId": "sm-b4-g-mission-1",
+          "groupName": "Mission 1: Memory"
+        },
+        {
+          "id": "sm-b4-m1-number",
+          "type": "text",
+          "name": "Number",
+          "position": {
+            "x": 78,
+            "y": 1588
+          },
+          "size": {
+            "width": 352,
+            "height": 252.4
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "1",
+          "fontSize": 70.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 0.9,
+          "groupId": "sm-b4-g-mission-1",
+          "groupName": "Mission 1: Memory"
+        },
+        {
+          "id": "sm-b4-m1-icon-bg",
+          "type": "shape",
+          "name": "Icon background",
+          "position": {
+            "x": 154,
+            "y": 1878
+          },
+          "size": {
+            "width": 200,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 26,
+            "color": "rgba(0,0,0,0.22)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFF8F2",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 56,
+          "fillGradient": {
+            "color1": "#FFFFFF",
+            "color2": "#F2E8DF",
+            "angle": 180
+          },
+          "groupId": "sm-b4-g-mission-1",
+          "groupName": "Mission 1: Memory"
+        },
+        {
+          "id": "sm-b4-m1-icon",
+          "type": "shape",
+          "name": "Icon",
+          "position": {
+            "x": 202,
+            "y": 1926
+          },
+          "size": {
+            "width": 104,
+            "height": 104
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#14B8C8",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4 6.5A2.5 2.5 0 0 1 6.5 4h2A2.5 2.5 0 0 1 11 6.5v2A2.5 2.5 0 0 1 8.5 11h-2A2.5 2.5 0 0 1 4 8.5Z M13 6.5A2.5 2.5 0 0 1 15.5 4h2A2.5 2.5 0 0 1 20 6.5v2a2.5 2.5 0 0 1-2.5 2.5h-2A2.5 2.5 0 0 1 13 8.5Z M4 15.5A2.5 2.5 0 0 1 6.5 13h2a2.5 2.5 0 0 1 2.5 2.5v2A2.5 2.5 0 0 1 8.5 20h-2A2.5 2.5 0 0 1 4 17.5Z M13 15.5a2.5 2.5 0 0 1 2.5-2.5h2a2.5 2.5 0 0 1 2.5 2.5v2a2.5 2.5 0 0 1-2.5 2.5h-2a2.5 2.5 0 0 1-2.5-2.5Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "fillRule": "evenodd"
+          },
+          "groupId": "sm-b4-g-mission-1",
+          "groupName": "Mission 1: Memory"
+        },
+        {
+          "id": "sm-b4-m1-name",
+          "type": "text",
+          "name": "Mission name",
+          "position": {
+            "x": 78,
+            "y": 2104.56
+          },
+          "size": {
+            "width": 352,
+            "height": 100.48
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Memory",
+          "fontSize": 19.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "letterSpacing": -0.38,
+          "groupId": "sm-b4-g-mission-1",
+          "groupName": "Mission 1: Memory"
+        },
+        {
+          "id": "sm-b4-m1-pill",
+          "type": "shape",
+          "name": "Level pill",
+          "position": {
+            "x": 145.47,
+            "y": 2238
+          },
+          "size": {
+            "width": 217.06,
+            "height": 86
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#127986",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 43,
+          "groupId": "sm-b4-g-mission-1",
+          "groupName": "Mission 1: Memory"
+        },
+        {
+          "id": "sm-b4-m1-bars-off",
+          "type": "shape",
+          "name": "Level bars",
+          "position": {
+            "x": 175.47,
+            "y": 2261
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#71AFB6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M3 14.5a1.5 1.5 0 0 1 3 0V19a1.5 1.5 0 0 1-3 0Z M10.5 10a1.5 1.5 0 0 1 3 0v9a1.5 1.5 0 0 1-3 0Z M18 5.5a1.5 1.5 0 0 1 3 0V19a1.5 1.5 0 0 1-3 0Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24"
+          },
+          "groupId": "sm-b4-g-mission-1",
+          "groupName": "Mission 1: Memory"
+        },
+        {
+          "id": "sm-b4-m1-bars-on",
+          "type": "shape",
+          "name": "Level bars filled",
+          "position": {
+            "x": 175.47,
+            "y": 2261
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M3 14.5a1.5 1.5 0 0 1 3 0V19a1.5 1.5 0 0 1-3 0Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24"
+          },
+          "groupId": "sm-b4-g-mission-1",
+          "groupName": "Mission 1: Memory"
+        },
+        {
+          "id": "sm-b4-m1-level",
+          "type": "text",
+          "name": "Level",
+          "position": {
+            "x": 229.47,
+            "y": 2238
+          },
+          "size": {
+            "width": 119.06,
+            "height": 86
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Easy",
+          "fontSize": 13.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "groupId": "sm-b4-g-mission-1",
+          "groupName": "Mission 1: Memory"
+        },
+        {
+          "id": "sm-b4-m2-tile",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 430,
+            "y": 1250
+          },
+          "size": {
+            "width": 352,
+            "height": 880
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 50,
+            "color": "rgba(0,0,0,0.5)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FF6E5E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 50,
+          "fillGradient": {
+            "color1": "#FF6E5E",
+            "color2": "#CF2A24",
+            "angle": 180
+          },
+          "groupId": "sm-b4-g-mission-2",
+          "groupName": "Mission 2: Math"
+        },
+        {
+          "id": "sm-b4-m2-number",
+          "type": "text",
+          "name": "Number",
+          "position": {
+            "x": 430,
+            "y": 1276
+          },
+          "size": {
+            "width": 352,
+            "height": 252.4
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "2",
+          "fontSize": 70.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 0.9,
+          "groupId": "sm-b4-g-mission-2",
+          "groupName": "Mission 2: Math"
+        },
+        {
+          "id": "sm-b4-m2-icon-bg",
+          "type": "shape",
+          "name": "Icon background",
+          "position": {
+            "x": 506,
+            "y": 1566
+          },
+          "size": {
+            "width": 200,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 26,
+            "color": "rgba(0,0,0,0.22)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFF8F2",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 56,
+          "fillGradient": {
+            "color1": "#FFFFFF",
+            "color2": "#F2E8DF",
+            "angle": 180
+          },
+          "groupId": "sm-b4-g-mission-2",
+          "groupName": "Mission 2: Math"
+        },
+        {
+          "id": "sm-b4-m2-icon",
+          "type": "shape",
+          "name": "Icon",
+          "position": {
+            "x": 554,
+            "y": 1614
+          },
+          "size": {
+            "width": 104,
+            "height": 104
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#EE3B33",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M2.5 13.5h2.5l3 6 4.5-15h9.5 M14.5 10.5l5.5 7 M20 10.5l-5.5 7",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 11.27
+          },
+          "groupId": "sm-b4-g-mission-2",
+          "groupName": "Mission 2: Math"
+        },
+        {
+          "id": "sm-b4-m2-name",
+          "type": "text",
+          "name": "Mission name",
+          "position": {
+            "x": 430,
+            "y": 1792.56
+          },
+          "size": {
+            "width": 352,
+            "height": 100.48
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Math",
+          "fontSize": 19.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "letterSpacing": -0.38,
+          "groupId": "sm-b4-g-mission-2",
+          "groupName": "Mission 2: Math"
+        },
+        {
+          "id": "sm-b4-m2-pill",
+          "type": "shape",
+          "name": "Level pill",
+          "position": {
+            "x": 468.52,
+            "y": 1926
+          },
+          "size": {
+            "width": 274.97,
+            "height": 86
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#A3221E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 43,
+          "groupId": "sm-b4-g-mission-2",
+          "groupName": "Mission 2: Math"
+        },
+        {
+          "id": "sm-b4-m2-bars-off",
+          "type": "shape",
+          "name": "Level bars",
+          "position": {
+            "x": 498.52,
+            "y": 1949
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#C87A78",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M3 14.5a1.5 1.5 0 0 1 3 0V19a1.5 1.5 0 0 1-3 0Z M10.5 10a1.5 1.5 0 0 1 3 0v9a1.5 1.5 0 0 1-3 0Z M18 5.5a1.5 1.5 0 0 1 3 0V19a1.5 1.5 0 0 1-3 0Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24"
+          },
+          "groupId": "sm-b4-g-mission-2",
+          "groupName": "Mission 2: Math"
+        },
+        {
+          "id": "sm-b4-m2-bars-on",
+          "type": "shape",
+          "name": "Level bars filled",
+          "position": {
+            "x": 498.52,
+            "y": 1949
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M3 14.5a1.5 1.5 0 0 1 3 0V19a1.5 1.5 0 0 1-3 0Z M10.5 10a1.5 1.5 0 0 1 3 0v9a1.5 1.5 0 0 1-3 0Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24"
+          },
+          "groupId": "sm-b4-g-mission-2",
+          "groupName": "Mission 2: Math"
+        },
+        {
+          "id": "sm-b4-m2-level",
+          "type": "text",
+          "name": "Level",
+          "position": {
+            "x": 552.52,
+            "y": 1926
+          },
+          "size": {
+            "width": 176.97,
+            "height": 86
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Normal",
+          "fontSize": 13.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "groupId": "sm-b4-g-mission-2",
+          "groupName": "Mission 2: Math"
+        },
+        {
+          "id": "sm-b4-m3-tile",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 782,
+            "y": 938
+          },
+          "size": {
+            "width": 352,
+            "height": 880
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 50,
+            "color": "rgba(0,0,0,0.5)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#9F8CFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 50,
+          "fillGradient": {
+            "color1": "#9F8CFF",
+            "color2": "#5839E4",
+            "angle": 180
+          },
+          "groupId": "sm-b4-g-mission-3",
+          "groupName": "Mission 3: Maze"
+        },
+        {
+          "id": "sm-b4-m3-number",
+          "type": "text",
+          "name": "Number",
+          "position": {
+            "x": 782,
+            "y": 964
+          },
+          "size": {
+            "width": 352,
+            "height": 252.4
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "3",
+          "fontSize": 70.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 0.9,
+          "groupId": "sm-b4-g-mission-3",
+          "groupName": "Mission 3: Maze"
+        },
+        {
+          "id": "sm-b4-m3-icon-bg",
+          "type": "shape",
+          "name": "Icon background",
+          "position": {
+            "x": 858,
+            "y": 1254
+          },
+          "size": {
+            "width": 200,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 26,
+            "color": "rgba(0,0,0,0.22)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFF8F2",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 56,
+          "fillGradient": {
+            "color1": "#FFFFFF",
+            "color2": "#F2E8DF",
+            "angle": 180
+          },
+          "groupId": "sm-b4-g-mission-3",
+          "groupName": "Mission 3: Maze"
+        },
+        {
+          "id": "sm-b4-m3-icon",
+          "type": "shape",
+          "name": "Icon",
+          "position": {
+            "x": 906,
+            "y": 1302
+          },
+          "size": {
+            "width": 104,
+            "height": 104
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#6A4FF0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z M9 18h7.5a3.5 3.5 0 0 0 0-7h-9a3.5 3.5 0 0 1 0-7H15",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 10.4
+          },
+          "groupId": "sm-b4-g-mission-3",
+          "groupName": "Mission 3: Maze"
+        },
+        {
+          "id": "sm-b4-m3-name",
+          "type": "text",
+          "name": "Mission name",
+          "position": {
+            "x": 782,
+            "y": 1480.56
+          },
+          "size": {
+            "width": 352,
+            "height": 100.48
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Maze",
+          "fontSize": 19.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "letterSpacing": -0.38,
+          "groupId": "sm-b4-g-mission-3",
+          "groupName": "Mission 3: Maze"
+        },
+        {
+          "id": "sm-b4-m3-pill",
+          "type": "shape",
+          "name": "Level pill",
+          "position": {
+            "x": 846.13,
+            "y": 1614
+          },
+          "size": {
+            "width": 223.75,
+            "height": 86
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#4229B4",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 43,
+          "groupId": "sm-b4-g-mission-3",
+          "groupName": "Mission 3: Maze"
+        },
+        {
+          "id": "sm-b4-m3-bars-off",
+          "type": "shape",
+          "name": "Level bars",
+          "position": {
+            "x": 876.13,
+            "y": 1637
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#8E7FD2",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M3 14.5a1.5 1.5 0 0 1 3 0V19a1.5 1.5 0 0 1-3 0Z M10.5 10a1.5 1.5 0 0 1 3 0v9a1.5 1.5 0 0 1-3 0Z M18 5.5a1.5 1.5 0 0 1 3 0V19a1.5 1.5 0 0 1-3 0Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24"
+          },
+          "groupId": "sm-b4-g-mission-3",
+          "groupName": "Mission 3: Maze"
+        },
+        {
+          "id": "sm-b4-m3-bars-on",
+          "type": "shape",
+          "name": "Level bars filled",
+          "position": {
+            "x": 876.13,
+            "y": 1637
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M3 14.5a1.5 1.5 0 0 1 3 0V19a1.5 1.5 0 0 1-3 0Z M10.5 10a1.5 1.5 0 0 1 3 0v9a1.5 1.5 0 0 1-3 0Z M18 5.5a1.5 1.5 0 0 1 3 0V19a1.5 1.5 0 0 1-3 0Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24"
+          },
+          "groupId": "sm-b4-g-mission-3",
+          "groupName": "Mission 3: Maze"
+        },
+        {
+          "id": "sm-b4-m3-level",
+          "type": "text",
+          "name": "Level",
+          "position": {
+            "x": 930.13,
+            "y": 1614
+          },
+          "size": {
+            "width": 125.75,
+            "height": 86
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Hard",
+          "fontSize": 13.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "groupId": "sm-b4-g-mission-3",
+          "groupName": "Mission 3: Maze"
+        },
+        {
+          "id": "sm-b4-chain-dots-1a",
+          "type": "shape",
+          "name": "Link 1 dots",
+          "position": {
+            "x": 247.04,
+            "y": 1063.96
+          },
+          "size": {
+            "width": 208.29,
+            "height": 470.16
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF8A2A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M2 461.2a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M4.9 423.6a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M8.5 387.6a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M13.2 351.3a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M19 314.9a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M26.1 278.8a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M34.7 243.2a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M44.8 208.5a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M57.2 173.6a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M71.6 140.4a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M89 108.4a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M109.5 78.2a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M133.8 50.7a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M161.3 27.5a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M192.3 9a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z",
+          "specialProps": {
+            "viewBox": "0 0 208.29 470.16"
+          },
+          "groupId": "sm-b4-g-chain",
+          "groupName": "Chain"
+        },
+        {
+          "id": "sm-b4-chain-dots-1b",
+          "type": "shape",
+          "name": "Link 1 dots",
+          "position": {
+            "x": 503.91,
+            "y": 1065.76
+          },
+          "size": {
+            "width": 101.22,
+            "height": 131.31
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF8A2A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M2 9a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M31.2 30a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M55.4 57.1a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M73.2 88.3a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M85.2 122.3a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z",
+          "specialProps": {
+            "viewBox": "0 0 101.22 131.31"
+          },
+          "groupId": "sm-b4-g-chain",
+          "groupName": "Chain"
+        },
+        {
+          "id": "sm-b4-chain-dots-2a",
+          "type": "shape",
+          "name": "Link 2 dots",
+          "position": {
+            "x": 599.04,
+            "y": 747.99
+          },
+          "size": {
+            "width": 208.29,
+            "height": 473.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF8A2A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M2 464.8a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M4.9 426.9a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M8.5 390.6a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M13.2 354a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M19 317.3a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M26.1 280.8a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M34.7 244.9a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M44.8 209.9a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M57.2 174.7a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M71.6 141.3a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M89 109a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M109.5 78.6a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M133.8 50.9a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M161.3 27.6a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M192.3 9a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z",
+          "specialProps": {
+            "viewBox": "0 0 208.29 473.8"
+          },
+          "groupId": "sm-b4-g-chain",
+          "groupName": "Chain"
+        },
+        {
+          "id": "sm-b4-chain-dots-2b",
+          "type": "shape",
+          "name": "Link 2 dots",
+          "position": {
+            "x": 855.91,
+            "y": 749.85
+          },
+          "size": {
+            "width": 100.88,
+            "height": 132.34
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF8A2A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M2 9a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M31.2 30.3a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M55 57.4a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M72.9 89.2a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z M84.9 123.3a7 7 0 1 0 14 0a7 7 0 1 0 -14 0Z",
+          "specialProps": {
+            "viewBox": "0 0 100.88 132.34"
+          },
+          "groupId": "sm-b4-g-chain",
+          "groupName": "Chain"
+        },
+        {
+          "id": "sm-b4-chain-end-1",
+          "type": "shape",
+          "name": "Link end 1",
+          "position": {
+            "x": 236,
+            "y": 1544
+          },
+          "size": {
+            "width": 36,
+            "height": 36
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FF8A2A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "sm-b4-g-chain",
+          "groupName": "Chain"
+        },
+        {
+          "id": "sm-b4-chain-end-2",
+          "type": "shape",
+          "name": "Link end 2",
+          "position": {
+            "x": 588,
+            "y": 1232
+          },
+          "size": {
+            "width": 36,
+            "height": 36
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FF8A2A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "sm-b4-g-chain",
+          "groupName": "Chain"
+        },
+        {
+          "id": "sm-b4-chain-end-3",
+          "type": "shape",
+          "name": "Link end 3",
+          "position": {
+            "x": 940,
+            "y": 920
+          },
+          "size": {
+            "width": 36,
+            "height": 36
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FF8A2A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "sm-b4-g-chain",
+          "groupName": "Chain"
+        },
+        {
+          "id": "sm-b4-chain-badge-1",
+          "type": "shape",
+          "name": "Link badge 1",
+          "position": {
+            "x": 418,
+            "y": 998
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 0,
+            "blur": 30,
+            "color": "rgba(255,110,30,0.55)"
+          },
+          "shapeType": "circle",
+          "fillColor": "#FF8A2A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#FFA645",
+            "color2": "#FF6A10",
+            "angle": 135
+          },
+          "groupId": "sm-b4-g-chain",
+          "groupName": "Chain"
+        },
+        {
+          "id": "sm-b4-chain-link-1",
+          "type": "shape",
+          "name": "Link icon 1",
+          "position": {
+            "x": 448,
+            "y": 1028
+          },
+          "size": {
+            "width": 64,
+            "height": 64
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#3A1806",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M10 13.5a4.2 4.2 0 0 0 6 0l3-3a4.2 4.2 0 0 0-6-6l-1.2 1.2 M14 10.5a4.2 4.2 0 0 0-6 0l-3 3a4.2 4.2 0 0 0 6 6l1.2-1.2",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 6.4
+          },
+          "groupId": "sm-b4-g-chain",
+          "groupName": "Chain"
+        },
+        {
+          "id": "sm-b4-chain-badge-2",
+          "type": "shape",
+          "name": "Link badge 2",
+          "position": {
+            "x": 770,
+            "y": 682
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 0,
+            "blur": 30,
+            "color": "rgba(255,110,30,0.55)"
+          },
+          "shapeType": "circle",
+          "fillColor": "#FF8A2A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#FFA645",
+            "color2": "#FF6A10",
+            "angle": 135
+          },
+          "groupId": "sm-b4-g-chain",
+          "groupName": "Chain"
+        },
+        {
+          "id": "sm-b4-chain-link-2",
+          "type": "shape",
+          "name": "Link icon 2",
+          "position": {
+            "x": 800,
+            "y": 712
+          },
+          "size": {
+            "width": 64,
+            "height": 64
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#3A1806",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M10 13.5a4.2 4.2 0 0 0 6 0l3-3a4.2 4.2 0 0 0-6-6l-1.2 1.2 M14 10.5a4.2 4.2 0 0 0-6 0l-3 3a4.2 4.2 0 0 0 6 6l1.2-1.2",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 6.4
+          },
+          "groupId": "sm-b4-g-chain",
+          "groupName": "Chain"
+        }
+      ]
+    },
+    {
+      "id": "sm-board-5",
+      "name": "Difficulty",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0D0A09",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "sm-b5-glow",
+          "type": "image",
+          "name": "Glow",
+          "position": {
+            "x": 260,
+            "y": 1980
+          },
+          "size": {
+            "width": 1700,
+            "height": 1700
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.7,
+          "objectFit": "fill",
+          "imageSrc": "/data/projects/sunup-glow.png",
+          "groupId": "sm-b5-g-background",
+          "groupName": "Background glow"
+        },
+        {
+          "id": "sm-b5-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 78,
+            "y": 113.88
+          },
+          "size": {
+            "width": 1098,
+            "height": 237.36
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Too easy?",
+          "fontSize": 51.6,
+          "color": "#FFF4EA",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 0.96,
+          "letterSpacing": -2.32,
+          "groupId": "sm-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sm-b5-headline-accent",
+          "type": "text",
+          "name": "Headline accent",
+          "position": {
+            "x": 78,
+            "y": 279
+          },
+          "size": {
+            "width": 1098,
+            "height": 237.36
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Crank it up.",
+          "fontSize": 51.6,
+          "color": "#FF7B22",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 0.96,
+          "letterSpacing": -2.32,
+          "groupId": "sm-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sm-b5-subtitle",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 82,
+            "y": 504.58
+          },
+          "size": {
+            "width": 1098,
+            "height": 74.52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Three levels. You pick the pain.",
+          "fontSize": 13.8,
+          "color": "#D3C7BF",
+          "fontFamily": "Outfit",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.2,
+          "groupId": "sm-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sm-b5-easy-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 63,
+            "y": 742
+          },
+          "size": {
+            "width": 1080,
+            "height": 524
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 60,
+            "color": "rgba(255,190,60,0.32)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFD860",
+          "strokeColor": "#FFE79A",
+          "strokeWidth": 2,
+          "borderRadius": 62,
+          "fillGradient": {
+            "color1": "#FFD860",
+            "color2": "#FFAE2C",
+            "angle": 135
+          },
+          "groupId": "sm-b5-g-level-easy",
+          "groupName": "Level: Easy"
+        },
+        {
+          "id": "sm-b5-easy-pill",
+          "type": "shape",
+          "name": "Level pill",
+          "position": {
+            "x": 116,
+            "y": 796
+          },
+          "size": {
+            "width": 242.22,
+            "height": 106
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#EDB53F",
+          "strokeColor": "#DDA132",
+          "strokeWidth": 2,
+          "borderRadius": 53,
+          "groupId": "sm-b5-g-level-easy",
+          "groupName": "Level: Easy"
+        },
+        {
+          "id": "sm-b5-easy-bars-off",
+          "type": "shape",
+          "name": "Level bars",
+          "position": {
+            "x": 146,
+            "y": 826
+          },
+          "size": {
+            "width": 46,
+            "height": 46
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#C99536",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M3 14.5a1.5 1.5 0 0 1 3 0V19a1.5 1.5 0 0 1-3 0Z M10.5 10a1.5 1.5 0 0 1 3 0v9a1.5 1.5 0 0 1-3 0Z M18 5.5a1.5 1.5 0 0 1 3 0V19a1.5 1.5 0 0 1-3 0Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24"
+          },
+          "groupId": "sm-b5-g-level-easy",
+          "groupName": "Level: Easy"
+        },
+        {
+          "id": "sm-b5-easy-bars-on",
+          "type": "shape",
+          "name": "Level bars filled",
+          "position": {
+            "x": 146,
+            "y": 826
+          },
+          "size": {
+            "width": 46,
+            "height": 46
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#2A1405",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M3 14.5a1.5 1.5 0 0 1 3 0V19a1.5 1.5 0 0 1-3 0Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24"
+          },
+          "groupId": "sm-b5-g-level-easy",
+          "groupName": "Level: Easy"
+        },
+        {
+          "id": "sm-b5-easy-label",
+          "type": "text",
+          "name": "Level",
+          "position": {
+            "x": 206,
+            "y": 796
+          },
+          "size": {
+            "width": 138.22,
+            "height": 106
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Easy",
+          "fontSize": 15.6,
+          "color": "#2A1405",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "groupId": "sm-b5-g-level-easy",
+          "groupName": "Level: Easy"
+        },
+        {
+          "id": "sm-b5-easy-sum",
+          "type": "text",
+          "name": "Sum",
+          "position": {
+            "x": 112,
+            "y": 1014.28
+          },
+          "size": {
+            "width": 980,
+            "height": 187.44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "5 + 8 − 3",
+          "fontSize": 39.6,
+          "color": "#2A1405",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -0.4,
+          "groupId": "sm-b5-g-level-easy",
+          "groupName": "Level: Easy"
+        },
+        {
+          "id": "sm-b5-normal-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 63,
+            "y": 1314
+          },
+          "size": {
+            "width": 1080,
+            "height": 524
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 60,
+            "color": "rgba(255,120,30,0.36)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFA43F",
+          "strokeColor": "#FFC27E",
+          "strokeWidth": 2,
+          "borderRadius": 62,
+          "fillGradient": {
+            "color1": "#FFA43F",
+            "color2": "#FF6810",
+            "angle": 135
+          },
+          "groupId": "sm-b5-g-level-normal",
+          "groupName": "Level: Normal"
+        },
+        {
+          "id": "sm-b5-normal-pill",
+          "type": "shape",
+          "name": "Level pill",
+          "position": {
+            "x": 116,
+            "y": 1368
+          },
+          "size": {
+            "width": 308.16,
+            "height": 106
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#F48731",
+          "strokeColor": "#E37222",
+          "strokeWidth": 2,
+          "borderRadius": 53,
+          "groupId": "sm-b5-g-level-normal",
+          "groupName": "Level: Normal"
+        },
+        {
+          "id": "sm-b5-normal-bars-off",
+          "type": "shape",
+          "name": "Level bars",
+          "position": {
+            "x": 146,
+            "y": 1398
+          },
+          "size": {
+            "width": 46,
+            "height": 46
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#C5642A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M3 14.5a1.5 1.5 0 0 1 3 0V19a1.5 1.5 0 0 1-3 0Z M10.5 10a1.5 1.5 0 0 1 3 0v9a1.5 1.5 0 0 1-3 0Z M18 5.5a1.5 1.5 0 0 1 3 0V19a1.5 1.5 0 0 1-3 0Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24"
+          },
+          "groupId": "sm-b5-g-level-normal",
+          "groupName": "Level: Normal"
+        },
+        {
+          "id": "sm-b5-normal-bars-on",
+          "type": "shape",
+          "name": "Level bars filled",
+          "position": {
+            "x": 146,
+            "y": 1398
+          },
+          "size": {
+            "width": 46,
+            "height": 46
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#2A1405",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M3 14.5a1.5 1.5 0 0 1 3 0V19a1.5 1.5 0 0 1-3 0Z M10.5 10a1.5 1.5 0 0 1 3 0v9a1.5 1.5 0 0 1-3 0Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24"
+          },
+          "groupId": "sm-b5-g-level-normal",
+          "groupName": "Level: Normal"
+        },
+        {
+          "id": "sm-b5-normal-label",
+          "type": "text",
+          "name": "Level",
+          "position": {
+            "x": 206,
+            "y": 1368
+          },
+          "size": {
+            "width": 204.16,
+            "height": 106
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Normal",
+          "fontSize": 15.6,
+          "color": "#2A1405",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "groupId": "sm-b5-g-level-normal",
+          "groupName": "Level: Normal"
+        },
+        {
+          "id": "sm-b5-normal-sum",
+          "type": "text",
+          "name": "Sum",
+          "position": {
+            "x": 112,
+            "y": 1586.28
+          },
+          "size": {
+            "width": 980,
+            "height": 187.44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "27 − 9 + 14",
+          "fontSize": 39.6,
+          "color": "#2A1405",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -0.4,
+          "groupId": "sm-b5-g-level-normal",
+          "groupName": "Level: Normal"
+        },
+        {
+          "id": "sm-b5-hard-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 63,
+            "y": 1886
+          },
+          "size": {
+            "width": 1080,
+            "height": 524
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 60,
+            "color": "rgba(240,70,30,0.38)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FA5C36",
+          "strokeColor": "#FF8C70",
+          "strokeWidth": 2,
+          "borderRadius": 62,
+          "fillGradient": {
+            "color1": "#FA5C36",
+            "color2": "#C01D12",
+            "angle": 135
+          },
+          "groupId": "sm-b5-g-level-hard",
+          "groupName": "Level: Hard"
+        },
+        {
+          "id": "sm-b5-hard-pill",
+          "type": "shape",
+          "name": "Level pill",
+          "position": {
+            "x": 116,
+            "y": 1940
+          },
+          "size": {
+            "width": 249.3,
+            "height": 106
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#DD442A",
+          "strokeColor": "#C93A22",
+          "strokeWidth": 2,
+          "borderRadius": 53,
+          "groupId": "sm-b5-g-level-hard",
+          "groupName": "Level: Hard"
+        },
+        {
+          "id": "sm-b5-hard-bars-off",
+          "type": "shape",
+          "name": "Level bars",
+          "position": {
+            "x": 146,
+            "y": 1970
+          },
+          "size": {
+            "width": 46,
+            "height": 46
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#F2A08F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M3 14.5a1.5 1.5 0 0 1 3 0V19a1.5 1.5 0 0 1-3 0Z M10.5 10a1.5 1.5 0 0 1 3 0v9a1.5 1.5 0 0 1-3 0Z M18 5.5a1.5 1.5 0 0 1 3 0V19a1.5 1.5 0 0 1-3 0Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24"
+          },
+          "groupId": "sm-b5-g-level-hard",
+          "groupName": "Level: Hard"
+        },
+        {
+          "id": "sm-b5-hard-bars-on",
+          "type": "shape",
+          "name": "Level bars filled",
+          "position": {
+            "x": 146,
+            "y": 1970
+          },
+          "size": {
+            "width": 46,
+            "height": 46
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M3 14.5a1.5 1.5 0 0 1 3 0V19a1.5 1.5 0 0 1-3 0Z M10.5 10a1.5 1.5 0 0 1 3 0v9a1.5 1.5 0 0 1-3 0Z M18 5.5a1.5 1.5 0 0 1 3 0V19a1.5 1.5 0 0 1-3 0Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24"
+          },
+          "groupId": "sm-b5-g-level-hard",
+          "groupName": "Level: Hard"
+        },
+        {
+          "id": "sm-b5-hard-label",
+          "type": "text",
+          "name": "Level",
+          "position": {
+            "x": 206,
+            "y": 1940
+          },
+          "size": {
+            "width": 145.3,
+            "height": 106
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Hard",
+          "fontSize": 15.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "groupId": "sm-b5-g-level-hard",
+          "groupName": "Level: Hard"
+        },
+        {
+          "id": "sm-b5-hard-sum",
+          "type": "text",
+          "name": "Sum",
+          "position": {
+            "x": 112,
+            "y": 2158.28
+          },
+          "size": {
+            "width": 980,
+            "height": 187.44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "158 − 67 + 329",
+          "fontSize": 39.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -0.4,
+          "groupId": "sm-b5-g-level-hard",
+          "groupName": "Level: Hard"
+        }
+      ]
+    },
+    {
+      "id": "sm-board-6",
+      "name": "Streak",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0D0A09",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "sm-b6-glow",
+          "type": "image",
+          "name": "Glow",
+          "position": {
+            "x": -330,
+            "y": 1880
+          },
+          "size": {
+            "width": 1860,
+            "height": 1600
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.9,
+          "objectFit": "fill",
+          "imageSrc": "/data/projects/sunup-glow.png",
+          "groupId": "sm-b6-g-background",
+          "groupName": "Background glow"
+        },
+        {
+          "id": "sm-b6-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 78,
+            "y": 113.88
+          },
+          "size": {
+            "width": 1098,
+            "height": 402.48
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Grow your\nwake-up",
+          "fontSize": 51.6,
+          "color": "#FFF4EA",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 0.96,
+          "letterSpacing": -2.32,
+          "groupId": "sm-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sm-b6-headline-accent",
+          "type": "text",
+          "name": "Headline accent",
+          "position": {
+            "x": 78,
+            "y": 444.12
+          },
+          "size": {
+            "width": 1098,
+            "height": 237.36
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "streak.",
+          "fontSize": 51.6,
+          "color": "#FF7B22",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 0.96,
+          "letterSpacing": -2.32,
+          "groupId": "sm-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sm-b6-subtitle",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 82,
+            "y": 669.7
+          },
+          "size": {
+            "width": 1098,
+            "height": 74.52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Every early start counts.",
+          "fontSize": 13.8,
+          "color": "#D3C7BF",
+          "fontFamily": "Outfit",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.2,
+          "groupId": "sm-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sm-b6-count",
+          "type": "text",
+          "name": "Count",
+          "position": {
+            "x": 40,
+            "y": 1250
+          },
+          "size": {
+            "width": 837.41,
+            "height": 776
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "12",
+          "fontSize": 276,
+          "color": "#FFF4EA",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 0.8,
+          "letterSpacing": -16.56,
+          "groupId": "sm-b6-g-streak",
+          "groupName": "Streak count"
+        },
+        {
+          "id": "sm-b6-flame",
+          "type": "shape",
+          "name": "Flame",
+          "position": {
+            "x": 873.92,
+            "y": 1894.5
+          },
+          "size": {
+            "width": 80,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF7B22",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M12.2 22c4.2 0 7.3-2.9 7.3-7 0-3.7-2.5-6.4-4.1-8-.3 2.3-1.3 3.6-2.7 4.3.3-3.7-1.4-7-4.6-9 .4 3.6-1.5 6-3 8.1-1.2 1.7-1.6 3.1-1.6 4.4 0 4.2 3.3 7.2 8.7 7.2Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "fillRule": "evenodd"
+          },
+          "groupId": "sm-b6-g-streak",
+          "groupName": "Streak count"
+        },
+        {
+          "id": "sm-b6-days",
+          "type": "text",
+          "name": "Days label",
+          "position": {
+            "x": 959.92,
+            "y": 1866.16
+          },
+          "size": {
+            "width": 252.48,
+            "height": 147.68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "days",
+          "fontSize": 31.2,
+          "color": "#FFF4EA",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -0.94,
+          "groupId": "sm-b6-g-streak",
+          "groupName": "Streak count"
+        },
+        {
+          "id": "sm-b6-mascot",
+          "type": "image",
+          "name": "Sun mascot",
+          "position": {
+            "x": 470,
+            "y": 770
+          },
+          "size": {
+            "width": 640,
+            "height": 640
+          },
+          "rotation": 8,
+          "scale": 1,
+          "imageSrc": "/data/projects/sunup-mascot-happy.png",
+          "objectFit": "contain",
+          "groupId": "sm-b6-g-mascot",
+          "groupName": "Mascot"
+        },
+        {
+          "id": "sm-b6-sparks-left",
+          "type": "shape",
+          "name": "Sparkles",
+          "position": {
+            "x": 380,
+            "y": 830
+          },
+          "size": {
+            "width": 112,
+            "height": 116
+          },
+          "rotation": -100,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFB259",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M14 70 L28 44 M50 84 L76 66 M66 110 L98 104",
+          "specialProps": {
+            "viewBox": "0 0 112 116",
+            "strokeOnly": true,
+            "baseStrokeWidth": 10
+          },
+          "groupId": "sm-b6-g-mascot",
+          "groupName": "Mascot"
+        },
+        {
+          "id": "sm-b6-sparks-right",
+          "type": "shape",
+          "name": "Sparkles",
+          "position": {
+            "x": 1030,
+            "y": 750
+          },
+          "size": {
+            "width": 112,
+            "height": 116
+          },
+          "rotation": -10,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFB259",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M14 70 L28 44 M50 84 L76 66 M66 110 L98 104",
+          "specialProps": {
+            "viewBox": "0 0 112 116",
+            "strokeOnly": true,
+            "baseStrokeWidth": 10
+          },
+          "groupId": "sm-b6-g-mascot",
+          "groupName": "Mascot"
+        },
+        {
+          "id": "sm-b6-calendar-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 63,
+            "y": 2068
+          },
+          "size": {
+            "width": 1080,
+            "height": 448
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1A1513",
+          "strokeColor": "#2C2521",
+          "strokeWidth": 2,
+          "borderRadius": 54,
+          "fillGradient": {
+            "color1": "#1E1916",
+            "color2": "#161210",
+            "angle": 180
+          },
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-calendar-month",
+          "type": "text",
+          "name": "Month",
+          "position": {
+            "x": 116,
+            "y": 2093.5
+          },
+          "size": {
+            "width": 500,
+            "height": 78.5
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "October",
+          "fontSize": 15,
+          "color": "#FFF4EA",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-5",
+          "type": "shape",
+          "name": "Day 5",
+          "position": {
+            "x": 113,
+            "y": 2186
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#2A2321",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 30,
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-5-n",
+          "type": "text",
+          "name": "Day 5 number",
+          "position": {
+            "x": 113,
+            "y": 2186
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "5",
+          "fontSize": 15.6,
+          "color": "#6F635D",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-6",
+          "type": "shape",
+          "name": "Day 6",
+          "position": {
+            "x": 255.67,
+            "y": 2186
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#2A2321",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 30,
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-6-n",
+          "type": "text",
+          "name": "Day 6 number",
+          "position": {
+            "x": 255.67,
+            "y": 2186
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "6",
+          "fontSize": 15.6,
+          "color": "#6F635D",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-7",
+          "type": "shape",
+          "name": "Day 7",
+          "position": {
+            "x": 398.33,
+            "y": 2186
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF7A1F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 30,
+          "fillGradient": {
+            "color1": "#FF9A3D",
+            "color2": "#FF6A12",
+            "angle": 160
+          },
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-7-n",
+          "type": "text",
+          "name": "Day 7 number",
+          "position": {
+            "x": 398.33,
+            "y": 2186
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "7",
+          "fontSize": 15.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-8",
+          "type": "shape",
+          "name": "Day 8",
+          "position": {
+            "x": 541,
+            "y": 2186
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF7A1F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 30,
+          "fillGradient": {
+            "color1": "#FF9A3D",
+            "color2": "#FF6A12",
+            "angle": 160
+          },
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-8-n",
+          "type": "text",
+          "name": "Day 8 number",
+          "position": {
+            "x": 541,
+            "y": 2186
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "8",
+          "fontSize": 15.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-9",
+          "type": "shape",
+          "name": "Day 9",
+          "position": {
+            "x": 683.67,
+            "y": 2186
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF7A1F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 30,
+          "fillGradient": {
+            "color1": "#FF9A3D",
+            "color2": "#FF6A12",
+            "angle": 160
+          },
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-9-n",
+          "type": "text",
+          "name": "Day 9 number",
+          "position": {
+            "x": 683.67,
+            "y": 2186
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "9",
+          "fontSize": 15.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-10",
+          "type": "shape",
+          "name": "Day 10",
+          "position": {
+            "x": 826.33,
+            "y": 2186
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF7A1F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 30,
+          "fillGradient": {
+            "color1": "#FF9A3D",
+            "color2": "#FF6A12",
+            "angle": 160
+          },
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-10-n",
+          "type": "text",
+          "name": "Day 10 number",
+          "position": {
+            "x": 826.33,
+            "y": 2186
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "10",
+          "fontSize": 15.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-11",
+          "type": "shape",
+          "name": "Day 11",
+          "position": {
+            "x": 969,
+            "y": 2186
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF7A1F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 30,
+          "fillGradient": {
+            "color1": "#FF9A3D",
+            "color2": "#FF6A12",
+            "angle": 160
+          },
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-11-n",
+          "type": "text",
+          "name": "Day 11 number",
+          "position": {
+            "x": 969,
+            "y": 2186
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "11",
+          "fontSize": 15.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-12",
+          "type": "shape",
+          "name": "Day 12",
+          "position": {
+            "x": 113,
+            "y": 2336
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF7A1F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 30,
+          "fillGradient": {
+            "color1": "#FF9A3D",
+            "color2": "#FF6A12",
+            "angle": 160
+          },
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-12-n",
+          "type": "text",
+          "name": "Day 12 number",
+          "position": {
+            "x": 113,
+            "y": 2336
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "12",
+          "fontSize": 15.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-13",
+          "type": "shape",
+          "name": "Day 13",
+          "position": {
+            "x": 255.67,
+            "y": 2336
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF7A1F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 30,
+          "fillGradient": {
+            "color1": "#FF9A3D",
+            "color2": "#FF6A12",
+            "angle": 160
+          },
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-13-n",
+          "type": "text",
+          "name": "Day 13 number",
+          "position": {
+            "x": 255.67,
+            "y": 2336
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "13",
+          "fontSize": 15.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-14",
+          "type": "shape",
+          "name": "Day 14",
+          "position": {
+            "x": 398.33,
+            "y": 2336
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF7A1F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 30,
+          "fillGradient": {
+            "color1": "#FF9A3D",
+            "color2": "#FF6A12",
+            "angle": 160
+          },
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-14-n",
+          "type": "text",
+          "name": "Day 14 number",
+          "position": {
+            "x": 398.33,
+            "y": 2336
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "14",
+          "fontSize": 15.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-15",
+          "type": "shape",
+          "name": "Day 15",
+          "position": {
+            "x": 541,
+            "y": 2336
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF7A1F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 30,
+          "fillGradient": {
+            "color1": "#FF9A3D",
+            "color2": "#FF6A12",
+            "angle": 160
+          },
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-15-n",
+          "type": "text",
+          "name": "Day 15 number",
+          "position": {
+            "x": 541,
+            "y": 2336
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "15",
+          "fontSize": 15.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-16",
+          "type": "shape",
+          "name": "Day 16",
+          "position": {
+            "x": 683.67,
+            "y": 2336
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF7A1F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 30,
+          "fillGradient": {
+            "color1": "#FF9A3D",
+            "color2": "#FF6A12",
+            "angle": 160
+          },
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-16-n",
+          "type": "text",
+          "name": "Day 16 number",
+          "position": {
+            "x": 683.67,
+            "y": 2336
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "16",
+          "fontSize": 15.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-17",
+          "type": "shape",
+          "name": "Day 17",
+          "position": {
+            "x": 826.33,
+            "y": 2336
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF7A1F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 30,
+          "fillGradient": {
+            "color1": "#FF9A3D",
+            "color2": "#FF6A12",
+            "angle": 160
+          },
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-17-n",
+          "type": "text",
+          "name": "Day 17 number",
+          "position": {
+            "x": 826.33,
+            "y": 2336
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "17",
+          "fontSize": 15.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-today-ring",
+          "type": "shape",
+          "name": "Today ring",
+          "position": {
+            "x": 958,
+            "y": 2325
+          },
+          "size": {
+            "width": 146,
+            "height": 146
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "transparent",
+          "strokeColor": "#FF8A2A",
+          "strokeWidth": 5,
+          "borderRadius": 40,
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-18",
+          "type": "shape",
+          "name": "Day 18",
+          "position": {
+            "x": 969,
+            "y": 2336
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF7A1F",
+          "strokeColor": "#0D0A09",
+          "strokeWidth": 4,
+          "borderRadius": 30,
+          "fillGradient": {
+            "color1": "#FF9A3D",
+            "color2": "#FF6A12",
+            "angle": 160
+          },
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        },
+        {
+          "id": "sm-b6-day-18-n",
+          "type": "text",
+          "name": "Day 18 number",
+          "position": {
+            "x": 969,
+            "y": 2336
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "18",
+          "fontSize": 15.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sm-b6-g-calendar",
+          "groupName": "Calendar"
+        }
+      ]
+    }
+  ]
+}

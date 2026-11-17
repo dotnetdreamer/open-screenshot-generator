@@ -1,0 +1,1897 @@
+{
+  "id": "template_sunup_alarm",
+  "name": "Sunup Alarm",
+  "description": "App Store & Play Store screenshots for an alarm clock or habit app. Bold orange boards with a soft sun arc, two-tone Poppins headlines, large phones, and zoomed callouts of the key controls, each one grouped so its text and colors are quick to change.",
+  "previewImage": "/data/projects/previews/sunup-alarm.png",
+  "timestamp": "2026-11-17T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "sa-board-1",
+      "name": "Quit Snoozing",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FF5E1C",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "sa-b1-sun-arc",
+          "type": "shape",
+          "name": "Sun arc",
+          "position": {
+            "x": -1497,
+            "y": 1056
+          },
+          "size": {
+            "width": 4200,
+            "height": 4200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FF7A3A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#FF9150",
+            "color2": "#FF5E1C",
+            "angle": 180
+          },
+          "groupId": "sa-b1-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "sa-b1-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 30,
+            "y": 85.66
+          },
+          "size": {
+            "width": 1146,
+            "height": 224.84
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Quit Snoozing",
+          "fontSize": 46.2,
+          "color": "#140A05",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -1.62,
+          "groupId": "sa-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sa-b1-headline-accent",
+          "type": "text",
+          "name": "Headline accent",
+          "position": {
+            "x": 30,
+            "y": 245.82
+          },
+          "size": {
+            "width": 1146,
+            "height": 224.84
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Rise & Shine!",
+          "fontSize": 46.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -1.62,
+          "groupId": "sa-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sa-b1-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 143,
+            "y": 560
+          },
+          "size": {
+            "width": 920,
+            "height": 1998.91
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "normal",
+          "frameColor": "#2A2826",
+          "screenshotSrc": "/data/projects/sunup-alarm-screen-home.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "sa-board-2",
+      "name": "Pick a Task",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FF5E1C",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "sa-b2-sun-arc",
+          "type": "shape",
+          "name": "Sun arc",
+          "position": {
+            "x": -1497,
+            "y": 1056
+          },
+          "size": {
+            "width": 4200,
+            "height": 4200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FF7A3A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#FF9150",
+            "color2": "#FF5E1C",
+            "angle": 180
+          },
+          "groupId": "sa-b2-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "sa-b2-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 143,
+            "y": 130
+          },
+          "size": {
+            "width": 920,
+            "height": 1998.91
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "normal",
+          "frameColor": "#2A2826",
+          "screenshotSrc": "/data/projects/sunup-alarm-screen-missions.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "sa-b2-callout-bg",
+          "type": "shape",
+          "name": "Callout background",
+          "position": {
+            "x": 58,
+            "y": 401.62
+          },
+          "size": {
+            "width": 1084,
+            "height": 556
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 60,
+            "color": "rgba(110,30,0,0.35)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#000000",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 86,
+          "groupId": "sa-b2-g-callout",
+          "groupName": "Callout: Missions"
+        },
+        {
+          "id": "sa-b2-maze-card",
+          "type": "shape",
+          "name": "Maze card",
+          "position": {
+            "x": 82,
+            "y": 425.62
+          },
+          "size": {
+            "width": 506,
+            "height": 508
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#151517",
+          "strokeColor": "#6E6CFF",
+          "strokeWidth": 5,
+          "borderRadius": 62,
+          "groupId": "sa-b2-g-callout",
+          "groupName": "Callout: Missions"
+        },
+        {
+          "id": "sa-b2-maze-icon-bg",
+          "type": "shape",
+          "name": "Maze icon background",
+          "position": {
+            "x": 254.56,
+            "y": 472.32
+          },
+          "size": {
+            "width": 160.88,
+            "height": 160.88
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#8C8AFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#8C8AFF",
+            "color2": "#5552E8",
+            "angle": 135
+          },
+          "groupId": "sa-b2-g-callout",
+          "groupName": "Callout: Missions"
+        },
+        {
+          "id": "sa-b2-maze-icon",
+          "type": "shape",
+          "name": "Maze icon",
+          "position": {
+            "x": 295,
+            "y": 512.77
+          },
+          "size": {
+            "width": 80,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z M9 18h7.5a3.5 3.5 0 0 0 0-7h-9a3.5 3.5 0 0 1 0-7H15",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 7.33
+          },
+          "groupId": "sa-b2-g-callout",
+          "groupName": "Callout: Missions"
+        },
+        {
+          "id": "sa-b2-maze-title",
+          "type": "text",
+          "name": "Maze title",
+          "position": {
+            "x": 82,
+            "y": 643.59
+          },
+          "size": {
+            "width": 506,
+            "height": 77.85
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Maze",
+          "fontSize": 13.23,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sa-b2-g-callout",
+          "groupName": "Callout: Missions"
+        },
+        {
+          "id": "sa-b2-maze-desc",
+          "type": "text",
+          "name": "Maze description",
+          "position": {
+            "x": 92,
+            "y": 718.84
+          },
+          "size": {
+            "width": 486,
+            "height": 57.09
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Roll the ball out",
+          "fontSize": 9.73,
+          "color": "#8E8E93",
+          "fontFamily": "Outfit",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sa-b2-g-callout",
+          "groupName": "Callout: Missions"
+        },
+        {
+          "id": "sa-b2-maze-pill",
+          "type": "shape",
+          "name": "Maze button",
+          "position": {
+            "x": 228.03,
+            "y": 804.47
+          },
+          "size": {
+            "width": 213.94,
+            "height": 72.66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#173A20",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 23.35,
+          "groupId": "sa-b2-g-callout",
+          "groupName": "Callout: Missions"
+        },
+        {
+          "id": "sa-b2-maze-pill-text",
+          "type": "text",
+          "name": "Maze button text",
+          "position": {
+            "x": 228.03,
+            "y": 804.47
+          },
+          "size": {
+            "width": 213.94,
+            "height": 72.66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Selected",
+          "fontSize": 10.12,
+          "color": "#30D158",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sa-b2-g-callout",
+          "groupName": "Callout: Missions"
+        },
+        {
+          "id": "sa-b2-maze-check-bg",
+          "type": "shape",
+          "name": "Selected badge",
+          "position": {
+            "x": 494.58,
+            "y": 451.57
+          },
+          "size": {
+            "width": 67.47,
+            "height": 67.47
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#30D158",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "sa-b2-g-callout",
+          "groupName": "Callout: Missions"
+        },
+        {
+          "id": "sa-b2-maze-check",
+          "type": "shape",
+          "name": "Selected check",
+          "position": {
+            "x": 506.32,
+            "y": 463.3
+          },
+          "size": {
+            "width": 44,
+            "height": 44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M5 12.5l4.5 4.5L19 7.5",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5.87
+          },
+          "groupId": "sa-b2-g-callout",
+          "groupName": "Callout: Missions"
+        },
+        {
+          "id": "sa-b2-shake-card",
+          "type": "shape",
+          "name": "Shake card",
+          "position": {
+            "x": 612,
+            "y": 425.62
+          },
+          "size": {
+            "width": 506,
+            "height": 508
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#151517",
+          "strokeColor": "#2A2A2D",
+          "strokeWidth": 2.5,
+          "borderRadius": 62,
+          "groupId": "sa-b2-g-callout",
+          "groupName": "Callout: Missions"
+        },
+        {
+          "id": "sa-b2-shake-icon-bg",
+          "type": "shape",
+          "name": "Shake icon background",
+          "position": {
+            "x": 784.56,
+            "y": 472.32
+          },
+          "size": {
+            "width": 160.88,
+            "height": 160.88
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#4AA8FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#4AA8FF",
+            "color2": "#0A72E8",
+            "angle": 135
+          },
+          "groupId": "sa-b2-g-callout",
+          "groupName": "Callout: Missions"
+        },
+        {
+          "id": "sa-b2-shake-icon",
+          "type": "shape",
+          "name": "Shake icon",
+          "position": {
+            "x": 825,
+            "y": 512.77
+          },
+          "size": {
+            "width": 80,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M9.5 4h5A1.5 1.5 0 0 1 16 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-5A1.5 1.5 0 0 1 8 18.5v-13A1.5 1.5 0 0 1 9.5 4Z M4.5 9v6 M19.5 9v6 M1.5 11v2 M22.5 11v2",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 7.33
+          },
+          "groupId": "sa-b2-g-callout",
+          "groupName": "Callout: Missions"
+        },
+        {
+          "id": "sa-b2-shake-title",
+          "type": "text",
+          "name": "Shake title",
+          "position": {
+            "x": 612,
+            "y": 643.59
+          },
+          "size": {
+            "width": 506,
+            "height": 77.85
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Shake",
+          "fontSize": 13.23,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sa-b2-g-callout",
+          "groupName": "Callout: Missions"
+        },
+        {
+          "id": "sa-b2-shake-desc",
+          "type": "text",
+          "name": "Shake description",
+          "position": {
+            "x": 622,
+            "y": 718.84
+          },
+          "size": {
+            "width": 486,
+            "height": 57.09
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Shake it to wake up",
+          "fontSize": 9.73,
+          "color": "#8E8E93",
+          "fontFamily": "Outfit",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sa-b2-g-callout",
+          "groupName": "Callout: Missions"
+        },
+        {
+          "id": "sa-b2-shake-pill",
+          "type": "shape",
+          "name": "Shake button",
+          "position": {
+            "x": 798.47,
+            "y": 804.47
+          },
+          "size": {
+            "width": 133.07,
+            "height": 72.66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0E2A4A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 23.35,
+          "groupId": "sa-b2-g-callout",
+          "groupName": "Callout: Missions"
+        },
+        {
+          "id": "sa-b2-shake-pill-text",
+          "type": "text",
+          "name": "Shake button text",
+          "position": {
+            "x": 798.47,
+            "y": 804.47
+          },
+          "size": {
+            "width": 133.07,
+            "height": 72.66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Set",
+          "fontSize": 10.12,
+          "color": "#2B95FF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sa-b2-g-callout",
+          "groupName": "Callout: Missions"
+        },
+        {
+          "id": "sa-b2-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 30,
+            "y": 2166.18
+          },
+          "size": {
+            "width": 1146,
+            "height": 207.32
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Pick Your",
+          "fontSize": 42.6,
+          "color": "#140A05",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -1.49,
+          "groupId": "sa-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sa-b2-headline-accent",
+          "type": "text",
+          "name": "Headline accent",
+          "position": {
+            "x": 30,
+            "y": 2313.86
+          },
+          "size": {
+            "width": 1146,
+            "height": 207.32
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Wake-Up Task",
+          "fontSize": 42.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -1.49,
+          "groupId": "sa-b2-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    },
+    {
+      "id": "sa-board-3",
+      "name": "Solve It",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FF5E1C",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "sa-b3-sun-arc",
+          "type": "shape",
+          "name": "Sun arc",
+          "position": {
+            "x": -1497,
+            "y": 1056
+          },
+          "size": {
+            "width": 4200,
+            "height": 4200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FF7A3A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#FF9150",
+            "color2": "#FF5E1C",
+            "angle": 180
+          },
+          "groupId": "sa-b3-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "sa-b3-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 30,
+            "y": 84.82
+          },
+          "size": {
+            "width": 1146,
+            "height": 230.68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Solve It to",
+          "fontSize": 47.4,
+          "color": "#140A05",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -1.66,
+          "groupId": "sa-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sa-b3-headline-accent",
+          "type": "text",
+          "name": "Headline accent",
+          "position": {
+            "x": 30,
+            "y": 249.14
+          },
+          "size": {
+            "width": 1146,
+            "height": 230.68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Silence It",
+          "fontSize": 47.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -1.66,
+          "groupId": "sa-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sa-b3-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 143,
+            "y": 560
+          },
+          "size": {
+            "width": 920,
+            "height": 1998.91
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "normal",
+          "frameColor": "#2A2826",
+          "screenshotSrc": "/data/projects/sunup-alarm-screen-maze.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "sa-board-4",
+      "name": "Task Chains",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FF5E1C",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "sa-b4-sun-arc",
+          "type": "shape",
+          "name": "Sun arc",
+          "position": {
+            "x": -1497,
+            "y": 1056
+          },
+          "size": {
+            "width": 4200,
+            "height": 4200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FF7A3A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#FF9150",
+            "color2": "#FF5E1C",
+            "angle": 180
+          },
+          "groupId": "sa-b4-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "sa-b4-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 143,
+            "y": 130
+          },
+          "size": {
+            "width": 920,
+            "height": 1998.91
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "normal",
+          "frameColor": "#2A2826",
+          "screenshotSrc": "/data/projects/sunup-alarm-screen-edit.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "sa-b4-callout-bg",
+          "type": "shape",
+          "name": "Callout background",
+          "position": {
+            "x": 59,
+            "y": 816.67
+          },
+          "size": {
+            "width": 1088,
+            "height": 641.92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 60,
+            "color": "rgba(110,30,0,0.38)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#161618",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 65.28,
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-task-label",
+          "type": "text",
+          "name": "Section label",
+          "position": {
+            "x": 107.96,
+            "y": 838.43
+          },
+          "size": {
+            "width": 300,
+            "height": 81.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "TASK",
+          "fontSize": 10.61,
+          "color": "#8E8E93",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "letterSpacing": 0.64,
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-task-count",
+          "type": "text",
+          "name": "Count",
+          "position": {
+            "x": 898.04,
+            "y": 838.43
+          },
+          "size": {
+            "width": 200,
+            "height": 81.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "2/3",
+          "fontSize": 10.61,
+          "color": "#8E8E93",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "right",
+          "lineHeight": 1.15,
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-slot-memory",
+          "type": "shape",
+          "name": "Memory slot",
+          "position": {
+            "x": 101.08,
+            "y": 914.59
+          },
+          "size": {
+            "width": 329.28,
+            "height": 299.2
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#202022",
+          "strokeColor": "#1C5B61",
+          "strokeWidth": 2.5,
+          "borderRadius": 48.96,
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-slot-memory-bg",
+          "type": "shape",
+          "name": "Memory icon background",
+          "position": {
+            "x": 195,
+            "y": 952.67
+          },
+          "size": {
+            "width": 141.44,
+            "height": 141.44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#3ADCE6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#3ADCE6",
+            "color2": "#0BA5B8",
+            "angle": 135
+          },
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-slot-memory-icon",
+          "type": "shape",
+          "name": "Memory icon",
+          "position": {
+            "x": 229.72,
+            "y": 987.39
+          },
+          "size": {
+            "width": 72,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4 6.5A2.5 2.5 0 0 1 6.5 4h2A2.5 2.5 0 0 1 11 6.5v2A2.5 2.5 0 0 1 8.5 11h-2A2.5 2.5 0 0 1 4 8.5Z M13 6.5A2.5 2.5 0 0 1 15.5 4h2A2.5 2.5 0 0 1 20 6.5v2a2.5 2.5 0 0 1-2.5 2.5h-2A2.5 2.5 0 0 1 13 8.5Z M4 15.5A2.5 2.5 0 0 1 6.5 13h2a2.5 2.5 0 0 1 2.5 2.5v2A2.5 2.5 0 0 1 8.5 20h-2A2.5 2.5 0 0 1 4 17.5Z M13 15.5a2.5 2.5 0 0 1 2.5-2.5h2a2.5 2.5 0 0 1 2.5 2.5v2a2.5 2.5 0 0 1-2.5 2.5h-2a2.5 2.5 0 0 1-2.5-2.5Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "fillRule": "evenodd"
+          },
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-slot-memory-label",
+          "type": "text",
+          "name": "Memory label",
+          "position": {
+            "x": 101.08,
+            "y": 1104.99
+          },
+          "size": {
+            "width": 329.28,
+            "height": 70.72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Memory",
+          "fontSize": 12.24,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-slot-memory-remove",
+          "type": "shape",
+          "name": "Remove Memory",
+          "position": {
+            "x": 390.36,
+            "y": 888.59
+          },
+          "size": {
+            "width": 66,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#000000",
+          "strokeColor": "#2C2C2E",
+          "strokeWidth": 3,
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-slot-memory-remove-x",
+          "type": "shape",
+          "name": "Remove Memory icon",
+          "position": {
+            "x": 407.36,
+            "y": 905.59
+          },
+          "size": {
+            "width": 32,
+            "height": 32
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M6.5 6.5l11 11 M17.5 6.5l-11 11",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4
+          },
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-slot-math",
+          "type": "shape",
+          "name": "Math slot",
+          "position": {
+            "x": 438.36,
+            "y": 914.59
+          },
+          "size": {
+            "width": 329.28,
+            "height": 299.2
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#202022",
+          "strokeColor": "#6E2D2A",
+          "strokeWidth": 2.5,
+          "borderRadius": 48.96,
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-slot-math-bg",
+          "type": "shape",
+          "name": "Math icon background",
+          "position": {
+            "x": 532.28,
+            "y": 952.67
+          },
+          "size": {
+            "width": 141.44,
+            "height": 141.44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FF6A5E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#FF6A5E",
+            "color2": "#E8302A",
+            "angle": 135
+          },
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-slot-math-icon",
+          "type": "shape",
+          "name": "Math icon",
+          "position": {
+            "x": 567,
+            "y": 987.39
+          },
+          "size": {
+            "width": 72,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M2.5 13.5h2.5l3 6 4.5-15h9.5 M14.5 10.5l5.5 7 M20 10.5l-5.5 7",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 6.9
+          },
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-slot-math-label",
+          "type": "text",
+          "name": "Math label",
+          "position": {
+            "x": 438.36,
+            "y": 1104.99
+          },
+          "size": {
+            "width": 329.28,
+            "height": 70.72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Math",
+          "fontSize": 12.24,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-slot-math-remove",
+          "type": "shape",
+          "name": "Remove Math",
+          "position": {
+            "x": 727.64,
+            "y": 888.59
+          },
+          "size": {
+            "width": 66,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#000000",
+          "strokeColor": "#2C2C2E",
+          "strokeWidth": 3,
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-slot-math-remove-x",
+          "type": "shape",
+          "name": "Remove Math icon",
+          "position": {
+            "x": 744.64,
+            "y": 905.59
+          },
+          "size": {
+            "width": 32,
+            "height": 32
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M6.5 6.5l11 11 M17.5 6.5l-11 11",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4
+          },
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-slot-add",
+          "type": "shape",
+          "name": "3. Task slot",
+          "position": {
+            "x": 775.64,
+            "y": 914.59
+          },
+          "size": {
+            "width": 329.28,
+            "height": 299.2
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1E1E20",
+          "strokeColor": "#2A2A2C",
+          "strokeWidth": 2.5,
+          "borderRadius": 48.96,
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-slot-add-bg",
+          "type": "shape",
+          "name": "3. Task icon background",
+          "position": {
+            "x": 869.56,
+            "y": 952.67
+          },
+          "size": {
+            "width": 141.44,
+            "height": 141.44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#3A3A3C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-slot-add-icon",
+          "type": "shape",
+          "name": "3. Task icon",
+          "position": {
+            "x": 904.28,
+            "y": 987.39
+          },
+          "size": {
+            "width": 72,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#9A9AA0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M12 5v14 M5 12h14",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 6.9
+          },
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-slot-add-label",
+          "type": "text",
+          "name": "3. Task label",
+          "position": {
+            "x": 775.64,
+            "y": 1104.99
+          },
+          "size": {
+            "width": 329.28,
+            "height": 70.72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "3. Task",
+          "fontSize": 12.24,
+          "color": "#9A9AA0",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-check-label",
+          "type": "text",
+          "name": "Setting",
+          "position": {
+            "x": 107.96,
+            "y": 1273.63
+          },
+          "size": {
+            "width": 372.64,
+            "height": 92.48
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Wake-Up Check",
+          "fontSize": 14.69,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-check-info",
+          "type": "shape",
+          "name": "Info icon",
+          "position": {
+            "x": 480.6,
+            "y": 1292.87
+          },
+          "size": {
+            "width": 54,
+            "height": 54
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#B9B9BE",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z M12 11v5.5 M12 7.5h.01",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4.05
+          },
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-check-toggle",
+          "type": "shape",
+          "name": "Toggle",
+          "position": {
+            "x": 934.84,
+            "y": 1273.63
+          },
+          "size": {
+            "width": 163.2,
+            "height": 92.48
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF9A2E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 46.24,
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-check-knob",
+          "type": "shape",
+          "name": "Toggle knob",
+          "position": {
+            "x": 1013.72,
+            "y": 1281.79
+          },
+          "size": {
+            "width": 76.16,
+            "height": 76.16
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "sa-b4-g-callout",
+          "groupName": "Callout: Task chain"
+        },
+        {
+          "id": "sa-b4-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 30,
+            "y": 2162.82
+          },
+          "size": {
+            "width": 1146,
+            "height": 230.68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Chain Up to",
+          "fontSize": 47.4,
+          "color": "#140A05",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -1.66,
+          "groupId": "sa-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sa-b4-headline-accent",
+          "type": "text",
+          "name": "Headline accent",
+          "position": {
+            "x": 30,
+            "y": 2327.14
+          },
+          "size": {
+            "width": 1146,
+            "height": 230.68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "3 Tasks",
+          "fontSize": 47.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -1.66,
+          "groupId": "sa-b4-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    },
+    {
+      "id": "sa-board-5",
+      "name": "Difficulty",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FF5E1C",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "sa-b5-sun-arc",
+          "type": "shape",
+          "name": "Sun arc",
+          "position": {
+            "x": -1497,
+            "y": 1056
+          },
+          "size": {
+            "width": 4200,
+            "height": 4200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FF7A3A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#FF9150",
+            "color2": "#FF5E1C",
+            "angle": 180
+          },
+          "groupId": "sa-b5-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "sa-b5-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 30,
+            "y": 84.82
+          },
+          "size": {
+            "width": 1146,
+            "height": 230.68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Choose How",
+          "fontSize": 47.4,
+          "color": "#140A05",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -1.66,
+          "groupId": "sa-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sa-b5-headline-accent",
+          "type": "text",
+          "name": "Headline accent",
+          "position": {
+            "x": 30,
+            "y": 249.14
+          },
+          "size": {
+            "width": 1146,
+            "height": 230.68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Hard It Gets",
+          "fontSize": 47.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -1.66,
+          "groupId": "sa-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sa-b5-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 143,
+            "y": 560
+          },
+          "size": {
+            "width": 920,
+            "height": 1998.91
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "normal",
+          "frameColor": "#2A2826",
+          "screenshotSrc": "/data/projects/sunup-alarm-screen-memory.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "sa-b5-callout-bg",
+          "type": "shape",
+          "name": "Callout background",
+          "position": {
+            "x": 30,
+            "y": 1848.83
+          },
+          "size": {
+            "width": 1146,
+            "height": 378.18
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 60,
+            "color": "rgba(110,30,0,0.38)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#000000",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 80.22,
+          "groupId": "sa-b5-g-callout",
+          "groupName": "Callout: Difficulty"
+        },
+        {
+          "id": "sa-b5-difficulty-label",
+          "type": "text",
+          "name": "Section label",
+          "position": {
+            "x": 87.3,
+            "y": 1877.48
+          },
+          "size": {
+            "width": 400,
+            "height": 85.95
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Difficulty",
+          "fontSize": 12.89,
+          "color": "#8E8E93",
+          "fontFamily": "Outfit",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.15,
+          "groupId": "sa-b5-g-callout",
+          "groupName": "Callout: Difficulty"
+        },
+        {
+          "id": "sa-b5-level-easy",
+          "type": "shape",
+          "name": "Easy button",
+          "position": {
+            "x": 75.84,
+            "y": 1997.81
+          },
+          "size": {
+            "width": 332.34,
+            "height": 148.98
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#232326",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 40.11,
+          "groupId": "sa-b5-g-callout",
+          "groupName": "Callout: Difficulty"
+        },
+        {
+          "id": "sa-b5-level-easy-text",
+          "type": "text",
+          "name": "Easy label",
+          "position": {
+            "x": 75.84,
+            "y": 1997.81
+          },
+          "size": {
+            "width": 332.34,
+            "height": 148.98
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Easy",
+          "fontSize": 13.75,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sa-b5-g-callout",
+          "groupName": "Callout: Difficulty"
+        },
+        {
+          "id": "sa-b5-level-normal",
+          "type": "shape",
+          "name": "Normal button",
+          "position": {
+            "x": 436.83,
+            "y": 1997.81
+          },
+          "size": {
+            "width": 332.34,
+            "height": 148.98
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF9A2E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 40.11,
+          "groupId": "sa-b5-g-callout",
+          "groupName": "Callout: Difficulty"
+        },
+        {
+          "id": "sa-b5-level-normal-text",
+          "type": "text",
+          "name": "Normal label",
+          "position": {
+            "x": 436.83,
+            "y": 1997.81
+          },
+          "size": {
+            "width": 332.34,
+            "height": 148.98
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Normal",
+          "fontSize": 13.75,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sa-b5-g-callout",
+          "groupName": "Callout: Difficulty"
+        },
+        {
+          "id": "sa-b5-level-hard",
+          "type": "shape",
+          "name": "Hard button",
+          "position": {
+            "x": 797.82,
+            "y": 1997.81
+          },
+          "size": {
+            "width": 332.34,
+            "height": 148.98
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#232326",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 40.11,
+          "groupId": "sa-b5-g-callout",
+          "groupName": "Callout: Difficulty"
+        },
+        {
+          "id": "sa-b5-level-hard-text",
+          "type": "text",
+          "name": "Hard label",
+          "position": {
+            "x": 797.82,
+            "y": 1997.81
+          },
+          "size": {
+            "width": 332.34,
+            "height": 148.98
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Hard",
+          "fontSize": 13.75,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.15,
+          "groupId": "sa-b5-g-callout",
+          "groupName": "Callout: Difficulty"
+        }
+      ]
+    },
+    {
+      "id": "sa-board-6",
+      "name": "Progress",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FF5E1C",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "sa-b6-sun-arc",
+          "type": "shape",
+          "name": "Sun arc",
+          "position": {
+            "x": -1497,
+            "y": 1056
+          },
+          "size": {
+            "width": 4200,
+            "height": 4200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FF7A3A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#FF9150",
+            "color2": "#FF5E1C",
+            "angle": 180
+          },
+          "groupId": "sa-b6-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "sa-b6-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 30,
+            "y": 84.82
+          },
+          "size": {
+            "width": 1146,
+            "height": 230.68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "See Your",
+          "fontSize": 47.4,
+          "color": "#140A05",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -1.66,
+          "groupId": "sa-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sa-b6-headline-accent",
+          "type": "text",
+          "name": "Headline accent",
+          "position": {
+            "x": 30,
+            "y": 249.14
+          },
+          "size": {
+            "width": 1146,
+            "height": 230.68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Progress",
+          "fontSize": 47.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -1.66,
+          "groupId": "sa-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sa-b6-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 143,
+            "y": 560
+          },
+          "size": {
+            "width": 920,
+            "height": 1998.91
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "normal",
+          "frameColor": "#2A2826",
+          "screenshotSrc": "/data/projects/sunup-alarm-screen-insights.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    }
+  ]
+}
