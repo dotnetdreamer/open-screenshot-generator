@@ -62,7 +62,8 @@ function findBrowser() {
 // Kept under the old name because four sibling scripts and SKILL.md refer to it
 // that way. It is whichever Chromium this machine has, not necessarily Edge.
 const EDGE = findBrowser();
-const APP_URL = 'http://localhost:9002';
+// OSG_APP_URL points the scripts at another dev server, such as a worktree's.
+const APP_URL = process.env.OSG_APP_URL || 'http://localhost:9002';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

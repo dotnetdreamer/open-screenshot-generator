@@ -172,6 +172,27 @@ in editable templates, not standalone downloads.
 | calora-as177966215.png | 177966215 | Bottle with protein shake and powder on white background (licensed 2026-07-20) | calora-macros.json |
 | amoura-dating-as321711560.png | 321711560 | Creative mock up image of woman hand holding craft paper coffee cup with copy space isolated on white background in minimalism style. (licensed 2026-08-16) | amoura-dating.json |
 | amoura-dating-as265366403.png | 265366403 | Two coffee cup overhead view flat lay (licensed 2026-08-16) | amoura-dating.json |
+| expertly-woman.png | 568605361 | Crop of the library photo girls-as568605361.png (section 1) | expertly-ai.json |
+| expertly-avatar-1.png | 622285813 | Head crop of girls-as622285813.png (section 1) | expertly-ai.json |
+| expertly-avatar-2.png | 488088494 | Head crop of guys-as488088494.png (section 1) | expertly-ai.json |
+| expertly-avatar-3.png | 176708273 | Head crop of guys-as176708273.png (section 1) | expertly-ai.json |
+| expertly-avatar-4.png | 299117684 | Head crop of guys-as299117684.png (section 1) | expertly-ai.json |
+| expertly-avatar-5.png | 405130341 | Head crop of education-as405130341.png (section 1) | expertly-ai.json |
+| expertly-avatar-6.png | 625425247 | Head crop of guys-as625425247.png (section 1) | expertly-ai.json |
 
 The `fg-screens/*.png` skeleton screens in that folder are original in-house
 artwork (generated placeholders), not licensed stock.
+
+## 5. Original illustrations (`mascots/`, `objects/`, `stickers/`)
+
+The Mascots, 3D objects and Stickers groups are original artwork drawn for this
+project (SVG written for the Hoppi, Expertly, Roamo, Formpal and Sunup
+templates, rendered to PNG and trimmed). None of it is stock or traced. The
+Dollar sign is the "$" of Outfit, a Google Font under the SIL Open Font
+License, which allows pictures made with the font. The flag stickers draw the
+public national flag designs of the United States, the United Kingdom and
+Canada.
+
+The Sun, Winking sun, Alarm clock and Warm glow entries point at the files the
+Sunup templates already ship in `public/data/projects/` rather than at copies,
+so projects made from those templates keep their pictures.

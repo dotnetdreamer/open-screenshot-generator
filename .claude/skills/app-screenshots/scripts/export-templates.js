@@ -8,6 +8,10 @@ const path = require('path');
 const { launch, startBlankProject, sleep, exportArtboards, clickTab, dismissTipsDialog, waitForProjectFonts, APP_URL } = require('./lib');
 
 const TEMPLATES = [
+  { slug: 'hoppi-screen-time', card: 'Hoppi Screen Time', boards: 6 },
+  { slug: 'roamo-esim', card: 'Roamo eSIM', boards: 6 },
+  { slug: 'expertly-ai', card: 'Expertly AI', boards: 6 },
+  { slug: 'formpal-forms', card: 'Formpal Forms', boards: 6 },
   { slug: 'sunup-missions', card: 'Sunup Missions', boards: 6 },
   { slug: 'sunup-alarm', card: 'Sunup Alarm', boards: 6 },
   { slug: 'somnia-sleep', card: 'Somnia Sleep', boards: 5 },

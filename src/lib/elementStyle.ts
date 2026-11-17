@@ -13,7 +13,7 @@
 // Offsets and radii are in artboard pixels, the same space as position/size.
 
 import type React from 'react';
-import type { ArtboardElement, LinearGradient } from '@/types/artboard';
+import type { ArtboardElement, LinearGradient, TextFillGradient } from '@/types/artboard';
 import { hash32 } from '@/lib/i18n/hash';
 
 /** CSS for the element's shared shadow/blur/opacity, or {} when it has none. */
@@ -48,6 +48,19 @@ export function linearGradientCss(gradient?: LinearGradient | null): string | un
     return undefined;
   }
   return `linear-gradient(${angle}deg, ${color1}, ${color2})`;
+}
+
+/**
+ * `linear-gradient(...)` for a text fill, with its `via` colours between the
+ * two ends, or undefined when the gradient is unset or incomplete. A `via`
+ * entry that is not a non-empty string is skipped rather than failing the
+ * whole fill.
+ */
+export function textGradientCss(gradient?: TextFillGradient | null): string | undefined {
+  if (!linearGradientCss(gradient)) return undefined;
+  const { color1, color2, angle, via } = gradient as TextFillGradient;
+  const middle = Array.isArray(via) ? via.filter((c) => typeof c === 'string' && c.trim() !== '') : [];
+  return `linear-gradient(${angle}deg, ${[color1, ...middle, color2].join(', ')})`;
 }
 
 /**

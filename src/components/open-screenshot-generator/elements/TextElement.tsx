@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { TextElementProps as TextElementType } from '@/types/artboard';
 import { fitTextBox } from '@/lib/textFit';
 import { textOutlineStyle } from '@/lib/textOutline';
+import { textGradientCss } from '@/lib/elementStyle';
 import { cssFontFamily } from '@/services/fontService';
 import { QUICK_EDIT_EVENT } from './DraggableElement';
 
@@ -184,7 +185,22 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
   // reaches out past the element by the outline's width while the text inside
   // keeps the same place to wrap and centre in. Text without an outline gets
   // nothing here.
-  const glyphOutline = textOutlineStyle(element, BOX_PADDING_PX);
+  // A gradient shows through the letters (background-clip: text). The outline
+  // is left off with one, because its text shadows would cover the gradient.
+  // While the box is being edited the text takes its solid colour instead:
+  // transparent letters would hide the caret and the selected run.
+  const gradientFill = textGradientCss(element.fillGradient);
+  const glyphOutline = gradientFill ? {} : textOutlineStyle(element, BOX_PADDING_PX);
+  const fillStyle: React.CSSProperties =
+    gradientFill && !isEditing
+      ? {
+          backgroundImage: gradientFill,
+          WebkitBackgroundClip: 'text',
+          backgroundClip: 'text',
+          color: 'transparent',
+          WebkitTextFillColor: 'transparent',
+        }
+      : { color: element.color };
 
   return (
     <div
@@ -219,7 +235,7 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
         justifyContent: logicalJustify, // Map text-align to justify-content
         fontFamily: cssFontFamily(element.fontFamily),
         fontSize: `${element.fontSize / displayScaleFactor}px`,
-        color: element.color,
+        ...fillStyle,
         lineHeight: lineHeightValue,
         letterSpacing: trackedSpacing,
         fontWeight: element.fontWeight || 'normal',

@@ -902,11 +902,12 @@ const ELEMENT_PROP_SCHEMA: Record<string, unknown> = {
   fillColor: { type: 'string', description: 'Fill colour (shapes).' },
   fillGradient: {
     type: 'object',
-    description: 'Two-stop linear gradient fill for a shape; wins over fillColor. Pass null to go back to the solid fill.',
+    description: 'Two-stop linear gradient fill for a shape (wins over fillColor) or across the letters of a text (wins over color, and hides its outline). Pass null to go back to the solid fill.',
     properties: {
       color1: { type: 'string' },
       color2: { type: 'string' },
       angle: { type: 'number', description: '0 = bottom to top, 90 = left to right.' },
+      via: { type: 'array', items: { type: 'string' }, description: 'Text only: colours between color1 and color2, in order, evenly spaced.' },
     },
     required: ['color1', 'color2', 'angle'],
   },

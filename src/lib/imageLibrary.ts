@@ -4,7 +4,9 @@
  * Photo groups: Adobe Stock (free collection) photos licensed through the
  * project owner's Adobe account and background-removed; filenames embed the
  * Stock asset ID (<group>-as<ID>.png). Badges: official vendor marketing
- * badges from each store's badge program. Full license record:
+ * badges from each store's badge program. Mascots, 3D objects and stickers:
+ * illustrations drawn for this project's templates, which also use them, so a
+ * template and the palette share one file. Full license record:
  * docs/image-asset-licenses.md.
  *
  * Each item becomes an image element with imageSrc pointing at the asset;
@@ -139,6 +141,60 @@ export const IMAGE_CATEGORIES: ImageCategory[] = [
       { id: 'food-drink-as348511870', label: 'Flying sandwich', src: '/elements/images/food-drink/food-drink-as348511870.png', defaultSize: { width: 166, height: 430 } },
       { id: 'food-drink-as376289112', label: 'Tasty burger', src: '/elements/images/food-drink/food-drink-as376289112.png', defaultSize: { width: 430, height: 280 } },
       { id: 'food-drink-as565185576', label: 'Chicken burger', src: '/elements/images/food-drink/food-drink-as565185576.png', defaultSize: { width: 430, height: 267 } },
+    ],
+  },
+  {
+    id: 'mascots',
+    label: 'Mascots',
+    items: [
+      { id: 'mascot-bunny', label: 'Bunny', src: '/elements/images/mascots/mascot-bunny.png', defaultSize: { width: 345, height: 430 } },
+      { id: 'mascot-bunny-hourglass', label: 'Bunny with hourglass', src: '/elements/images/mascots/mascot-bunny-hourglass.png', defaultSize: { width: 370, height: 430 } },
+      { id: 'mascot-bunny-medal', label: 'Bunny with medal', src: '/elements/images/mascots/mascot-bunny-medal.png', defaultSize: { width: 312, height: 430 } },
+      { id: 'mascot-bunny-party', label: 'Party bunny', src: '/elements/images/mascots/mascot-bunny-party.png', defaultSize: { width: 380, height: 430 } },
+      { id: 'mascot-paper', label: 'Paper buddy', src: '/elements/images/mascots/mascot-paper.png', defaultSize: { width: 384, height: 430 } },
+      { id: 'mascot-robot', label: 'Robot', src: '/elements/images/mascots/mascot-robot.png', defaultSize: { width: 430, height: 385 } },
+      { id: 'mascot-sun', label: 'Sun', src: '/data/projects/sunup-mascot-happy.png', defaultSize: { width: 430, height: 430 } },
+      { id: 'mascot-sun-wink', label: 'Winking sun', src: '/data/projects/sunup-mascot-wink.png', defaultSize: { width: 430, height: 430 } },
+    ],
+  },
+  {
+    id: 'objects',
+    label: '3D objects',
+    items: [
+      { id: 'object-coin', label: 'Gold coin', src: '/elements/images/objects/object-coin.png', defaultSize: { width: 426, height: 430 } },
+      { id: 'object-coins-small', label: 'Coin stack', src: '/elements/images/objects/object-coins-small.png', defaultSize: { width: 430, height: 257 } },
+      { id: 'object-coins-medium', label: 'Coin pile', src: '/elements/images/objects/object-coins-medium.png', defaultSize: { width: 430, height: 286 } },
+      { id: 'object-coins-large', label: 'Coin heap', src: '/elements/images/objects/object-coins-large.png', defaultSize: { width: 430, height: 315 } },
+      { id: 'object-chest', label: 'Treasure chest', src: '/elements/images/objects/object-chest.png', defaultSize: { width: 430, height: 421 } },
+      { id: 'object-padlock', label: 'Padlock', src: '/elements/images/objects/object-padlock.png', defaultSize: { width: 327, height: 430 } },
+      { id: 'object-bolt', label: 'Lightning bolt', src: '/elements/images/objects/object-bolt.png', defaultSize: { width: 293, height: 430 } },
+      { id: 'object-paper-plane', label: 'Paper plane', src: '/elements/images/objects/object-paper-plane.png', defaultSize: { width: 381, height: 430 } },
+      { id: 'object-dollar', label: 'Dollar sign', src: '/elements/images/objects/object-dollar.png', defaultSize: { width: 283, height: 430 } },
+      { id: 'object-globe', label: 'Globe', src: '/elements/images/objects/object-globe.png', defaultSize: { width: 430, height: 421 } },
+      { id: 'object-wifi', label: 'Wifi', src: '/elements/images/objects/object-wifi.png', defaultSize: { width: 430, height: 266 } },
+      { id: 'object-toy-plane', label: 'Toy plane', src: '/elements/images/objects/object-toy-plane.png', defaultSize: { width: 430, height: 302 } },
+      { id: 'object-airliner', label: 'Airliner', src: '/elements/images/objects/object-airliner.png', defaultSize: { width: 430, height: 132 } },
+      { id: 'object-cloud', label: 'Cloud', src: '/elements/images/objects/object-cloud.png', defaultSize: { width: 430, height: 283 } },
+      { id: 'object-cloud-puff', label: 'Cloud puff', src: '/elements/images/objects/object-cloud-puff.png', defaultSize: { width: 430, height: 291 } },
+      { id: 'object-cloud-band', label: 'Cloud band', src: '/elements/images/objects/object-cloud-band.png', defaultSize: { width: 403, height: 430 } },
+      { id: 'object-cloud-valley', label: 'Cloud valley', src: '/elements/images/objects/object-cloud-valley.png', defaultSize: { width: 409, height: 430 } },
+      { id: 'object-alarm-clock', label: 'Alarm clock', src: '/data/projects/sunup-clock.png', defaultSize: { width: 430, height: 430 } },
+      { id: 'object-glow', label: 'Warm glow', src: '/data/projects/sunup-glow.png', defaultSize: { width: 430, height: 430 } },
+    ],
+  },
+  {
+    id: 'stickers',
+    label: 'Stickers',
+    items: [
+      { id: 'sticker-smiley', label: 'Smiley', src: '/elements/images/stickers/sticker-smiley.png', defaultSize: { width: 430, height: 429 } },
+      { id: 'sticker-eyes', label: 'Googly eyes', src: '/elements/images/stickers/sticker-eyes.png', defaultSize: { width: 430, height: 303 } },
+      { id: 'sticker-drop', label: 'Water drop', src: '/elements/images/stickers/sticker-drop.png', defaultSize: { width: 342, height: 430 } },
+      { id: 'sticker-dumbbell', label: 'Dumbbell', src: '/elements/images/stickers/sticker-dumbbell.png', defaultSize: { width: 430, height: 404 } },
+      { id: 'sticker-treadmill', label: 'Treadmill', src: '/elements/images/stickers/sticker-treadmill.png', defaultSize: { width: 430, height: 390 } },
+      { id: 'sticker-fire', label: 'Fireball', src: '/elements/images/stickers/sticker-fire.png', defaultSize: { width: 429, height: 430 } },
+      { id: 'sticker-flag-us', label: 'US flag', src: '/elements/images/stickers/sticker-flag-us.png', defaultSize: { width: 430, height: 430 } },
+      { id: 'sticker-flag-uk', label: 'UK flag', src: '/elements/images/stickers/sticker-flag-uk.png', defaultSize: { width: 430, height: 430 } },
+      { id: 'sticker-flag-ca', label: 'Canada flag', src: '/elements/images/stickers/sticker-flag-ca.png', defaultSize: { width: 430, height: 430 } },
     ],
   },
 ];
