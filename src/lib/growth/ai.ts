@@ -160,6 +160,15 @@ export function runAssistantTurn(request: { system: string; user: string; signal
   return runGrowthPrompt(request);
 }
 
+/**
+ * One prompt from the Store compliance view (src/lib/storeCompliance/ai.ts): a
+ * question about the stores' rules, or a check of the app's words against them. It goes
+ * to the same AI as Growth, so `aiWriter` is the one AI setting for both.
+ */
+export function runRulesPrompt(request: { system: string; user: string; signal?: AbortSignal }): Promise<string> {
+  return runGrowthPrompt(request);
+}
+
 function fence(label: string, text: string): string {
   // A fence the text cannot close from inside.
   const safe = text.replace(/<<<|>>>/g, '');

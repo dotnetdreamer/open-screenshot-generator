@@ -3,8 +3,9 @@
 // The strip down the left edge of the window that switches between the app's
 // views, the way VS Code's activity bar does: the editor, where the screenshots
 // are made, Capture, where they are taken from the app running in a simulator
-// or emulator, Growth, where their numbers come back, and Website, where the
-// app's own site is made from them.
+// or emulator, Growth, where their numbers come back, Store compliance, what the
+// stores reject apps for and the checks to make before sending one, and
+// Website, where the app's own site is made from them.
 //
 // A new view is one entry in ACTIVITIES and one branch where the layout draws
 // the views (OpenScreenshotGeneratorLayout.tsx, `activity`). The editor stays
@@ -18,10 +19,10 @@
 // site, sits under Discover.
 
 import React from 'react';
-import { CameraIcon, GlobeIcon, PenToolIcon, TrendingUpIcon } from 'lucide-react';
+import { CameraIcon, GlobeIcon, PenToolIcon, ShieldCheckIcon, TrendingUpIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type ActivityId = 'editor' | 'capture' | 'growth' | 'website';
+export type ActivityId = 'editor' | 'capture' | 'growth' | 'compliance' | 'website';
 
 export interface Activity {
   id: ActivityId;
@@ -36,6 +37,7 @@ export const ACTIVITIES: Activity[] = [
   { id: 'editor', label: 'Editor', icon: PenToolIcon },
   { id: 'capture', label: 'Capture: screenshots of your app', icon: CameraIcon },
   { id: 'growth', label: 'Growth: downloads, reviews and your store page', icon: TrendingUpIcon },
+  { id: 'compliance', label: 'Store compliance: avoid App Store and Google Play rejections', icon: ShieldCheckIcon },
   { id: 'website', label: "Website: your app's home, support and privacy pages", icon: GlobeIcon, belowActions: true },
 ];
 

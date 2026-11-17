@@ -216,6 +216,7 @@ import { PublishDialog } from './publish/PublishDialog';
 import { GrowthWorkspace, type GrowthRequest } from './growth/GrowthWorkspace';
 import { CaptureWorkspace, type CaptureRequest, type ClipOutcome } from './capture/CaptureWorkspace';
 import { WebsiteWorkspace, type CaptureRequest as WebsiteCaptureRequest, type CapturedBoard } from './website/WebsiteWorkspace';
+import { StoreComplianceWorkspace } from './storeCompliance/StoreComplianceWorkspace';
 import { flushWebsiteSaves } from '@/lib/website/store';
 import { captureTargets } from '@/lib/capture/frames';
 import { placeClip, placeShots, type ClipPlacement, type ShotPlacement } from '@/lib/capture/place';
@@ -1653,6 +1654,10 @@ export function OpenScreenshotGeneratorLayout() {
   // Mounted on its first visit and kept, like Growth, so a publish goes on
   // while the editor is in front.
   const [websiteMounted, setWebsiteMounted] = useState(false);
+  // Store compliance: the App Store Compliance Playbook, read from GitHub on the
+  // view's first visit (src/lib/storeCompliance). Mounted on that visit and kept,
+  // like Growth, so an answer on its way and the screen's place stay.
+  const [complianceMounted, setComplianceMounted] = useState(false);
   // While the desktop app runs, Growth keeps the apps synced there fresh and
   // says when something new turns up (src/lib/growth/monitor.ts). The main
   // window only: a tab window would sync the same apps a second time.
@@ -1766,6 +1771,7 @@ export function OpenScreenshotGeneratorLayout() {
       if (next !== 'growth') {
         if (next === 'capture') setCaptureMounted(true);
         if (next === 'website') setWebsiteMounted(true);
+        if (next === 'compliance') setComplianceMounted(true);
         setActivity(next);
         return;
       }
@@ -10808,6 +10814,12 @@ const generateRandomProjectName = (): string => {
   // Stable, so the Website view does not start its screenshot work again on every render.
   const captureForWebsite = useCallback((request: WebsiteCaptureRequest) => captureBoardsForWebsiteRef.current(request), []);
   const websiteBackToEditor = useCallback(() => setActivity('editor'), []);
+  // What Store compliance reads of the open project: its checklist is kept by the
+  // project's id, and Ask AI's check reads the text of every language.
+  const readProjectForCompliance = useCallback(
+    () => ({ id: activeProjectIdRef.current, name: projectNameRef.current, artboards: artboardsRef.current }),
+    []
+  );
   const websiteProject = useMemo(() => ({ id: activeProjectId, name: currentProjectName, artboards }), [activeProjectId, currentProjectName, artboards]);
 
   // Render one artboard for the MCP export tools. Same capture recipe as the
@@ -13268,6 +13280,11 @@ const generateRandomProjectName = (): string => {
             }}
             onBackToEditor={() => setActivity('editor')}
           />
+        </div>
+      )}
+      {complianceMounted && (
+        <div className={cn('fixed inset-0 z-30 md:left-12', activity !== 'compliance' && 'hidden')}>
+          <StoreComplianceWorkspace active={activity === 'compliance'} readProject={readProjectForCompliance} />
         </div>
       )}
       {websiteMounted && (

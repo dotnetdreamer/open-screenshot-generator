@@ -24,18 +24,16 @@ import {
   MonitorSmartphoneIcon,
   PlayIcon,
   ShieldCheckIcon,
-  SparklesIcon,
   SquarePenIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { openExternal } from '@/lib/desktop';
 import { finishWaiting, newConversation, sendMessage, useAssistant } from '@/lib/growth/setup/assistant';
 import { setGrowthSettings, useGrowthSettings } from '@/lib/growth/settings';
-import { ClaudeCodeLogo } from '../agent/ClaudeCodeLogo';
-import { CodexLogo } from '../agent/CodexLogo';
 import type { GrowthStore } from '@/lib/growth/stores';
 import { cn } from '@/lib/utils';
 import { GrowthBrowserPane, useBrowser } from './GrowthBrowserPane';
+import { AiLogo, AiPicker, type AiChoice } from './AiPicker';
 import { AssistantAvatar, AssistantComposer, AssistantMessages, useKeyFileDrop, useKeyFilePicker } from './GrowthAssistantChat';
 import { Gated, useGrowthView } from './GrowthShared';
 
@@ -66,54 +64,6 @@ const STORE_CHOICES: Array<{ stores: GrowthStore[]; label: string; icon: React.C
     message: 'My app is on the App Store and Google Play. Help me connect both.',
   },
 ];
-
-type AiChoice = 'claude' | 'codex' | 'panel';
-
-const AI_CHOICES: Array<{ id: AiChoice; name: string }> = [
-  { id: 'claude', name: 'Claude Code' },
-  { id: 'codex', name: 'Codex' },
-  { id: 'panel', name: 'AI panel' },
-];
-
-function AiLogo({ choice, tile = false, className }: { choice: AiChoice | null; tile?: boolean; className?: string }) {
-  if (choice === 'claude') return <ClaudeCodeLogo tile={tile} className={className} />;
-  if (choice === 'codex') return <CodexLogo tile={tile} className={className} />;
-  return tile ? <AssistantAvatar className={className} /> : <SparklesIcon className={cn('text-[hsl(var(--growth-assistant))]', className)} />;
-}
-
-/**
- * The AI that answers, as the editor's Agent tab offers it: Claude Code or
- * Codex on the user's own plan, or the provider set up in the AI panel. It is
- * Growth's one AI setting (`aiWriter`), so replies and store page text follow
- * it too. A choice that cannot answer yet says why in the header.
- */
-function AiPicker({ value, onPick }: { value: AiChoice | null; onPick: (choice: AiChoice) => void }) {
-  return (
-    <div
-      role="radiogroup"
-      aria-label="AI to use"
-      className="flex rounded-lg border bg-muted/30 p-0.5"
-      title="The AI for this chat, and for replies, store page text and report summaries in Growth"
-    >
-      {AI_CHOICES.map((choice) => (
-        <button
-          key={choice.id}
-          type="button"
-          role="radio"
-          aria-checked={value === choice.id}
-          onClick={() => onPick(choice.id)}
-          className={cn(
-            'inline-flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-md px-2 py-1 text-xs transition-colors',
-            value === choice.id ? 'bg-background font-medium text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-          )}
-        >
-          <AiLogo choice={choice.id} className="h-3.5 w-3.5 shrink-0" />
-          <span className="truncate">{choice.name}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
 
 function useWide(): boolean {
   const [wide, setWide] = useState(true);
@@ -529,7 +479,11 @@ export function GrowthAsk() {
           {!desktopOnly && (
             <div className="border-b px-4 py-2">
               <div className="mx-auto max-w-2xl">
-                <AiPicker value={aiChoice} onPick={(choice) => setGrowthSettings({ aiWriter: choice })} />
+                <AiPicker
+                  value={aiChoice}
+                  onPick={(choice) => setGrowthSettings({ aiWriter: choice })}
+                  title="The AI for this chat, and for replies, store page text and report summaries in Growth"
+                />
               </div>
             </div>
           )}
