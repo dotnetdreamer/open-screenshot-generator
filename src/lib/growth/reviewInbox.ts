@@ -166,6 +166,29 @@ export function carryReviewHistory(stored: StoreReview | undefined, fresh: Store
   return changes.length > 0 ? { ...fresh, ratingChanges: changes } : fresh;
 }
 
+/**
+ * A month's Google Play review file against the stored reviews. A new
+ * review, or a newer copy of a stored one, is written with the stored one's
+ * rating changes carried over. A stored review the file has no newer copy of
+ * takes only the file's build, which reviews read before Growth kept builds
+ * lack (app health names Google Play versions by build).
+ */
+export function reviewsFromFile(known: Map<string, StoreReview>, fromFile: StoreReview[], now = Date.now()): { write: StoreReview[]; added: number } {
+  const newer = fromFile.filter((review) => {
+    const stored = known.get(review.id);
+    return !stored || (stored.createdDate || '') < (review.createdDate || '');
+  });
+  const replaced = new Set(newer.map((review) => review.id));
+  const builds = fromFile.flatMap((review) => {
+    const stored = known.get(review.id);
+    return stored && !replaced.has(review.id) && !stored.appBuild && review.appBuild ? [{ ...stored, appBuild: review.appBuild }] : [];
+  });
+  return {
+    write: [...newer.map((review) => carryReviewHistory(known.get(review.id), review, now)), ...builds],
+    added: newer.filter((review) => !known.has(review.id)).length,
+  };
+}
+
 /** Fresh reviews with what the stored ones knew carried over. */
 export function carryAll(stored: StoreReview[], fresh: StoreReview[], now = Date.now()): StoreReview[] {
   const byId = new Map(stored.map((review) => [review.id, review]));

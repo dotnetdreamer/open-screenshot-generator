@@ -57,11 +57,13 @@ Growth uses the same Google Play service account key as the screenshot upload. G
 3. Your store page and your reviews load right away. To load and answer reviews, the service account needs the **Reply to reviews** permission in Play Console.
 4. Downloads, page visits and ratings come from monthly report files that Google keeps for your account. In Play Console, open **Manage account**, then **Play apps reports**, then **Statistics**. Click **Copy Cloud Storage URI**. Paste the URI under **Google Play report files** in Setup, and click **Save**.
 5. In Play Console, under **Users and permissions**, give the service account the **View app information** permission for the whole account. In Play Console, the whole-account setting is called Global. The permission can take a day or more to work.
+6. Crashes and freezes come from Android vitals, through the **Google Play Developer Reporting API**. Google Cloud keeps that API turned off until you turn it on for the project of your service account. Under **Crashes and freezes** in Setup, click **Turn on the API**, then click **Enable** on the page that opens. The next refresh loads the numbers. The same **View app information** permission is enough.
 
 When the numbers arrive:
 
 - **Store page and reviews:** in a few seconds. Google sends only the reviews written or changed in the last 7 days. Growth keeps every review Growth has loaded, and the monthly review files bring the older reviews.
 - **Downloads, page visits, download rate and ratings** (Google's report files): Google adds each day's numbers 3 to 7 days later.
+- **Crashes and freezes:** Google adds each day's numbers a day or two later.
 - **Times seen and earnings:** Google Play does not send times seen or earnings to Growth.
 
 Google gives a rating average without the number of ratings, and Google's average can differ a little from the stars in Play Console.
@@ -141,7 +143,23 @@ Where the numbers come from:
 - **App Store:** Apple says how many ratings your app has in each country and their average, but not how many ratings have each number of stars. Growth works out the average of the new ratings from the two averages, except when an app has many ratings and only a few new ones: Apple rounds the average, and the rounding is then bigger than the change. **Ratings by stars** shows the stars of your written reviews instead.
 - **Google Play:** your monthly report files give your average rating for every day, and the average of the ratings people gave that day. The files don't say how many ratings there are. The desktop app reads your Google Play page in your 3 busiest countries twice a day, for the number of ratings and how many have each number of stars. With those, Growth knows the stars of each new rating.
 
-**By version** shows the new ratings while each version was on sale. On Google Play, it shows your written reviews of each version.
+#### App health
+
+Under the ratings chart, on the same days, Growth shows how often your app crashes and freezes, and how many written reviews mention crashing or freezing. Point at a day on either chart to see both. Each store's numbers keep their own meaning:
+
+- **App Store:** crashes for every 1,000 sessions, from App Analytics. Apple counts only people who share analytics with developers, and sends crash numbers only for days when at least five of them had a crash. So a small app can have no crash numbers at all, and a day without numbers isn't a day without crashes. When Apple sent crash numbers for only some of a version's days, Growth says so ("on 6 of 15 days"), and doesn't compare that version with others. Freezes are Xcode's hang rate for your newest versions: how long the app froze for each hour it was used, on a typical iPhone.
+- **Google Play:** the share of people who had a crash, or a freeze of the app, while they used it, from Android vitals. Google's lines are 1.09% for crashes and 0.47% for freezes. Above them, Google Play can show your app to fewer people. The chart draws the lines when your numbers come near them.
+
+The numbers cover every country, even when you pick one country at the top.
+
+When a version crashes or freezes clearly more or less than the version before it, a sentence above the chart says so, with the rates of both versions, the reviews that mention crashes since that version came out, and how your rating changed since then. **Show on the charts** shades the version's days on every chart, and **Read the reviews** opens those reviews. Growth says a version came with more crashes only when both versions have enough sessions or users to compare: 200 sessions on the App Store, 200 people across the days on Google Play.
+
+**Versions** lists every version, newest first: its dates, its new ratings (App Store) or written reviews (Google Play), its crash rate and how it compares with the version before, its freezes, and how many reviews mention crashes. Newest means the highest version number on the App Store, and the highest build number on Google Play. Click a version to shade its days on the charts.
+
+- **Dates:** **Released** is the day the App Store put the version out, for versions Growth saw come out. **Seen** is the first and the last day the store counted people using a version. Google Play doesn't say when a build came out, so its versions show **Seen**.
+- **Google Play names:** Android vitals count builds, not versions. Each written review says both its build and its version, so Growth names a build after its reviews, and a build nobody reviewed shows as **Build 205**. When you gave the release its own name in Play Console, such as "New help form", that name shows under the version.
+
+If Ratings has no ratings yet, it still says where the crash numbers stand, with the button that fixes their setup.
 
 ### Reviews
 

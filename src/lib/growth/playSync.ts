@@ -17,6 +17,7 @@
 
 import type { PlayCredentials } from '@/lib/publish/types';
 import { combineBatches } from './analyticsReport';
+import { syncPlayHealth } from './healthSync';
 import { addDays, formatDay, today, windowEndingAt } from './dates';
 import { announceGrowthChange, readDays, readMeta, readRatings, readReviews, writeListing, writeMeta, writeRatings, writeReviews } from './db';
 import { formatRating } from './format';
@@ -48,10 +49,10 @@ import { packageOf } from './stores';
 import { recordRatings, todaysReadings } from './ratingHistory';
 import { canReadGooglePlay, fetchPlayPage } from './playPage';
 import { byTerritory, indexRecords } from './metrics';
-import { carryAll, carryReviewHistory } from './reviewInbox';
+import { carryAll, reviewsFromFile } from './reviewInbox';
 import { noteNewReviews } from './reviewAlerts';
 import { IDLE_STATUS, describe, exclusiveSync, isAbort, mergeAndWrite, metaKeys, type LiveListing } from './sync';
-import type { FeedId, FeedStatus, GrowthApp, GrowthFeed, RatingPoint, StoreReview, SyncProgress, SyncStatus, TerritoryRating } from './types';
+import type { FeedId, FeedStatus, GrowthApp, GrowthFeed, RatingPoint, SyncProgress, SyncStatus, TerritoryRating } from './types';
 
 export interface PlaySyncOptions {
   credentials: PlayCredentials;
@@ -75,12 +76,15 @@ const NO_BUCKET = 'Add your Cloud Storage URI under Setup to see downloads, page
 /** Raised when the ratings history starts keeping something new from the files, so they are read once more. */
 const RATINGS_HISTORY_VERSION = 1;
 const ratingsHistoryKey = (appId: string) => `play:ratings-history:${appId}`;
+/** Review files read before Growth kept a review's build are read again once for it (app health names builds by it). */
+const REVIEW_BUILDS_VERSION = 1;
+const reviewBuildsKey = (appId: string) => `play:review-builds:${appId}`;
 const NO_REPORT_ACCESS =
   'Your service account cannot read the report files. In Play Console, under Users and permissions, give the service account the View app information permission for the whole account. The permission can take a day or more to work';
 
 async function runPlaySync(options: PlaySyncOptions): Promise<SyncStatus> {
   const appId = options.app.id;
-  const wanted = new Set<GrowthFeed>(options.feeds ?? ['listing', 'reviews', 'analytics', 'ratings']);
+  const wanted = new Set<GrowthFeed>(options.feeds ?? ['listing', 'reviews', 'analytics', 'ratings', 'health']);
   // Google Play has no Sales and Trends: that line stays as it is.
   wanted.delete('sales');
   const status: SyncStatus = { ...IDLE_STATUS, ...((await readMeta<SyncStatus>(metaKeys.status(appId))) ?? {}) };
@@ -153,6 +157,9 @@ async function runPlaySync(options: PlaySyncOptions): Promise<SyncStatus> {
       announceGrowthChange(appId);
     }
   }
+  // Android vitals, from their own API (healthSync.ts), before the ratings pages that end a refresh.
+  await run('health', () => syncPlayHealth(options, setProgress));
+
   if (wanted.has('ratings') && !authFailure) {
     try {
       await readOwnPlayPages(options, setProgress);
@@ -326,7 +333,8 @@ async function syncReports(options: PlaySyncOptions, bucket: string, setProgress
   const historyWork = ratingFiles.filter(
     (entry) => (!historyRead || changed(entry.object)) && !(ratingsChanged && ratingMonths.includes(entry.info.month))
   );
-  const reviewWork = files.filter((entry) => entry.info.kind === 'reviews' && entry.info.month >= firstMonth && changed(entry.object));
+  const buildsRead = ((await readMeta<number>(reviewBuildsKey(appId))) ?? 0) >= REVIEW_BUILDS_VERSION;
+  const reviewWork = files.filter((entry) => entry.info.kind === 'reviews' && entry.info.month >= firstMonth && (!buildsRead || changed(entry.object)));
 
   const total =
     numberWork.reduce((sum, group) => sum + group.files.length, 0) + (ratingsChanged ? ratingWork.length : 0) + historyWork.length + reviewWork.length;
@@ -384,19 +392,15 @@ async function syncReports(options: PlaySyncOptions, bucket: string, setProgress
     // A review the Reviews API sent is newer than the month's file, so it is kept as it is.
     const known = new Map((await readReviews(appId)).map((review) => [review.id, review]));
     for (const entry of reviewWork) {
-      const fromFile = parseReviewsReport(await download(entry.object), appId);
-      const keep: StoreReview[] = fromFile.filter((review) => {
-        const stored = known.get(review.id);
-        return !stored || (stored.createdDate || '') < (review.createdDate || '');
-      });
-      reviewsAdded += keep.filter((review) => !known.has(review.id)).length;
-      const carried = keep.map((review) => carryReviewHistory(known.get(review.id), review));
-      for (const review of carried) known.set(review.id, review);
-      await writeReviews(carried);
+      const { write, added } = reviewsFromFile(known, parseReviewsReport(await download(entry.object), appId));
+      reviewsAdded += added;
+      for (const review of write) known.set(review.id, review);
+      await writeReviews(write);
       read[entry.object.name] = entry.object.updated;
       await writeMeta(metaKeys.playFiles(appId), read);
     }
   }
+  if (!buildsRead) await writeMeta(reviewBuildsKey(appId), REVIEW_BUILDS_VERSION);
 
   const hasNumberFiles = files.some((entry) => entry.info.kind === 'installs' || entry.info.kind.startsWith('visits'));
   const newest = (await readDays(appId))

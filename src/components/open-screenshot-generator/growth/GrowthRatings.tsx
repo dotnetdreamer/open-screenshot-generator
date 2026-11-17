@@ -1,7 +1,8 @@
 "use client";
 
 // Ratings: the app's star rating over time, its new ratings, the stars, and
-// every country, beside the apps the user follows if they want.
+// every country, beside the apps the user follows if they want, with the
+// app's health on the same timeline (GrowthHealth.tsx) and every version.
 //
 // The stores keep no ratings history, so the history starts on the first
 // day Growth read the ratings (ratingHistory.ts) and grows with each
@@ -30,9 +31,12 @@ import { ratingHistogram } from '@/lib/growth/reviewTopics';
 import { listingLanguageName, territoryName, UNKNOWN_TERRITORY } from '@/lib/growth/territories';
 import type { RatingDay, StarCounts } from '@/lib/growth/types';
 import { useRatingHistory } from '@/lib/growth/useRatingHistory';
+import { healthBuckets, healthFinding, playVersionNames, ratingAround, versionHealth, versionRows, type HealthStore, type VersionRelease } from '@/lib/growth/health';
+import { useAppHealth } from '@/lib/growth/useAppHealth';
 import { cn } from '@/lib/utils';
 import { InfoTip } from '../capture/InfoTip';
-import { RatingLines, StarBars, StarBreakdown, appColor, type LineSeries, type StarBucket } from './GrowthRatingCharts';
+import { HealthFindingCard, HealthStatus, HealthTimeline, HealthVersions, versionMarks } from './GrowthHealth';
+import { RatingLines, StarBars, StarBreakdown, appColor, type ChartBand, type LineSeries, type StarBucket } from './GrowthRatingCharts';
 import { Delta, EmptyState, Panel, SectionTitle, Stars, useGrowthView } from './GrowthShared';
 
 type Mode = 'all' | 'new' | 'written';
@@ -119,6 +123,31 @@ export function GrowthRatings() {
   );
   const versions = useMemo(() => (play ? [] : versionRatings(rows)), [rows, play]);
 
+  // App health on the same timeline, and every version in one table.
+  const store: HealthStore = play ? 'playstore' : 'appstore';
+  const { health } = useAppHealth(view.app.id);
+  const healthStatus = view.data.status.health;
+  const healthSeries = useMemo(() => healthBuckets(health, { granularity, window: span, reviews: view.data.reviews }), [health, granularity, span, view.data.reviews]);
+  // Google Play's vitals name builds; the reviews say which version each build is.
+  const buildNames = useMemo(() => (play ? playVersionNames(view.data.reviews, health?.releaseNames) : {}), [play, view.data.reviews, health]);
+  const versionHealthList = useMemo(() => versionHealth(health, buildNames), [health, buildNames]);
+  const releases = useMemo<VersionRelease[]>(
+    () => view.data.events.flatMap((event) => (event.kind === 'release' && event.version ? [{ version: event.version, date: event.date }] : [])),
+    [view.data.events]
+  );
+  const tableRows = useMemo(
+    () => versionRows(store, { versions: versionHealthList, ratingVersions: versions, reviews: view.data.reviews, releases, names: buildNames }),
+    [store, versionHealthList, versions, view.data.reviews, releases, buildNames]
+  );
+  const finding = useMemo(() => healthFinding(store, versionHealthList), [store, versionHealthList]);
+  const findingRow = finding ? tableRows.find((row) => row.key === finding.version.key) ?? null : null;
+  const [chosenVersion, setChosenVersion] = useState<string | null>(null);
+  const chosenRow = tableRows.find((row) => row.key === chosenVersion) ?? null;
+  const band: ChartBand | null = chosenRow ? { from: chosenRow.from, to: chosenRow.to, label: chosenRow.name } : null;
+  // Google Play's builds have no release dates on the timeline: their first day with users marks them.
+  const markers = useMemo(() => (play ? [...view.data.events, ...versionMarks(view.app.id, tableRows)] : view.data.events), [play, view.data.events, view.app.id, tableRows]);
+  const syncId = `growth-ratings-${view.app.id}`;
+
   const newCount = buckets.reduce((sum, bucket) => sum + bucket.newCount, 0);
   const newSummed = buckets.filter((bucket) => bucket.newAverage !== null && bucket.newCount > 0);
   const newAverage = newSummed.length ? newSummed.reduce((sum, bucket) => sum + bucket.newAverage! * bucket.newCount, 0) / newSummed.reduce((sum, bucket) => sum + bucket.newCount, 0) : null;
@@ -166,14 +195,19 @@ export function GrowthRatings() {
     );
   }
   if (!history.loaded) return null;
-  const nothing = rows.length === 0 && view.data.ratings.length === 0 && view.data.reviews.length === 0;
+  // Crash numbers alone are something to show too.
+  const nothing = rows.length === 0 && view.data.ratings.length === 0 && view.data.reviews.length === 0 && !(health && Object.keys(health.days).length > 0);
   if (nothing) {
     return (
-      <EmptyState icon={StarIcon} title="No ratings yet">
-        {play
-          ? 'Refresh to load your ratings. Google Play ratings come from the monthly report files, so add your Cloud Storage URI under Setup.'
-          : 'Refresh to load your ratings. Growth reads your star rating in every country you sell in, and keeps a record from that day on.'}
-      </EmptyState>
+      <div className="space-y-4">
+        <EmptyState icon={StarIcon} title="No ratings yet">
+          {play
+            ? 'Refresh to load your ratings. Google Play ratings come from the monthly report files, so add your Cloud Storage URI under Setup.'
+            : 'Refresh to load your ratings. Growth reads your star rating in every country you sell in, and keeps a record from that day on.'}
+        </EmptyState>
+        {/* Crash numbers have a setup of their own, and its way out shows here too. */}
+        <HealthStatus store={store} owner={view.words.owner} status={healthStatus} health={health} />
+      </div>
     );
   }
 
@@ -300,6 +334,19 @@ export function GrowthRatings() {
         </Panel>
       </div>
 
+      {finding && (
+        <HealthFindingCard
+          store={store}
+          finding={finding}
+          rating={ratingAround(rows, findingRow?.from ?? finding.version.from)}
+          crashReviewIds={findingRow?.crashReviewIds ?? []}
+          since={findingRow?.from ?? finding.version.from}
+          shown={chosenVersion === finding.version.key}
+          onShow={() => setChosenVersion((current) => (current === finding.version.key ? null : finding.version.key))}
+          onReadReviews={(ids) => view.goTo('reviews', { reviewIds: ids })}
+        />
+      )}
+
       <Panel className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <Toggle label="Show" value={mode} options={MODES} onChange={setMode} />
@@ -336,7 +383,7 @@ export function GrowthRatings() {
             <div>
               <p className="mb-1 text-xs font-medium">Average rating</p>
               {buckets.some((bucket) => bucket.average !== null) || comparedRivals.length > 0 ? (
-                <RatingLines starts={starts} series={averageSeries} granularity={granularity} events={view.data.events} label="Average rating" />
+                <RatingLines starts={starts} series={averageSeries} granularity={granularity} events={markers} label="Average rating" band={band} syncId={syncId} />
               ) : (
                 <HistoryWaits started={started} />
               )}
@@ -348,7 +395,9 @@ export function GrowthRatings() {
                   starts={starts}
                   series={countSeries}
                   granularity={granularity}
-                  events={view.data.events}
+                  events={markers}
+                  band={band}
+                  syncId={syncId}
                   height={160}
                   domain={undefinedDomain(buckets.map((bucket) => bucket.count))}
                   format={(value) => formatCount(value)}
@@ -368,14 +417,16 @@ export function GrowthRatings() {
                 starts={starts}
                 series={[{ id: 'day', label: 'Ratings given', color: appColor(0), values: new Map(buckets.map((bucket) => [bucket.start, bucket.dayAverage])) }]}
                 granularity={granularity}
-                events={view.data.events}
+                events={markers}
+                band={band}
+                syncId={syncId}
                 label="Average of the ratings given"
               />
               <p className="mt-2 text-xs text-muted-foreground">Google Play gives the average of each day&apos;s ratings, not how many there were.</p>
             </div>
           ) : started ? (
             <div>
-              <StarBars buckets={newBars} granularity={granularity} events={view.data.events} what="new ratings" />
+              <StarBars buckets={newBars} granularity={granularity} events={markers} what="new ratings" band={band} syncId={syncId} />
               {started > span.from && <p className="mt-2 text-xs text-muted-foreground">Counted from {formatDay(started, { withYear: true })}, the first day Growth read your ratings.</p>}
             </div>
           ) : (
@@ -387,89 +438,86 @@ export function GrowthRatings() {
             <p className="py-8 text-center text-xs text-muted-foreground">No written reviews yet</p>
           ) : (
             <div>
-              <StarBars buckets={writtenBars} granularity={granularity} events={view.data.events} what="written reviews" />
+              <StarBars buckets={writtenBars} granularity={granularity} events={markers} what="written reviews" band={band} syncId={syncId} />
               <p className="mt-2 text-xs text-muted-foreground">Ratings that come with text. The stores send every one, so this goes back to your first review.</p>
             </div>
           ))}
+
+        <HealthTimeline
+          store={store}
+          owner={view.words.owner}
+          health={health}
+          status={healthStatus}
+          buckets={healthSeries}
+          granularity={granularity}
+          events={markers}
+          band={band}
+          syncId={syncId}
+          bars={mode === 'written' || (mode === 'new' && !!started && !(dayAverages && !buckets.some((bucket) => bucket.newCount > 0)))}
+          everyCountry={shownTerritory !== 'all'}
+        />
       </Panel>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <Panel className="min-w-0">
-          <SectionTitle
-            title="Countries"
-            hint={started ? `New ratings and the change in the average over the last ${view.rangeDays} days` : 'The rating in each country, as Growth last read it'}
-          />
-          {countries.length === 0 ? (
-            <p className="text-xs text-muted-foreground">No ratings by country yet</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs" data-testid="growth-ratings-countries">
-                <thead className="border-b bg-muted/40 text-muted-foreground">
-                  <tr className="text-left">
-                    <th className="px-3 py-2 font-medium">Country</th>
-                    <th className="py-2 pr-3 text-right font-medium">Rating</th>
-                    <th className="py-2 pr-3 text-right font-medium">Ratings</th>
-                    <th className="py-2 pr-3 text-right font-medium">New</th>
-                    <th className="py-2 pr-3 text-right font-medium">Change</th>
-                    <th className="w-32 py-2 font-medium">Stars</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {countries.map((row) => (
-                    <tr
-                      key={row.territory}
-                      className={cn('cursor-pointer border-b last:border-0 hover:bg-muted/50', row.territory === shownTerritory && 'bg-muted/60')}
-                      onClick={() => setTerritory(row.territory === UNKNOWN_TERRITORY || row.territory === shownTerritory ? 'all' : row.territory)}
-                      aria-selected={row.territory === shownTerritory}
-                    >
-                      <td className="px-3 py-2">{placeName(row.territory)}</td>
-                      <td className="py-2 pr-3 text-right tabular-nums">{formatRating(row.average)}</td>
-                      <td className="py-2 pr-3 text-right tabular-nums">{row.count === null ? 'n/a' : formatExact(row.count)}</td>
-                      <td className="py-2 pr-3 text-right tabular-nums">{started ? formatExact(row.newCount) : 'n/a'}</td>
-                      <td className="py-2 pr-3 text-right tabular-nums">
-                        {row.change === null ? (
-                          <span className="text-muted-foreground">n/a</span>
-                        ) : (
-                          <span className={cn(row.change > 0.004 && 'text-[hsl(var(--growth-good))]', row.change < -0.004 && 'text-[hsl(var(--growth-bad))]')}>
-                            {row.change > 0 ? '+' : ''}
-                            {row.change.toFixed(2)}
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-2">{row.stars ? <MiniStars stars={row.stars} /> : <span className="text-muted-foreground">n/a</span>}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </Panel>
+      <HealthVersions
+        store={store}
+        rows={tableRows}
+        hangUnit={health?.hangs?.unit ?? null}
+        hangSummary={health?.hangs?.summary ?? null}
+        selected={chosenVersion}
+        onSelect={setChosenVersion}
+        onReadReviews={(ids) => view.goTo('reviews', { reviewIds: ids })}
+      />
 
-        <Panel>
-          <SectionTitle title="By version" hint={play ? 'Written reviews of each version' : 'New ratings while each version was on sale'} />
-          {play ? (
-            <VersionReviews />
-          ) : versions.length === 0 ? (
-            <p className="text-xs text-muted-foreground">Shows after Growth has read your ratings on two days with a version on sale.</p>
-          ) : (
-            <ul className="space-y-2">
-              {versions.slice(0, 8).map((entry) => (
-                <li key={entry.version} className="flex items-baseline justify-between gap-2 text-xs">
-                  <span className="min-w-0">
-                    <span className="font-medium">Version {entry.version}</span>
-                    <span className="ml-1.5 text-muted-foreground">
-                      {formatDay(entry.from)} to {formatDay(entry.to)}
-                    </span>
-                  </span>
-                  <span className="shrink-0 tabular-nums">
-                    {formatExact(entry.newCount)} new{entry.newAverage !== null ? `, ${formatRating(entry.newAverage)} stars` : ''}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Panel>
-      </div>
+      <Panel className="min-w-0">
+        <SectionTitle
+          title="Countries"
+          hint={started ? `New ratings and the change in the average over the last ${view.rangeDays} days` : 'The rating in each country, as Growth last read it'}
+        />
+        {countries.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No ratings by country yet</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs" data-testid="growth-ratings-countries">
+              <thead className="border-b bg-muted/40 text-muted-foreground">
+                <tr className="text-left">
+                  <th className="px-3 py-2 font-medium">Country</th>
+                  <th className="py-2 pr-3 text-right font-medium">Rating</th>
+                  <th className="py-2 pr-3 text-right font-medium">Ratings</th>
+                  <th className="py-2 pr-3 text-right font-medium">New</th>
+                  <th className="py-2 pr-3 text-right font-medium">Change</th>
+                  <th className="w-32 py-2 font-medium">Stars</th>
+                </tr>
+              </thead>
+              <tbody>
+                {countries.map((row) => (
+                  <tr
+                    key={row.territory}
+                    className={cn('cursor-pointer border-b last:border-0 hover:bg-muted/50', row.territory === shownTerritory && 'bg-muted/60')}
+                    onClick={() => setTerritory(row.territory === UNKNOWN_TERRITORY || row.territory === shownTerritory ? 'all' : row.territory)}
+                    aria-selected={row.territory === shownTerritory}
+                  >
+                    <td className="px-3 py-2">{placeName(row.territory)}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums">{formatRating(row.average)}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums">{row.count === null ? 'n/a' : formatExact(row.count)}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums">{started ? formatExact(row.newCount) : 'n/a'}</td>
+                    <td className="py-2 pr-3 text-right tabular-nums">
+                      {row.change === null ? (
+                        <span className="text-muted-foreground">n/a</span>
+                      ) : (
+                        <span className={cn(row.change > 0.004 && 'text-[hsl(var(--growth-good))]', row.change < -0.004 && 'text-[hsl(var(--growth-bad))]')}>
+                          {row.change > 0 ? '+' : ''}
+                          {row.change.toFixed(2)}
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-2">{row.stars ? <MiniStars stars={row.stars} /> : <span className="text-muted-foreground">n/a</span>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Panel>
     </div>
   );
 }
@@ -506,35 +554,5 @@ function MiniStars({ stars }: { stars: StarCounts }) {
         <span key={star} className="h-full" style={{ width: `${(stars[star - 1] / total) * 100}%`, background: `hsl(var(--growth-star-${star}))` }} />
       ))}
     </span>
-  );
-}
-
-/** Google Play's written reviews say which version the reviewer had. */
-function VersionReviews() {
-  const view = useGrowthView();
-  const rows = useMemo(() => {
-    const byVersion = new Map<string, { count: number; sum: number; newest: string }>();
-    for (const review of view.data.reviews) {
-      if (!review.appVersion) continue;
-      const entry = byVersion.get(review.appVersion) ?? { count: 0, sum: 0, newest: '' };
-      entry.count += 1;
-      entry.sum += review.rating;
-      if (review.createdDate > entry.newest) entry.newest = review.createdDate;
-      byVersion.set(review.appVersion, entry);
-    }
-    return Array.from(byVersion.entries()).sort((a, b) => b[0].localeCompare(a[0], undefined, { numeric: true }));
-  }, [view.data.reviews]);
-  if (rows.length === 0) return <p className="text-xs text-muted-foreground">No written reviews with a version yet</p>;
-  return (
-    <ul className="space-y-2">
-      {rows.slice(0, 8).map(([version, entry]) => (
-        <li key={version} className="flex items-baseline justify-between gap-2 text-xs">
-          <span className="font-medium">Version {version}</span>
-          <span className="tabular-nums">
-            {formatExact(entry.count)} review{entry.count === 1 ? '' : 's'}, {formatRating(entry.sum / entry.count)} stars
-          </span>
-        </li>
-      ))}
-    </ul>
   );
 }

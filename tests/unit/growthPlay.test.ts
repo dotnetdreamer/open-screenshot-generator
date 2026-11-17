@@ -195,6 +195,7 @@ test('the monthly review file keeps written reviews with their replies and drops
   assert.equal(review.body, 'Stürzt ab,\nseit dem Update');
   assert.equal(review.language, 'de');
   assert.equal(review.appVersion, '3.1');
+  assert.equal(review.appBuild, '31', 'the build, which is how Android vitals name a version');
   assert.equal(review.territory, 'ZZ', 'Google Play does not say where the reviewer is');
   assert.equal(review.createdDate, new Date(1793613600000).toISOString());
   assert.equal(review.response?.body, 'Danke, 3.2 behebt das.');
@@ -207,13 +208,15 @@ test('a Reviews API review splits its title from its body and keeps the reply', 
     reviewId: 'gp:1',
     authorName: 'Kai',
     comments: [
-      { userComment: { text: 'Crashes\tOn start', starRating: 1, lastModified: { seconds: '1793610000' }, reviewerLanguage: 'en_GB', appVersionName: '3.1' } },
+      { userComment: { text: 'Crashes\tOn start', starRating: 1, lastModified: { seconds: '1793610000' }, reviewerLanguage: 'en_GB', appVersionCode: 31, appVersionName: '3.1' } },
       { developerComment: { text: 'Fixed in 3.2', lastModified: { seconds: '1793696400' } } },
     ],
   });
   assert.equal(review?.title, 'Crashes');
   assert.equal(review?.language, 'en-GB');
   assert.equal(review?.createdDate, '2026-11-02T09:00:00.000Z');
+  assert.deepEqual([review?.appVersion, review?.appBuild], ['3.1', '31'], 'the Reviews API sends the build as a number');
+  assert.equal(readPlayReview(APP, { reviewId: 'gp:3', comments: [{ userComment: { text: 'ok', starRating: 4 } }] })?.appBuild, undefined, 'Google may leave both out');
   assert.deepEqual(review?.response, { id: 'gp:1', body: 'Fixed in 3.2', lastModified: '2026-11-03T09:00:00.000Z', state: 'PUBLISHED' });
   assert.equal(readPlayReview(APP, { reviewId: 'gp:2', comments: [] }), null);
 });

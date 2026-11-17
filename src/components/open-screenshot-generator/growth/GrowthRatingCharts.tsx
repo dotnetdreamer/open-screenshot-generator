@@ -7,8 +7,8 @@
 // however many apps are on the chart.
 
 import React from 'react';
-import { Bar, BarChart, CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { formatDay, formatMonth } from '@/lib/growth/dates';
+import { Bar, BarChart, CartesianGrid, Line, LineChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { addDays, formatDay, formatMonth } from '@/lib/growth/dates';
 import { formatCount, formatExact, formatRating } from '@/lib/growth/format';
 import type { RatingGranularity } from '@/lib/growth/ratingHistory';
 import type { StarCounts, TimelineEvent } from '@/lib/growth/types';
@@ -20,7 +20,7 @@ export function appColor(index: number): string {
   return index === 0 ? 'hsl(var(--growth-series))' : `hsl(var(--growth-tag-${((index % 7) + 1).toString()}))`;
 }
 
-const AXIS = { fontSize: 11, fill: 'hsl(var(--muted-foreground))' };
+export const AXIS = { fontSize: 11, fill: 'hsl(var(--muted-foreground))' };
 
 export function bucketLabel(start: string, granularity: RatingGranularity, long = false): string {
   if (granularity === 'month') return formatMonth(start);
@@ -28,17 +28,139 @@ export function bucketLabel(start: string, granularity: RatingGranularity, long 
   return long ? formatDay(start, { withYear: true }) : formatDay(start, { withYear: false });
 }
 
-function releaseLines(events: TimelineEvent[], buckets: Array<{ start: string; end: string }>): Array<{ x: string; label: string; id: string }> {
-  const out: Array<{ x: string; label: string; id: string }> = [];
+/**
+ * One line per bucket with a release in it. A week or a month can hold more
+ * than one: its line says how many, rather than naming one of them.
+ */
+export function releaseLines(events: TimelineEvent[], buckets: Array<{ start: string; end: string }>): Array<{ x: string; label: string; id: string }> {
+  const byBucket = new Map<string, { id: string; versions: string[] }>();
   for (const event of events) {
     if (event.kind !== 'release') continue;
     const bucket = buckets.find((entry) => event.date >= entry.start && event.date <= entry.end);
-    if (bucket && !out.some((line) => line.x === bucket.start)) out.push({ x: bucket.start, label: event.version ?? 'Release', id: event.id });
+    if (!bucket) continue;
+    const entry = byBucket.get(bucket.start) ?? { id: event.id, versions: [] };
+    const version = event.version ?? 'Release';
+    if (!entry.versions.includes(version)) entry.versions.push(version);
+    byBucket.set(bucket.start, entry);
   }
-  return out;
+  return [...byBucket.entries()].map(([x, entry]) => ({ x, id: entry.id, label: entry.versions.length === 1 ? entry.versions[0] : `${entry.versions.length} versions` }));
 }
 
-function Legend({ items }: { items: Array<{ label: string; color: string; dashed?: boolean }> }) {
+/** A span of days to shade on a chart, such as the days a version was out. */
+export interface ChartBand {
+  from: string;
+  to: string;
+  label: string;
+}
+
+/** Where a band sits on a chart: the buckets its shade is drawn between. */
+export interface BandArea {
+  /** None on a line chart of one bucket: that bucket is the whole chart, and so is the shade. */
+  x1?: string;
+  x2?: string;
+  /** The band's own first bucket, where a version's release line sits. */
+  first: string;
+  /** A bar chart's band one bar wide, too narrow for its label beside a release line's. */
+  single: boolean;
+  /**
+   * Line charts only. A line chart puts each bucket on a point, so a shade
+   * from the first point to the last would leave out half of each end bucket,
+   * and one bucket would have no width at all. The shade is drawn from the
+   * bucket before to the bucket after instead, and this much is cut off each
+   * side again, in buckets: it then covers whole buckets, as on a bar chart.
+   */
+  trim?: { steps: number; left: number; right: number };
+}
+
+/** The buckets a band touches, or null when it is outside the chart. `scale` is the x axis's: points on line charts, bands on bar charts. */
+export function bandArea(band: ChartBand | null | undefined, buckets: Array<{ start: string; end: string }>, scale: 'point' | 'band'): BandArea | null {
+  if (!band) return null;
+  const first = buckets.findIndex((bucket) => bucket.end >= band.from && bucket.start <= band.to);
+  if (first < 0) return null;
+  let last = first;
+  while (last + 1 < buckets.length && buckets[last + 1].start <= band.to) last += 1;
+  const own = buckets[first].start;
+  if (scale === 'band') return { x1: own, x2: buckets[last].start, first: own, single: first === last };
+  // One point sits in the middle of a line chart of one bucket, which spans the whole width. Drawn
+  // without x1 and x2, Recharts gives the shape the whole plot.
+  if (buckets.length < 2) return { first: own, single: false, trim: { steps: 1, left: 0, right: 0 } };
+  const before = Math.max(0, first - 1);
+  const after = Math.min(buckets.length - 1, last + 1);
+  return { x1: buckets[before].start, x2: buckets[after].start, first: own, single: false, trim: { steps: after - before, left: first > before ? 0.5 : 0, right: after > last ? 0.5 : 0 } };
+}
+
+const BAND_COLOR = 'hsl(var(--growth-series))';
+
+/** A line chart's shade (BandArea.trim): Recharts gives the drawn span's box, this draws the part over the band's own buckets. */
+function TrimmedBand({
+  x = 0,
+  y = 0,
+  width = 0,
+  height = 0,
+  trim,
+  label,
+  marked,
+}: {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  trim: NonNullable<BandArea['trim']>;
+  label: string;
+  marked: boolean;
+}) {
+  const step = trim.steps > 0 ? width / trim.steps : 0;
+  const left = x + trim.left * step;
+  const shown = Math.max(2, width - (trim.left + trim.right) * step);
+  // A label wider than a narrow band sits over its middle, unless the version's release line already names it there.
+  const narrow = shown < 48;
+  return (
+    <g>
+      <rect x={left} y={y} width={shown} height={height} fill={BAND_COLOR} fillOpacity={0.1} stroke={BAND_COLOR} strokeOpacity={0.35} />
+      {label && !(narrow && marked) && (
+        <text x={narrow ? left + shown / 2 : left + shown - 4} y={y + 14} textAnchor={narrow ? 'middle' : 'end'} fontSize={10} fill="hsl(var(--foreground))">
+          {label}
+        </text>
+      )}
+    </g>
+  );
+}
+
+/**
+ * The chosen version's days, shaded the same way on every chart of the
+ * screen. `lines` are the chart's release lines: one on the band's first
+ * bucket names the version already, so a band too narrow for both labels
+ * leaves its own out.
+ */
+export function bandShade(area: BandArea | null, label: string, lines: Array<{ x: string }> = []) {
+  if (!area) return null;
+  const marked = lines.some((line) => line.x === area.first);
+  const trim = area.trim;
+  if (trim) {
+    return (
+      <ReferenceArea
+        x1={area.x1}
+        x2={area.x2}
+        ifOverflow="extendDomain"
+        shape={(props: { x?: number; y?: number; width?: number; height?: number }) => <TrimmedBand {...props} trim={trim} label={label} marked={marked} />}
+      />
+    );
+  }
+  return (
+    <ReferenceArea
+      x1={area.x1}
+      x2={area.x2}
+      fill={BAND_COLOR}
+      fillOpacity={0.1}
+      stroke={BAND_COLOR}
+      strokeOpacity={0.35}
+      ifOverflow="extendDomain"
+      label={marked && area.single ? undefined : { value: label, position: 'insideTopRight', fontSize: 10, fill: 'hsl(var(--foreground))', offset: 4 }}
+    />
+  );
+}
+
+export function Legend({ items }: { items: Array<{ label: string; color: string; dashed?: boolean }> }) {
   return (
     <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground" aria-label="Legend">
       {items.map((item) => (
@@ -71,6 +193,8 @@ export function StarBars({
   events = [],
   height = 240,
   what,
+  band,
+  syncId,
 }: {
   buckets: StarBucket[];
   granularity: RatingGranularity;
@@ -78,6 +202,10 @@ export function StarBars({
   height?: number;
   /** "new ratings" or "written reviews", for the tooltip and the label. */
   what: string;
+  /** Days to shade, such as a chosen version's. */
+  band?: ChartBand | null;
+  /** Charts with the same id show the pointer's bucket together. */
+  syncId?: string;
 }) {
   const data = buckets.map((bucket) => ({
     start: bucket.start,
@@ -93,15 +221,17 @@ export function StarBars({
   const split = buckets.some((bucket) => bucket.stars && bucket.stars.some((value) => value > 0));
   const whole = data.some((row) => row.unknown > 0);
   const lines = releaseLines(events, buckets);
+  const area = bandArea(band, buckets, 'band');
   return (
     <div className="space-y-2">
       <div style={{ height }} role="img" aria-label={`${what} per ${granularity}, by stars`}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 16, right: 8, bottom: 0, left: 0 }} barCategoryGap="18%">
+          <BarChart data={data} margin={{ top: 16, right: 8, bottom: 0, left: 0 }} barCategoryGap="18%" syncId={syncId} syncMethod="value">
             <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.6} />
             <XAxis dataKey="start" tickFormatter={(value: string) => bucketLabel(value, granularity)} tick={AXIS} tickLine={false} axisLine={{ stroke: 'hsl(var(--border))' }} minTickGap={24} />
             <YAxis allowDecimals={false} tickFormatter={(value: number) => formatCount(value)} tick={AXIS} tickLine={false} axisLine={false} width={44} />
             <Tooltip cursor={{ fill: 'hsl(var(--muted))', opacity: 0.5 }} content={<StarTooltip granularity={granularity} what={what} />} />
+            {bandShade(area, band?.label ?? '', lines)}
             {lines.map((line) => (
               <ReferenceLine key={line.id} x={line.x} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" strokeOpacity={0.6} label={{ value: line.label, position: 'insideTopLeft', fontSize: 10, fill: 'hsl(var(--muted-foreground))', offset: 4 }} />
             ))}
@@ -174,6 +304,8 @@ export function RatingLines({
   format = (value: number) => formatRating(value),
   label,
   whole = false,
+  band,
+  syncId,
 }: {
   starts: string[];
   series: LineSeries[];
@@ -185,6 +317,10 @@ export function RatingLines({
   label: string;
   /** Whole numbers only on the axis, for counts. */
   whole?: boolean;
+  /** Days to shade, such as a chosen version's. */
+  band?: ChartBand | null;
+  /** Charts with the same id show the pointer's bucket together. */
+  syncId?: string;
 }) {
   const data = starts.map((start) => {
     const row: Record<string, string | number | null> = { start };
@@ -195,16 +331,19 @@ export function RatingLines({
   const low = values.length ? Math.min(...values) : 1;
   const high = values.length ? Math.max(...values) : 5;
   const auto: [number, number] = [Math.max(1, Math.floor((low - 0.2) * 2) / 2), Math.min(5, Math.ceil((high + 0.2) * 2) / 2)];
-  const lines = releaseLines(events, starts.map((start, index) => ({ start, end: starts[index + 1] ?? '9999-12-31' })));
+  const spans = starts.map((start, index) => ({ start, end: starts[index + 1] ? addDays(starts[index + 1], -1) : '9999-12-31' }));
+  const lines = releaseLines(events, spans);
+  const area = bandArea(band, spans, 'point');
   return (
     <div className="space-y-2">
       <div style={{ height }} role="img" aria-label={label}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 16, right: 12, bottom: 0, left: 0 }}>
+          <LineChart data={data} margin={{ top: 16, right: 12, bottom: 0, left: 0 }} syncId={syncId} syncMethod="value">
             <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.6} />
             <XAxis dataKey="start" tickFormatter={(value: string) => bucketLabel(value, granularity)} tick={AXIS} tickLine={false} axisLine={{ stroke: 'hsl(var(--border))' }} minTickGap={24} />
             <YAxis domain={domain ?? auto} tickFormatter={format} tick={AXIS} tickLine={false} axisLine={false} width={44} allowDecimals={!whole} />
             <Tooltip cursor={{ stroke: 'hsl(var(--border))' }} content={<LineTooltip series={series} granularity={granularity} format={format} />} />
+            {bandShade(area, band?.label ?? '', lines)}
             {lines.map((line) => (
               <ReferenceLine key={line.id} x={line.x} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" strokeOpacity={0.6} label={{ value: line.label, position: 'insideTopLeft', fontSize: 10, fill: 'hsl(var(--muted-foreground))', offset: 4 }} />
             ))}

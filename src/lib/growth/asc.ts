@@ -439,6 +439,21 @@ export async function downloadSegment(url: string, signal?: AbortSignal): Promis
   return new Uint8Array(await response.arrayBuffer());
 }
 
+/**
+ * Xcode's power and performance metrics for the app's newest versions, in
+ * Apple's xcode-metrics shape (health.ts reads it). The same request answered
+ * 200 with no data for every app on the test account in November 2026.
+ */
+export async function fetchPerfMetrics(credentials: AppStoreCredentials, appId: string, metricType: 'HANG', signal?: AbortSignal): Promise<unknown> {
+  const response = await send(credentials, `/v1/apps/${appId}/perfPowerMetrics?filter[metricType]=${metricType}`, {
+    accept: 'application/vnd.apple.xcode-metrics+json',
+    signal,
+  });
+  if (!response.ok) await fail(response);
+  const text = await response.text();
+  return text ? JSON.parse(text) : {};
+}
+
 // --- listing -------------------------------------------------------------------
 
 /** Version states whose own text fields App Store Connect still lets you change. */
