@@ -7,7 +7,7 @@ import { AppWindow, BeatCopy, Cursor, PAD, Ring, Still } from "./ui";
 
 type P = { local: number; len: number };
 
-/** Bars 25 and 26: every store size in one pass, and the size Apple requires ticked for you. */
+/** Bars 15 to 16.5: every store size in one pass, and the size Apple requires ticked for you. */
 export const ExportSizes: React.FC<P> = ({ local }) => {
   const SHOT = "features2/flows/export.png";
   const MISSING = "features2/flows/export-missing.png";
@@ -49,8 +49,8 @@ export const ExportSizes: React.FC<P> = ({ local }) => {
 };
 
 /**
- * Bars 27 to 29. The upload runs through the break bar, quiet, and lands on
- * the drop as done: the copy waits for the drop too.
+ * Bars 16.5 to 18. The upload runs through the second half of the break bar,
+ * quiet, and lands on the drop (bar 17) as done: the copy waits for the drop too.
  *
  * The capture froze at 8 of 20, so the bar and the line above it are redrawn
  * in the dialog's own colours (sampled from the capture) and count on to 20,
@@ -138,7 +138,7 @@ export const Upload: React.FC<P> = ({ local }) => {
   );
 };
 
-/** Bars 30 and 31: make the site, then home, support and privacy pages, at its own address. */
+/** Bars 18 to 19.5: make the site, then home, support and privacy pages, at its own address. */
 export const Site: React.FC<P> = ({ local }) => {
   const START = "features2/flows/website-start.png";
   const HOME = "features2/flows/website-home.png";
@@ -197,7 +197,7 @@ export const Site: React.FC<P> = ({ local }) => {
   );
 };
 
-/** Bars 32 and 33: every launch size drawn from the same screenshots, then opened to edit. */
+/** Bars 19.5 to 21: every launch size drawn from the same screenshots, then opened to edit. */
 export const Social: React.FC<P> = ({ local }) => {
   const FLOW = "features2/more/social/flow.png";
   const RESULT = "features2/more/social/result.png";
@@ -247,7 +247,7 @@ export const Social: React.FC<P> = ({ local }) => {
   );
 };
 
-/** Bars 34 and 35: the iOS 27 header on Juniper's product page, then its search art. */
+/** Bars 21 and 22: the iOS 27 header on Juniper's product page, then its search art. */
 export const Header: React.FC<P> = ({ local }) => {
   const LISTING = "features2/more/header/listing.png";
   const SEARCH = "features2/more/header/listing-search.png";

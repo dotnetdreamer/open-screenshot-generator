@@ -9,7 +9,7 @@ Open the [web editor](https://editor.openscrgen.app), download the [desktop app]
 
 <div align="center">
 
-https://github.com/user-attachments/assets/92348435-668f-4a58-b0be-0b939841150d
+https://github.com/user-attachments/assets/1b1d7ff4-5f89-4fc5-8e48-efbe89782562
 
 </div>
 
@@ -38,7 +38,7 @@ Recent additions also include a second window for the right panel, project versi
 
 You can also:
 
-- Choose from 101 templates for app screenshots, Apple Watch, Mac, preview videos, and Google Play feature graphics.
+- Choose from 103 templates for app screenshots, Apple Watch, Mac, preview videos, and Google Play feature graphics.
 - Make one layout for several languages and edit each language's text and screenshots.
 - Make preview videos from a screen recording.
 - Take screenshots of your app straight from the iPhone Simulator or an Android emulator, in every language, in the desktop app.

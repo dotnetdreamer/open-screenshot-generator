@@ -15,7 +15,7 @@ const LANG_LABELS = [
   { code: "ar", label: "العربية" },
 ];
 
-/** Bars 8 and 9, on the drop: the templates. */
+/** Bars 4 to 5.25, on the drop: the templates. */
 export const Templates: React.FC<P> = ({ local }) => (
   <AbsoluteFill>
     <TemplateWall t={(local + 600) / 22} tilt={0.8} scale={1.05} rows={7} />
@@ -54,7 +54,7 @@ export const Templates: React.FC<P> = ({ local }) => (
   </AbsoluteFill>
 );
 
-/** Bars 10 and 11: drop the screenshots in, every design shows them, pick one, edit it. */
+/** Bars 5.25 to 6.5: drop the screenshots in, every design shows them, pick one, edit it. */
 export const Drop: React.FC<P> = ({ local }) => {
   const EMPTY = "features2/design/quickstart-empty.png";
   const DROP = "features2/design/quickstart-drop.png";
@@ -139,7 +139,7 @@ export const Drop: React.FC<P> = ({ local }) => {
 const STUDIO = Array.from({ length: 48 }, (_, i) => `features2/design/studio3d/turn-${String(i).padStart(2, "0")}.png`);
 const FINISHES = [...FILES].filter((f) => f.startsWith("features2/design/studio3d/finish-")).slice(0, 3);
 
-/** Bars 12 and 13: the app's own 3D phones, turning. */
+/** Bars 6.5 to 7.75: the app's own 3D phones, turning. */
 export const Studio3D: React.FC<P> = ({ local }) => {
   const idx = Math.min(47, Math.max(0, Math.floor((local * 48) / 116)));
   const enter = ramp(local, 0, 30, outExpo);
@@ -191,7 +191,7 @@ export const Studio3D: React.FC<P> = ({ local }) => {
   );
 };
 
-/** Bars 14 and 15: one picture running across three screenshots. */
+/** Bars 7.75 to 9: one picture running across three screenshots. */
 export const Panorama: React.FC<P> = ({ local }) => {
   const H = 640;
   const W = Math.round((H * 1206) / 2622);
@@ -230,7 +230,7 @@ export const Panorama: React.FC<P> = ({ local }) => {
   );
 };
 
-/** Bars 16 and 17: the same three boards turning through four languages. */
+/** Bars 9 to 10.25: the same three boards turning through four languages. */
 export const Languages: React.FC<P> = ({ local }) => {
   const H = 640;
   const W = Math.round((H * 1206) / 2622);
@@ -307,7 +307,7 @@ export const Languages: React.FC<P> = ({ local }) => {
   );
 };
 
-/** Bars 18 and 19: a preview video on the timeline, a recording in the phone and music under it. */
+/** Bars 10.25 to 11.5: a preview video on the timeline, a recording in the phone and music under it. */
 export const Video: React.FC<P> = ({ local }) => {
   const SHOT = "features2/design/video/editor-timeline.png";
   // Measured on the capture: the track area runs 0 s at x 350 to 12 s at x 1106.
@@ -352,7 +352,7 @@ export const Video: React.FC<P> = ({ local }) => {
   );
 };
 
-/** Bars 20 and 21: Capture takes every screen in every language. */
+/** Bars 11.5 to 12.75: Capture takes every screen in every language. */
 export const Capture: React.FC<P> = ({ local }) => {
   const LIVE = "features2/flows/capture-live.png";
   const DONE = "features2/flows/capture-done.png";
@@ -411,7 +411,7 @@ export const Capture: React.FC<P> = ({ local }) => {
   );
 };
 
-/** Bars 22 and 23: say what you want, and the agent builds it. */
+/** Bars 12.75 to 14: say what you want, and the agent builds it. */
 export const Agent: React.FC<P> = ({ local }) => {
   // The scrolled shot: at 900 px tall the start screen cannot show the prompt and Start together.
   const START = "features2/flows/agent-start-scrolled.png";

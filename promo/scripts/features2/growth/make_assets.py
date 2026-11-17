@@ -148,8 +148,12 @@ sparkle(d, cx - S * 0.03, cy + S * 0.03, S * 0.30, S * 0.075, (255, 255, 255))
 sparkle(d, cx + S * 0.22, cy - S * 0.21, S * 0.11, S * 0.03, (255, 244, 220))
 save_icon(img, 'brightly')
 
-# Filler apps in search results: a gradient and a letter.
-FONT = 'C:/Windows/Fonts/segoeuib.ttf'
+# Filler apps in search results: a gradient and a letter. Segoe UI Bold on
+# Windows, Arial Bold on a Mac.
+FONT = next(
+    (f for f in ('C:/Windows/Fonts/segoeuib.ttf', '/System/Library/Fonts/Supplemental/Arial Bold.ttf') if os.path.exists(f)),
+    'C:/Windows/Fonts/segoeuib.ttf',
+)
 FILLERS = {
     'nimbo': ('#8B5CF6', '#4C1D95', 'N'),
     'driplet': ('#38BDF8', '#0369A1', 'D'),
@@ -186,7 +190,8 @@ try:
     except Exception:
         pass
 except Exception:
-    f = ImageFont.truetype('C:/Windows/Fonts/impact.ttf', 24)
+    impact = next((p for p in ('C:/Windows/Fonts/impact.ttf', '/System/Library/Fonts/Supplemental/Impact.ttf') if os.path.exists(p)), 'C:/Windows/Fonts/impact.ttf')
+    f = ImageFont.truetype(impact, 24)
 d.text((60, 27), 'Dayline', font=f, fill=(255, 255, 255))
 shot.save(os.path.join(OUT, 'dayline-1.png'), optimize=True)
 shot.crop((0, 0, 200, 80)).resize((600, 240)).save(os.path.join(HERE, 'dayline-logo.png'))

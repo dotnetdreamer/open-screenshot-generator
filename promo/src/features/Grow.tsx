@@ -3,44 +3,58 @@ import { AbsoluteFill } from "remotion";
 import { COPY, V, outExpo, ramp } from "./style";
 import { FILES } from "./rects.generated";
 import { ProductBeat, R, mid } from "./kit";
-import { Cursor, GREEN, Ring, Still, Words } from "./ui";
+import { CAP_H, CAP_W, Cursor, GREEN, Ring, Still, Words } from "./ui";
 
 type P = { local: number; len: number };
 
 const OVERVIEW = "features2/growth/overview.png";
 const IMPACT = "features2/growth/impact.png";
+const HEALTH = "features2/growth/health.png";
 
-/** Bars 37 and 38: Juniper's numbers, beside its designs. */
+/**
+ * Bars 24 and 25: Juniper's numbers beside its designs, then, on the second
+ * bar, Ratings saying version 2.4 crashes more than 2.3 did. That is the
+ * update the one star reviews on bar 33 are about.
+ */
 export const Stats: React.FC<P> = ({ local }) => {
-  const chart = R(OVERVIEW, "chart", { x: 272, y: 444, w: 1152, h: 344 });
-  const first = R(OVERVIEW, "tile-times-seen", { x: 272, y: 283, w: 182, h: 145 });
+  const visits = R(OVERVIEW, "tile-page-visits", { x: 466, y: 283, w: 182, h: 145 });
   const rate = R(OVERVIEW, "tile-download-rate", { x: 660, y: 283, w: 182, h: 145 });
-  const last = R(OVERVIEW, "tile-rating", { x: 1242, y: 283, w: 182, h: 145 });
+  const earnings = R(OVERVIEW, "tile-earnings", { x: 1048, y: 283, w: 182, h: 145 });
+  const finding = R(HEALTH, "health-finding", { x: 272, y: 317, w: 1152, h: 74 });
+  const text = R(HEALTH, "finding-text", { x: 321, y: 336, w: 538, h: 37 });
+  // The four middle tiles whole, with no slice of their neighbours at the edges.
+  const tilesZ = CAP_W / (earnings.x + earnings.w - visits.x + 20);
+  const tiles = { x: (visits.x + earnings.x + earnings.w) / 2, y: visits.y + visits.h / 2 + 40 };
+  // The cut to Ratings, on the second bar.
+  const AT = 60;
   return (
     <ProductBeat
       local={local}
       beat={COPY.stats}
+      subAt={[16, AT + 8]}
       hue="green"
       title="Juniper: Growth"
-      shots={[{ src: OVERVIEW }]}
+      shots={[{ src: OVERVIEW }, { src: HEALTH, at: AT }]}
       cam={[
         { at: 0, z: 1 },
-        { at: 20, z: 1 },
-        { at: 48, z: 1.75, x: first.x + 300, y: first.y + first.h / 2 + 40 },
-        { at: 82, z: 1.75, x: last.x + last.w - 300, y: last.y + last.h / 2 + 40 },
-        { at: 118, z: 1.3, x: chart.x + chart.w / 2, y: chart.y + chart.h / 2 - 30 },
+        { at: 14, z: 1 },
+        { at: 44, z: tilesZ, x: tiles.x, y: tiles.y },
+        { at: AT, z: tilesZ + 0.03, x: tiles.x, y: tiles.y + 4 },
+        { at: AT + 10, z: 1.5, x: finding.x + finding.w / 2 - 120, y: finding.y + finding.h / 2 + 40 },
+        { at: 118, z: 2.0, x: text.x + text.w / 2 + 20, y: text.y + text.h / 2 + 10 },
       ]}
       overlay={
-        <>
-          <Ring rect={rate} local={local} delay={40} color={GREEN} hold={50} />
-          <Ring rect={chart} local={local} delay={98} color={GREEN} />
-        </>
+        local < AT ? (
+          <Ring rect={rate} local={local} delay={28} color={GREEN} />
+        ) : (
+          <Ring rect={text} local={local} delay={AT + 16} color={V.gold} pad={9} radius={8} />
+        )
       }
     />
   );
 };
 
-/** Bar 39, the break: the question, on its own. */
+/** Bar 26, the break: the question, on its own. */
 export const Ask: React.FC<P> = ({ local }) => {
   const p = ramp(local, 0, 30, outExpo);
   return (
@@ -55,7 +69,7 @@ export const Ask: React.FC<P> = ({ local }) => {
   );
 };
 
-/** Bars 40 and 41, on the drop: the before and after, and whether it was luck. */
+/** Bars 27 and 28, on the drop: the before and after, and whether it was luck. */
 export const Answer: React.FC<P> = ({ local }) => {
   // A dedicated capture if the Growth pass made one, else the card on the overview.
   const own = FILES.has(IMPACT);
@@ -91,7 +105,7 @@ export const Answer: React.FC<P> = ({ local }) => {
   );
 };
 
-/** Bars 42 and 43: competitors' screenshots beside Juniper's, and the alert when one changes. */
+/** Bars 29 and 30: competitors' screenshots beside Juniper's, and the alert when one changes. */
 export const Rivals: React.FC<P> = ({ local }) => {
   const SHOT = "features2/growth/competitors.png";
   const ALERT = "features2/growth/competitors-alert.png";
@@ -133,14 +147,24 @@ export const Rivals: React.FC<P> = ({ local }) => {
   );
 };
 
-/** Bars 44 and 45: where Juniper shows up when people search. */
+/**
+ * Bars 31 and 32: where Juniper shows up when people search, how popular each
+ * word is (Apple Ads' score, in the desktop app), then the keyword's card: its
+ * score, its climb, and the word missing from the store page.
+ */
 export const Keywords: React.FC<P> = ({ local }) => {
   const SHOT = "features2/growth/keywords.png";
-  const tracker = R(SHOT, "row-habit-tracker", { x: 273, y: 516, w: 754, h: 77 });
-  const app = R(SHOT, "row-habit-app", { x: 273, y: 670, w: 754, h: 57 });
-  const change = R(SHOT, "habit-app-change", { x: 535, y: 670, w: 62, h: 57 });
-  const chart = R(SHOT, "rank-chart", { x: 1061, y: 474, w: 346, h: 220 });
-  const add = R(SHOT, "add-to-keywords", { x: 1061, y: 872, w: 143, h: 28 });
+  const tracker = R(SHOT, "row-habit-tracker", { x: 273, y: 254, w: 754, h: 97 });
+  const app = R(SHOT, "row-habit-app", { x: 273, y: 448, w: 754, h: 77 });
+  const popularity = R(SHOT, "habit-app-popularity", { x: 541, y: 448, w: 95, h: 77 });
+  const score = R(SHOT, "detail-popularity", { x: 1061, y: 163, w: 346, h: 57 });
+  const chart = R(SHOT, "rank-chart", { x: 1061, y: 283, w: 346, h: 220 });
+  const add = R(SHOT, "add-to-keywords", { x: 1061, y: 682, w: 143, h: 28 });
+  // The card from its score down to Add to keywords, as close as it fits.
+  const cardTop = score.y - 30;
+  const cardBottom = add.y + add.h + 30;
+  const cardZ = Math.min(1.8, CAP_H / (cardBottom - cardTop));
+  const card = { x: chart.x + chart.w / 2, y: (cardTop + cardBottom) / 2 };
   return (
     <ProductBeat
       local={local}
@@ -150,16 +174,17 @@ export const Keywords: React.FC<P> = ({ local }) => {
       shots={[{ src: SHOT }]}
       cam={[
         { at: 0, z: 1 },
-        { at: 30, z: 1.7, x: tracker.x + 330, y: (tracker.y + app.y + app.h) / 2 },
-        { at: 70, z: 1.7, x: tracker.x + 330, y: (tracker.y + app.y + app.h) / 2 + 20 },
-        { at: 100, z: 1.85, x: chart.x + chart.w / 2, y: chart.y + chart.h / 2 + 90 },
-        { at: 118, z: 1.9, x: chart.x + chart.w / 2, y: chart.y + chart.h / 2 + 90 },
+        // The table from its left edge, so no clipped sidebar labels show beside it.
+        { at: 30, z: 1.7, x: tracker.x - 8 + CAP_W / 1.7 / 2, y: (tracker.y + app.y + app.h) / 2 },
+        { at: 70, z: 1.7, x: tracker.x - 8 + CAP_W / 1.7 / 2, y: (tracker.y + app.y + app.h) / 2 + 20 },
+        { at: 96, z: cardZ, x: card.x, y: card.y },
+        { at: 118, z: cardZ + 0.05, x: card.x, y: card.y + 8 },
       ]}
       overlay={
         <>
           <Ring rect={app} local={local} delay={40} color={GREEN} radius={6} hold={40} />
-          <Ring rect={change} local={local} delay={48} color={V.gold} radius={6} hold={32} />
-          <Ring rect={chart} local={local} delay={96} color={GREEN} />
+          <Ring rect={popularity} local={local} delay={50} color={V.gold} radius={6} hold={30} />
+          <Ring rect={score} local={local} delay={88} color={GREEN} radius={8} />
           <Ring rect={add} local={local} delay={104} color={V.gold} radius={6} />
         </>
       }
@@ -167,7 +192,7 @@ export const Keywords: React.FC<P> = ({ local }) => {
   );
 };
 
-/** Bars 46 and 47: the reviews waiting for an answer, and a reply drafted for one. */
+/** Bars 33 and 34: the reviews waiting for an answer, and a reply drafted for one. */
 export const Reviews: React.FC<P> = ({ local }) => {
   const LIST = "features2/growth/reviews.png";
   const REPLY = "features2/growth/reply.png";

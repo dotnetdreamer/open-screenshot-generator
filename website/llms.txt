@@ -1,11 +1,11 @@
 # Open Screenshot Generator
 
-> Open Screenshot Generator is a free editor for App Store and Google Play screenshots, feature graphics and preview videos, with its source code public on GitHub. Choose from 101 templates, add app screenshots, edit the layout and export PNGs at store dimensions. The web editor and desktop app share the same design tools, with 57 language options, editable AI results, live collaboration and saved project versions. Design and export run locally. Cloud saving, account storage, collaboration, AI providers and direct store uploads are optional
+> Open Screenshot Generator is a free editor for App Store and Google Play screenshots, feature graphics and preview videos, with its source code public on GitHub. Choose from 103 templates, add app screenshots, edit the layout and export PNGs at store dimensions. The web editor and desktop app share the same design tools, with 57 language options, editable AI results, live collaboration and saved project versions. Design and export run locally. Cloud saving, account storage, collaboration, AI providers and direct store uploads are optional
 
 Key facts
 
 - The editor lives at https://editor.openscrgen.app/. Local design and export need no account, with no watermark, paid tier or export cap
-- The 101 templates cover iPhone and Android screenshots, Apple Watch, Mac, app preview videos and Google Play feature graphics. Add app screenshots to see them placed in template previews before choosing a project
+- The 103 templates cover iPhone and Android screenshots, Apple Watch, Mac, app preview videos and Google Play feature graphics. Add app screenshots to see them placed in template previews before choosing a project
 - Projects, screenshots and recordings are saved locally in IndexedDB. Clearing browser site data removes local work, so keep a project copy for work you want to preserve. Sign in to use optional cloud saving, or connect your own Google Drive or GitHub account
 - Device frames cover iPhone, Android, tablets, Macs and Apple Watch. Real 3D device poses are available for iPhone, Android, Apple Watch, MacBook and iMac
 - A project can use 57 language options. Languages share the base layout while keeping their own text and screenshots. Fonts, positions and other drawing properties can also differ for one language, and Arabic, Hebrew, Persian and Urdu support text direction from right to left
@@ -21,14 +21,14 @@ Key facts
 
 ## Pages
 
-- [Home](https://openscrgen.app/): current editor and agent workflow, a 32 second product film, agent connections, exported examples, features, ratings and reviews, templates and FAQ
+- [Home](https://openscrgen.app/): a 92 second product film, the editor and agent workflow, agent connections, exported examples, features, ratings and reviews, templates and FAQ
 - [App Store screenshot generator](https://openscrgen.app/app-store-screenshot-generator): the free editor for Apple's store, with the sizes it exports
 - [Play Store screenshot generator](https://openscrgen.app/play-store-screenshot-generator): Google Play screenshots and feature graphics
 - [App Store screenshot sizes](https://openscrgen.app/app-store-screenshot-sizes): App Store screenshot dimensions and device requirements
 - [Google Play screenshot sizes](https://openscrgen.app/google-play-screenshot-sizes): Google Play screenshot dimensions, feature graphics and icon requirements
 - [App preview video maker](https://openscrgen.app/app-preview-video-maker): MP4 export for App Store previews and styled promotional videos, plus Google Play video guidance
 - [App ratings and reviews](https://openscrgen.app/app-ratings-and-reviews): reviews from both stores in one list, AI reply drafts, the star rating in every country, review summaries and competitor reviews, in the desktop app
-- [App Store screenshot templates](https://openscrgen.app/app-store-screenshot-templates): 101 free templates for iPhone and Android screenshot sets, Apple Watch, Mac, app preview videos and Google Play feature graphics. Each opens directly in the editor
+- [App Store screenshot templates](https://openscrgen.app/app-store-screenshot-templates): 103 free templates for iPhone and Android screenshot sets, Apple Watch, Mac, app preview videos and Google Play feature graphics. Each opens directly in the editor
 - [iPhone mockup generator](https://openscrgen.app/iphone-mockup-generator): free iPhone frames and 3D poses, exported at App Store sizes
 - [Android mockup generator](https://openscrgen.app/android-mockup-generator): Android phone and tablet frames, exported at Google Play sizes
 - [iPad mockup generator](https://openscrgen.app/ipad-mockup-generator): iPad frames for App Store screenshots

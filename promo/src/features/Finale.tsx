@@ -102,7 +102,7 @@ export const More: React.FC<P & { items: string[]; first: number }> = ({ local, 
   );
 };
 
-/** Bars 52 and 53: what it costs, in plain words. */
+/** Bars 39 and 40: what it costs, in plain words. */
 export const Score: React.FC<P> = ({ local }) => {
   const [first, second, third] = COPY.score;
   return (
@@ -117,7 +117,7 @@ export const Score: React.FC<P> = ({ local }) => {
   );
 };
 
-/** Bars 54 and 55, on the fill: everything again, one beat each, into the final hit. */
+/** Bars 41 and 42, on the fill: everything again, one beat each, into the final hit. */
 const RECAP = [
   "features2/juniper-set/en/b1.png",
   "features2/design/studio3d/turn-24.png",
@@ -158,7 +158,7 @@ export const Recap: React.FC<P> = ({ local }) => {
   );
 };
 
-/** Bars 56 to 58, on the final hit: the name and the address. */
+/** Bars 43 to 45, on the final hit: the name and the address. */
 export const Outro: React.FC<P> = ({ local }) => {
   const logo = ramp(local, 0, 26, (t) => {
     const c = clamp(t);

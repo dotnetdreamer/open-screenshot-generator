@@ -21,10 +21,10 @@ CSS and JavaScript, with no build step or bundler
   describe the site for search engines and other readers
 - `vercel.json` sets the caching and security headers
 
-The homepage uses native scrolling and the normal cursor. Its hero shows the
-current editor and Agent dock. The silent 10 second preview pauses outside the
-viewport and stays still when reduced motion is requested. A visitor starts the
-32 second film through a native dialog with playback controls and captions
+The homepage uses native scrolling and the normal cursor. Its hero plays the
+92 second product film without sound. The preview pauses outside the viewport
+and stays still when reduced motion is requested. Watch with sound opens the
+same film in a native dialog with playback controls and captions
 
 Headings, feature copy, images, template links and FAQs are present in the HTML
 without JavaScript; the template and language examples show their initial state,
@@ -32,16 +32,21 @@ and the film link opens the MP4. Fonts load from Google Fonts
 
 ## Product footage
 
-`assets/video/launch-promo.mp4` is the 32 second film; `hero-editor-loop.mp4`
-is the silent 1920 by 840 preview. Their JPG posters keep the editor visible
-before playback, and `launch-promo.vtt` supplies the film captions
+`assets/video/feature-reel.mp4` is the 92 second film with its music, and
+`feature-reel-preview.mp4` is the same film without sound at a lower bitrate,
+for the hero. `feature-reel-poster.jpg` is the film's title frame, shown before
+playback, and `feature-reel.vtt` has the captions, which are the film's own
+on-screen words with its scene timings
 
-The visuals use current product captures from `promo/public/launch/`. The Agent
-dock uses an isolated example conversation, labelled on screen, with no live
-provider requests. The hero image is a rendered frame from that capture
+The film is the `PromoFeatures` composition. It follows a made up app, Juniper,
+and every screen in it is the real app. How it is filmed, cut to its music and
+rendered is in [promo/README.md](../promo/README.md), under the feature reel.
+The two MP4s are encoded from its render at CRF 23 (with sound) and CRF 29
+(without), converted to standard range H.264 with fast start
 
-Rebuild instructions, the original score and the Remotion compositions are
-listed in [promo/launch-README.md](../promo/launch-README.md)
+`launch-promo.mp4` and `hero-editor-loop.mp4`, the earlier 32 second film and
+the editor loop, are still in the folder but no page uses them. Their rebuild
+instructions are in [promo/launch-README.md](../promo/launch-README.md)
 
 ## Copy rules
 

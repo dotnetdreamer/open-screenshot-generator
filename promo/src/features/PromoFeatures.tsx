@@ -1,6 +1,6 @@
 import React from "react";
 import { AbsoluteFill, Audio, Sequence, staticFile, useCurrentFrame } from "remotion";
-import { CHAPTERS, COPY, CRASHES, CUTS, T, TOTAL, V, clamp, outQuint, ramp, type SceneKey } from "./style";
+import { CHAPTERS, COPY, CRASHES, CUTS, DROPS, MADE_FOR, T, TOTAL, V, clamp, outQuint, ramp, type SceneKey } from "./style";
 import { Backdrop, ChapterHud, Flash, Grain, HUES, SceneFx, Vignette } from "./ui";
 import { ChapterCard, HookA, HookB, Reveal } from "./Hook";
 import { Agent, Capture, Drop, Languages, Panorama, Studio3D, Templates, Video } from "./Make";
@@ -19,11 +19,11 @@ function hueAt(frame: number) {
   return { teal, gold, green };
 }
 
-/** The groove sections of the track, where the backdrop swells on every half bar. */
+/** The groove sections of the track, from each drop to the next crash, where the backdrop swells on every half bar. */
 const GROOVES: [number, number][] = [
-  [T.M_TPL[0], T.L_TITLE[0]],
-  [T.L_UPLOAD[0] + 60, T.G_TITLE[0]],
-  [T.G_ANSWER[0], T.OUTRO[0]],
+  [DROPS[0], T.L_TITLE[0]],
+  [DROPS[1], T.G_TITLE[0]],
+  [DROPS[2], T.OUTRO[0]],
 ];
 
 function pulseAt(frame: number) {
@@ -69,22 +69,28 @@ const Scene: React.FC<{
   const span = Math.min(len + tail, TOTAL - from);
   return (
     <Sequence from={from} durationInFrames={span} layout="none" name={name}>
-      <Inner len={len} hard={hard}>
+      <Inner len={len} madeFor={MADE_FOR[name] ?? len} hard={hard}>
         {children}
       </Inner>
     </Sequence>
   );
 };
 
-const Inner: React.FC<{ len: number; hard?: boolean; children: (p: { local: number; len: number }) => React.ReactNode }> = ({
+/**
+ * The fades in and out run on the film's own frames. The scene inside runs on
+ * the clock it was made for: a scene made for two bars and given a bar and a
+ * half sees its frames a third faster, and its length as two bars.
+ */
+const Inner: React.FC<{ len: number; madeFor: number; hard?: boolean; children: (p: { local: number; len: number }) => React.ReactNode }> = ({
   len,
+  madeFor,
   hard,
   children,
 }) => {
   const local = useCurrentFrame();
   return (
     <SceneFx local={local} len={len} hard={hard}>
-      {children({ local, len })}
+      {children({ local: (local * madeFor) / len, len: madeFor })}
     </SceneFx>
   );
 };

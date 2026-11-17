@@ -1758,79 +1758,85 @@ export const RECTS: Record<string, Record<string, { x: number; y: number; w: num
   "growth/keywords.png": {
     "table": {
       "x": 273,
-      "y": 421,
+      "y": 216,
       "w": 754,
-      "h": 479
+      "h": 681
     },
     "table-panel": {
       "x": 272,
-      "y": 278,
+      "y": 73,
       "w": 756,
-      "h": 622
+      "h": 827
     },
     "row-habit-app": {
       "x": 273,
-      "y": 613,
-      "w": 754,
-      "h": 57
-    },
-    "row-habit-tracker": {
-      "x": 273,
-      "y": 459,
+      "y": 448,
       "w": 754,
       "h": 77
     },
+    "row-habit-tracker": {
+      "x": 273,
+      "y": 254,
+      "w": 754,
+      "h": 97
+    },
     "row-streak": {
       "x": 273,
-      "y": 670,
+      "y": 525,
       "w": 754,
-      "h": 57
+      "h": 77
     },
     "habit-app-change": {
-      "x": 535,
-      "y": 613,
+      "x": 478,
+      "y": 448,
       "w": 63,
-      "h": 57
+      "h": 77
     },
     "habit-app-rank": {
-      "x": 450,
-      "y": 613,
+      "x": 393,
+      "y": 448,
       "w": 86,
+      "h": 77
+    },
+    "habit-app-popularity": {
+      "x": 541,
+      "y": 448,
+      "w": 95,
+      "h": 77
+    },
+    "popularity-header": {
+      "x": 541,
+      "y": 217,
+      "w": 95,
+      "h": 37
+    },
+    "detail-popularity": {
+      "x": 1061,
+      "y": 163,
+      "w": 346,
       "h": 57
     },
     "detail": {
       "x": 1044,
-      "y": 278,
+      "y": 73,
       "w": 380,
-      "h": 622
+      "h": 736
     },
     "rank-chart": {
       "x": 1061,
-      "y": 416,
+      "y": 283,
       "w": 346,
       "h": 220
     },
     "add-to-keywords": {
       "x": 1061,
-      "y": 815,
+      "y": 682,
       "w": 143,
       "h": 28
     },
-    "summary": {
-      "x": 272,
-      "y": 119,
-      "w": 1152,
-      "h": 143
-    },
-    "country-tabs": {
-      "x": 272,
-      "y": 77,
-      "w": 1152,
-      "h": 26
-    },
     "change-over": {
-      "x": 414,
-      "y": 377,
+      "x": 510,
+      "y": 172,
       "w": 151,
       "h": 32
     },
@@ -2022,6 +2028,68 @@ export const RECTS: Record<string, Record<string, { x: number; y: number; w: num
       "x": 1218,
       "y": 172,
       "w": 189,
+      "h": 36
+    }
+  },
+  "growth/health.png": {
+    "health-finding": {
+      "x": 272,
+      "y": 317,
+      "w": 1152,
+      "h": 74
+    },
+    "finding-title": {
+      "x": 321,
+      "y": 334,
+      "w": 789,
+      "h": 20
+    },
+    "finding-line": {
+      "x": 321,
+      "y": 358,
+      "w": 789,
+      "h": 16
+    },
+    "finding-text": {
+      "x": 321,
+      "y": 336,
+      "w": 538,
+      "h": 37
+    },
+    "show-on-charts": {
+      "x": 1122,
+      "y": 334,
+      "w": 149,
+      "h": 32
+    },
+    "read-reviews": {
+      "x": 1278,
+      "y": 334,
+      "w": 129,
+      "h": 32
+    },
+    "average-card": {
+      "x": 272,
+      "y": 135,
+      "w": 373,
+      "h": 166
+    },
+    "new-ratings-card": {
+      "x": 661,
+      "y": 135,
+      "w": 373,
+      "h": 166
+    },
+    "rating-chart": {
+      "x": 289,
+      "y": 486,
+      "w": 1118,
+      "h": 220
+    },
+    "nav-ratings": {
+      "x": 56,
+      "y": 233,
+      "w": 191,
       "h": 36
     }
   },
@@ -2546,6 +2614,7 @@ export const FILES: ReadonlySet<string> = new Set([
   "features2/flows/website-support.png",
   "features2/growth/competitors-alert.png",
   "features2/growth/competitors.png",
+  "features2/growth/health.png",
   "features2/growth/impact.png",
   "features2/growth/keywords.png",
   "features2/growth/overview.png",

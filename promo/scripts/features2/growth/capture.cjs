@@ -1,16 +1,17 @@
 // Growth footage for the feature reel's third chapter, "see how your app is
 // doing": Juniper's overview, the new screenshots' verdict, Competitors and a
-// rival's new screenshots, Keywords, the review inbox, an AI reply and the
+// rival's new screenshots, Keywords with Apple Ads' popularity, the crashes
+// that came with version 2.4 on Ratings, the review inbox, an AI reply and the
 // review summary. One seeded session runs the shots asked for, in order.
 //
 //   node capture.cjs                      every shot
 //   node capture.cjs overview keywords    some of them
-// Shots: overview impact competitors alert keywords reviews reply summary
+// Shots: overview impact competitors alert keywords health reviews reply summary
 const path = require('path');
 const url = require('url');
 const g = require('./glib.cjs');
 
-const ALL = ['overview', 'impact', 'competitors', 'alert', 'keywords', 'reviews', 'reply', 'summary'];
+const ALL = ['overview', 'impact', 'competitors', 'alert', 'keywords', 'health', 'reviews', 'reply', 'summary'];
 const wanted = process.argv.slice(2).length ? process.argv.slice(2) : ALL;
 const runs = (name) => wanted.includes(name);
 
@@ -110,7 +111,20 @@ const REPLY =
       g.saveRects('keywords.png', await keywordRects(page));
     }
 
-    // --- 6 and 7: the review inbox, and an AI reply to a crash review --------------------------
+    // --- 6: app health on Ratings, the version that crashes more, above the rating charts -------
+    if (runs('health')) {
+      await g.goSection(page, 'Ratings');
+      await page.waitForSelector('[data-testid="growth-health-finding"]', { visible: true, timeout: 30000 });
+      await page.waitForFunction(() => (document.querySelector('[data-testid="growth-health-finding"]')?.textContent || '').includes('Crashes went up with version 2.4'), { timeout: 30000, polling: 300 });
+      await page.evaluate(() => document.querySelector('[data-testid="growth-view"] main').scrollTo({ top: 0 }));
+      await page.mouse.move(1430, 890);
+      await g.settleImages(page, 2500);
+      await g.clearToasts(page);
+      await g.shot(page, 'health.png');
+      g.saveRects('health.png', await healthRects(page));
+    }
+
+    // --- 7 and 8: the review inbox, and an AI reply to a crash review --------------------------
     if (runs('reviews') || runs('reply')) {
       await g.goSection(page, 'Reviews');
       await page.waitForSelector('[data-testid="growth-reviews"] [data-review-id]', { visible: true, timeout: 30000 });
@@ -156,7 +170,7 @@ const REPLY =
       }
     }
 
-    // --- 8: the review summary -------------------------------------------------------------------
+    // --- 9: the review summary -------------------------------------------------------------------
     if (runs('summary')) {
       await g.goSection(page, 'Review summary');
       await page.waitForSelector('[data-testid="growth-review-summary"]', { visible: true, timeout: 30000 });
@@ -270,17 +284,23 @@ async function alignCompare(page) {
 /**
  * Keywords: when the keyword's card on the right does not fit, scroll past the
  * screen's title so the country tabs sit at the top and the card's "Add to
- * keywords" shows whole.
+ * keywords" shows whole. With popularity the card is taller than that: then
+ * the table and the card start at the top instead.
  */
 async function alignKeywords(page) {
   await page.evaluate(() => {
     const main = document.querySelector('[data-testid="growth-view"] main');
     const tabs = document.querySelector('[data-testid="growth-keywords"] [role="tablist"][aria-label="Country"]');
+    const panel = document.querySelector('[data-testid="growth-keyword-table"]');
     const add = [...document.querySelectorAll('[data-testid="growth-keyword-store-page"] button')].find((b) => (b.textContent || '').trim() === 'Add to keywords');
     if (!main || !tabs || !add) return;
+    const fits = () => add.getBoundingClientRect().bottom <= main.getBoundingClientRect().bottom - 16;
     main.scrollTo({ top: 0 });
-    if (add.getBoundingClientRect().bottom <= main.getBoundingClientRect().bottom - 16) return;
+    if (fits()) return;
     main.scrollTo({ top: tabs.getBoundingClientRect().top - main.getBoundingClientRect().top - 16 });
+    if (fits() || !panel) return;
+    main.scrollTo({ top: 0 });
+    main.scrollTo({ top: panel.getBoundingClientRect().top - main.getBoundingClientRect().top - 12 });
   });
   await g.sleep(500);
 }
@@ -370,13 +390,49 @@ async function keywordRects(page) {
     'row-streak': await g.rectOf(page, () => document.querySelector('tr[data-keyword="streak"]')),
     'habit-app-change': await g.rectOf(page, () => document.querySelector('tr[data-keyword="habit app"] td:nth-child(3)')),
     'habit-app-rank': await g.rectOf(page, () => document.querySelector('tr[data-keyword="habit app"] td:nth-child(2)')),
+    // Apple Ads' score: the cell in the row, the column's header, and the line in the keyword's card.
+    'habit-app-popularity': await g.rectOf(page, () => document.querySelector('tr[data-keyword="habit app"] [data-popularity-cell]')),
+    'popularity-header': await g.rectOf(page, () => [...document.querySelectorAll('[data-testid="growth-keyword-table"] th')].find((th) => (th.textContent || '').trim().startsWith('Popularity'))),
+    'detail-popularity': await g.rectOf(page, () => document.querySelector('[data-testid="growth-keyword-detail"] [data-testid="growth-keyword-popularity"]')),
     detail: await g.rectOf(page, () => document.querySelector('[data-testid="growth-keyword-detail"]')),
-    'rank-chart': await g.rectOf(page, () => document.querySelector('[data-testid="growth-keyword-detail"] [role="img"]')),
+    // By its label: the popularity bars in the card are an image too, and come first.
+    'rank-chart': await g.rectOf(page, () => document.querySelector('[data-testid="growth-keyword-detail"] [role="img"][aria-label^="Rank of"]')),
     'add-to-keywords': await g.rectOf(page, () => [...document.querySelectorAll('[data-testid="growth-keyword-store-page"] button')].find((b) => (b.textContent || '').trim() === 'Add to keywords')),
     summary: await g.rectOf(page, () => document.querySelector('[data-testid="growth-keyword-summary"]')),
     'country-tabs': await g.rectOf(page, () => document.querySelector('[data-testid="growth-keywords"] [role="tablist"][aria-label="Country"]')),
     'change-over': await g.rectOf(page, () => document.querySelector('[data-testid="growth-keywords"] [role="group"][aria-label="Change over"]')),
     'nav-keywords': await g.rectOf(page, () => [...document.querySelectorAll('[data-testid="growth-view"] nav[aria-label="Growth sections"] button')].find((b) => (b.textContent || '').trim().startsWith('Keywords'))),
+  };
+}
+
+async function healthRects(page) {
+  const card = (label) => g.rectOf(page, (label) => [...document.querySelectorAll('[data-testid="growth-view"] main p')].find((p) => (p.textContent || '').trim() === label)?.closest('.rounded-lg, .rounded-xl'), label);
+  return {
+    'health-finding': await g.rectOf(page, () => document.querySelector('[data-testid="growth-health-finding"]')),
+    'finding-title': await g.rectOf(page, () => document.querySelector('[data-testid="growth-health-finding"] p.font-medium')),
+    'finding-line': await g.rectOf(page, () => document.querySelector('[data-testid="growth-health-finding"] p.text-xs')),
+    // The two lines' own text, not their column: the sentence ends well before the buttons.
+    'finding-text': await g.rectOf(page, () => {
+      const boxes = [...document.querySelectorAll('[data-testid="growth-health-finding"] p')]
+        .map((p) => {
+          const range = document.createRange();
+          range.selectNodeContents(p);
+          return range.getBoundingClientRect();
+        })
+        .filter((box) => box.width > 0);
+      if (!boxes.length) return null;
+      const left = Math.min(...boxes.map((box) => box.left));
+      const top = Math.min(...boxes.map((box) => box.top));
+      const right = Math.max(...boxes.map((box) => box.right));
+      const bottom = Math.max(...boxes.map((box) => box.bottom));
+      return { getBoundingClientRect: () => new DOMRect(left, top, right - left, bottom - top) };
+    }),
+    'show-on-charts': await g.rectOf(page, () => [...document.querySelectorAll('[data-testid="growth-health-finding"] button')].find((b) => /^Show .* on the charts$/.test((b.textContent || '').trim()))),
+    'read-reviews': await g.rectOf(page, () => [...document.querySelectorAll('[data-testid="growth-health-finding"] button')].find((b) => /^Read the /.test((b.textContent || '').trim()))),
+    'average-card': await card('Average rating'),
+    'new-ratings-card': await card('New ratings in the period'),
+    'rating-chart': await g.rectOf(page, () => document.querySelector('[data-testid="growth-ratings"] .recharts-wrapper')),
+    'nav-ratings': await g.rectOf(page, () => [...document.querySelectorAll('[data-testid="growth-view"] nav[aria-label="Growth sections"] button')].find((b) => (b.textContent || '').trim().startsWith('Ratings'))),
   };
 }
 

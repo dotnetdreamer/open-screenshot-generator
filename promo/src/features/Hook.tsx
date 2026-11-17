@@ -171,7 +171,7 @@ const StorePage: React.FC<{ local: number; fillAt: number; width?: number }> = (
   );
 };
 
-/** Bars 0 and 1: one phone in the dark. */
+/** The first three beats: one phone in the dark. */
 export const HookA: React.FC<P> = ({ local }) => {
   const appear = ramp(local, 4, 50, outQuint);
   const t = local / 30;
@@ -216,7 +216,7 @@ export const HookA: React.FC<P> = ({ local }) => {
   );
 };
 
-/** Bars 2 and 3: the store page has nothing to show. */
+/** Bars 0.75 to 2: the store page has nothing to show. */
 export const HookB: React.FC<P> = ({ local }) => {
   const card = ramp(local, 0, 36, outExpo);
   return (
@@ -241,7 +241,7 @@ export const HookB: React.FC<P> = ({ local }) => {
 };
 
 /**
- * Bars 4 to 6, on the crash: the slots fill with Juniper's set, then the page
+ * Bar 2, on the crash: the slots fill with Juniper's set, then the page
  * falls back into a wall of templates and the name comes up over it.
  */
 export const Reveal: React.FC<P> = ({ local }) => {
@@ -281,7 +281,7 @@ export const Reveal: React.FC<P> = ({ local }) => {
   );
 };
 
-/** Bar 7, the break: the first chapter's card over the darkened wall. */
+/** Bar 3, the rise into the drop: the first chapter's card over the darkened wall. */
 export const ChapterCard: React.FC<P & { n: string; title: string; hue: string; wall?: boolean; t0?: number }> = ({
   local,
   len,

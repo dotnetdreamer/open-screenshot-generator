@@ -3,7 +3,9 @@
 // node_modules) under an App Store id of its own, so Competitors and Keywords
 // treat it as a real App Store app, plus everything those two screens and the
 // review inbox read: three fictional rivals, eight tracked keywords with four
-// weeks of daily ranks, and reviews rewritten so no sentence ends on a period.
+// weeks of daily ranks and eight weeks of Apple Ads popularity (with a saved
+// Apple Ads connection), sixty days of rating history, crash numbers for
+// versions 2.3 and 2.4, and reviews rewritten so no sentence ends on a period.
 //
 //   const { buildSeed } = await import('./seed.mjs');
 //   const seed = await buildSeed();   // { storage, rows, rules, ... }
@@ -479,6 +481,153 @@ function keywordData(addDays, todayDay, now) {
   return { days, searches };
 }
 
+// --- keyword popularity, as Apple Ads gives it (src/lib/growth/popularityWatch.ts) ----------------
+
+// Apple Ads' score from 1 to 100 for each keyword in the United States last week. The other two
+// countries sit a few points off. "water reminder" is one Apple Ads does not list.
+const POPULARITY = {
+  'habit tracker': 64,
+  'habit app': 58,
+  'daily habits': 41,
+  streak: 47,
+  routine: 52,
+  'goal tracker': 36,
+  'water reminder': null,
+  'self care': 55,
+};
+const POPULARITY_SHIFT = { US: 0, GB: -6, AU: -9 };
+
+/** Apple Ads' 1 to 5 next to a score, as the e2e answers pair them (59 is 3, 70 is 4, 12 is 1). */
+const tierOf = (score) => Math.min(5, Math.max(1, Math.ceil(score / 20)));
+
+/**
+ * The stored scores: the last eight whole weeks, each named by the Sunday it starts on, read an
+ * hour ago, so the screen uses them as they are and asks Apple Ads nothing.
+ */
+function popularityRows(now) {
+  const date = new Date(now);
+  const lastSaturday = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() - (date.getUTCDay() + 1));
+  const weeks = Array.from({ length: 8 }, (_, index) => new Date(lastSaturday - (7 - index) * 7 * 86_400_000 - 6 * 86_400_000).toISOString().slice(0, 10));
+  const random = mulberry32(0x706f70);
+  const rows = [];
+  for (const country of KEYWORD_COUNTRIES) {
+    for (const term of KEYWORDS) {
+      const last = POPULARITY[term];
+      const points =
+        last === null
+          ? []
+          : weeks.map((week, index) => {
+              // A slow climb into this week's score, a point or two of wobble on the way.
+              const drift = (7 - index) * 1.2;
+              const score = Math.max(1, Math.min(100, Math.round(last + POPULARITY_SHIFT[country] - drift + (index === 7 ? 0 : (random() - 0.5) * 3))));
+              return { week, score, tier: tierOf(score) };
+            });
+      rows.push({ key: `keywords:popularity:${country}:${term}`, value: { term, country, at: now - 60 * 60_000, points, granularity: 'week' } });
+    }
+  }
+  return rows;
+}
+
+/**
+ * Apple's sign-in and Apple Ads, for what the screen still asks: the tracked keywords are fresh,
+ * but the ideas under the table are asked about as they show. Apple Ads lists none of them.
+ */
+const APPLE_ADS_RULES = [
+  {
+    match: '^POST https://appleid\\.apple\\.com/auth/oauth2/token$',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ access_token: 'osg-promo-ads-token', token_type: 'Bearer', expires_in: 3600, scope: 'searchadsorg' }),
+  },
+  {
+    match: '^GET https://api\\.ads\\.apple\\.com/v1/acls$',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ result: { acls: [{ adAccount: { id: 481516234, name: 'Juniper', orgId: 27154131 }, roles: ['API Account Read Only'] }] } }),
+  },
+  {
+    match: '^POST https://api\\.ads\\.apple\\.com/v1/insights/apps/search-term-popularity/query$',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ result: { rows: [] }, pagination: { offset: 0, pageSize: 2000 } }),
+  },
+];
+
+/** A saved Apple Ads connection, as GrowthAppleAds.tsx keeps it, with a P-256 key made here. */
+function appleAdsSetup() {
+  const pair = generateKeyPairSync('ec', { namedCurve: 'prime256v1', privateKeyEncoding: { format: 'pem', type: 'pkcs8' }, publicKeyEncoding: { format: 'pem', type: 'spki' } });
+  return {
+    key: { clientId: 'SEARCHADS.5f1c2a9e-1b7d-4c3e-9a20-7d3b5e8c4f11', teamId: 'SEARCHADS.5f1c2a9e-1b7d-4c3e-9a20-7d3b5e8c4f11', keyId: '0c9a7e52-3d18-4b6f-8e41-2a6d9c3b7f05', privateKeyPem: pair.privateKey, publicKeyPem: pair.publicKey },
+    account: { id: '481516234', name: 'Juniper', roles: ['API Account Read Only'] },
+  };
+}
+
+// --- app health, as healthSync.ts keeps it for the App Store (src/lib/growth/health.ts) ----------
+
+/**
+ * Crashes and sessions for each version and day. 2.3 runs until 2.4 comes out 21 days ago, and
+ * people move to 2.4 over the week after. 2.4 crashes about four times as often, which is what the
+ * one star reviews of the last two weeks say. Apple's numbers stop two days back, as they do.
+ */
+function healthRow(addDays, todayDay, now) {
+  const random = mulberry32(0x6865616c);
+  const release24 = -21;
+  const days = {};
+  const crashDays = [];
+  for (let back = -60; back <= -2; back += 1) {
+    const day = addDays(todayDay, back);
+    const total = Math.round(9800 + random() * 1600 + (back > -10 ? 600 : 0));
+    // The share of sessions already on 2.4: none before its release, most of them a week later.
+    const since = back - release24;
+    const moved = since < 0 ? 0 : Math.min(0.96, 1 - Math.exp(-since / 2.4));
+    const versions = {};
+    for (const [version, share, perThousand] of [
+      ['2.3', 1 - moved, 1.1],
+      ['2.4', moved, 4.4],
+    ]) {
+      const sessions = Math.round(total * share);
+      if (sessions <= 0) continue;
+      const crashes = Math.round((sessions * perThousand * (0.8 + random() * 0.4)) / 1000);
+      versions[version] = { sessions, crashes, crashDevices: Math.max(0, Math.round(crashes * 0.82)) };
+    }
+    days[day] = versions;
+    crashDays.push(day);
+  }
+  return {
+    key: `health:${JUNIPER}`,
+    value: {
+      appId: JUNIPER,
+      store: 'appstore',
+      days,
+      crashDays,
+      hangs: { unit: 's/hr', points: [{ version: '2.3', value: 0.5 }, { version: '2.4', value: 0.6 }] },
+      through: addDays(todayDay, -2),
+      readAt: now - 25 * 60_000,
+    },
+  };
+}
+
+/**
+ * The rating history Growth keeps from its own refreshes (ratingHistory.ts), so Ratings has
+ * charts and new ratings: sixty days ending on today's figures in every country, a few new ratings
+ * a day, and the average a touch higher before 2.4 than after it.
+ */
+function ratingHistory(ratings, addDays, todayDay) {
+  const random = mulberry32(0x72617465);
+  const rows = [];
+  for (let back = 60; back >= 1; back -= 1) {
+    const date = addDays(todayDay, -back);
+    const at = Date.parse(`${date}T10:00:00Z`);
+    const territories = {};
+    for (const rating of ratings) {
+      const perDay = rating.count / 380;
+      const count = Math.max(1, Math.round(rating.count - perDay * (back - 1) - (back > 1 ? random() * perDay * 0.5 : 0)));
+      // Before 2.4 (21 days back) a little higher, then easing down to today's average.
+      const lift = back > 21 ? 0.04 : 0.04 * ((back - 1) / 20);
+      territories[rating.territory] = { average: Math.round((rating.average + lift) * 100) / 100, count, at };
+    }
+    rows.push({ key: `${JUNIPER}|${date}`, appId: JUNIPER, date, territories });
+  }
+  return rows;
+}
+
 // --- the whole seed ------------------------------------------------------------------------------
 
 export async function buildSeed() {
@@ -594,6 +743,8 @@ Juniper Plusでは習慣の数が無制限になり、詳しい統計とテー�
       },
     },
     ...keywords.searches,
+    ...popularityRows(now),
+    healthRow(addDays, todayDay, now),
   ];
 
   const issuerId = '69a6de70-0000-47e3-e053-5b8c7c11a4d1';
@@ -601,6 +752,7 @@ Juniper Plusでは習慣の数が無制限になり、詳しい統計とテー�
   const storage = {
     'open-screenshot-generator.store-credentials': JSON.stringify({ appstore: { issuerId, keyId, privateKey: appleShapedKey() } }),
     'open-screenshot-generator.growth': JSON.stringify({ appId: JUNIPER, vendorNumber: '85012345' }),
+    'open-screenshot-generator.apple-ads': JSON.stringify(appleAdsSetup()),
   };
   const rows = {
     days: records,
@@ -610,6 +762,7 @@ Juniper Plusでは習慣の数が無制限になり、詳しい統計とテー�
     listings: [listing],
     meta,
     keywordDays: keywords.days,
+    ratingDays: ratingHistory(ratings, addDays, todayDay),
   };
   const ascRule = {
     match: '^GET https://api\\.appstoreconnect\\.apple\\.com/v1/apps\\?',
@@ -624,8 +777,8 @@ Juniper Plusでは習慣の数が無制限になり、詳しい統計とテー�
     storage,
     rows,
     ascRule,
-    rules: [ascRule, ...lookupRules(day)],
-    lookupRules: (overrides) => [ascRule, ...lookupRules(day, overrides)],
+    rules: [ascRule, ...APPLE_ADS_RULES, ...lookupRules(day)],
+    lookupRules: (overrides) => [ascRule, ...APPLE_ADS_RULES, ...lookupRules(day, overrides)],
     reviews: reviewRows,
   };
 }

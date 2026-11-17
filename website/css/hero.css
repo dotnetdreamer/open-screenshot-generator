@@ -62,7 +62,7 @@
 }
 .hero-stage {
   position: relative;
-  aspect-ratio: 16 / 7;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   background: #111719;
   border-block: 1px solid #344545;
@@ -71,7 +71,6 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center top;
 }
 .hero-editor-video {
   position: absolute;
@@ -273,19 +272,6 @@
   .hero-window-dots i {
     width: 4px;
     height: 4px;
-  }
-  .hero-stage {
-    aspect-ratio: 1.6 / 1;
-  }
-  .hero-editor-image {
-    width: 160%;
-    max-width: none;
-    object-fit: cover;
-    object-position: right;
-    transform: translateX(-37.5%);
-  }
-  .hero-editor-video {
-    object-position: 70% center;
   }
   .hero-shell-caption {
     flex-direction: column;

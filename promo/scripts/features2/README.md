@@ -31,9 +31,11 @@ previews.
      `cap-panorama.cjs`, `cap-video.cjs`.
    - `flows/`: `cap-capture.cjs`, `cap-agent.cjs`, `cap-publish.cjs`, `cap-website.cjs`,
      `cap-export.cjs`.
-   - `growth/`: `python -I growth/make_assets.py` once (icons and competitor screenshots),
-     then `node growth/capture.cjs`, or name the shots: `overview impact competitors alert
-     keywords reviews reply summary`.
+   - `growth/`: `python -I growth/make_assets.py` once (icons and competitor screenshots;
+     it needs numpy and Pillow), then `node growth/capture.cjs`, or name the shots:
+     `overview impact competitors alert keywords health reviews reply summary`. The seed
+     also stores Apple Ads popularity for the keywords (with a saved Apple Ads connection),
+     sixty days of rating history and the crash numbers `health` films on Ratings.
    - `more/`: `social.cjs`, `header.cjs`, `editor.cjs`, `panels.cjs`.
 7. **Compile the rects:** `npm run rects:features` in `promo/`.
 
@@ -53,5 +55,12 @@ previews.
 - **Growth's Overview needs history for both halves of a period.** The sample has 180 days,
   so "Last 90 days" has no full previous period and every tile says there is nothing to
   compare. "Last 28 days" fills every tile.
+- **On a Mac the scripts use Chrome**, which the app-screenshots skill finds on its own.
+  Chrome resizes the page for a moment on every screenshot, and the "kicker" in
+  `growth/glib.cjs` takes one every two seconds, which closes any open Radix Select, so
+  `pickSelect` pauses it. `make_assets.py` falls back to Arial Bold and Impact when the
+  Windows fonts are not there. Remotion brings its own ffmpeg: put a small `ffmpeg` script
+  that runs `node_modules/@remotion/compositor-darwin-arm64/ffmpeg` on the PATH for
+  `mux-features.js` and `arrange-music-features.js`.
 - **Nothing with a code in it goes in a video.** The live session's link is rewritten in the
   DOM before the shutter, and the store key shows only its masked form.

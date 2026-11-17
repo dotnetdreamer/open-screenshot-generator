@@ -305,14 +305,25 @@ async function clickReal(page, selector, text = null, { scope = '[data-testid="g
 
 /** Pick an option of a Radix Select by its trigger's aria-label. */
 async function pickSelect(page, label, option) {
-  await clickReal(page, `[aria-label="${label}"]`, null, { real: true });
-  await page.waitForSelector('[role="option"]', { visible: true, timeout: 10000 });
-  await sleep(250);
-  const handle = await page.evaluateHandle((option) => [...document.querySelectorAll('[role="option"]')].find((el) => (el.textContent || '').trim() === option) || null, option);
-  const element = handle.asElement();
-  if (!element) throw new Error(`No option ${option} in ${label}`);
-  await element.click();
-  await sleep(500);
+  // Showing it already: nothing to pick.
+  const shown = await page.evaluate((label) => (document.querySelector(`[aria-label="${label}"]`)?.textContent || '').trim(), label);
+  if (shown === option) return;
+  // The kicker's screenshot resizes the page for a moment in Chrome, and a Radix Select closes on resize.
+  const kicking = Boolean(kickers.get(page)?.on);
+  stopKicker(page);
+  await sleep(300);
+  try {
+    await clickReal(page, `[aria-label="${label}"]`, null, { real: true });
+    await page.waitForSelector('[role="option"]', { visible: true, timeout: 10000 });
+    await sleep(250);
+    const handle = await page.evaluateHandle((option) => [...document.querySelectorAll('[role="option"]')].find((el) => (el.textContent || '').trim() === option) || null, option);
+    const element = handle.asElement();
+    if (!element) throw new Error(`No option ${option} in ${label}`);
+    await element.click();
+    await sleep(500);
+  } finally {
+    if (kicking) startKicker(page);
+  }
 }
 
 /** Every image on screen loaded, each wait capped (a lazy one off screen never decodes). */
