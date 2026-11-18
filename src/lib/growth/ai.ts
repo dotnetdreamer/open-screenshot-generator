@@ -15,6 +15,7 @@ import {
   detectAgentWriters,
   knownAgentWriters,
   onAgentWritersDetected,
+  ONLY_CLAUDE_READS_CODE,
   runAgentPrompt,
   type AgentWriter,
   type AgentWriters,
@@ -158,6 +159,39 @@ async function runGrowthPrompt(request: { system: string; user: string; signal?:
  */
 export function runAssistantTurn(request: { system: string; user: string; signal?: AbortSignal }): Promise<string> {
   return runGrowthPrompt(request);
+}
+
+/**
+ * One prompt from the Store compliance view (src/lib/storeCompliance/ai.ts): a
+ * question about the stores' rules, or a check of the app's words against them. It goes
+ * to the same AI as Growth, so `aiWriter` is the one AI setting for both.
+ *
+ * With `folders` (paths from pickPromptFolder) Claude Code also reads the
+ * user's code there. Only Claude Code does, so with another AI picked the
+ * prompt is refused: its instructions say the code is there to read.
+ *
+ * `claudeOnly` says the prompt holds what Claude Code read in that code
+ * earlier in the conversation, which goes to no other AI. The caller
+ * decides with rulesPromptGoesToClaude() and builds the prompt in the same
+ * tick, so the check here only catches an AI switch in between.
+ */
+export function runRulesPrompt(request: { system: string; user: string; signal?: AbortSignal; folders?: string[]; claudeOnly?: boolean }): Promise<string> {
+  const folders = request.folders?.length ? request.folders : null;
+  if (!folders && !request.claudeOnly) return runGrowthPrompt(request);
+  const writer = pickWriter();
+  if (!writer) return Promise.reject(new Error(growthAiUnavailableReason() ?? 'Set up an AI first'));
+  if (writer.kind !== 'agent' || writer.agent !== 'claude') {
+    return Promise.reject(new Error(folders ? ONLY_CLAUDE_READS_CODE : 'The AI changed while your question was on its way. Ask again'));
+  }
+  // runGrowthPrompt picks the writer again at once, so it is this Claude Code.
+  if (!folders) return runGrowthPrompt(request);
+  return runAgentPrompt({ agent: 'claude', system: request.system, user: request.user, signal: request.signal, folders });
+}
+
+/** Whether the next Store compliance prompt goes to Claude Code, the only AI that may see what it read in the user's code. */
+export function rulesPromptGoesToClaude(): boolean {
+  const writer = pickWriter();
+  return writer?.kind === 'agent' && writer.agent === 'claude';
 }
 
 function fence(label: string, text: string): string {

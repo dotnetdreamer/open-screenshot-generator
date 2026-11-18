@@ -1392,6 +1392,90 @@ fn root_on_the_way(_target: &Path, _roots: &[PathBuf]) -> bool {
     false
 }
 
+// ---------------------------------------------------------------------------
+// Quotes from the code
+// ---------------------------------------------------------------------------
+
+/// The biggest file find_quote reads.
+pub const MAX_QUOTED_FILE_BYTES: u64 = 2 * 1024 * 1024;
+
+/// The longest quote find_quote looks for, in characters. A check shows 300.
+pub const MAX_QUOTE: usize = 600;
+
+/// The shortest, bar spaces: a word or two of code is in too many files to
+/// prove anything.
+pub const MIN_QUOTE: usize = 6;
+
+/// The line `quote` starts on in the file `raw` names inside `root`, counting
+/// from 1, or None when the file is not inside `root` (links resolved), is
+/// one Claude Code may not read (name_blocked on any name below `root`), is
+/// over MAX_QUOTED_FILE_BYTES or not UTF-8 text, or does not hold the words.
+/// `raw` is relative to `root` or absolute inside it, since the agent reads
+/// by absolute path and names files by relative ones.
+pub fn find_quote(root: &Path, raw: &str, quote: &str) -> Option<usize> {
+    if raw.is_empty() || raw.chars().count() > MAX_FOLDER_PATH || raw.chars().any(unsafe_char) || special_path(raw).is_some() {
+        return None;
+    }
+    if quote.chars().count() > MAX_QUOTE {
+        return None;
+    }
+    let given = Path::new(raw);
+    let joined = if given.is_absolute() {
+        given.to_path_buf()
+    } else {
+        let plain_names = given.components().all(|component| matches!(component, Component::Normal(_) | Component::CurDir));
+        if !plain_names {
+            return None;
+        }
+        root.join(given)
+    };
+    let real = canonical(&joined).ok()?;
+    if names_below(&real, root)?.iter().any(|name| name_blocked(name)) {
+        return None;
+    }
+    let meta = std::fs::metadata(&real).ok()?;
+    if !meta.is_file() || meta.len() > MAX_QUOTED_FILE_BYTES {
+        return None;
+    }
+    let mut text = String::new();
+    std::fs::File::open(&real).ok()?.take(MAX_QUOTED_FILE_BYTES).read_to_string(&mut text).ok()?;
+    line_of(&text, quote)
+}
+
+/// The line, counting from 1, that `quote` starts on in `text`, with every run
+/// of spaces, tabs and line breaks counted as one space on both sides, so a
+/// quote that runs over two lines, or is indented another way, still matches.
+/// Letter case counts, as it does in code.
+pub fn line_of(text: &str, quote: &str) -> Option<usize> {
+    let needle = quote.split_whitespace().collect::<Vec<_>>().join(" ");
+    if needle.chars().filter(|c| !c.is_whitespace()).count() < MIN_QUOTE {
+        return None;
+    }
+    let mut folded = String::with_capacity(text.len());
+    // The line of each byte in `folded`.
+    let mut lines: Vec<usize> = Vec::with_capacity(text.len());
+    let mut line = 1;
+    let mut gap = false;
+    for c in text.chars() {
+        if c == '\n' {
+            line += 1;
+        }
+        if c.is_whitespace() {
+            gap = !folded.is_empty();
+            continue;
+        }
+        if gap {
+            folded.push(' ');
+            lines.push(line);
+            gap = false;
+        }
+        let before = folded.len();
+        folded.push(c);
+        lines.resize(lines.len() + (folded.len() - before), line);
+    }
+    folded.find(&needle).map(|at| lines[at])
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -2242,6 +2326,57 @@ mod tests {
             assert_eq!(export_directory_problem(&link.join("res"), &[]), None);
         } else {
             eprintln!("skipped: no loopback share, or no right to make a folder link to it");
+        }
+        let _ = std::fs::remove_dir_all(&base);
+    }
+
+    #[test]
+    fn a_quote_is_found_by_its_line_whatever_the_spacing() {
+        let text = "<dict>\n\t<key>NSCameraUsageDescription</key>\n\t<string>To scan</string>\n</dict>\n";
+        assert_eq!(line_of(text, "<key>NSCameraUsageDescription</key>"), Some(2));
+        // Over two lines, indented another way.
+        assert_eq!(line_of(text, "NSCameraUsageDescription</key> <string>To scan</string>"), Some(2));
+        assert_eq!(line_of(text, "  <string>To scan</string>  "), Some(3));
+        assert_eq!(line_of(text, "<string>To Scan</string>"), None, "letter case counts in code");
+        assert_eq!(line_of(text, "NSMicrophoneUsageDescription"), None);
+        assert_eq!(line_of(text, "dict"), None, "too short to prove anything");
+        assert_eq!(line_of(text, "   "), None);
+        assert_eq!(line_of("é\nlet café = 1\n", "café = 1"), Some(2), "a line count, not a byte count");
+        assert_eq!(line_of("one\r\ntwo three four\r\n", "two three four"), Some(2));
+    }
+
+    #[test]
+    fn a_quote_is_looked_for_only_inside_the_folder_and_never_in_a_secret() {
+        let base = sandbox("quotes");
+        let root = base.join("app");
+        touch(&root.join("ios/Runner/Info.plist"), b"<key>NSCameraUsageDescription</key>\n");
+        touch(&root.join(".env"), b"STRIPE_SECRET=not-a-real-key\n");
+        touch(&root.join("node_modules/x/index.js"), b"QUERY_ALL_PACKAGES\n");
+        touch(&base.join("outside.txt"), b"QUERY_ALL_PACKAGES\n");
+        touch(&root.join("big.txt"), &vec![b'a'; (MAX_QUOTED_FILE_BYTES + 1) as usize]);
+        touch(&root.join("binary.bin"), b"\xff\xfe\x00QUERY_ALL_PACKAGES");
+        let root = canonical(&root).unwrap();
+
+        assert_eq!(find_quote(&root, "ios/Runner/Info.plist", "NSCameraUsageDescription"), Some(1));
+        assert_eq!(find_quote(&root, "./ios/Runner/Info.plist", "NSCameraUsageDescription"), Some(1));
+        let absolute = root.join("ios/Runner/Info.plist");
+        assert_eq!(find_quote(&root, absolute.to_str().unwrap(), "NSCameraUsageDescription"), Some(1));
+        assert_eq!(find_quote(&root, "ios/Runner/Info.plist", "NSLocationUsageDescription"), None);
+
+        assert_eq!(find_quote(&root, ".env", "STRIPE_SECRET"), None, "a secret file is never read");
+        assert_eq!(find_quote(&root, "node_modules/x/index.js", "QUERY_ALL_PACKAGES"), None, "nor a dependency folder");
+        assert_eq!(find_quote(&root, "../outside.txt", "QUERY_ALL_PACKAGES"), None, "nor a file outside");
+        assert_eq!(find_quote(&root, base.join("outside.txt").to_str().unwrap(), "QUERY_ALL_PACKAGES"), None);
+        assert_eq!(find_quote(&root, "big.txt", "aaaaaaaa"), None, "too big to read");
+        assert_eq!(find_quote(&root, "binary.bin", "QUERY_ALL_PACKAGES"), None, "not UTF-8 text");
+        assert_eq!(find_quote(&root, "missing.txt", "anything at all"), None);
+        assert_eq!(find_quote(&root, "", "NSCameraUsageDescription"), None);
+        assert_eq!(find_quote(&root, "ios", "NSCameraUsageDescription"), None, "a folder is not a file");
+        assert_eq!(find_quote(&root, "ios/Runner/Info.plist", &"x".repeat(MAX_QUOTE + 1)), None);
+        #[cfg(unix)]
+        {
+            std::os::unix::fs::symlink(base.join("outside.txt"), root.join("link.txt")).unwrap();
+            assert_eq!(find_quote(&root, "link.txt", "QUERY_ALL_PACKAGES"), None, "a link out of the folder is outside");
         }
         let _ = std::fs::remove_dir_all(&base);
     }

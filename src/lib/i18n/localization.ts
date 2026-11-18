@@ -342,19 +342,46 @@ export function dropElementOverrides(board: ArtboardState, elementIds: string[])
   return sweepBoardOverrides(board, new Set(Object.keys(board.localized)), kept);
 }
 
-/** Follows an element id change into every locale's override map. */
+/**
+ * Follows an element id change into every locale's override map, and into the
+ * screenshots added for other devices (`deviceSets`), which are keyed by
+ * element id too.
+ */
 export function remapOverrideIds(board: ArtboardState, idMap: Record<string, string>): ArtboardState {
-  if (!board.localized || Object.keys(idMap).length === 0) return board;
-  let changed = false;
-  const localized: Record<string, Record<string, ElementLocaleOverride>> = {};
-  for (const [locale, map] of Object.entries(board.localized)) {
-    const next: Record<string, ElementLocaleOverride> = {};
-    for (const [elementId, override] of Object.entries(map)) {
-      const mapped = idMap[elementId];
-      if (mapped) changed = true;
-      next[mapped || elementId] = override;
+  if (Object.keys(idMap).length === 0) return board;
+  let result = board;
+  if (board.localized) {
+    let changed = false;
+    const localized: Record<string, Record<string, ElementLocaleOverride>> = {};
+    for (const [locale, map] of Object.entries(board.localized)) {
+      const next: Record<string, ElementLocaleOverride> = {};
+      for (const [elementId, override] of Object.entries(map)) {
+        const mapped = idMap[elementId];
+        if (mapped) changed = true;
+        next[mapped || elementId] = override;
+      }
+      localized[locale] = next;
     }
-    localized[locale] = next;
+    if (changed) result = { ...result, localized };
   }
-  return changed ? { ...board, localized } : board;
+  if (board.deviceSets) {
+    let changed = false;
+    const deviceSets: NonNullable<ArtboardState['deviceSets']> = {};
+    for (const [format, set] of Object.entries(board.deviceSets) as Array<[keyof typeof deviceSets, (typeof deviceSets)[keyof typeof deviceSets]]>) {
+      if (!set) continue;
+      if (!set.screens) {
+        deviceSets[format] = set;
+        continue;
+      }
+      const screens: NonNullable<typeof set.screens> = {};
+      for (const [elementId, screen] of Object.entries(set.screens)) {
+        const mapped = idMap[elementId];
+        if (mapped) changed = true;
+        screens[mapped || elementId] = screen;
+      }
+      deviceSets[format] = { ...set, screens };
+    }
+    if (changed) result = { ...result, deviceSets };
+  }
+  return result;
 }

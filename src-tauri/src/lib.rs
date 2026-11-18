@@ -108,6 +108,8 @@ pub fn run() {
             claude_code::abs_claude_read_project_image,
             claude_code::abs_claude_prompt,
             claude_code::abs_claude_prompt_stop,
+            claude_code::abs_claude_find_quotes,
+            claude_code::abs_claude_folder_access,
             codex::abs_codex_detect,
             codex::abs_codex_start,
             codex::abs_codex_send,

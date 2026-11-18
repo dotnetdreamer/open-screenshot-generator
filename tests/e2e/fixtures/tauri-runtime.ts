@@ -598,6 +598,15 @@ export function tauriInitScript(config: TauriMockConfig): string {
       case 'abs_claude_prompt':
       case 'abs_codex_prompt':
         throw new Error('Not installed in the test harness');
+      // Store compliance's check of quotes from the user's code: Rust answers
+      // the line of each, or null. With no file system here, no quote is found
+      // unless a spec answers through config.responses.
+      case 'abs_claude_find_quotes':
+        return Array.isArray(args.quotes) ? args.quotes.map(() => null) : [];
+      // What macOS says about Claude Code opening a code folder: here it
+      // always lets it in, unless a spec answers "refused" or "asking".
+      case 'abs_claude_folder_access':
+        return 'open';
       // Stop for one of those: a prompt held under the same id ends the way
       // Rust ends it, and a stop for anything else does nothing, as in Rust.
       case 'abs_claude_prompt_stop':

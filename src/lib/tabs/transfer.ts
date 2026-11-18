@@ -453,6 +453,33 @@ export function placeElements(
   };
 }
 
+/** A board's choices for other devices, with each screenshot moved to its frame's new id. */
+export function remapDeviceSets(
+  sets: ArtboardState['deviceSets'],
+  ids: ReadonlyMap<string, string>
+): ArtboardState['deviceSets'] {
+  if (!sets) return undefined;
+  const out: NonNullable<ArtboardState['deviceSets']> = {};
+  for (const [format, set] of Object.entries(sets) as Array<[keyof NonNullable<ArtboardState['deviceSets']>, NonNullable<ArtboardState['deviceSets']>[keyof NonNullable<ArtboardState['deviceSets']>]]>) {
+    if (!set) continue;
+    const screens: NonNullable<typeof set.screens> = {};
+    for (const [elementId, screen] of Object.entries(set.screens ?? {})) {
+      const id = ids.get(elementId);
+      if (id && screen) screens[id] = screen;
+    }
+    const next = { ...set, screens: Object.keys(screens).length > 0 ? screens : undefined };
+    if (!next.screens) delete next.screens;
+    if (next.layout || next.screens) out[format] = next;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
+/** The devices a project exports, as its first board that says has them. */
+function projectSetFormatsOf(boards: readonly ArtboardState[]): ArtboardState['deviceSetFormats'] {
+  const holder = boards.find((board) => Array.isArray(board.deviceSetFormats));
+  return holder?.deviceSetFormats ? [...holder.deviceSetFormats] : undefined;
+}
+
 /**
  * A whole artboard arriving in another project, as a copy with ids of its own.
  *
@@ -520,10 +547,16 @@ export function placeArtboard(
     localization,
     backgroundImageApply: copy.backgroundImage ? 'board' : copy.backgroundImageApply,
     backgroundImageSlice: undefined,
+    // The screenshots added for other devices follow their frames' new ids.
+    deviceSets: remapDeviceSets(copy.deviceSets, ids),
+    // Which devices the project exports is the target project's choice.
+    deviceSetFormats: projectSetFormatsOf(boards),
   };
   if (!placed.localized) delete placed.localized;
   if (!placed.localization) delete placed.localization;
   if (!placed.backgroundImageSlice) delete placed.backgroundImageSlice;
+  if (!placed.deviceSets) delete placed.deviceSets;
+  if (!placed.deviceSetFormats) delete placed.deviceSetFormats;
 
   const at = Math.max(0, Math.min(boards.length, options.index ?? boards.length));
   return { boards: [...boards.slice(0, at), placed, ...boards.slice(at)], boardId };

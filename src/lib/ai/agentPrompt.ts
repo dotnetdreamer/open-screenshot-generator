@@ -11,6 +11,11 @@
 // so prompts from this window wait for a free slot here, and one refused
 // because another window holds the slots waits and asks again.
 //
+// Ask AI in the Store compliance view can also let Claude Code read the
+// user's app code: the prompt names the folder's path, one the user picked in
+// Rust's dialog for this (pickPromptFolder), and Claude Code opens the files
+// it needs with Read and Grep. The page never reads or sends the files.
+//
 // Desktop only. Import safe on the web, where every call rejects without
 // importing anything from Tauri.
 
@@ -27,6 +32,8 @@ export interface AgentWriterStatus {
   label: string;
   /** Why it cannot answer, when it cannot. */
   detail?: string;
+  /** It can never run in this build: the Mac App Store's sandbox. */
+  sandboxed?: boolean;
 }
 
 export type AgentWriters = Record<AgentWriter, AgentWriterStatus>;
@@ -96,6 +103,12 @@ export interface AgentPromptRequest {
    * have a short reply think for minutes.
    */
   effort?: string;
+  /**
+   * Claude Code only: paths of code folders it may read, each picked with
+   * pickPromptFolder. Codex reads no code folder, so a Codex prompt with one
+   * is refused rather than answered without it.
+   */
+  folders?: string[];
 }
 
 function stopped(): DOMException {
@@ -230,6 +243,8 @@ async function promptOnce(request: AgentPromptRequest): Promise<string> {
   // The slot can be granted, or the busy pause end, in the same moment as a
   // Stop: nothing may start after it.
   if (request.signal?.aborted) throw stopped();
+  const folders = request.folders?.length ? request.folders : null;
+  if (folders && request.agent !== 'claude') throw new Error(ONLY_CLAUDE_READS_CODE);
   const choices = storedAgentChoices();
   // Rust takes the prompt and its Stop as two calls, matched by this id.
   const id = crypto.randomUUID();
@@ -240,6 +255,7 @@ async function promptOnce(request: AgentPromptRequest): Promise<string> {
           system: request.system,
           prompt: request.user,
           model: request.model ?? choices.claudeModel ?? null,
+          folders,
         })
       : invoke<string>('abs_codex_prompt', {
           id,
@@ -252,6 +268,51 @@ async function promptOnce(request: AgentPromptRequest): Promise<string> {
   return untilStopped(answer, request.signal, () => {
     invoke<void>(stop, { id }).catch((error) => console.error('Stopping the prompt failed', error));
   });
+}
+
+/** Why a prompt that would read code cannot: only Claude Code reads a code folder here. */
+export const ONLY_CLAUDE_READS_CODE = 'Only Claude Code can read your code. Pick Claude Code, or take the folder off';
+
+export type PromptFolderPick = { kind: 'picked'; folder: { name: string; path: string } } | { kind: 'cancelled' } | { kind: 'refused'; message: string };
+
+/**
+ * Rust's folder dialog, for a folder one-shot prompts may read. It goes on a
+ * list of its own (PROMPT_BOOK in claude_code.rs), apart from the Agent
+ * chats' folders, so neither can take a folder away from the other.
+ */
+export async function pickPromptFolder(): Promise<PromptFolderPick> {
+  try {
+    const folder = await invoke<{ name: string; path: string } | null>('abs_claude_pick_folder', { book: 'prompt' });
+    return folder ? { kind: 'picked', folder } : { kind: 'cancelled' };
+  } catch (error) {
+    const message = error instanceof Error && error.message ? error.message : 'That folder could not be added';
+    return { kind: 'refused', message };
+  }
+}
+
+/** Take a folder off that list, once nothing uses it, so it needs the dialog again. */
+export function forgetPromptFolder(path: string): Promise<void> {
+  return invoke<void>('abs_claude_forget_folder', { path, book: 'prompt' });
+}
+
+/**
+ * The line each quote starts on in a file of a folder from pickPromptFolder,
+ * or null where the file is not in it, is a secret, or does not hold the
+ * words. Rust answers with line numbers only, never with what a file holds.
+ */
+export function findQuotesInFolder(folder: string, quotes: Array<{ file: string; quote: string }>): Promise<Array<number | null>> {
+  return invoke<Array<number | null>>('abs_claude_find_quotes', { folder, quotes });
+}
+
+/**
+ * Whether macOS lets Claude Code open a folder from pickPromptFolder, looked
+ * at now (abs_claude_folder_access): "refused" when the user said no to the
+ * app for that place, "asking" while macOS waits for an answer, otherwise
+ * "open". Off macOS always "open".
+ */
+export async function lookAtPromptFolder(folder: string): Promise<'open' | 'refused' | 'asking'> {
+  const answer = await invoke<string>('abs_claude_folder_access', { folder });
+  return answer === 'refused' || answer === 'asking' ? answer : 'open';
 }
 
 // The plan names the Agent panel shows (ClaudeCodeSetup.tsx, CodexSetup.tsx).
@@ -274,7 +335,7 @@ export function claudeWriterStatus(detection: ClaudeDetection): AgentWriterStatu
   const plan = detection.subscriptionType ? CLAUDE_PLANS[detection.subscriptionType] ?? detection.subscriptionType : null;
   const label = plan ? `Claude Code (${plan} plan)` : 'Claude Code';
   if (detection.unavailable === 'sandboxed') {
-    return { ready: false, label, detail: 'Claude Code cannot run in the Mac App Store version of Open Screenshot Generator' };
+    return { ready: false, label, detail: 'Claude Code cannot run in the Mac App Store version of Open Screenshot Generator', sandboxed: true };
   }
   if (!detection.found) return { ready: false, label, detail: 'Claude Code is not installed on your computer' };
   if (detection.error) return { ready: false, label, detail: `Claude Code did not start: ${detection.error}` };
@@ -289,7 +350,7 @@ export function codexWriterStatus(detection: CodexDetection): AgentWriterStatus 
   const plan = detection.planType ? CODEX_PLANS[detection.planType] ?? detection.planType : null;
   const label = plan ? `Codex (ChatGPT ${plan} plan)` : 'Codex';
   if (detection.unavailable === 'sandboxed') {
-    return { ready: false, label, detail: 'Codex cannot run in the Mac App Store version of Open Screenshot Generator' };
+    return { ready: false, label, detail: 'Codex cannot run in the Mac App Store version of Open Screenshot Generator', sandboxed: true };
   }
   if (!detection.found) return { ready: false, label, detail: 'Codex is not installed on your computer' };
   if (detection.loginStore === 'keyring') {

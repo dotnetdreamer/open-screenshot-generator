@@ -1,3 +1,5 @@
+import type { DeviceFormat } from '@/lib/deviceRegistry';
+
 export interface Point {
   x: number;
   y: number;
@@ -674,6 +676,42 @@ export interface ArtboardState {
   localized?: Record<string, Record<string, ElementLocaleOverride>>;
   /** Project-level config, mirrored onto every board. See ProjectLocalization. */
   localization?: ProjectLocalization;
+  /**
+   * What was chosen for this board on other devices (the Every device view,
+   * src/lib/deviceSets/), keyed by device format. Absent means the board is
+   * laid out for each device on its own.
+   */
+  deviceSets?: Partial<Record<DeviceFormat, BoardDeviceSet>>;
+  /**
+   * The devices the project makes beside its own size, which the Export
+   * dialog ticks. Project-level, so mirrored onto every board like
+   * `localization`; read it with projectSetFormats.
+   */
+  deviceSetFormats?: DeviceFormat[];
+}
+
+/** The ways a board can be laid out again for another device. See src/lib/deviceSets/layout.ts. */
+export type DeviceSetLayout = 'stacked' | 'beside' | 'beside-flipped' | 'scaled';
+
+/** A screenshot a frame shows on one device only, such as an iPad screenshot for the iPad set. */
+export interface DeviceSetShot {
+  screenshotSrc: string;
+  naturalScreenshotWidth?: number;
+  naturalScreenshotHeight?: number;
+}
+
+/** A frame's screenshot on one device: the main language's, and other languages' own. */
+export interface DeviceSetScreen extends DeviceSetShot {
+  /** Keyed by store locale code. A language without one shows the main language's. */
+  localized?: Record<string, DeviceSetShot>;
+}
+
+/** What was chosen for one board on one device. */
+export interface BoardDeviceSet {
+  /** Unset is the layout picked for the board automatically. */
+  layout?: DeviceSetLayout;
+  /** Screenshots for this device only, by device element id. */
+  screens?: Record<string, DeviceSetScreen>;
 }
 
 

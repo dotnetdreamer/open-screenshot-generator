@@ -95,6 +95,14 @@ body {
     --growth-tag-6: 120 100% 26%;
     --growth-tag-7: 248 62% 58%;
     --growth-tag-8: 0 73% 59%;
+    /* Store compliance: the shield's green, and the four levels of a rule or a
+       deadline. Each is a text colour, drawn on its own 12% tint, and reads at
+       4.5:1 or more on the card, the tint, the grey ground and a muted row. */
+    --rules-accent: 160 72% 25%;
+    --rules-critical: 0 72% 40%;
+    --rules-high: 21 90% 34%;
+    --rules-medium: 36 92% 28%;
+    --rules-low: 215 16% 38%;
   }
 
   /* Dark editor chrome. Same roles as the light palette above, same slate blue
@@ -175,6 +183,12 @@ body {
     --growth-tag-6: 120 100% 26%;
     --growth-tag-7: 247 69% 72%;
     --growth-tag-8: 0 72% 65%;
+    /* The same, lighter for the dark card (4.8:1 or more on its tint). */
+    --rules-accent: 156 60% 55%;
+    --rules-critical: 0 85% 72%;
+    --rules-high: 24 92% 65%;
+    --rules-medium: 43 90% 60%;
+    --rules-low: 215 18% 68%;
   }
 
   /* The tokens alone are not enough: an artboard also has to opt out of the
@@ -610,5 +624,28 @@ html[data-growth-browser] [data-toast-viewport] {
 @media (prefers-reduced-motion: reduce) {
   .growth-shimmer {
     animation: none;
+  }
+}
+
+/* The Every device view (devices/EveryDeviceDialog.tsx): when the device
+   changes, an artboard's preview stays mounted, so its size and every layer's
+   box glide to the new layout instead of jumping. Text size glides with them. */
+.osg-morph,
+.osg-morph > div,
+.osg-morph [data-artboard-surface],
+.osg-morph [data-artboard-surface] > * {
+  transition-property: width, height, left, top, transform;
+  transition-duration: 520ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.osg-morph [data-artboard-surface] > * * {
+  transition-property: font-size;
+  transition-duration: 520ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .osg-morph,
+  .osg-morph * {
+    transition: none !important;
   }
 }

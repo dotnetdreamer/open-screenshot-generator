@@ -211,11 +211,16 @@ import { McpServerStatus } from './McpServerStatus';
 import { agentUsableTemplates } from '@/lib/ai/templateCatalog';
 import { loadProjectTemplates } from '@/services/projectService';
 import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
-import { convertArtboardsToFormat, detectArtboardsFormat, swapDeviceInElements, scaleElementsToCanvas, DEVICE_FORMAT_PRESETS, type DeviceFormat, type DeviceFormatPreset } from '@/lib/deviceRegistry';
+import { detectArtboardsFormat, swapDeviceInElements, scaleElementsToCanvas, DEVICE_FORMAT_PRESETS, type DeviceFormat, type DeviceFormatPreset } from '@/lib/deviceRegistry';
+import { boardsOnDevice, mirrorSetFormats, ownFormatOf, projectForDevice, projectSetFormats, type PlanCache } from '@/lib/deviceSets/sets';
+import { facesReady, measureText } from '@/lib/deviceSets/measure';
+import { deviceSetTarget } from '@/lib/deviceSets/targets';
+import { EveryDeviceDialog } from './devices/EveryDeviceDialog';
 import { PublishDialog } from './publish/PublishDialog';
 import { GrowthWorkspace, type GrowthRequest } from './growth/GrowthWorkspace';
 import { CaptureWorkspace, type CaptureRequest, type ClipOutcome } from './capture/CaptureWorkspace';
 import { WebsiteWorkspace, type CaptureRequest as WebsiteCaptureRequest, type CapturedBoard } from './website/WebsiteWorkspace';
+import { StoreComplianceWorkspace } from './storeCompliance/StoreComplianceWorkspace';
 import { flushWebsiteSaves } from '@/lib/website/store';
 import { captureTargets } from '@/lib/capture/frames';
 import { placeClip, placeShots, type ClipPlacement, type ShotPlacement } from '@/lib/capture/place';
@@ -653,13 +658,21 @@ async function fetchRecentProjectMetas(): Promise<Project[]> {
   }));
 }
 
+/**
+ * Store sizes no phone shares, so a project of that size is that device's.
+ * The phone sizes are left to the frames, as a blank 1206×2622 canvas has no
+ * device yet and a 1080×1920 one may be a phone or a 7-inch tablet.
+ */
+const SIZE_DECIDES_FORMAT: ReadonlySet<DeviceFormat> = new Set<DeviceFormat>(['ipad-pro-13', 'ipad-11', 'tablet-10', 'mac']);
+
 // Update the function with reduced margin.
 // Also the one place a board's slice of a spanned background picture is
 // derived, because that slice is read off the board order exactly like the
 // position is, and this runs on every commit (see normalizeBackgroundImage).
 function calculateArtboardPositions(artboards: ArtboardState[]): ArtboardState[] {
   let currentX = ARTBOARD_MARGIN;
-  return normalizeBackgroundImage(artboards).map((ab) => {
+  // Also where an artboard added later joins the devices the project exports.
+  return normalizeBackgroundImage(mirrorSetFormats(artboards)).map((ab) => {
     const newPosition = { x: currentX, y: ARTBOARD_MARGIN };
     // Calculate next position with reduced margin
     currentX += (ab.size.width * DISPLAY_SCALE_FACTOR) + ARTBOARD_MARGIN;
@@ -1613,6 +1626,8 @@ export function OpenScreenshotGeneratorLayout() {
     setIsPreviewOpen(true);
   }, []);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  // The Every device view: the design laid out for every store size.
+  const [isEveryDeviceOpen, setIsEveryDeviceOpen] = useState(false);
   // Direct-to-store upload (App Store Connect / Google Play). Desktop only,
   // see src/lib/publish; the dialog explains itself on the web build.
   const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
@@ -1653,6 +1668,10 @@ export function OpenScreenshotGeneratorLayout() {
   // Mounted on its first visit and kept, like Growth, so a publish goes on
   // while the editor is in front.
   const [websiteMounted, setWebsiteMounted] = useState(false);
+  // Store compliance: the App Store Compliance Playbook, read from GitHub on the
+  // view's first visit (src/lib/storeCompliance). Mounted on that visit and kept,
+  // like Growth, so an answer on its way and the screen's place stay.
+  const [complianceMounted, setComplianceMounted] = useState(false);
   // While the desktop app runs, Growth keeps the apps synced there fresh and
   // says when something new turns up (src/lib/growth/monitor.ts). The main
   // window only: a tab window would sync the same apps a second time.
@@ -1766,6 +1785,7 @@ export function OpenScreenshotGeneratorLayout() {
       if (next !== 'growth') {
         if (next === 'capture') setCaptureMounted(true);
         if (next === 'website') setWebsiteMounted(true);
+        if (next === 'compliance') setComplianceMounted(true);
         setActivity(next);
         return;
       }
@@ -4020,6 +4040,10 @@ export function OpenScreenshotGeneratorLayout() {
   // The mockup platform and canvas size drive the toolbar's format label and
   // checkmarks. Mixed projects have no active format.
   const activeDeviceFormat = useMemo(() => {
+    // An iPad, tablet or Mac sized project is that device's, whatever frames
+    // it shows: a set made for the iPad can keep its phone frames.
+    const bySize = ownFormatOf(artboards);
+    if (bySize && SIZE_DECIDES_FORMAT.has(bySize)) return bySize;
     const format = detectArtboardsFormat(artboards);
     if (format === 'ios') {
       const largePreset = DEVICE_FORMAT_PRESETS.find((preset) => preset.id === 'ios-large');
@@ -4036,34 +4060,90 @@ export function OpenScreenshotGeneratorLayout() {
     return format === 'mixed' ? null : format;
   }, [artboards]);
 
-  // Convert the whole project to a device format: resize every artboard to
-  // the format's store-correct canvas (content uniformly scaled and
-  // re-centered) and swap mockups to the format's device. One
-  // handleArtboardsUpdate call = one history entry, so undo restores the
+  // Convert the whole project to a device format: every screenshot artboard is
+  // laid out again for the format's store size (src/lib/deviceSets/, with any
+  // layout or screenshot picked for it in the Every device view) and its
+  // mockups swapped to the format's devices. Header and search art keeps
+  // Apple's size; a Watch artboard or a feature graphic is scaled as before.
+  // One handleArtboardsUpdate call = one history entry, so undo restores the
   // previous format exactly.
-  const handleSelectDeviceFormat = (preset: DeviceFormatPreset) => {
-    const { artboards: converted, resized, swapped, skipped } = convertArtboardsToFormat(artboards, preset);
+  const handleSelectDeviceFormat = async (preset: DeviceFormatPreset) => {
+    // Laid out by measuring its text, so the faces it draws in come first.
+    await facesReady(artboardsRef.current);
+    const source = artboardsRef.current;
+    // Laid out the way Every device shows it, every language included, with
+    // what was chosen for the other devices kept.
+    const converted = projectForDevice(source, preset.id, measureText, { keepChoices: true });
+    const resized = converted.filter(
+      (board, index) => board.size.width !== source[index].size.width || board.size.height !== source[index].size.height
+    ).length;
+    const devicesBefore = new Map(
+      source.flatMap((board) => board.elements).filter((el) => el.type === 'device').map((el) => [el.id, (el as DeviceFrameElementProps).deviceType])
+    );
+    const swapped = converted
+      .flatMap((board) => board.elements)
+      .filter((el) => el.type === 'device' && devicesBefore.get(el.id) !== (el as DeviceFrameElementProps).deviceType).length;
     if (resized === 0 && swapped === 0) {
       toast({
         title: "Nothing to convert",
-        description: `Artboards are already ${preset.artboard.width}×${preset.artboard.height} with ${preset.label} mockups${skipped > 0 ? ` (${skipped} generic tablet/desktop/custom mockup(s) left as-is)` : ''}.`,
+        description: `Your screenshots are already ${preset.artboard.width}×${preset.artboard.height} with ${preset.label} devices.`,
       });
       return;
     }
     // Every board resized and every mockup swapped in one commit: undo covers
     // it, but only until the tab is closed.
-    void writeVersion(artboardsRef.current, `Before ${preset.label}`, 'safety');
+    void writeVersion(source, `Before ${preset.label}`, 'safety');
     if (!handleArtboardsUpdate(converted, namedChange(`Convert to ${preset.label}`, 'device'))) return;
     trackDeviceFormatSelected({ format: preset.id, formatLabel: preset.label });
     const parts = [
-      resized > 0 ? `${resized} artboard(s) resized to ${preset.artboard.width}×${preset.artboard.height}` : '',
-      swapped > 0 ? `${swapped} mockup(s) swapped` : '',
-      skipped > 0 ? `${skipped} left as-is (no equivalent)` : '',
+      resized > 0 ? `${resized} screenshot${resized === 1 ? ' is' : 's are'} now ${preset.artboard.width}×${preset.artboard.height}` : '',
+      swapped > 0 ? `${swapped} device${swapped === 1 ? '' : 's'} changed to fit` : '',
     ].filter(Boolean);
     toast({
-      title: `Converted to ${preset.label}`,
-      description: `${parts.join(', ')}. Undo reverts everything.`,
+      title: `Changed to ${preset.label}`,
+      description: `${parts.join(', and ')}. Undo puts everything back.`,
     });
+  };
+
+  // The Every device view writes through the same door as every other edit,
+  // applying its change to the project as it is now: an upload that took a
+  // moment must not undo what was changed meanwhile. A write that began on
+  // another document than the one on the canvas now is turned down.
+  const handleEveryDeviceCommit = (
+    change: (current: ArtboardState[]) => ArtboardState[],
+    label: string,
+    token?: number
+  ) => {
+    if (token !== undefined && token !== canvasSerialRef.current) return false;
+    return !!handleArtboardsUpdate(change(artboardsRef.current), namedChange(label, 'device'));
+  };
+
+  // One device's set as a project of its own, opened in a new tab: the
+  // artboards laid out for the device in every language, free to change.
+  const handleOpenDeviceSetAsProject = async (format: DeviceFormat) => {
+    const target = deviceSetTarget(format);
+    if (!target) return;
+    await facesReady(artboardsRef.current);
+    const projectData = calculateArtboardPositions(projectForDevice(artboardsRef.current, format, measureText));
+    const projectName = `${currentProjectName} (${target.name})`;
+    const projectId = `project_${Date.now()}`;
+    try {
+      await db.projects.put({ id: projectId, name: projectName, timestamp: new Date(), projectData: JSON.parse(JSON.stringify(projectData)) });
+      setRecentProjects(await fetchRecentProjectMetas());
+      const opened = await loadProjectFromData(projectData, projectName, projectId);
+      if (!opened) {
+        toast({
+          title: "The new project couldn't open",
+          description: `"${projectName}" was saved. Open it from Recent projects.`,
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({ title: `"${projectName}" is open`, description: 'Change it however you like. Your first project stays the same.' });
+    } catch (error) {
+      console.error('Could not make the device set project', error);
+      toast({ title: "The new project wasn't made", description: 'Please try again, or export the screenshots instead.', variant: 'destructive' });
+    }
   };
 
   // Add handler for renaming element from layers panel. A layer name is not
@@ -6116,10 +6196,15 @@ export function OpenScreenshotGeneratorLayout() {
     // Closes the mutation door for the whole run. Nothing may write the project
     // while the canvas is showing a converted or re-projected list.
     isExportingRef.current = true;
+    // Each generated size is the design laid out again for it (src/lib/deviceSets/),
+    // worked out once per artboard and size and shared by every language.
+    const plans: PlanCache = new Map();
     try {
       for (const locale of localesToExport) {
         if (pngExportCancelRef.current) break;
         const projected = projectArtboards(original, locale);
+        // Laid out by measuring its text, so the faces it draws in come first.
+        if (generateFormats.length > 0) await facesReady(projected);
         // Rebuilt per language, or the German set would be numbered 13..18
         // instead of 01..06 and every fastlane-style convention expects 1..N.
         // Skipped App Preview boards are left out of the count too, so the
@@ -6162,7 +6247,7 @@ export function OpenScreenshotGeneratorLayout() {
             localeLabel: localeLabelFor(locale),
             phase: 'preparing',
           });
-          const { artboards: converted } = convertArtboardsToFormat(projected, preset);
+          const converted = boardsOnDevice(original, projected, preset.id, locale, { measure: measureText, cache: plans });
           const repositioned = calculateArtboardPositions(converted);
           setExportCanvasArtboards(repositioned);
           await waitForCanvasToSettle(400);
@@ -6295,8 +6380,9 @@ export function OpenScreenshotGeneratorLayout() {
 
     isExportingRef.current = true;
     try {
+      if (preset) await facesReady(projected);
       const list = preset
-        ? calculateArtboardPositions(convertArtboardsToFormat(projected, preset).artboards)
+        ? calculateArtboardPositions(boardsOnDevice(original, projected, preset.id, stamp, { measure: measureText }))
         : calculateArtboardPositions(projected);
       setExportCanvasArtboards(list);
       await waitForCanvasToSettle(400);
@@ -6362,8 +6448,9 @@ export function OpenScreenshotGeneratorLayout() {
       ? DEVICE_FORMAT_PRESETS.find((entry) => entry.id === options.formatId)
       : undefined;
     const projected = projectArtboards(original, stamp);
+    if (preset) await facesReady(projected);
     const list = preset
-      ? calculateArtboardPositions(convertArtboardsToFormat(projected, preset).artboards)
+      ? calculateArtboardPositions(boardsOnDevice(original, projected, preset.id, stamp, { measure: measureText }))
       : calculateArtboardPositions(projected);
     const chosen = list.filter((artboard) => artboardIds.includes(artboard.id));
     if (chosen.length === 0) return { videos: [], warnings: [] };
@@ -10808,6 +10895,12 @@ const generateRandomProjectName = (): string => {
   // Stable, so the Website view does not start its screenshot work again on every render.
   const captureForWebsite = useCallback((request: WebsiteCaptureRequest) => captureBoardsForWebsiteRef.current(request), []);
   const websiteBackToEditor = useCallback(() => setActivity('editor'), []);
+  // What Store compliance reads of the open project: its checklist is kept by the
+  // project's id, and Ask AI's check reads the text of every language.
+  const readProjectForCompliance = useCallback(
+    () => ({ id: activeProjectIdRef.current, name: projectNameRef.current, artboards: artboardsRef.current }),
+    []
+  );
   const websiteProject = useMemo(() => ({ id: activeProjectId, name: currentProjectName, artboards }), [activeProjectId, currentProjectName, artboards]);
 
   // Render one artboard for the MCP export tools. Same capture recipe as the
@@ -12237,7 +12330,8 @@ const generateRandomProjectName = (): string => {
             isSavingToAccount={isSavingToAccount}
             onUpdateArtboardSize={handleUpdateArtboardSize}
             initialArtboardSize={getCurrentArtboardSize()}
-            onSelectDeviceFormat={handleSelectDeviceFormat}
+            onSelectDeviceFormat={(preset) => void handleSelectDeviceFormat(preset)}
+            onOpenEveryDevice={() => setIsEveryDeviceOpen(true)}
             activeDeviceFormat={activeDeviceFormat}
             onTranslate={() => {
               setTranslateElementId(null);
@@ -12921,8 +13015,24 @@ const generateRandomProjectName = (): string => {
               defaultCurrentArtboardOnly={exportScopedToArtboard}
               artboards={artboards}
               activeLocale={activeLocale}
+              deviceSetFormats={projectSetFormats(artboards)}
             />
           )}
+
+          <EveryDeviceDialog
+            open={isEveryDeviceOpen}
+            onOpenChange={setIsEveryDeviceOpen}
+            artboards={artboards}
+            activeLocale={activeLocale}
+            canvasToken={() => canvasSerialRef.current}
+            onCommit={handleEveryDeviceCommit}
+            onOpenAsProject={handleOpenDeviceSetAsProject}
+            onExport={() => {
+              setIsEveryDeviceOpen(false);
+              setExportScopedToArtboard(false);
+              setIsExportDialogOpen(true);
+            }}
+          />
 
           <ExportProgressDialog
             progress={pngProgress}
@@ -13268,6 +13378,11 @@ const generateRandomProjectName = (): string => {
             }}
             onBackToEditor={() => setActivity('editor')}
           />
+        </div>
+      )}
+      {complianceMounted && (
+        <div className={cn('fixed inset-0 z-30 md:left-12', activity !== 'compliance' && 'hidden')}>
+          <StoreComplianceWorkspace active={activity === 'compliance'} readProject={readProjectForCompliance} />
         </div>
       )}
       {websiteMounted && (
