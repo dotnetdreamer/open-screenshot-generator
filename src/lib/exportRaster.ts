@@ -34,6 +34,7 @@ import { toPng, toSvg } from 'html-to-image';
 import type { Options } from 'html-to-image/lib/types';
 import { resolveFontEmbedCss } from '@/lib/fontEmbed';
 import { encodeOpaquePngDataUrl } from '@/lib/pngOpaque';
+import { applyPerspectiveWarps, preparePerspectiveWarps } from '@/lib/perspectiveCapture';
 
 /** Exactly what html-to-image's toSvg returns. Anything else and we bail. */
 const SVG_DATA_URL_PREFIX = 'data:image/svg+xml;charset=utf-8,';
@@ -142,8 +143,24 @@ async function withEmbeddedFonts(node: HTMLElement, options: Options): Promise<O
  */
 export async function captureNodeToPng(node: HTMLElement, options: Options = {}): Promise<string> {
   const capture = await withEmbeddedFonts(node, options);
-  const svgDataUrl = await toSvg(node, capture);
-  const patched = withSyncImageDecoding(svgDataUrl);
+  const width = options.width || nodeWidth(node);
+  const height = options.height || nodeHeight(node);
+  const ratio = options.pixelRatio || window.devicePixelRatio || 1;
+
+  // WebKit paints a capture without perspective, so a perspective phone or a
+  // tilted picture would export flat. Where that happens, each one is warped
+  // on its own first and swapped in below (perspectiveCapture.ts). Elsewhere
+  // this finds nothing to do.
+  const density = ((options.canvasWidth || width) * ratio) / width;
+  const prepared = await preparePerspectiveWarps(node, capture, density, captureNodeToPng);
+  let svgDataUrl: string;
+  try {
+    svgDataUrl = await toSvg(node, capture);
+  } finally {
+    prepared.release();
+  }
+  const warped = prepared.warps.length ? applyPerspectiveWarps(svgDataUrl, prepared.warps) ?? svgDataUrl : svgDataUrl;
+  const patched = withSyncImageDecoding(warped);
   // A future html-to-image could serialize differently. Exporting through the
   // library unchanged is the right failure: correct everywhere but macOS,
   // rather than blank everywhere.
@@ -161,9 +178,6 @@ export async function captureNodeToPng(node: HTMLElement, options: Options = {})
     // proceed with what onload gave us
   }
 
-  const width = options.width || nodeWidth(node);
-  const height = options.height || nodeHeight(node);
-  const ratio = options.pixelRatio || window.devicePixelRatio || 1;
   const canvas = document.createElement('canvas');
   canvas.width = (options.canvasWidth || width) * ratio;
   canvas.height = (options.canvasHeight || height) * ratio;

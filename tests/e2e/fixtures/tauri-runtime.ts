@@ -138,6 +138,8 @@ export function tauriInitScript(config: TauriMockConfig): string {
     config,
     calls: [],
     files: [],
+    /** The bytes of the latest PNG written, as base64: { path, base64 }. */
+    lastPng: null,
     openedUrls: [],
     /** Commands with no default and no configured response. */
     unhandled: [],
@@ -398,6 +400,19 @@ export function tauriInitScript(config: TauriMockConfig): string {
     return 0;
   }
 
+  function toBase64(value) {
+    const bytes =
+      value instanceof ArrayBuffer
+        ? new Uint8Array(value)
+        : ArrayBuffer.isView(value)
+          ? new Uint8Array(value.buffer, value.byteOffset, value.byteLength)
+          : null;
+    if (!bytes) return '';
+    let binary = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+    return btoa(binary);
+  }
+
   function joinPath(dir, name) {
     if (!dir) return name;
     return dir.endsWith(sep) ? dir + name : dir + sep + name;
@@ -517,6 +532,7 @@ export function tauriInitScript(config: TauriMockConfig): string {
           bytes: typeof args.dataBase64 === 'string' ? args.dataBase64.length : 0,
           via: cmd,
         });
+        if (typeof args.dataBase64 === 'string') state.lastPng = { path, base64: args.dataBase64 };
         return path;
       }
       case 'abs_oauth_start':
@@ -741,11 +757,15 @@ export function tauriInitScript(config: TauriMockConfig): string {
       case 'plugin:fs|write_file':
       case 'plugin:fs|write_text_file': {
         const header = options && options.headers ? options.headers.path : undefined;
+        const path = header ? decodeURIComponent(header) : '<unknown>';
         state.files.push({
-          path: header ? decodeURIComponent(header) : '<unknown>',
+          path,
           bytes: byteLength(args),
           via: cmd,
         });
+        // The latest PNG's bytes, for a spec that has to look at the pixels.
+        // Only the last one, so a long export run does not pile up megabytes.
+        if (cmd === 'plugin:fs|write_file' && /\\.png$/i.test(path)) state.lastPng = { path, base64: toBase64(args) };
         return null;
       }
       case 'plugin:fs|mkdir':

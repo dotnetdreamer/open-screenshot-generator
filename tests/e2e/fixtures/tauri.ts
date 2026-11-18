@@ -44,6 +44,14 @@ export class TauriHarness {
     return this.read<TauriWrittenFile>('files');
   }
 
+  /** The last PNG the app asked the shell to write, as base64, or null. */
+  async lastPng(): Promise<{ path: string; base64: string } | null> {
+    if (!this.enabled) return null;
+    return this.page.evaluate(
+      () => (window as unknown as { __E2E_TAURI__?: { lastPng?: { path: string; base64: string } } }).__E2E_TAURI__?.lastPng ?? null
+    );
+  }
+
   /** URLs handed to the system browser via the opener plugin. */
   openedUrls(): Promise<string[]> {
     return this.read<string>('openedUrls');
