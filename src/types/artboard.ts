@@ -58,6 +58,12 @@ export interface LinearGradient {
   angle: number; // degrees
 }
 
+// A text fill can run through more colours than two: `via` lists the ones
+// between color1 and color2, in order, spaced evenly.
+export interface TextFillGradient extends LinearGradient {
+  via?: string[];
+}
+
 // Ensure our element types are properly defined for copy/paste operations
 export interface BaseElement {
   id: string;
@@ -128,6 +134,12 @@ export interface TextElementProps extends BaseElement {
   // this number.
   fontSize: number;
   color: string;
+  // Linear gradient painted across the letters. Wins over `color`, which stays
+  // the solid colour the text shows while it is being edited and the one it
+  // goes back to when the gradient is removed. No outline is drawn while a
+  // gradient is set: the outline is a ring of text shadows, and those paint
+  // over the letters' clipped background.
+  fillGradient?: TextFillGradient;
   fontFamily: string;
   fontWeight?: string; // 'normal', 'bold', etc.
   fontStyle?: string; // 'normal', 'italic'

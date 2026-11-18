@@ -1,0 +1,1619 @@
+{
+  "id": "template_roamo_esim",
+  "name": "Roamo eSIM",
+  "description": "App Store & Play Store screenshots for a travel, eSIM or second number app. Bright sky blue boards with glossy 3D words, a green globe with flag badges, a tilted phone that runs across two screenshots, an orange wifi sign, clouds and an airliner flying across three screenshots, all as grouped, editable layers.",
+  "previewImage": "/data/projects/previews/roamo-esim.png",
+  "timestamp": "2026-11-17T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "rm-board-1",
+      "name": "Travel eSIM",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0A8CFF",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#0A8CFF",
+        "color2": "#1158FF",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "rm-b1-headline",
+          "type": "text",
+          "name": "3D word",
+          "position": {
+            "x": 135.42,
+            "y": 67.88
+          },
+          "size": {
+            "width": 947,
+            "height": 496.11
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 20,
+            "blur": 0,
+            "color": "#6C90EE"
+          },
+          "content": "travel",
+          "fontSize": 101.94,
+          "color": "#EAF2FF",
+          "fontFamily": "Outfit",
+          "fontWeight": "900",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "fontStyle": "italic",
+          "letterSpacing": -3.57,
+          "fillGradient": {
+            "color1": "#FFFFFF",
+            "color2": "#BFD5FF",
+            "angle": 180
+          },
+          "groupId": "rm-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rm-b1-headline-2",
+          "type": "text",
+          "name": "Headline line 2",
+          "position": {
+            "x": 251.69,
+            "y": 404.83
+          },
+          "size": {
+            "width": 715,
+            "height": 429.39
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 0,
+            "color": "#6C90EE"
+          },
+          "content": "eSIM",
+          "fontSize": 88.23,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.88,
+          "fillGradient": {
+            "color1": "#FFFFFF",
+            "color2": "#E1EBFF",
+            "angle": 180
+          },
+          "groupId": "rm-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rm-b1-number-pill",
+          "type": "shape",
+          "name": "Number pill",
+          "position": {
+            "x": 452,
+            "y": 698
+          },
+          "size": {
+            "width": 560,
+            "height": 86
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1E44AE",
+          "strokeColor": "#6E93F0",
+          "strokeWidth": 3,
+          "borderRadius": 43,
+          "fillGradient": {
+            "color1": "#2A55C9",
+            "color2": "#183A99",
+            "angle": 180
+          },
+          "groupId": "rm-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rm-b1-number-pill-text",
+          "type": "text",
+          "name": "Number pill text",
+          "position": {
+            "x": 488.38,
+            "y": 710.51
+          },
+          "size": {
+            "width": 485,
+            "height": 59.8
+          },
+          "rotation": -5,
+          "scale": 1,
+          "content": "WITH YOUR UK NUMBER",
+          "fontSize": 11.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "rm-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rm-b1-logo",
+          "type": "shape",
+          "name": "Logo",
+          "position": {
+            "x": 100,
+            "y": 1305
+          },
+          "size": {
+            "width": 820,
+            "height": 820
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 50,
+            "color": "rgba(10,60,160,0.35)"
+          },
+          "shapeType": "circle",
+          "fillColor": "#5BDB3A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#A6F577",
+            "color2": "#2FC21A",
+            "angle": 150
+          },
+          "groupId": "rm-b1-g-logo",
+          "groupName": "App logo"
+        },
+        {
+          "id": "rm-b1-logo-shine",
+          "type": "shape",
+          "name": "Logo shine",
+          "position": {
+            "x": 214.8,
+            "y": 1370.6
+          },
+          "size": {
+            "width": 410,
+            "height": 410
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.22,
+          "blur": 18,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "rm-b1-g-logo",
+          "groupName": "App logo"
+        },
+        {
+          "id": "rm-b1-logo-letter",
+          "type": "text",
+          "name": "Logo letter",
+          "position": {
+            "x": 221.76,
+            "y": 1263.62
+          },
+          "size": {
+            "width": 463,
+            "height": 905.2
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "R",
+          "fontSize": 186,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "900",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "rm-b1-g-logo",
+          "groupName": "App logo"
+        },
+        {
+          "id": "rm-b1-logo-waves",
+          "type": "shape",
+          "name": "Logo waves",
+          "position": {
+            "x": 590,
+            "y": 1420
+          },
+          "size": {
+            "width": 220,
+            "height": 220
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.9,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M20 200 A180 180 0 0 1 200 20 M70 200 A130 130 0 0 1 200 70 M120 200 A80 80 0 0 1 200 120",
+          "specialProps": {
+            "viewBox": "0 0 220 220",
+            "strokeOnly": true,
+            "baseStrokeWidth": 22
+          },
+          "groupId": "rm-b1-g-logo",
+          "groupName": "App logo"
+        },
+        {
+          "id": "rm-b1-laurel-l",
+          "type": "shape",
+          "name": "Laurel left",
+          "position": {
+            "x": 103,
+            "y": 2311
+          },
+          "size": {
+            "width": 100,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M51.68 8.87 A40 20 78 0 1 68.32 87.13 A40 20 78 0 1 51.68 8.87 Z M3.41 71.36 A40 20 41 0 1 63.79 123.84 A40 20 41 0 1 3.41 71.36 Z M36.07 136.09 A38 20 39 0 1 95.13 183.91 A38 20 39 0 1 36.07 136.09 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 200"
+          },
+          "groupId": "rm-b1-g-rating",
+          "groupName": "Rating"
+        },
+        {
+          "id": "rm-b1-laurel-r",
+          "type": "shape",
+          "name": "Laurel right",
+          "position": {
+            "x": 461,
+            "y": 2311
+          },
+          "size": {
+            "width": 100,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M48.32 8.87 A40 20 102 0 1 31.68 87.13 A40 20 102 0 1 48.32 8.87 Z M96.59 71.36 A40 20 139 0 1 36.21 123.84 A40 20 139 0 1 96.59 71.36 Z M63.93 136.09 A38 20 141 0 1 4.87 183.91 A38 20 141 0 1 63.93 136.09 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 200"
+          },
+          "groupId": "rm-b1-g-rating",
+          "groupName": "Rating"
+        },
+        {
+          "id": "rm-b1-rated",
+          "type": "text",
+          "name": "Rated",
+          "position": {
+            "x": 249.17,
+            "y": 2283.1
+          },
+          "size": {
+            "width": 161,
+            "height": 66.4
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Rated",
+          "fontSize": 13.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "rm-b1-g-rating",
+          "groupName": "Rating"
+        },
+        {
+          "id": "rm-b1-score",
+          "type": "text",
+          "name": "Score",
+          "position": {
+            "x": 206.03,
+            "y": 2309.06
+          },
+          "size": {
+            "width": 249,
+            "height": 204.4
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "4.8",
+          "fontSize": 42,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "rm-b1-g-rating",
+          "groupName": "Rating"
+        },
+        {
+          "id": "rm-b1-store",
+          "type": "text",
+          "name": "Store line",
+          "position": {
+            "x": 214.82,
+            "y": 2463.4
+          },
+          "size": {
+            "width": 229,
+            "height": 46.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "in the App Store",
+          "fontSize": 7.8,
+          "color": "rgba(255,255,255,0.85)",
+          "fontFamily": "Outfit",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "rm-b1-g-rating",
+          "groupName": "Rating"
+        }
+      ]
+    },
+    {
+      "id": "rm-board-2",
+      "name": "Around The World",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#4AAEFD",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#4AAEFD",
+        "color2": "#DCEEFF",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "rm-b2-glow",
+          "type": "shape",
+          "name": "Light",
+          "position": {
+            "x": 200,
+            "y": -500
+          },
+          "size": {
+            "width": 800,
+            "height": 800
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.35,
+          "blur": 120,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "rm-b2-globe",
+          "type": "image",
+          "name": "Globe",
+          "position": {
+            "x": 47,
+            "y": 242.72
+          },
+          "size": {
+            "width": 1286,
+            "height": 1260.28
+          },
+          "rotation": 0,
+          "scale": 1,
+          "spanArtboards": true,
+          "spanBehind": true,
+          "imageSrc": "/elements/images/objects/object-globe.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "rm-b2-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": -400,
+            "y": 596.36
+          },
+          "size": {
+            "width": 1200,
+            "height": 2607.27
+          },
+          "rotation": 0,
+          "scale": 1,
+          "matrix3d": "matrix3d(1.2572286, 0.0086818166, 0, 0.00010513031, 0.30065085, 1.0673001, 0, -0.00023582359, 0, 0, 1, 0, -45.81079, -28.200486, 0, 1)",
+          "spanArtboards": true,
+          "spanBehind": true,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "custom",
+          "frameColor": "#141416",
+          "screenshotSrc": "/data/projects/roamo-screen-account.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "rm-b2-trail",
+          "type": "shape",
+          "name": "Flight path",
+          "position": {
+            "x": 140,
+            "y": 300
+          },
+          "size": {
+            "width": 1300,
+            "height": 760
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.9,
+          "spanArtboards": true,
+          "shapeType": "custom-svg",
+          "fillColor": "#C3F7A8",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M40 700 C300 420 700 180 1260 60",
+          "specialProps": {
+            "viewBox": "0 0 1300 760",
+            "strokeOnly": true,
+            "baseStrokeWidth": 6
+          },
+          "groupId": "rm-b2-g-flags",
+          "groupName": "Flags"
+        },
+        {
+          "id": "rm-b2-plane",
+          "type": "image",
+          "name": "Plane",
+          "position": {
+            "x": 691,
+            "y": 820
+          },
+          "size": {
+            "width": 498,
+            "height": 350
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-toy-plane.png",
+          "objectFit": "contain",
+          "groupId": "rm-b2-g-flags",
+          "groupName": "Flags"
+        },
+        {
+          "id": "rm-b2-flag-us",
+          "type": "image",
+          "name": "Flag",
+          "position": {
+            "x": 22,
+            "y": 302
+          },
+          "size": {
+            "width": 265,
+            "height": 265
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-flag-us.png",
+          "objectFit": "contain",
+          "groupId": "rm-b2-g-flags",
+          "groupName": "Flags"
+        },
+        {
+          "id": "rm-b2-flag-uk",
+          "type": "image",
+          "name": "Flag",
+          "position": {
+            "x": 286,
+            "y": 632
+          },
+          "size": {
+            "width": 425,
+            "height": 425
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-flag-uk.png",
+          "objectFit": "contain",
+          "groupId": "rm-b2-g-flags",
+          "groupName": "Flags"
+        },
+        {
+          "id": "rm-b2-flag-ca",
+          "type": "image",
+          "name": "Flag",
+          "position": {
+            "x": 1024,
+            "y": 425
+          },
+          "size": {
+            "width": 310,
+            "height": 310
+          },
+          "rotation": 0,
+          "scale": 1,
+          "spanArtboards": true,
+          "imageSrc": "/elements/images/stickers/sticker-flag-ca.png",
+          "objectFit": "contain",
+          "groupId": "rm-b2-g-flags",
+          "groupName": "Flags"
+        },
+        {
+          "id": "rm-b2-wifi",
+          "type": "image",
+          "name": "Wifi",
+          "position": {
+            "x": 696.94,
+            "y": 1753.4
+          },
+          "size": {
+            "width": 1085,
+            "height": 671.1
+          },
+          "rotation": 30,
+          "scale": 1,
+          "spanArtboards": true,
+          "imageSrc": "/elements/images/objects/object-wifi.png",
+          "objectFit": "contain"
+        }
+      ]
+    },
+    {
+      "id": "rm-board-3",
+      "name": "Worldwide Plans",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0A8CFF",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#0A8CFF",
+        "color2": "#E3F0FF",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "rm-b3-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 154.05,
+            "y": 192.8
+          },
+          "size": {
+            "width": 903,
+            "height": 173.16
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Worldwide Data",
+          "fontSize": 35.58,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.36,
+          "groupId": "rm-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rm-b3-headline-2",
+          "type": "text",
+          "name": "3D word",
+          "position": {
+            "x": 158.73,
+            "y": 233
+          },
+          "size": {
+            "width": 848,
+            "height": 486.33
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 20,
+            "blur": 0,
+            "color": "#6C90EE"
+          },
+          "content": "plans",
+          "fontSize": 99.93,
+          "color": "#EAF2FF",
+          "fontFamily": "Outfit",
+          "fontWeight": "900",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "fontStyle": "italic",
+          "letterSpacing": -3.5,
+          "fillGradient": {
+            "color1": "#FFFFFF",
+            "color2": "#BFD5FF",
+            "angle": 180
+          },
+          "groupId": "rm-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rm-b3-countries",
+          "type": "shape",
+          "name": "Countries badge",
+          "position": {
+            "x": 266,
+            "y": 742
+          },
+          "size": {
+            "width": 664,
+            "height": 108
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(30,140,20,0.35)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#6BDD48",
+          "strokeColor": "#D2FFBC",
+          "strokeWidth": 4,
+          "borderRadius": 54,
+          "fillGradient": {
+            "color1": "#A6F877",
+            "color2": "#44C92A",
+            "angle": 180
+          },
+          "groupId": "rm-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rm-b3-countries-text",
+          "type": "text",
+          "name": "Countries badge text",
+          "position": {
+            "x": 364.33,
+            "y": 754.47
+          },
+          "size": {
+            "width": 468,
+            "height": 81.76
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "190 COUNTRIES",
+          "fontSize": 16.8,
+          "color": "#0B4F16",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "rm-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rm-b3-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 153,
+            "y": 980
+          },
+          "size": {
+            "width": 900,
+            "height": 1955.45
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "normal",
+          "frameColor": "#141416",
+          "screenshotSrc": "/data/projects/roamo-screen-data.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "rm-board-4",
+      "name": "Receive Calls",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0A6BFF",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#0A6BFF",
+        "color2": "#2233F2",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "rm-b4-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 110,
+            "y": -559.27
+          },
+          "size": {
+            "width": 980,
+            "height": 2129.27
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "normal",
+          "frameColor": "#141416",
+          "screenshotSrc": "/data/projects/roamo-screen-calls.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "rm-b4-cloud-top",
+          "type": "image",
+          "name": "Cloud",
+          "position": {
+            "x": 663,
+            "y": -96
+          },
+          "size": {
+            "width": 558,
+            "height": 378
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-cloud-puff.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "rm-b4-swipe-bar",
+          "type": "shape",
+          "name": "Bar",
+          "position": {
+            "x": 118,
+            "y": 570
+          },
+          "size": {
+            "width": 1150,
+            "height": 232
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 40,
+            "color": "rgba(0,20,80,0.35)"
+          },
+          "fillOpacity": 0.82,
+          "shapeType": "rectangle",
+          "fillColor": "#3A3F4A",
+          "strokeColor": "rgba(255,255,255,0.28)",
+          "strokeWidth": 3,
+          "borderRadius": 116,
+          "groupId": "rm-b4-g-swipe",
+          "groupName": "Swipe to answer"
+        },
+        {
+          "id": "rm-b4-swipe-button",
+          "type": "shape",
+          "name": "Answer button",
+          "position": {
+            "x": 140,
+            "y": 586
+          },
+          "size": {
+            "width": 200,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#4FDB33",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#86F75A",
+            "color2": "#2BC51A",
+            "angle": 150
+          },
+          "groupId": "rm-b4-g-swipe",
+          "groupName": "Swipe to answer"
+        },
+        {
+          "id": "rm-b4-swipe-icon",
+          "type": "shape",
+          "name": "Phone icon",
+          "position": {
+            "x": 192,
+            "y": 638
+          },
+          "size": {
+            "width": 96,
+            "height": 96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#1F5FD6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24"
+          },
+          "groupId": "rm-b4-g-swipe",
+          "groupName": "Swipe to answer"
+        },
+        {
+          "id": "rm-b4-swipe-text",
+          "type": "text",
+          "name": "Bar text",
+          "position": {
+            "x": 396.45,
+            "y": 630.49
+          },
+          "size": {
+            "width": 605,
+            "height": 108.04
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Swipe To Answer",
+          "fontSize": 22.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "rm-b4-g-swipe",
+          "groupName": "Swipe to answer"
+        },
+        {
+          "id": "rm-b4-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 156.41,
+            "y": 1605.96
+          },
+          "size": {
+            "width": 869,
+            "height": 353.9
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 0,
+            "blur": 24,
+            "color": "rgba(160,220,255,0.7)"
+          },
+          "content": "Receive",
+          "fontSize": 72.72,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.73,
+          "groupId": "rm-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rm-b4-headline-2",
+          "type": "text",
+          "name": "3D word",
+          "position": {
+            "x": 113.57,
+            "y": 1716.84
+          },
+          "size": {
+            "width": 892,
+            "height": 621.38
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 0,
+            "color": "#6C90EE"
+          },
+          "content": "calls",
+          "fontSize": 127.68,
+          "color": "#EAF2FF",
+          "fontFamily": "Outfit",
+          "fontWeight": "900",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "fontStyle": "italic",
+          "letterSpacing": -4.47,
+          "fillGradient": {
+            "color1": "#FFFFFF",
+            "color2": "#BFD5FF",
+            "angle": 180
+          },
+          "groupId": "rm-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rm-b4-headline-3",
+          "type": "text",
+          "name": "Headline line 3",
+          "position": {
+            "x": 468.99,
+            "y": 2181.66
+          },
+          "size": {
+            "width": 554,
+            "height": 126.44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "while abroad",
+          "fontSize": 25.98,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "right",
+          "lineHeight": 1.1,
+          "groupId": "rm-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rm-b4-cloud-bottom",
+          "type": "image",
+          "name": "Cloud",
+          "position": {
+            "x": -130,
+            "y": 2180
+          },
+          "size": {
+            "width": 560,
+            "height": 368
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-cloud.png",
+          "objectFit": "contain"
+        }
+      ]
+    },
+    {
+      "id": "rm-board-5",
+      "name": "One Click",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0A8CFF",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#0A8CFF",
+        "color2": "#1A5BFF",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "rm-b5-airliner",
+          "type": "image",
+          "name": "Airliner",
+          "position": {
+            "x": -150,
+            "y": 672
+          },
+          "size": {
+            "width": 2864,
+            "height": 879
+          },
+          "rotation": 0,
+          "scale": 1,
+          "spanArtboards": true,
+          "spanBehind": true,
+          "imageSrc": "/elements/images/objects/object-airliner.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "rm-b5-cloud-left",
+          "type": "image",
+          "name": "Cloud",
+          "position": {
+            "x": -73.25,
+            "y": -58.5
+          },
+          "size": {
+            "width": 325.5,
+            "height": 220.5
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-cloud-puff.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "rm-b5-cloud-right",
+          "type": "image",
+          "name": "Cloud",
+          "position": {
+            "x": 1006.25,
+            "y": 786.25
+          },
+          "size": {
+            "width": 367.5,
+            "height": 241.5
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-cloud.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "rm-b5-headline-in",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 166.82,
+            "y": 98.46
+          },
+          "size": {
+            "width": 303,
+            "height": 458.15
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "In",
+          "fontSize": 94.14,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.88,
+          "groupId": "rm-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rm-b5-one-circle",
+          "type": "shape",
+          "name": "One badge",
+          "position": {
+            "x": 455,
+            "y": 222
+          },
+          "size": {
+            "width": 240,
+            "height": 240
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#6BDD48",
+          "strokeColor": "#D2FFBC",
+          "strokeWidth": 5,
+          "fillGradient": {
+            "color1": "#A6F877",
+            "color2": "#33C51C",
+            "angle": 150
+          },
+          "groupId": "rm-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rm-b5-one",
+          "type": "text",
+          "name": "One",
+          "position": {
+            "x": 523.37,
+            "y": 215.16
+          },
+          "size": {
+            "width": 111,
+            "height": 248.2
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "1",
+          "fontSize": 51,
+          "color": "#1E5FD9",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "rm-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rm-b5-headline-ne",
+          "type": "text",
+          "name": "Headline part 2",
+          "position": {
+            "x": 687.06,
+            "y": 98.46
+          },
+          "size": {
+            "width": 383,
+            "height": 458.15
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "ne",
+          "fontSize": 94.14,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.88,
+          "groupId": "rm-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rm-b5-headline-2",
+          "type": "text",
+          "name": "3D word",
+          "position": {
+            "x": 66.03,
+            "y": 257.4
+          },
+          "size": {
+            "width": 942,
+            "height": 657.15
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 27,
+            "blur": 0,
+            "color": "#6C90EE"
+          },
+          "content": "click",
+          "fontSize": 135.03,
+          "color": "#EAF2FF",
+          "fontFamily": "Outfit",
+          "fontWeight": "900",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "fontStyle": "italic",
+          "letterSpacing": -4.73,
+          "fillGradient": {
+            "color1": "#FFFFFF",
+            "color2": "#BFD5FF",
+            "angle": 180
+          },
+          "groupId": "rm-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rm-b5-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 104,
+            "y": 890
+          },
+          "size": {
+            "width": 1000,
+            "height": 2172.73
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "normal",
+          "frameColor": "#141416",
+          "screenshotSrc": "/data/projects/roamo-screen-phone.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "rm-board-6",
+      "name": "A Number For Travel",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0A8CFF",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#0A8CFF",
+        "color2": "#2F55FF",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "rm-b6-laurel-l",
+          "type": "shape",
+          "name": "Laurel left",
+          "position": {
+            "x": 329,
+            "y": 160
+          },
+          "size": {
+            "width": 116,
+            "height": 232
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M51.68 8.87 A40 20 78 0 1 68.32 87.13 A40 20 78 0 1 51.68 8.87 Z M3.41 71.36 A40 20 41 0 1 63.79 123.84 A40 20 41 0 1 3.41 71.36 Z M36.07 136.09 A38 20 39 0 1 95.13 183.91 A38 20 39 0 1 36.07 136.09 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 200"
+          },
+          "groupId": "rm-b6-g-users",
+          "groupName": "Users"
+        },
+        {
+          "id": "rm-b6-laurel-r",
+          "type": "shape",
+          "name": "Laurel right",
+          "position": {
+            "x": 761,
+            "y": 160
+          },
+          "size": {
+            "width": 116,
+            "height": 232
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M48.32 8.87 A40 20 102 0 1 31.68 87.13 A40 20 102 0 1 48.32 8.87 Z M96.59 71.36 A40 20 139 0 1 36.21 123.84 A40 20 139 0 1 96.59 71.36 Z M63.93 136.09 A38 20 141 0 1 4.87 183.91 A38 20 141 0 1 63.93 136.09 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 200"
+          },
+          "groupId": "rm-b6-g-users",
+          "groupName": "Users"
+        },
+        {
+          "id": "rm-b6-users-count",
+          "type": "text",
+          "name": "Count",
+          "position": {
+            "x": 411.92,
+            "y": 123.36
+          },
+          "size": {
+            "width": 384,
+            "height": 282.51
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "1m+",
+          "fontSize": 58.05,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.16,
+          "groupId": "rm-b6-g-users",
+          "groupName": "Users"
+        },
+        {
+          "id": "rm-b6-users-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 481.06,
+            "y": 306.47
+          },
+          "size": {
+            "width": 235,
+            "height": 109.94
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Users",
+          "fontSize": 22.59,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "rm-b6-g-users",
+          "groupName": "Users"
+        },
+        {
+          "id": "rm-b6-number-pill",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 150,
+            "y": 580
+          },
+          "size": {
+            "width": 1120,
+            "height": 280
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 40,
+            "color": "rgba(0,30,120,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 140,
+          "groupId": "rm-b6-g-number",
+          "groupName": "Phone number"
+        },
+        {
+          "id": "rm-b6-number-flag",
+          "type": "image",
+          "name": "Flag",
+          "position": {
+            "x": 148,
+            "y": 590
+          },
+          "size": {
+            "width": 260,
+            "height": 260
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-flag-uk.png",
+          "objectFit": "contain",
+          "groupId": "rm-b6-g-number",
+          "groupName": "Phone number"
+        },
+        {
+          "id": "rm-b6-number-text",
+          "type": "text",
+          "name": "Number",
+          "position": {
+            "x": 432.22,
+            "y": 632.01
+          },
+          "size": {
+            "width": 790,
+            "height": 172.28
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "+44 1234 5678",
+          "fontSize": 35.4,
+          "color": "#1A5CFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.35,
+          "groupId": "rm-b6-g-number",
+          "groupName": "Phone number"
+        },
+        {
+          "id": "rm-b6-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 232.72,
+            "y": 1620.11
+          },
+          "size": {
+            "width": 809,
+            "height": 264.41
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "a number",
+          "fontSize": 54.33,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.54,
+          "groupId": "rm-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rm-b6-headline-2",
+          "type": "text",
+          "name": "3D word",
+          "position": {
+            "x": 34.37,
+            "y": 1637.29
+          },
+          "size": {
+            "width": 1034,
+            "height": 544.14
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 0,
+            "color": "#6C90EE"
+          },
+          "content": "travel",
+          "fontSize": 111.81,
+          "color": "#EAF2FF",
+          "fontFamily": "Outfit",
+          "fontWeight": "900",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "fontStyle": "italic",
+          "letterSpacing": -3.91,
+          "fillGradient": {
+            "color1": "#FFFFFF",
+            "color2": "#BFD5FF",
+            "angle": 180
+          },
+          "groupId": "rm-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rm-b6-for-badge",
+          "type": "shape",
+          "name": "For badge",
+          "position": {
+            "x": 760,
+            "y": 1790
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#6BDD48",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#A6F877",
+            "color2": "#33C51C",
+            "angle": 150
+          },
+          "groupId": "rm-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rm-b6-for",
+          "type": "text",
+          "name": "For",
+          "position": {
+            "x": 766.89,
+            "y": 1816.94
+          },
+          "size": {
+            "width": 110,
+            "height": 68.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "for",
+          "fontSize": 13.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "rm-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rm-b6-tagline",
+          "type": "text",
+          "name": "Tagline",
+          "position": {
+            "x": 296.65,
+            "y": 2169.47
+          },
+          "size": {
+            "width": 610,
+            "height": 82.78
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Numbers - SMS - Calls",
+          "fontSize": 17.01,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "rm-b6-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    }
+  ]
+}

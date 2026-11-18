@@ -1,0 +1,2470 @@
+{
+  "id": "template_formpal_forms",
+  "name": "Formpal Forms",
+  "description": "App Store & Play Store screenshots for a forms, survey or productivity app. Clean white, blue, purple and green boards with heavy Outfit headlines, a paper sheet mascot, a 3D lightning bolt and paper plane that run across two screenshots, a tilted phone close-up, a no limits badge and a feature checklist, all grouped into editable layers.",
+  "previewImage": "/data/projects/previews/formpal-forms.png",
+  "timestamp": "2026-11-17T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "fp-board-1",
+      "name": "No Hassle",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FAFAFA",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "fp-b1-stars",
+          "type": "shape",
+          "name": "Rating stars",
+          "position": {
+            "x": 158,
+            "y": 112
+          },
+          "size": {
+            "width": 432,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#111111",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M36 0 L45.52 22.89 L70.24 24.88 L51.41 41.01 L57.16 65.12 L36 52.2 L14.84 65.12 L20.59 41.01 L1.76 24.88 L26.48 22.89 Z M126 0 L135.52 22.89 L160.24 24.88 L141.41 41.01 L147.16 65.12 L126 52.2 L104.84 65.12 L110.59 41.01 L91.76 24.88 L116.48 22.89 Z M216 0 L225.52 22.89 L250.24 24.88 L231.41 41.01 L237.16 65.12 L216 52.2 L194.84 65.12 L200.59 41.01 L181.76 24.88 L206.48 22.89 Z M306 0 L315.52 22.89 L340.24 24.88 L321.41 41.01 L327.16 65.12 L306 52.2 L284.84 65.12 L290.59 41.01 L271.76 24.88 L296.48 22.89 Z M396 0 L405.52 22.89 L430.24 24.88 L411.41 41.01 L417.16 65.12 L396 52.2 L374.84 65.12 L380.59 41.01 L361.76 24.88 L386.48 22.89 Z",
+          "specialProps": {
+            "viewBox": "0 0 432 72"
+          },
+          "groupId": "fp-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "fp-b1-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 149.32,
+            "y": 184.28
+          },
+          "size": {
+            "width": 686,
+            "height": 154.18
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Finally, forms",
+          "fontSize": 31.68,
+          "color": "#111111",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.63,
+          "groupId": "fp-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "fp-b1-headline-2",
+          "type": "text",
+          "name": "Headline line 2",
+          "position": {
+            "x": 155.71,
+            "y": 284.28
+          },
+          "size": {
+            "width": 901,
+            "height": 154.18
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "without the hassle",
+          "fontSize": 31.68,
+          "color": "#111111",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.63,
+          "groupId": "fp-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "fp-b1-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 46,
+            "y": 497
+          },
+          "size": {
+            "width": 1114,
+            "height": 2063
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#296FF5",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 88,
+          "fillGradient": {
+            "color1": "#2C72F7",
+            "color2": "#1764EE",
+            "angle": 180
+          },
+          "groupId": "fp-b1-g-hero",
+          "groupName": "Hero card"
+        },
+        {
+          "id": "fp-b1-card-grid",
+          "type": "shape",
+          "name": "Grid lines",
+          "position": {
+            "x": 76,
+            "y": 527
+          },
+          "size": {
+            "width": 1054,
+            "height": 2003
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M76 0 L76 2003 M152 0 L152 2003 M228 0 L228 2003 M304 0 L304 2003 M380 0 L380 2003 M456 0 L456 2003 M532 0 L532 2003 M608 0 L608 2003 M684 0 L684 2003 M760 0 L760 2003 M836 0 L836 2003 M912 0 L912 2003 M988 0 L988 2003 M0 76 L1054 76 M0 152 L1054 152 M0 228 L1054 228 M0 304 L1054 304 M0 380 L1054 380 M0 456 L1054 456 M0 532 L1054 532 M0 608 L1054 608 M0 684 L1054 684 M0 760 L1054 760 M0 836 L1054 836 M0 912 L1054 912 M0 988 L1054 988 M0 1064 L1054 1064 M0 1140 L1054 1140 M0 1216 L1054 1216 M0 1292 L1054 1292 M0 1368 L1054 1368 M0 1444 L1054 1444 M0 1520 L1054 1520 M0 1596 L1054 1596 M0 1672 L1054 1672 M0 1748 L1054 1748 M0 1824 L1054 1824 M0 1900 L1054 1900 M0 1976 L1054 1976",
+          "specialProps": {
+            "viewBox": "0 0 1054 2003",
+            "strokeOnly": true,
+            "baseStrokeWidth": 2
+          },
+          "groupId": "fp-b1-g-hero",
+          "groupName": "Hero card"
+        },
+        {
+          "id": "fp-b1-creating",
+          "type": "text",
+          "name": "Line 1",
+          "position": {
+            "x": 384.3,
+            "y": 611.25
+          },
+          "size": {
+            "width": 438,
+            "height": 148.48
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Creating",
+          "fontSize": 30.51,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.46,
+          "groupId": "fp-b1-g-hero",
+          "groupName": "Hero card"
+        },
+        {
+          "id": "fp-b1-forms-made",
+          "type": "text",
+          "name": "Line 2",
+          "position": {
+            "x": 191.24,
+            "y": 688.88
+          },
+          "size": {
+            "width": 815,
+            "height": 195.79
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Forms, made",
+          "fontSize": 40.23,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.6,
+          "groupId": "fp-b1-g-hero",
+          "groupName": "Hero card"
+        },
+        {
+          "id": "fp-b1-simple",
+          "type": "text",
+          "name": "Line 3",
+          "position": {
+            "x": 295.19,
+            "y": 776.96
+          },
+          "size": {
+            "width": 615,
+            "height": 280.9
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "simple",
+          "fontSize": 57.72,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.87,
+          "groupId": "fp-b1-g-hero",
+          "groupName": "Hero card"
+        },
+        {
+          "id": "fp-b1-create-pill",
+          "type": "shape",
+          "name": "Create forms button",
+          "position": {
+            "x": 393,
+            "y": 1036
+          },
+          "size": {
+            "width": 424,
+            "height": 114
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 30,
+            "color": "rgba(8,30,90,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 57,
+          "groupId": "fp-b1-g-hero",
+          "groupName": "Hero card"
+        },
+        {
+          "id": "fp-b1-create-pill-icon",
+          "type": "shape",
+          "name": "Create forms button icon",
+          "position": {
+            "x": 443.08,
+            "y": 1069.9
+          },
+          "size": {
+            "width": 46.2,
+            "height": 46.2
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#111111",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z M8.5 8h7 M8.5 12h7 M8.5 16h4",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 3.85
+          },
+          "groupId": "fp-b1-g-hero",
+          "groupName": "Hero card"
+        },
+        {
+          "id": "fp-b1-create-pill-text",
+          "type": "text",
+          "name": "Create forms button text",
+          "position": {
+            "x": 501.07,
+            "y": 1058.77
+          },
+          "size": {
+            "width": 309,
+            "height": 66.4
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Create forms",
+          "fontSize": 13.2,
+          "color": "#111111",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "fp-b1-g-hero",
+          "groupName": "Hero card"
+        },
+        {
+          "id": "fp-b1-cursor",
+          "type": "shape",
+          "name": "Cursor",
+          "position": {
+            "x": 800,
+            "y": 986
+          },
+          "size": {
+            "width": 50,
+            "height": 50
+          },
+          "rotation": 8,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#F23F7B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4 2 L44 22 L26 27 L19 46 Z",
+          "specialProps": {
+            "viewBox": "0 0 48 48"
+          },
+          "groupId": "fp-b1-g-hero",
+          "groupName": "Hero card"
+        },
+        {
+          "id": "fp-b1-award-1-laurel-l",
+          "type": "shape",
+          "name": "Laurel left",
+          "position": {
+            "x": 206,
+            "y": 1282
+          },
+          "size": {
+            "width": 72,
+            "height": 144
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M62.63 171.96 Q42.43 159.26 22.63 172.56 Q42.83 185.26 62.63 171.96 Z M43.19 152.18 Q28.98 134.53 7.08 140.36 Q21.29 158 43.19 152.18 Z M43.19 152.18 Q50.26 138.04 40.32 125.74 Q33.26 139.88 43.19 152.18 Z M31.25 127.15 Q23.97 106.96 2.55 105.42 Q9.84 125.62 31.25 127.15 Z M31.25 127.15 Q41.95 116.66 36.84 102.58 Q26.15 113.07 31.25 127.15 Z M28.12 99.6 Q27.82 79.33 9.17 71.37 Q9.47 91.65 28.12 99.6 Z M28.12 99.6 Q40.89 93.52 40.66 79.38 Q27.89 85.46 28.12 99.6 Z M34.12 72.53 Q40.06 54.4 25.9 41.6 Q19.96 59.74 34.12 72.53 Z M34.12 72.53 Q47.35 71.04 51.48 58.38 Q38.25 59.88 34.12 72.53 Z M48.6 48.89 Q59.41 34.63 50.77 18.97 Q39.96 33.23 48.6 48.89 Z M77.83 180.74 L67.49 175.24 L58.01 168.35 L49.58 160.21 L42.36 150.97 L36.5 140.82 L32.11 129.96 L29.28 118.59 L28.05 106.93 L28.46 95.22 L30.5 83.68 L34.12 72.53 L39.25 62 L45.81 52.28 L53.65 43.58 L62.63 36.04 L72.56 29.83 L74.34 33.17 L64.85 39.1 L56.27 46.29 L48.79 54.61 L42.53 63.89 L37.62 73.95 L34.16 84.59 L32.22 95.61 L31.83 106.8 L33 117.93 L35.71 128.79 L39.9 139.17 L45.49 148.86 L52.38 157.68 L60.44 165.45 L69.49 172.03 L79.37 177.28 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 200"
+          },
+          "groupId": "fp-b1-g-award-1",
+          "groupName": "Award left"
+        },
+        {
+          "id": "fp-b1-award-1-laurel-r",
+          "type": "shape",
+          "name": "Laurel right",
+          "position": {
+            "x": 486,
+            "y": 1282
+          },
+          "size": {
+            "width": 72,
+            "height": 144
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M37.37 171.96 Q57.57 159.26 77.37 172.56 Q57.17 185.26 37.37 171.96 Z M56.81 152.18 Q71.02 134.53 92.92 140.36 Q78.71 158 56.81 152.18 Z M56.81 152.18 Q49.74 138.04 59.68 125.74 Q66.74 139.88 56.81 152.18 Z M68.75 127.15 Q76.03 106.96 97.45 105.42 Q90.16 125.62 68.75 127.15 Z M68.75 127.15 Q58.05 116.66 63.16 102.58 Q73.85 113.07 68.75 127.15 Z M71.88 99.6 Q72.18 79.33 90.83 71.37 Q90.53 91.65 71.88 99.6 Z M71.88 99.6 Q59.11 93.52 59.34 79.38 Q72.11 85.46 71.88 99.6 Z M65.88 72.53 Q59.94 54.4 74.1 41.6 Q80.04 59.74 65.88 72.53 Z M65.88 72.53 Q52.65 71.04 48.52 58.38 Q61.75 59.88 65.88 72.53 Z M51.4 48.89 Q40.59 34.63 49.23 18.97 Q60.04 33.23 51.4 48.89 Z M22.17 180.74 L32.51 175.24 L41.99 168.35 L50.42 160.21 L57.64 150.97 L63.5 140.82 L67.89 129.96 L70.72 118.59 L71.95 106.93 L71.54 95.22 L69.5 83.68 L65.88 72.53 L60.75 62 L54.19 52.28 L46.35 43.58 L37.37 36.04 L27.44 29.83 L25.66 33.17 L35.15 39.1 L43.73 46.29 L51.21 54.61 L57.47 63.89 L62.38 73.95 L65.84 84.59 L67.78 95.61 L68.17 106.8 L67 117.93 L64.29 128.79 L60.1 139.17 L54.51 148.86 L47.62 157.68 L39.56 165.45 L30.51 172.03 L20.63 177.28 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 200"
+          },
+          "groupId": "fp-b1-g-award-1",
+          "groupName": "Award left"
+        },
+        {
+          "id": "fp-b1-award-1-stars",
+          "type": "shape",
+          "name": "Stars",
+          "position": {
+            "x": 325,
+            "y": 1308
+          },
+          "size": {
+            "width": 114,
+            "height": 18
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M9 0 L11.38 5.72 L17.56 6.22 L12.85 10.25 L14.29 16.28 L9 13.05 L3.71 16.28 L5.15 10.25 L0.44 6.22 L6.62 5.72 Z M33 0 L35.38 5.72 L41.56 6.22 L36.85 10.25 L38.29 16.28 L33 13.05 L27.71 16.28 L29.15 10.25 L24.44 6.22 L30.62 5.72 Z M57 0 L59.38 5.72 L65.56 6.22 L60.85 10.25 L62.29 16.28 L57 13.05 L51.71 16.28 L53.15 10.25 L48.44 6.22 L54.62 5.72 Z M81 0 L83.38 5.72 L89.56 6.22 L84.85 10.25 L86.29 16.28 L81 13.05 L75.71 16.28 L77.15 10.25 L72.44 6.22 L78.62 5.72 Z M105 0 L107.38 5.72 L113.56 6.22 L108.85 10.25 L110.29 16.28 L105 13.05 L99.71 16.28 L101.15 10.25 L96.44 6.22 L102.62 5.72 Z",
+          "specialProps": {
+            "viewBox": "0 0 114 18"
+          },
+          "groupId": "fp-b1-g-award-1",
+          "groupName": "Award left"
+        },
+        {
+          "id": "fp-b1-award-1-title",
+          "type": "text",
+          "name": "Award title",
+          "position": {
+            "x": 279.54,
+            "y": 1326.59
+          },
+          "size": {
+            "width": 203,
+            "height": 51
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Easy To Use",
+          "fontSize": 9,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "fp-b1-g-award-1",
+          "groupName": "Award left"
+        },
+        {
+          "id": "fp-b1-award-1-sub",
+          "type": "text",
+          "name": "Award line",
+          "position": {
+            "x": 285.8,
+            "y": 1372.85
+          },
+          "size": {
+            "width": 192,
+            "height": 38.9
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "A form in minutes",
+          "fontSize": 5.7,
+          "color": "rgba(255,255,255,0.8)",
+          "fontFamily": "Outfit",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "fp-b1-g-award-1",
+          "groupName": "Award left"
+        },
+        {
+          "id": "fp-b1-award-2-laurel-l",
+          "type": "shape",
+          "name": "Laurel left",
+          "position": {
+            "x": 646,
+            "y": 1282
+          },
+          "size": {
+            "width": 72,
+            "height": 144
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M62.63 171.96 Q42.43 159.26 22.63 172.56 Q42.83 185.26 62.63 171.96 Z M43.19 152.18 Q28.98 134.53 7.08 140.36 Q21.29 158 43.19 152.18 Z M43.19 152.18 Q50.26 138.04 40.32 125.74 Q33.26 139.88 43.19 152.18 Z M31.25 127.15 Q23.97 106.96 2.55 105.42 Q9.84 125.62 31.25 127.15 Z M31.25 127.15 Q41.95 116.66 36.84 102.58 Q26.15 113.07 31.25 127.15 Z M28.12 99.6 Q27.82 79.33 9.17 71.37 Q9.47 91.65 28.12 99.6 Z M28.12 99.6 Q40.89 93.52 40.66 79.38 Q27.89 85.46 28.12 99.6 Z M34.12 72.53 Q40.06 54.4 25.9 41.6 Q19.96 59.74 34.12 72.53 Z M34.12 72.53 Q47.35 71.04 51.48 58.38 Q38.25 59.88 34.12 72.53 Z M48.6 48.89 Q59.41 34.63 50.77 18.97 Q39.96 33.23 48.6 48.89 Z M77.83 180.74 L67.49 175.24 L58.01 168.35 L49.58 160.21 L42.36 150.97 L36.5 140.82 L32.11 129.96 L29.28 118.59 L28.05 106.93 L28.46 95.22 L30.5 83.68 L34.12 72.53 L39.25 62 L45.81 52.28 L53.65 43.58 L62.63 36.04 L72.56 29.83 L74.34 33.17 L64.85 39.1 L56.27 46.29 L48.79 54.61 L42.53 63.89 L37.62 73.95 L34.16 84.59 L32.22 95.61 L31.83 106.8 L33 117.93 L35.71 128.79 L39.9 139.17 L45.49 148.86 L52.38 157.68 L60.44 165.45 L69.49 172.03 L79.37 177.28 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 200"
+          },
+          "groupId": "fp-b1-g-award-2",
+          "groupName": "Award right"
+        },
+        {
+          "id": "fp-b1-award-2-laurel-r",
+          "type": "shape",
+          "name": "Laurel right",
+          "position": {
+            "x": 926,
+            "y": 1282
+          },
+          "size": {
+            "width": 72,
+            "height": 144
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M37.37 171.96 Q57.57 159.26 77.37 172.56 Q57.17 185.26 37.37 171.96 Z M56.81 152.18 Q71.02 134.53 92.92 140.36 Q78.71 158 56.81 152.18 Z M56.81 152.18 Q49.74 138.04 59.68 125.74 Q66.74 139.88 56.81 152.18 Z M68.75 127.15 Q76.03 106.96 97.45 105.42 Q90.16 125.62 68.75 127.15 Z M68.75 127.15 Q58.05 116.66 63.16 102.58 Q73.85 113.07 68.75 127.15 Z M71.88 99.6 Q72.18 79.33 90.83 71.37 Q90.53 91.65 71.88 99.6 Z M71.88 99.6 Q59.11 93.52 59.34 79.38 Q72.11 85.46 71.88 99.6 Z M65.88 72.53 Q59.94 54.4 74.1 41.6 Q80.04 59.74 65.88 72.53 Z M65.88 72.53 Q52.65 71.04 48.52 58.38 Q61.75 59.88 65.88 72.53 Z M51.4 48.89 Q40.59 34.63 49.23 18.97 Q60.04 33.23 51.4 48.89 Z M22.17 180.74 L32.51 175.24 L41.99 168.35 L50.42 160.21 L57.64 150.97 L63.5 140.82 L67.89 129.96 L70.72 118.59 L71.95 106.93 L71.54 95.22 L69.5 83.68 L65.88 72.53 L60.75 62 L54.19 52.28 L46.35 43.58 L37.37 36.04 L27.44 29.83 L25.66 33.17 L35.15 39.1 L43.73 46.29 L51.21 54.61 L57.47 63.89 L62.38 73.95 L65.84 84.59 L67.78 95.61 L68.17 106.8 L67 117.93 L64.29 128.79 L60.1 139.17 L54.51 148.86 L47.62 157.68 L39.56 165.45 L30.51 172.03 L20.63 177.28 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 200"
+          },
+          "groupId": "fp-b1-g-award-2",
+          "groupName": "Award right"
+        },
+        {
+          "id": "fp-b1-award-2-stars",
+          "type": "shape",
+          "name": "Stars",
+          "position": {
+            "x": 765,
+            "y": 1308
+          },
+          "size": {
+            "width": 114,
+            "height": 18
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M9 0 L11.38 5.72 L17.56 6.22 L12.85 10.25 L14.29 16.28 L9 13.05 L3.71 16.28 L5.15 10.25 L0.44 6.22 L6.62 5.72 Z M33 0 L35.38 5.72 L41.56 6.22 L36.85 10.25 L38.29 16.28 L33 13.05 L27.71 16.28 L29.15 10.25 L24.44 6.22 L30.62 5.72 Z M57 0 L59.38 5.72 L65.56 6.22 L60.85 10.25 L62.29 16.28 L57 13.05 L51.71 16.28 L53.15 10.25 L48.44 6.22 L54.62 5.72 Z M81 0 L83.38 5.72 L89.56 6.22 L84.85 10.25 L86.29 16.28 L81 13.05 L75.71 16.28 L77.15 10.25 L72.44 6.22 L78.62 5.72 Z M105 0 L107.38 5.72 L113.56 6.22 L108.85 10.25 L110.29 16.28 L105 13.05 L99.71 16.28 L101.15 10.25 L96.44 6.22 L102.62 5.72 Z",
+          "specialProps": {
+            "viewBox": "0 0 114 18"
+          },
+          "groupId": "fp-b1-g-award-2",
+          "groupName": "Award right"
+        },
+        {
+          "id": "fp-b1-award-2-title",
+          "type": "text",
+          "name": "Award title",
+          "position": {
+            "x": 710.93,
+            "y": 1326.59
+          },
+          "size": {
+            "width": 220,
+            "height": 51
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Free To Start",
+          "fontSize": 9,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "fp-b1-g-award-2",
+          "groupName": "Award right"
+        },
+        {
+          "id": "fp-b1-award-2-sub",
+          "type": "text",
+          "name": "Award line",
+          "position": {
+            "x": 732.86,
+            "y": 1372.85
+          },
+          "size": {
+            "width": 178,
+            "height": 38.9
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "No card needed",
+          "fontSize": 5.7,
+          "color": "rgba(255,255,255,0.8)",
+          "fontFamily": "Outfit",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "fp-b1-g-award-2",
+          "groupName": "Award right"
+        },
+        {
+          "id": "fp-b1-mascot",
+          "type": "image",
+          "name": "Mascot",
+          "position": {
+            "x": -82,
+            "y": 1486
+          },
+          "size": {
+            "width": 1231,
+            "height": 1378
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/mascots/mascot-paper.png",
+          "objectFit": "contain"
+        }
+      ]
+    },
+    {
+      "id": "fp-board-2",
+      "name": "AI Builds It",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#8539F3",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#8539F3",
+        "color2": "#AD77FF",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "fp-b2-panel",
+          "type": "shape",
+          "name": "Glass panel",
+          "position": {
+            "x": 22,
+            "y": 1560
+          },
+          "size": {
+            "width": 1162,
+            "height": 1020
+          },
+          "rotation": 0,
+          "scale": 1,
+          "fillOpacity": 0.14,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "rgba(255,255,255,0.35)",
+          "strokeWidth": 2.5,
+          "borderRadius": 84
+        },
+        {
+          "id": "fp-b2-phone",
+          "type": "image",
+          "name": "Phone close-up",
+          "position": {
+            "x": -250,
+            "y": 0
+          },
+          "size": {
+            "width": 1706,
+            "height": 1640
+          },
+          "rotation": 0,
+          "scale": 1,
+          "spanArtboards": true,
+          "imageSrc": "/data/projects/formpal-phone-chat.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "fp-b2-bolt",
+          "type": "image",
+          "name": "Lightning",
+          "position": {
+            "x": -246.4,
+            "y": 1062.2
+          },
+          "size": {
+            "width": 608.4,
+            "height": 891.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "spanArtboards": true,
+          "imageSrc": "/elements/images/objects/object-bolt.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "fp-b2-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 211.27,
+            "y": 1749.45
+          },
+          "size": {
+            "width": 779,
+            "height": 212.14
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Describe it.",
+          "fontSize": 43.59,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.87,
+          "groupId": "fp-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "fp-b2-headline-2",
+          "type": "text",
+          "name": "Headline line 2",
+          "position": {
+            "x": 139.01,
+            "y": 1866.68
+          },
+          "size": {
+            "width": 932,
+            "height": 265.57
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "AI builds it.",
+          "fontSize": 54.57,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.09,
+          "groupId": "fp-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "fp-b2-subtitle",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 103,
+            "y": 2084.65
+          },
+          "size": {
+            "width": 1000,
+            "height": 155.94
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "A ready form in seconds, no\ntemplates, no desktop.",
+          "fontSize": 16.95,
+          "color": "rgba(255,255,255,0.88)",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.2,
+          "groupId": "fp-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "fp-b2-free",
+          "type": "shape",
+          "name": "Free badge",
+          "position": {
+            "x": 310,
+            "y": 2340
+          },
+          "size": {
+            "width": 580,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "fillOpacity": 0.2,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "rgba(255,255,255,0.3)",
+          "strokeWidth": 2,
+          "borderRadius": 70,
+          "groupId": "fp-b2-g-free-pill",
+          "groupName": "Free badge"
+        },
+        {
+          "id": "fp-b2-free-icon",
+          "type": "shape",
+          "name": "Free badge icon",
+          "position": {
+            "x": 368.62,
+            "y": 2385.85
+          },
+          "size": {
+            "width": 48.3,
+            "height": 48.3
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M13.5 2 4.5 13.6h6.3L9.6 22l9.9-12h-6.4Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "fillRule": "evenodd"
+          },
+          "groupId": "fp-b2-g-free-pill",
+          "groupName": "Free badge"
+        },
+        {
+          "id": "fp-b2-free-text",
+          "type": "text",
+          "name": "Free badge text",
+          "position": {
+            "x": 430.12,
+            "y": 2374.94
+          },
+          "size": {
+            "width": 445,
+            "height": 68.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "100% FREE TO USE",
+          "fontSize": 13.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "fp-b2-g-free-pill",
+          "groupName": "Free badge"
+        }
+      ]
+    },
+    {
+      "id": "fp-board-3",
+      "name": "All In One Place",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FEFEFE",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "fp-b3-decor-ring",
+          "type": "shape",
+          "name": "Decor ring",
+          "position": {
+            "x": 260,
+            "y": -260
+          },
+          "size": {
+            "width": 1500,
+            "height": 1500
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#EDEDF0",
+          "strokeWidth": 4
+        },
+        {
+          "id": "fp-b3-decor-ring-2",
+          "type": "shape",
+          "name": "Decor ring",
+          "position": {
+            "x": 560,
+            "y": 40
+          },
+          "size": {
+            "width": 1000,
+            "height": 1000
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#F1F1F3",
+          "strokeWidth": 4
+        },
+        {
+          "id": "fp-b3-create-pill",
+          "type": "shape",
+          "name": "Create forms button",
+          "position": {
+            "x": 398,
+            "y": 318
+          },
+          "size": {
+            "width": 420,
+            "height": 96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 26,
+            "color": "rgba(0,0,0,0.14)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 48,
+          "groupId": "fp-b3-g-create-pill",
+          "groupName": "Create forms button"
+        },
+        {
+          "id": "fp-b3-create-pill-icon",
+          "type": "shape",
+          "name": "Create forms button icon",
+          "position": {
+            "x": 457.12,
+            "y": 344.48
+          },
+          "size": {
+            "width": 43.05,
+            "height": 43.05
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#111111",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z M8.5 8h7 M8.5 12h7 M8.5 16h4",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 3.59
+          },
+          "groupId": "fp-b3-g-create-pill",
+          "groupName": "Create forms button"
+        },
+        {
+          "id": "fp-b3-create-pill-text",
+          "type": "text",
+          "name": "Create forms button text",
+          "position": {
+            "x": 511.02,
+            "y": 333.86
+          },
+          "size": {
+            "width": 291,
+            "height": 63.1
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Create forms",
+          "fontSize": 12.3,
+          "color": "#111111",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "fp-b3-g-create-pill",
+          "groupName": "Create forms button"
+        },
+        {
+          "id": "fp-b3-cursor",
+          "type": "shape",
+          "name": "Cursor",
+          "position": {
+            "x": 800,
+            "y": 392
+          },
+          "size": {
+            "width": 44,
+            "height": 44
+          },
+          "rotation": 8,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#F23F7B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4 2 L44 22 L26 27 L19 46 Z",
+          "specialProps": {
+            "viewBox": "0 0 48 48"
+          },
+          "groupId": "fp-b3-g-create-pill",
+          "groupName": "Create forms button"
+        },
+        {
+          "id": "fp-b3-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 394.27,
+            "y": 442.85
+          },
+          "size": {
+            "width": 414,
+            "height": 161.04
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "All your",
+          "fontSize": 33.09,
+          "color": "#111111",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.66,
+          "groupId": "fp-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "fp-b3-headline-2",
+          "type": "text",
+          "name": "Headline line 2",
+          "position": {
+            "x": 179.71,
+            "y": 522.94
+          },
+          "size": {
+            "width": 845,
+            "height": 212.43
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "forms in one",
+          "fontSize": 43.65,
+          "color": "#111111",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.87,
+          "groupId": "fp-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "fp-b3-headline-3",
+          "type": "text",
+          "name": "Headline line 3",
+          "position": {
+            "x": 311.48,
+            "y": 634.23
+          },
+          "size": {
+            "width": 569,
+            "height": 305.87
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Place",
+          "fontSize": 62.85,
+          "color": "#111111",
+          "fontFamily": "Outfit",
+          "fontWeight": "900",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.26,
+          "groupId": "fp-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "fp-b3-subtitle",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 53,
+            "y": 887.81
+          },
+          "size": {
+            "width": 1100,
+            "height": 150.14
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Track responses and views across\nevery form",
+          "fontSize": 16.32,
+          "color": "#55565C",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.2,
+          "groupId": "fp-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "fp-b3-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 48,
+            "y": 1600
+          },
+          "size": {
+            "width": 1122,
+            "height": 2437.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "normal",
+          "frameColor": "#1C1C1E",
+          "screenshotSrc": "/data/projects/formpal-screen-list.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "fp-b3-badge-seal",
+          "type": "shape",
+          "name": "Badge",
+          "position": {
+            "x": 525,
+            "y": 1020
+          },
+          "size": {
+            "width": 760,
+            "height": 760
+          },
+          "rotation": -6,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 40,
+            "color": "rgba(0,150,70,0.35)"
+          },
+          "spanArtboards": true,
+          "shapeType": "custom-svg",
+          "fillColor": "#05DF66",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M100.6 50 L99.92 52.62 L98.04 55.05 L95.43 57.2 L92.75 59.09 L90.58 60.87 L89.37 62.79 L89.23 65.06 L89.92 67.77 L90.99 70.88 L91.83 74.15 L91.92 77.22 L90.94 79.74 L88.84 81.46 L85.89 82.32 L82.53 82.53 L79.24 82.48 L76.44 82.65 L74.33 83.49 L72.88 85.24 L71.85 87.85 L70.88 90.99 L69.65 94.12 L67.91 96.66 L65.64 98.12 L62.94 98.28 L60.04 97.24 L57.2 95.43 L54.57 93.46 L52.2 91.96 L50 91.4 L47.8 91.96 L45.43 93.46 L42.8 95.43 L39.96 97.24 L37.06 98.28 L34.36 98.12 L32.09 96.66 L30.35 94.12 L29.12 90.99 L28.15 87.85 L27.12 85.24 L25.67 83.49 L23.56 82.65 L20.76 82.48 L17.47 82.53 L14.11 82.32 L11.16 81.46 L9.06 79.74 L8.08 77.22 L8.17 74.15 L9.01 70.88 L10.08 67.77 L10.77 65.06 L10.63 62.79 L9.42 60.87 L7.25 59.09 L4.57 57.2 L1.96 55.05 L0.08 52.62 L-0.6 50 L0.08 47.38 L1.96 44.95 L4.57 42.8 L7.25 40.91 L9.42 39.13 L10.63 37.21 L10.77 34.94 L10.08 32.23 L9.01 29.12 L8.17 25.85 L8.08 22.78 L9.06 20.26 L11.16 18.54 L14.11 17.68 L17.47 17.47 L20.76 17.52 L23.56 17.35 L25.67 16.51 L27.12 14.76 L28.15 12.15 L29.12 9.01 L30.35 5.88 L32.09 3.34 L34.36 1.88 L37.06 1.72 L39.96 2.76 L42.8 4.57 L45.43 6.54 L47.8 8.04 L50 8.6 L52.2 8.04 L54.57 6.54 L57.2 4.57 L60.04 2.76 L62.94 1.72 L65.64 1.88 L67.91 3.34 L69.65 5.88 L70.88 9.01 L71.85 12.15 L72.88 14.76 L74.33 16.51 L76.44 17.35 L79.24 17.52 L82.53 17.47 L85.89 17.68 L88.84 18.54 L90.94 20.26 L91.92 22.78 L91.83 25.85 L90.99 29.12 L89.92 32.23 L89.23 34.94 L89.37 37.21 L90.58 39.13 L92.75 40.91 L95.43 42.8 L98.04 44.95 L99.92 47.38 L100.6 50 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillGradient": {
+            "color1": "#2BEA79",
+            "color2": "#00C957",
+            "angle": 160
+          },
+          "groupId": "fp-b3-g-badge",
+          "groupName": "No limits badge"
+        },
+        {
+          "id": "fp-b3-badge-ring",
+          "type": "shape",
+          "name": "Badge ring",
+          "position": {
+            "x": 601,
+            "y": 1096
+          },
+          "size": {
+            "width": 608,
+            "height": 608
+          },
+          "rotation": -6,
+          "scale": 1,
+          "opacity": 0.45,
+          "spanArtboards": true,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M100.6 50 L99.92 52.62 L98.04 55.05 L95.43 57.2 L92.75 59.09 L90.58 60.87 L89.37 62.79 L89.23 65.06 L89.92 67.77 L90.99 70.88 L91.83 74.15 L91.92 77.22 L90.94 79.74 L88.84 81.46 L85.89 82.32 L82.53 82.53 L79.24 82.48 L76.44 82.65 L74.33 83.49 L72.88 85.24 L71.85 87.85 L70.88 90.99 L69.65 94.12 L67.91 96.66 L65.64 98.12 L62.94 98.28 L60.04 97.24 L57.2 95.43 L54.57 93.46 L52.2 91.96 L50 91.4 L47.8 91.96 L45.43 93.46 L42.8 95.43 L39.96 97.24 L37.06 98.28 L34.36 98.12 L32.09 96.66 L30.35 94.12 L29.12 90.99 L28.15 87.85 L27.12 85.24 L25.67 83.49 L23.56 82.65 L20.76 82.48 L17.47 82.53 L14.11 82.32 L11.16 81.46 L9.06 79.74 L8.08 77.22 L8.17 74.15 L9.01 70.88 L10.08 67.77 L10.77 65.06 L10.63 62.79 L9.42 60.87 L7.25 59.09 L4.57 57.2 L1.96 55.05 L0.08 52.62 L-0.6 50 L0.08 47.38 L1.96 44.95 L4.57 42.8 L7.25 40.91 L9.42 39.13 L10.63 37.21 L10.77 34.94 L10.08 32.23 L9.01 29.12 L8.17 25.85 L8.08 22.78 L9.06 20.26 L11.16 18.54 L14.11 17.68 L17.47 17.47 L20.76 17.52 L23.56 17.35 L25.67 16.51 L27.12 14.76 L28.15 12.15 L29.12 9.01 L30.35 5.88 L32.09 3.34 L34.36 1.88 L37.06 1.72 L39.96 2.76 L42.8 4.57 L45.43 6.54 L47.8 8.04 L50 8.6 L52.2 8.04 L54.57 6.54 L57.2 4.57 L60.04 2.76 L62.94 1.72 L65.64 1.88 L67.91 3.34 L69.65 5.88 L70.88 9.01 L71.85 12.15 L72.88 14.76 L74.33 16.51 L76.44 17.35 L79.24 17.52 L82.53 17.47 L85.89 17.68 L88.84 18.54 L90.94 20.26 L91.92 22.78 L91.83 25.85 L90.99 29.12 L89.92 32.23 L89.23 34.94 L89.37 37.21 L90.58 39.13 L92.75 40.91 L95.43 42.8 L98.04 44.95 L99.92 47.38 L100.6 50 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 6
+          },
+          "groupId": "fp-b3-g-badge",
+          "groupName": "No limits badge"
+        },
+        {
+          "id": "fp-b3-badge-no",
+          "type": "text",
+          "name": "Badge line 1",
+          "position": {
+            "x": 755.8,
+            "y": 1170.84
+          },
+          "size": {
+            "width": 357,
+            "height": 297.11
+          },
+          "rotation": -6,
+          "scale": 1,
+          "content": "NO",
+          "fontSize": 61.05,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "900",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.22,
+          "groupId": "fp-b3-g-badge",
+          "groupName": "No limits badge"
+        },
+        {
+          "id": "fp-b3-badge-limits",
+          "type": "text",
+          "name": "Badge line 2",
+          "position": {
+            "x": 707.76,
+            "y": 1378.1
+          },
+          "size": {
+            "width": 473,
+            "height": 195.64
+          },
+          "rotation": -6,
+          "scale": 1,
+          "content": "LIMITS",
+          "fontSize": 40.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "900",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.8,
+          "groupId": "fp-b3-g-badge",
+          "groupName": "No limits badge"
+        }
+      ]
+    },
+    {
+      "id": "fp-board-4",
+      "name": "Get Notified",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#F7F1FB",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "fp-b4-grid",
+          "type": "shape",
+          "name": "Grid lines",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1206,
+            "height": 2622
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#ECE3F7",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M100 0 L100 2622 M200 0 L200 2622 M300 0 L300 2622 M400 0 L400 2622 M500 0 L500 2622 M600 0 L600 2622 M700 0 L700 2622 M800 0 L800 2622 M900 0 L900 2622 M1000 0 L1000 2622 M1100 0 L1100 2622 M1200 0 L1200 2622 M0 100 L1206 100 M0 200 L1206 200 M0 300 L1206 300 M0 400 L1206 400 M0 500 L1206 500 M0 600 L1206 600 M0 700 L1206 700 M0 800 L1206 800 M0 900 L1206 900 M0 1000 L1206 1000 M0 1100 L1206 1100 M0 1200 L1206 1200 M0 1300 L1206 1300 M0 1400 L1206 1400 M0 1500 L1206 1500 M0 1600 L1206 1600 M0 1700 L1206 1700 M0 1800 L1206 1800 M0 1900 L1206 1900 M0 2000 L1206 2000 M0 2100 L1206 2100 M0 2200 L1206 2200 M0 2300 L1206 2300 M0 2400 L1206 2400 M0 2500 L1206 2500 M0 2600 L1206 2600",
+          "specialProps": {
+            "viewBox": "0 0 1206 2622",
+            "strokeOnly": true,
+            "baseStrokeWidth": 2
+          }
+        },
+        {
+          "id": "fp-b4-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 45,
+            "y": -1272.59
+          },
+          "size": {
+            "width": 1115,
+            "height": 2422.59
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "normal",
+          "frameColor": "#1C1C1E",
+          "screenshotSrc": "/data/projects/formpal-screen-notify.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "fp-b4-note-back-2",
+          "type": "shape",
+          "name": "Card behind",
+          "position": {
+            "x": 215,
+            "y": 1650
+          },
+          "size": {
+            "width": 826,
+            "height": 92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#ECE6F6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 40,
+          "groupId": "fp-b4-g-notification",
+          "groupName": "Notification"
+        },
+        {
+          "id": "fp-b4-note-back-1",
+          "type": "shape",
+          "name": "Card behind",
+          "position": {
+            "x": 188,
+            "y": 1628
+          },
+          "size": {
+            "width": 880,
+            "height": 92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#F4F0FB",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 42,
+          "groupId": "fp-b4-g-notification",
+          "groupName": "Notification"
+        },
+        {
+          "id": "fp-b4-note-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 160,
+            "y": 1405
+          },
+          "size": {
+            "width": 896,
+            "height": 296
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 34,
+            "color": "rgba(70,40,140,0.14)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 44,
+          "groupId": "fp-b4-g-notification",
+          "groupName": "Notification"
+        },
+        {
+          "id": "fp-b4-note-icon",
+          "type": "image",
+          "name": "App icon",
+          "position": {
+            "x": 196,
+            "y": 1462
+          },
+          "size": {
+            "width": 176,
+            "height": 176
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/formpal-icon.png",
+          "objectFit": "contain",
+          "groupId": "fp-b4-g-notification",
+          "groupName": "Notification"
+        },
+        {
+          "id": "fp-b4-note-app",
+          "type": "text",
+          "name": "App name",
+          "position": {
+            "x": 411.78,
+            "y": 1460.24
+          },
+          "size": {
+            "width": 189,
+            "height": 52.1
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "FORMPAL",
+          "fontSize": 9.3,
+          "color": "#111111",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "fp-b4-g-notification",
+          "groupName": "Notification"
+        },
+        {
+          "id": "fp-b4-note-title",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 411.78,
+            "y": 1504.24
+          },
+          "size": {
+            "width": 280,
+            "height": 52.1
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "NEW RESPONSE",
+          "fontSize": 9.3,
+          "color": "#111111",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "fp-b4-g-notification",
+          "groupName": "Notification"
+        },
+        {
+          "id": "fp-b4-note-body",
+          "type": "text",
+          "name": "Message",
+          "position": {
+            "x": 413.04,
+            "y": 1548.07
+          },
+          "size": {
+            "width": 600,
+            "height": 93
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Someone just filled out your\ncustomer review. 🎉",
+          "fontSize": 9,
+          "color": "#3A3A40",
+          "fontFamily": "Outfit",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.25,
+          "groupId": "fp-b4-g-notification",
+          "groupName": "Notification"
+        },
+        {
+          "id": "fp-b4-note-badge",
+          "type": "shape",
+          "name": "Count badge",
+          "position": {
+            "x": 932,
+            "y": 1368
+          },
+          "size": {
+            "width": 136,
+            "height": 136
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 26,
+            "color": "rgba(230,30,30,0.45)"
+          },
+          "shapeType": "circle",
+          "fillColor": "#F2302A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#FF5A4F",
+            "color2": "#E3120F",
+            "angle": 135
+          },
+          "groupId": "fp-b4-g-notification",
+          "groupName": "Notification"
+        },
+        {
+          "id": "fp-b4-note-badge-n",
+          "type": "text",
+          "name": "Count",
+          "position": {
+            "x": 958.08,
+            "y": 1382.36
+          },
+          "size": {
+            "width": 85,
+            "height": 105.12
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "3",
+          "fontSize": 21.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "fp-b4-g-notification",
+          "groupName": "Notification"
+        },
+        {
+          "id": "fp-b4-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 189.72,
+            "y": 1857.06
+          },
+          "size": {
+            "width": 827,
+            "height": 204.69
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Get Notified",
+          "fontSize": 42.06,
+          "color": "#111111",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.84,
+          "groupId": "fp-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "fp-b4-headline-2",
+          "type": "text",
+          "name": "Headline line 2",
+          "position": {
+            "x": 206.65,
+            "y": 1980.77
+          },
+          "size": {
+            "width": 778,
+            "height": 262.01
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Instantly",
+          "fontSize": 53.84,
+          "color": "#111111",
+          "fontFamily": "Outfit",
+          "fontWeight": "900",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.08,
+          "groupId": "fp-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "fp-b4-subtitle",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 28,
+            "y": 2200.73
+          },
+          "size": {
+            "width": 1150,
+            "height": 153.18
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "See every response in the app, neatly\norganized and ready to export",
+          "fontSize": 16.65,
+          "color": "#141416",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.2,
+          "groupId": "fp-b4-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    },
+    {
+      "id": "fp-board-5",
+      "name": "Share A Link",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0C67F6",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "fp-b5-grid",
+          "type": "shape",
+          "name": "Grid lines",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1206,
+            "height": 2622
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.08,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M100 0 L100 2622 M200 0 L200 2622 M300 0 L300 2622 M400 0 L400 2622 M500 0 L500 2622 M600 0 L600 2622 M700 0 L700 2622 M800 0 L800 2622 M900 0 L900 2622 M1000 0 L1000 2622 M1100 0 L1100 2622 M1200 0 L1200 2622 M0 100 L1206 100 M0 200 L1206 200 M0 300 L1206 300 M0 400 L1206 400 M0 500 L1206 500 M0 600 L1206 600 M0 700 L1206 700 M0 800 L1206 800 M0 900 L1206 900 M0 1000 L1206 1000 M0 1100 L1206 1100 M0 1200 L1206 1200 M0 1300 L1206 1300 M0 1400 L1206 1400 M0 1500 L1206 1500 M0 1600 L1206 1600 M0 1700 L1206 1700 M0 1800 L1206 1800 M0 1900 L1206 1900 M0 2000 L1206 2000 M0 2100 L1206 2100 M0 2200 L1206 2200 M0 2300 L1206 2300 M0 2400 L1206 2400 M0 2500 L1206 2500 M0 2600 L1206 2600",
+          "specialProps": {
+            "viewBox": "0 0 1206 2622",
+            "strokeOnly": true,
+            "baseStrokeWidth": 2
+          }
+        },
+        {
+          "id": "fp-b5-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 341.38,
+            "y": 126.54
+          },
+          "size": {
+            "width": 526,
+            "height": 206.59
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Share a",
+          "fontSize": 42.45,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.85,
+          "groupId": "fp-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "fp-b5-headline-2",
+          "type": "text",
+          "name": "Headline line 2",
+          "position": {
+            "x": 164.94,
+            "y": 254.89
+          },
+          "size": {
+            "width": 868,
+            "height": 252.58
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Clean Link",
+          "fontSize": 51.9,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "900",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.04,
+          "groupId": "fp-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "fp-b5-subtitle",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 53,
+            "y": 472.73
+          },
+          "size": {
+            "width": 1100,
+            "height": 153.18
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Send a link and start collecting\nresponses",
+          "fontSize": 16.65,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.2,
+          "groupId": "fp-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "fp-b5-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 34,
+            "y": 750
+          },
+          "size": {
+            "width": 1130,
+            "height": 2455.18
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "normal",
+          "frameColor": "#1C1C1E",
+          "screenshotSrc": "/data/projects/formpal-screen-share.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "fp-board-6",
+      "name": "Everything Else",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "fp-b6-panel",
+          "type": "shape",
+          "name": "Green panel",
+          "position": {
+            "x": 48,
+            "y": 496
+          },
+          "size": {
+            "width": 1110,
+            "height": 2084
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0CD467",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 72,
+          "fillGradient": {
+            "color1": "#16D86C",
+            "color2": "#0BC85E",
+            "angle": 180
+          },
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-panel-grid",
+          "type": "shape",
+          "name": "Grid lines",
+          "position": {
+            "x": 78,
+            "y": 526
+          },
+          "size": {
+            "width": 1050,
+            "height": 2024
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.12,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M84 0 L84 2024 M168 0 L168 2024 M252 0 L252 2024 M336 0 L336 2024 M420 0 L420 2024 M504 0 L504 2024 M588 0 L588 2024 M672 0 L672 2024 M756 0 L756 2024 M840 0 L840 2024 M924 0 L924 2024 M1008 0 L1008 2024 M0 84 L1050 84 M0 168 L1050 168 M0 252 L1050 252 M0 336 L1050 336 M0 420 L1050 420 M0 504 L1050 504 M0 588 L1050 588 M0 672 L1050 672 M0 756 L1050 756 M0 840 L1050 840 M0 924 L1050 924 M0 1008 L1050 1008 M0 1092 L1050 1092 M0 1176 L1050 1176 M0 1260 L1050 1260 M0 1344 L1050 1344 M0 1428 L1050 1428 M0 1512 L1050 1512 M0 1596 L1050 1596 M0 1680 L1050 1680 M0 1764 L1050 1764 M0 1848 L1050 1848 M0 1932 L1050 1932 M0 2016 L1050 2016",
+          "specialProps": {
+            "viewBox": "0 0 1050 2024",
+            "strokeOnly": true,
+            "baseStrokeWidth": 2
+          },
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-list",
+          "type": "shape",
+          "name": "List card",
+          "position": {
+            "x": 84,
+            "y": 540
+          },
+          "size": {
+            "width": 1034,
+            "height": 1424
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 46,
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-f0-icon-bg",
+          "type": "shape",
+          "name": "Icon background",
+          "position": {
+            "x": 228,
+            "y": 727
+          },
+          "size": {
+            "width": 68,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#8B4DF7",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 16,
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-f0-icon-glyph",
+          "type": "shape",
+          "name": "Icon",
+          "position": {
+            "x": 234,
+            "y": 733
+          },
+          "size": {
+            "width": 56,
+            "height": 56
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M12 7v8 M8.5 11.5 12 15l3.5-3.5",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5.5
+          },
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-f0-text",
+          "type": "text",
+          "name": "Feature",
+          "position": {
+            "x": 344.6,
+            "y": 694.8
+          },
+          "size": {
+            "width": 740,
+            "height": 140.4
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Import from your\nother form tools",
+          "fontSize": 16.2,
+          "color": "#111111",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.12,
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-f0-divider",
+          "type": "shape",
+          "name": "Divider",
+          "position": {
+            "x": 170,
+            "y": 905
+          },
+          "size": {
+            "width": 880,
+            "height": 3
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#EEEEF0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 2,
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-f1-icon",
+          "type": "shape",
+          "name": "Icon",
+          "position": {
+            "x": 220,
+            "y": 985
+          },
+          "size": {
+            "width": 84,
+            "height": 84
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#1F6FF2",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4 6.5A2.5 2.5 0 0 1 6.5 4h2A2.5 2.5 0 0 1 11 6.5v2A2.5 2.5 0 0 1 8.5 11h-2A2.5 2.5 0 0 1 4 8.5Z M13 6.5A2.5 2.5 0 0 1 15.5 4h2A2.5 2.5 0 0 1 20 6.5v2a2.5 2.5 0 0 1-2.5 2.5h-2A2.5 2.5 0 0 1 13 8.5Z M4 15.5A2.5 2.5 0 0 1 6.5 13h2a2.5 2.5 0 0 1 2.5 2.5v2A2.5 2.5 0 0 1 8.5 20h-2A2.5 2.5 0 0 1 4 17.5Z M13 15.5a2.5 2.5 0 0 1 2.5-2.5h2a2.5 2.5 0 0 1 2.5 2.5v2a2.5 2.5 0 0 1-2.5 2.5h-2a2.5 2.5 0 0 1-2.5-2.5Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "fillRule": "evenodd"
+          },
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-f1-text",
+          "type": "text",
+          "name": "Feature",
+          "position": {
+            "x": 344.77,
+            "y": 954.8
+          },
+          "size": {
+            "width": 740,
+            "height": 140.4
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "15 question types,\nincl. file upload",
+          "fontSize": 16.2,
+          "color": "#111111",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.12,
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-f1-divider",
+          "type": "shape",
+          "name": "Divider",
+          "position": {
+            "x": 170,
+            "y": 1150
+          },
+          "size": {
+            "width": 880,
+            "height": 3
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#EEEEF0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 2,
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-f2-icon-bg",
+          "type": "shape",
+          "name": "Icon background",
+          "position": {
+            "x": 228,
+            "y": 1234
+          },
+          "size": {
+            "width": 68,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#E5266B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 16,
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-f2-icon-glyph",
+          "type": "shape",
+          "name": "Icon",
+          "position": {
+            "x": 234,
+            "y": 1240
+          },
+          "size": {
+            "width": 56,
+            "height": 56
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M7 7h4v4H7Z M13 7h4v4h-4Z M7 13h4v4H7Z M13 13h1.5 M16.5 13v4 M13 16.5h2",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5.5
+          },
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-f2-text",
+          "type": "text",
+          "name": "Feature",
+          "position": {
+            "x": 342.13,
+            "y": 1232.04
+          },
+          "size": {
+            "width": 740,
+            "height": 79.92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Downloadable QR code",
+          "fontSize": 16.2,
+          "color": "#111111",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.12,
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-f2-divider",
+          "type": "shape",
+          "name": "Divider",
+          "position": {
+            "x": 170,
+            "y": 1400
+          },
+          "size": {
+            "width": 880,
+            "height": 3
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#EEEEF0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 2,
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-f3-icon-bg",
+          "type": "shape",
+          "name": "Icon background",
+          "position": {
+            "x": 228,
+            "y": 1497
+          },
+          "size": {
+            "width": 68,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#14A85A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 16,
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-f3-icon-glyph",
+          "type": "shape",
+          "name": "Icon",
+          "position": {
+            "x": 234,
+            "y": 1503
+          },
+          "size": {
+            "width": 56,
+            "height": 56
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M12 17V9 M8.5 12.5 12 9l3.5 3.5",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5.5
+          },
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-f3-text",
+          "type": "text",
+          "name": "Feature",
+          "position": {
+            "x": 344.87,
+            "y": 1464.8
+          },
+          "size": {
+            "width": 740,
+            "height": 140.4
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Set a response limit or\nclose date",
+          "fontSize": 16.2,
+          "color": "#111111",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.12,
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-f3-divider",
+          "type": "shape",
+          "name": "Divider",
+          "position": {
+            "x": 170,
+            "y": 1660
+          },
+          "size": {
+            "width": 880,
+            "height": 3
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#EEEEF0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 2,
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-f4-icon",
+          "type": "shape",
+          "name": "Icon",
+          "position": {
+            "x": 220,
+            "y": 1722
+          },
+          "size": {
+            "width": 84,
+            "height": 84
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#16A3B8",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M3 8V6a3 3 0 0 1 3-3h2 M16 3h2a3 3 0 0 1 3 3v2 M21 16v2a3 3 0 0 1-3 3h-2 M8 21H6a3 3 0 0 1-3-3v-2 M9 9.5v1 M15 9.5v1 M12 9.5v3.5h-1 M9 16a4.5 4.5 0 0 0 6 0",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 7
+          },
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-f4-text",
+          "type": "text",
+          "name": "Feature",
+          "position": {
+            "x": 342.13,
+            "y": 1722.04
+          },
+          "size": {
+            "width": 740,
+            "height": 79.92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Export responses as CSV",
+          "fontSize": 16.2,
+          "color": "#111111",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.12,
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-tail-1",
+          "type": "text",
+          "name": "Closing line 1",
+          "position": {
+            "x": 502.23,
+            "y": 1994.94
+          },
+          "size": {
+            "width": 572,
+            "height": 165.56
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "everything",
+          "fontSize": 34.02,
+          "color": "rgba(255,255,255,0.88)",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "right",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.68,
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-tail-2",
+          "type": "text",
+          "name": "Closing line 2",
+          "position": {
+            "x": 242.24,
+            "y": 2103.31
+          },
+          "size": {
+            "width": 833,
+            "height": 224.69
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "else you will",
+          "fontSize": 46.17,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "right",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.92,
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-tail-3",
+          "type": "text",
+          "name": "Closing line 3",
+          "position": {
+            "x": 528.47,
+            "y": 2229.05
+          },
+          "size": {
+            "width": 548,
+            "height": 309.23
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Need",
+          "fontSize": 63.54,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "800",
+          "textAlign": "right",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.27,
+          "groupId": "fp-b6-g-features",
+          "groupName": "Feature list"
+        },
+        {
+          "id": "fp-b6-plane",
+          "type": "image",
+          "name": "Paper plane",
+          "position": {
+            "x": -555.9,
+            "y": 224.5
+          },
+          "size": {
+            "width": 895.4,
+            "height": 1009.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "spanArtboards": true,
+          "imageSrc": "/elements/images/objects/object-paper-plane.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "fp-b6-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 100,
+            "y": 92
+          },
+          "size": {
+            "width": 1004,
+            "height": 318
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 44,
+            "color": "rgba(0,0,0,0.12)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 46,
+          "groupId": "fp-b6-g-app-card",
+          "groupName": "App card"
+        },
+        {
+          "id": "fp-b6-icon",
+          "type": "image",
+          "name": "App icon",
+          "position": {
+            "x": 152,
+            "y": 141
+          },
+          "size": {
+            "width": 220,
+            "height": 220
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/formpal-icon.png",
+          "objectFit": "contain",
+          "groupId": "fp-b6-g-app-card",
+          "groupName": "App card"
+        },
+        {
+          "id": "fp-b6-name",
+          "type": "text",
+          "name": "App name",
+          "position": {
+            "x": 390.41,
+            "y": 188.15
+          },
+          "size": {
+            "width": 236,
+            "height": 73
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Formpal",
+          "fontSize": 15,
+          "color": "#111111",
+          "fontFamily": "Outfit",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "fp-b6-g-app-card",
+          "groupName": "App card"
+        },
+        {
+          "id": "fp-b6-category",
+          "type": "text",
+          "name": "Category",
+          "position": {
+            "x": 391.71,
+            "y": 260.53
+          },
+          "size": {
+            "width": 194,
+            "height": 48.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Productivity",
+          "fontSize": 8.4,
+          "color": "#55565C",
+          "fontFamily": "Outfit",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "fp-b6-g-app-card",
+          "groupName": "App card"
+        },
+        {
+          "id": "fp-b6-download",
+          "type": "shape",
+          "name": "Download button",
+          "position": {
+            "x": 768,
+            "y": 190
+          },
+          "size": {
+            "width": 282,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0076F4",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 60,
+          "groupId": "fp-b6-g-app-card",
+          "groupName": "App card"
+        },
+        {
+          "id": "fp-b6-download-text",
+          "type": "text",
+          "name": "Download button text",
+          "position": {
+            "x": 815.68,
+            "y": 218
+          },
+          "size": {
+            "width": 227,
+            "height": 62
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Download",
+          "fontSize": 12,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "fp-b6-g-app-card",
+          "groupName": "App card"
+        }
+      ]
+    }
+  ]
+}

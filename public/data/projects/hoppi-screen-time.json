@@ -1,0 +1,2394 @@
+{
+  "id": "template_hoppi_screen_time",
+  "name": "Hoppi Screen Time",
+  "description": "App Store & Play Store screenshots for a screen time, habit or rewards app made playful. Bright blue and white boards with rounded Fredoka headlines, a white bunny mascot, a sticker style Game title, coins, a treasure chest, a padlock and sticker icons, every part grouped as editable layers.",
+  "previewImage": "/data/projects/previews/hoppi-screen-time.png",
+  "timestamp": "2026-11-17T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "hp-board-1",
+      "name": "Turn Life Into A Game",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#2682FD",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "hp-b1-cloud-1",
+          "type": "image",
+          "name": "Cloud",
+          "position": {
+            "x": -120,
+            "y": 1270
+          },
+          "size": {
+            "width": 560,
+            "height": 368
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.55,
+          "imageSrc": "/elements/images/objects/object-cloud.png",
+          "objectFit": "contain",
+          "groupId": "hp-b1-g-clouds",
+          "groupName": "Clouds"
+        },
+        {
+          "id": "hp-b1-cloud-2",
+          "type": "image",
+          "name": "Cloud",
+          "position": {
+            "x": 776,
+            "y": 1348
+          },
+          "size": {
+            "width": 496,
+            "height": 336
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.55,
+          "imageSrc": "/elements/images/objects/object-cloud-puff.png",
+          "objectFit": "contain",
+          "groupId": "hp-b1-g-clouds",
+          "groupName": "Clouds"
+        },
+        {
+          "id": "hp-b1-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 146.78,
+            "y": 62.82
+          },
+          "size": {
+            "width": 893,
+            "height": 605.61
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Turn",
+          "fontSize": 124.44,
+          "color": "#FFFFFF",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.24,
+          "groupId": "hp-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b1-headline-2",
+          "type": "text",
+          "name": "Headline line 2",
+          "position": {
+            "x": 203,
+            "y": 478.55
+          },
+          "size": {
+            "width": 459,
+            "height": 297.55
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Your",
+          "fontSize": 61.14,
+          "color": "#FFFFFF",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.61,
+          "groupId": "hp-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b1-life-pill",
+          "type": "shape",
+          "name": "Life pill",
+          "position": {
+            "x": 655,
+            "y": 545
+          },
+          "size": {
+            "width": 390,
+            "height": 180
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 26,
+            "color": "rgba(0,40,140,0.28)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 72,
+          "groupId": "hp-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b1-life",
+          "type": "text",
+          "name": "Life",
+          "position": {
+            "x": 684.86,
+            "y": 523.69
+          },
+          "size": {
+            "width": 323,
+            "height": 236.23
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Life",
+          "fontSize": 48.54,
+          "color": "#111111",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.49,
+          "groupId": "hp-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b1-smiley",
+          "type": "image",
+          "name": "Smiley sticker",
+          "position": {
+            "x": 349.18,
+            "y": 726.35
+          },
+          "size": {
+            "width": 250.65,
+            "height": 250.17
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-smiley.png",
+          "objectFit": "contain",
+          "groupId": "hp-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b1-headline-3",
+          "type": "text",
+          "name": "Headline line 3",
+          "position": {
+            "x": 622.97,
+            "y": 713.4
+          },
+          "size": {
+            "width": 407,
+            "height": 209.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "into a",
+          "fontSize": 43.11,
+          "color": "#FFFFFF",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.43,
+          "groupId": "hp-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b1-game",
+          "type": "text",
+          "name": "Game",
+          "position": {
+            "x": 94.29,
+            "y": 810.65
+          },
+          "size": {
+            "width": 1020,
+            "height": 555.82
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 0,
+            "color": "#1C62D8"
+          },
+          "content": "Game",
+          "fontSize": 114.21,
+          "color": "#111111",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.14,
+          "outlineColor": "#FFFFFF",
+          "outlineWidth": 10.2,
+          "groupId": "hp-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b1-bunny",
+          "type": "image",
+          "name": "Bunny mascot",
+          "position": {
+            "x": -60,
+            "y": 1262
+          },
+          "size": {
+            "width": 1376,
+            "height": 1600
+          },
+          "rotation": 0,
+          "scale": 1,
+          "spanArtboards": true,
+          "imageSrc": "/elements/images/mascots/mascot-bunny-hourglass.png",
+          "objectFit": "contain"
+        }
+      ]
+    },
+    {
+      "id": "hp-board-2",
+      "name": "Block Distracting Apps",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "hp-b2-panel",
+          "type": "shape",
+          "name": "Blue panel",
+          "position": {
+            "x": 0,
+            "y": 232
+          },
+          "size": {
+            "width": 1206,
+            "height": 2500
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#2682FD",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 96
+        },
+        {
+          "id": "hp-b2-tabbar",
+          "type": "shape",
+          "name": "Tab bar",
+          "position": {
+            "x": 80,
+            "y": 200
+          },
+          "size": {
+            "width": 1046,
+            "height": 180
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 30,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#1A1A1E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 90,
+          "groupId": "hp-b2-g-tabbar",
+          "groupName": "Tab bar"
+        },
+        {
+          "id": "hp-b2-tab-bunny",
+          "type": "image",
+          "name": "Mascot icon",
+          "position": {
+            "x": 198.59,
+            "y": 222
+          },
+          "size": {
+            "width": 99.05,
+            "height": 123.53
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/mascots/mascot-bunny.png",
+          "objectFit": "contain",
+          "groupId": "hp-b2-g-tabbar",
+          "groupName": "Tab bar"
+        },
+        {
+          "id": "hp-b2-tab-cal",
+          "type": "shape",
+          "name": "Calendar icon",
+          "position": {
+            "x": 728,
+            "y": 246
+          },
+          "size": {
+            "width": 92,
+            "height": 92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 20,
+          "groupId": "hp-b2-g-tabbar",
+          "groupName": "Tab bar"
+        },
+        {
+          "id": "hp-b2-tab-cal-top",
+          "type": "shape",
+          "name": "Calendar icon top",
+          "position": {
+            "x": 728,
+            "y": 246
+          },
+          "size": {
+            "width": 92,
+            "height": 28
+          },
+          "rotation": 0,
+          "scale": 1,
+          "borderRadiusType": "individual",
+          "borderRadiusTopLeft": 20,
+          "borderRadiusTopRight": 20,
+          "shapeType": "rectangle",
+          "fillColor": "#EF4444",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 0,
+          "groupId": "hp-b2-g-tabbar",
+          "groupName": "Tab bar"
+        },
+        {
+          "id": "hp-b2-tab-cal-day",
+          "type": "text",
+          "name": "Calendar day",
+          "position": {
+            "x": 731,
+            "y": 275.23
+          },
+          "size": {
+            "width": 86,
+            "height": 59.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "29",
+          "fontSize": 11.4,
+          "color": "#111111",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hp-b2-g-tabbar",
+          "groupName": "Tab bar"
+        },
+        {
+          "id": "hp-b2-tab-profile",
+          "type": "shape",
+          "name": "Profile icon",
+          "position": {
+            "x": 940,
+            "y": 246
+          },
+          "size": {
+            "width": 92,
+            "height": 92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#8B5CF6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#A78BFA",
+            "color2": "#6D28D9",
+            "angle": 135
+          },
+          "groupId": "hp-b2-g-tabbar",
+          "groupName": "Tab bar"
+        },
+        {
+          "id": "hp-b2-tab-profile-glyph",
+          "type": "shape",
+          "name": "Profile glyph",
+          "position": {
+            "x": 958,
+            "y": 262
+          },
+          "size": {
+            "width": 56,
+            "height": 56
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z M4.5 20.5a7.5 7.5 0 0 1 15 0",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4.5
+          },
+          "groupId": "hp-b2-g-tabbar",
+          "groupName": "Tab bar"
+        },
+        {
+          "id": "hp-b2-tab-lock",
+          "type": "image",
+          "name": "Padlock",
+          "position": {
+            "x": 359.8,
+            "y": 108.15
+          },
+          "size": {
+            "width": 230.4,
+            "height": 302.85
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-padlock.png",
+          "objectFit": "contain",
+          "groupId": "hp-b2-g-tabbar",
+          "groupName": "Tab bar"
+        },
+        {
+          "id": "hp-b2-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 297.7,
+            "y": 513.92
+          },
+          "size": {
+            "width": 394,
+            "height": 209.07
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Block",
+          "fontSize": 42.96,
+          "color": "#FFFFFF",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.43,
+          "groupId": "hp-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b2-eyes",
+          "type": "image",
+          "name": "Googly eyes sticker",
+          "position": {
+            "x": 695.56,
+            "y": 556.42
+          },
+          "size": {
+            "width": 218.87,
+            "height": 154.61
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-eyes.png",
+          "objectFit": "contain",
+          "groupId": "hp-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b2-headline-2",
+          "type": "text",
+          "name": "Headline line 2",
+          "position": {
+            "x": 255.98,
+            "y": 662.9
+          },
+          "size": {
+            "width": 687,
+            "height": 190.97
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Distracting",
+          "fontSize": 39.24,
+          "color": "#FFFFFF",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.39,
+          "groupId": "hp-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b2-headline-3",
+          "type": "text",
+          "name": "Headline line 3",
+          "position": {
+            "x": 310.12,
+            "y": 746.25
+          },
+          "size": {
+            "width": 540,
+            "height": 327.62
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Apps",
+          "fontSize": 67.32,
+          "color": "#FFFFFF",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.67,
+          "groupId": "hp-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b2-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 74,
+            "y": 1100
+          },
+          "size": {
+            "width": 1076,
+            "height": 2337.85
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "normal",
+          "frameColor": "#1C1C1E",
+          "screenshotSrc": "/data/projects/hoppi-screen-apps.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "hp-b2-lock-ring",
+          "type": "shape",
+          "name": "Ring",
+          "position": {
+            "x": 343,
+            "y": 2120
+          },
+          "size": {
+            "width": 520,
+            "height": 520
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "rgba(255,255,255,0.55)",
+          "strokeWidth": 4,
+          "groupId": "hp-b2-g-lock-button",
+          "groupName": "Lock button"
+        },
+        {
+          "id": "hp-b2-lock-glow",
+          "type": "shape",
+          "name": "Button",
+          "position": {
+            "x": 413,
+            "y": 2190
+          },
+          "size": {
+            "width": 380,
+            "height": 380
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 0,
+            "blur": 70,
+            "color": "rgba(255,255,255,0.9)"
+          },
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "hp-b2-g-lock-button",
+          "groupName": "Lock button"
+        },
+        {
+          "id": "hp-b2-lock-icon",
+          "type": "image",
+          "name": "Padlock",
+          "position": {
+            "x": 517.67,
+            "y": 2271.99
+          },
+          "size": {
+            "width": 170.67,
+            "height": 224.01
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-padlock.png",
+          "objectFit": "contain",
+          "groupId": "hp-b2-g-lock-button",
+          "groupName": "Lock button"
+        }
+      ]
+    },
+    {
+      "id": "hp-board-3",
+      "name": "Build Habits Earn Coins",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "hp-b3-ring",
+          "type": "shape",
+          "name": "Ring",
+          "position": {
+            "x": -40,
+            "y": 860
+          },
+          "size": {
+            "width": 1280,
+            "height": 1280
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#ECEEF2",
+          "strokeWidth": 4,
+          "groupId": "hp-b3-g-decor",
+          "groupName": "Decor"
+        },
+        {
+          "id": "hp-b3-dot-1",
+          "type": "shape",
+          "name": "Dot",
+          "position": {
+            "x": 78,
+            "y": 761
+          },
+          "size": {
+            "width": 24,
+            "height": 24
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#2F7BFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "hp-b3-g-decor",
+          "groupName": "Decor"
+        },
+        {
+          "id": "hp-b3-dot-2",
+          "type": "shape",
+          "name": "Dot",
+          "position": {
+            "x": 1118,
+            "y": 1126
+          },
+          "size": {
+            "width": 24,
+            "height": 24
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#2F7BFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "hp-b3-g-decor",
+          "groupName": "Decor"
+        },
+        {
+          "id": "hp-b3-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 241.92,
+            "y": 236.04
+          },
+          "size": {
+            "width": 719,
+            "height": 185.57
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Build Habits",
+          "fontSize": 38.13,
+          "color": "#111111",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.38,
+          "groupId": "hp-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b3-amp",
+          "type": "text",
+          "name": "Ampersand",
+          "position": {
+            "x": 325.38,
+            "y": 337.7
+          },
+          "size": {
+            "width": 173,
+            "height": 273.31
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "&",
+          "fontSize": 56.16,
+          "color": "#D7D9DE",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.56,
+          "groupId": "hp-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b3-headline-2",
+          "type": "text",
+          "name": "Headline line 2",
+          "position": {
+            "x": 508.89,
+            "y": 337.7
+          },
+          "size": {
+            "width": 441,
+            "height": 273.31
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Earn",
+          "fontSize": 56.16,
+          "color": "#111111",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.56,
+          "groupId": "hp-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b3-headline-c",
+          "type": "text",
+          "name": "Headline line 3",
+          "position": {
+            "x": 258.2,
+            "y": 477.41
+          },
+          "size": {
+            "width": 213,
+            "height": 396.39
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "C",
+          "fontSize": 81.45,
+          "color": "#111111",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.81,
+          "groupId": "hp-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b3-coin",
+          "type": "image",
+          "name": "Coin",
+          "position": {
+            "x": 423.92,
+            "y": 607.92
+          },
+          "size": {
+            "width": 159.28,
+            "height": 160.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-coin.png",
+          "objectFit": "contain",
+          "groupId": "hp-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b3-headline-ins",
+          "type": "text",
+          "name": "Headline line 3 end",
+          "position": {
+            "x": 578.5,
+            "y": 477.41
+          },
+          "size": {
+            "width": 382,
+            "height": 396.39
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "ins",
+          "fontSize": 81.45,
+          "color": "#111111",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.81,
+          "groupId": "hp-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b3-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 140,
+            "y": 920
+          },
+          "size": {
+            "width": 924,
+            "height": 2007.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "normal",
+          "frameColor": "#1C1C1E",
+          "screenshotSrc": "/data/projects/hoppi-screen-book.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "hp-board-4",
+      "name": "Coins Unlock Screen Time",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#2682FD",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "hp-b4-coins-pill",
+          "type": "shape",
+          "name": "Coins pill",
+          "position": {
+            "x": 418,
+            "y": 210
+          },
+          "size": {
+            "width": 364,
+            "height": 128
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(0,40,140,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 64,
+          "groupId": "hp-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b4-coins-label",
+          "type": "text",
+          "name": "Coins",
+          "position": {
+            "x": 474.55,
+            "y": 210.7
+          },
+          "size": {
+            "width": 251,
+            "height": 122.64
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Coins",
+          "fontSize": 25.2,
+          "color": "#111111",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hp-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b4-chest-icon",
+          "type": "image",
+          "name": "Chest",
+          "position": {
+            "x": 153.56,
+            "y": 353.69
+          },
+          "size": {
+            "width": 206.88,
+            "height": 202.5
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-chest.png",
+          "objectFit": "contain",
+          "groupId": "hp-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b4-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 387.84,
+            "y": 308.82
+          },
+          "size": {
+            "width": 609,
+            "height": 268.93
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Unlock",
+          "fontSize": 55.26,
+          "color": "#FFFFFF",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.55,
+          "groupId": "hp-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b4-headline-2",
+          "type": "text",
+          "name": "Headline line 2",
+          "position": {
+            "x": 221.11,
+            "y": 507.31
+          },
+          "size": {
+            "width": 767,
+            "height": 194.33
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Screen Time",
+          "fontSize": 39.93,
+          "color": "#FFFFFF",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.4,
+          "groupId": "hp-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b4-fire",
+          "type": "image",
+          "name": "Fire sticker",
+          "position": {
+            "x": -151.87,
+            "y": 865.07
+          },
+          "size": {
+            "width": 283.73,
+            "height": 284.27
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-fire.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "hp-b4-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 70,
+            "y": 790
+          },
+          "size": {
+            "width": 1040,
+            "height": 2259.64
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "normal",
+          "frameColor": "#1C1C1E",
+          "screenshotSrc": "/data/projects/hoppi-screen-chest.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "hp-b4-clouds",
+          "type": "image",
+          "name": "Clouds",
+          "position": {
+            "x": 0,
+            "y": 1473
+          },
+          "size": {
+            "width": 1206,
+            "height": 1267
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-cloud-valley.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "hp-b4-balance-pill",
+          "type": "shape",
+          "name": "Balance pill",
+          "position": {
+            "x": 418,
+            "y": 1570
+          },
+          "size": {
+            "width": 364,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 26,
+            "color": "rgba(0,60,180,0.3)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#2F7BFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 65,
+          "groupId": "hp-b4-g-balance",
+          "groupName": "Coin balance"
+        },
+        {
+          "id": "hp-b4-balance-tail",
+          "type": "shape",
+          "name": "Balance pointer",
+          "position": {
+            "x": 576,
+            "y": 1696
+          },
+          "size": {
+            "width": 48,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#2F7BFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 0 H48 L24 40 Z",
+          "specialProps": {
+            "viewBox": "0 0 48 40"
+          },
+          "groupId": "hp-b4-g-balance",
+          "groupName": "Coin balance"
+        },
+        {
+          "id": "hp-b4-balance-coin",
+          "type": "image",
+          "name": "Coin",
+          "position": {
+            "x": 455.51,
+            "y": 1600.51
+          },
+          "size": {
+            "width": 70.59,
+            "height": 71.18
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-coin.png",
+          "objectFit": "contain",
+          "groupId": "hp-b4-g-balance",
+          "groupName": "Coin balance"
+        },
+        {
+          "id": "hp-b4-balance-text",
+          "type": "text",
+          "name": "Balance",
+          "position": {
+            "x": 551.5,
+            "y": 1576.01
+          },
+          "size": {
+            "width": 177,
+            "height": 113.88
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "300",
+          "fontSize": 23.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hp-b4-g-balance",
+          "groupName": "Coin balance"
+        },
+        {
+          "id": "hp-b4-price-1-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 104,
+            "y": 1855
+          },
+          "size": {
+            "width": 302,
+            "height": 370
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 26,
+            "color": "rgba(0,40,140,0.16)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#F1F7FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 30,
+          "fillGradient": {
+            "color1": "#FFFFFF",
+            "color2": "#DDEBFF",
+            "angle": 180
+          },
+          "groupId": "hp-b4-g-price-1",
+          "groupName": "Price 10 min"
+        },
+        {
+          "id": "hp-b4-price-1-coins",
+          "type": "image",
+          "name": "Coins",
+          "position": {
+            "x": 179.73,
+            "y": 1950.31
+          },
+          "size": {
+            "width": 161,
+            "height": 96.14
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-coins-small.png",
+          "objectFit": "contain",
+          "groupId": "hp-b4-g-price-1",
+          "groupName": "Price 10 min"
+        },
+        {
+          "id": "hp-b4-price-1-label-bg",
+          "type": "shape",
+          "name": "Label bar",
+          "position": {
+            "x": 104,
+            "y": 2125
+          },
+          "size": {
+            "width": 302,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "borderRadiusType": "individual",
+          "borderRadiusBottomLeft": 30,
+          "borderRadiusBottomRight": 30,
+          "borderRadiusTopLeft": 0,
+          "borderRadiusTopRight": 0,
+          "shapeType": "rectangle",
+          "fillColor": "#3B8BFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 0,
+          "groupId": "hp-b4-g-price-1",
+          "groupName": "Price 10 min"
+        },
+        {
+          "id": "hp-b4-price-1-label",
+          "type": "text",
+          "name": "Price",
+          "position": {
+            "x": 163.58,
+            "y": 2137.27
+          },
+          "size": {
+            "width": 184,
+            "height": 73
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "10 min",
+          "fontSize": 15,
+          "color": "#FFFFFF",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hp-b4-g-price-1",
+          "groupName": "Price 10 min"
+        },
+        {
+          "id": "hp-b4-price-2-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 452,
+            "y": 1800
+          },
+          "size": {
+            "width": 302,
+            "height": 370
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 26,
+            "color": "rgba(0,40,140,0.16)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#F1F7FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 30,
+          "fillGradient": {
+            "color1": "#FFFFFF",
+            "color2": "#DDEBFF",
+            "angle": 180
+          },
+          "groupId": "hp-b4-g-price-2",
+          "groupName": "Price 15 mins"
+        },
+        {
+          "id": "hp-b4-price-2-coins",
+          "type": "image",
+          "name": "Coins",
+          "position": {
+            "x": 512.05,
+            "y": 1903.67
+          },
+          "size": {
+            "width": 171.45,
+            "height": 113.9
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-coins-medium.png",
+          "objectFit": "contain",
+          "groupId": "hp-b4-g-price-2",
+          "groupName": "Price 15 mins"
+        },
+        {
+          "id": "hp-b4-price-2-label-bg",
+          "type": "shape",
+          "name": "Label bar",
+          "position": {
+            "x": 452,
+            "y": 2070
+          },
+          "size": {
+            "width": 302,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "borderRadiusType": "individual",
+          "borderRadiusBottomLeft": 30,
+          "borderRadiusBottomRight": 30,
+          "borderRadiusTopLeft": 0,
+          "borderRadiusTopRight": 0,
+          "shapeType": "rectangle",
+          "fillColor": "#111114",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 0,
+          "groupId": "hp-b4-g-price-2",
+          "groupName": "Price 15 mins"
+        },
+        {
+          "id": "hp-b4-price-2-label",
+          "type": "text",
+          "name": "Price",
+          "position": {
+            "x": 501.75,
+            "y": 2082.27
+          },
+          "size": {
+            "width": 203,
+            "height": 73
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "15 mins",
+          "fontSize": 15,
+          "color": "#FFFFFF",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hp-b4-g-price-2",
+          "groupName": "Price 15 mins"
+        },
+        {
+          "id": "hp-b4-price-3-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 798,
+            "y": 1855
+          },
+          "size": {
+            "width": 302,
+            "height": 370
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 26,
+            "color": "rgba(0,40,140,0.16)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#F1F7FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 30,
+          "fillGradient": {
+            "color1": "#FFFFFF",
+            "color2": "#DDEBFF",
+            "angle": 180
+          },
+          "groupId": "hp-b4-g-price-3",
+          "groupName": "Price 20 min"
+        },
+        {
+          "id": "hp-b4-price-3-coins",
+          "type": "image",
+          "name": "Coins",
+          "position": {
+            "x": 851.77,
+            "y": 1932.03
+          },
+          "size": {
+            "width": 212.23,
+            "height": 155.18
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-coins-large.png",
+          "objectFit": "contain",
+          "groupId": "hp-b4-g-price-3",
+          "groupName": "Price 20 min"
+        },
+        {
+          "id": "hp-b4-price-3-label-bg",
+          "type": "shape",
+          "name": "Label bar",
+          "position": {
+            "x": 798,
+            "y": 2125
+          },
+          "size": {
+            "width": 302,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "borderRadiusType": "individual",
+          "borderRadiusBottomLeft": 30,
+          "borderRadiusBottomRight": 30,
+          "borderRadiusTopLeft": 0,
+          "borderRadiusTopRight": 0,
+          "shapeType": "rectangle",
+          "fillColor": "#3B8BFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 0,
+          "groupId": "hp-b4-g-price-3",
+          "groupName": "Price 20 min"
+        },
+        {
+          "id": "hp-b4-price-3-label",
+          "type": "text",
+          "name": "Price",
+          "position": {
+            "x": 852.85,
+            "y": 2137.27
+          },
+          "size": {
+            "width": 193,
+            "height": 73
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "20 min",
+          "fontSize": 15,
+          "color": "#FFFFFF",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hp-b4-g-price-3",
+          "groupName": "Price 20 min"
+        },
+        {
+          "id": "hp-b4-price-0",
+          "type": "shape",
+          "name": "Card edge",
+          "position": {
+            "x": -248,
+            "y": 1880
+          },
+          "size": {
+            "width": 302,
+            "height": 360
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#E6F0FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 30
+        },
+        {
+          "id": "hp-b4-price-4",
+          "type": "shape",
+          "name": "Card edge",
+          "position": {
+            "x": 1150,
+            "y": 1880
+          },
+          "size": {
+            "width": 302,
+            "height": 360
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#E6F0FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 30
+        },
+        {
+          "id": "hp-b4-buy",
+          "type": "shape",
+          "name": "Button",
+          "position": {
+            "x": 205,
+            "y": 2305
+          },
+          "size": {
+            "width": 795,
+            "height": 175
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 26,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#111114",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 88,
+          "groupId": "hp-b4-g-buy",
+          "groupName": "Buy button"
+        },
+        {
+          "id": "hp-b4-buy-coin",
+          "type": "image",
+          "name": "Coin",
+          "position": {
+            "x": 304.05,
+            "y": 2352.05
+          },
+          "size": {
+            "width": 81.45,
+            "height": 82.13
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-coin.png",
+          "objectFit": "contain",
+          "groupId": "hp-b4-g-buy",
+          "groupName": "Buy button"
+        },
+        {
+          "id": "hp-b4-buy-text",
+          "type": "text",
+          "name": "Button text",
+          "position": {
+            "x": 412.57,
+            "y": 2348.7
+          },
+          "size": {
+            "width": 454,
+            "height": 84.68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Buy Screentime",
+          "fontSize": 17.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hp-b4-g-buy",
+          "groupName": "Buy button"
+        }
+      ]
+    },
+    {
+      "id": "hp-board-5",
+      "name": "Reps Into Screen Time",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "hp-b5-dot-1",
+          "type": "shape",
+          "name": "Dot",
+          "position": {
+            "x": 98,
+            "y": 773
+          },
+          "size": {
+            "width": 24,
+            "height": 24
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#2F7BFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "hp-b5-dot-2",
+          "type": "shape",
+          "name": "Dot",
+          "position": {
+            "x": 1128,
+            "y": 1138
+          },
+          "size": {
+            "width": 24,
+            "height": 24
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#2F7BFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "hp-b5-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 205,
+            "y": 150
+          },
+          "size": {
+            "width": 800,
+            "height": 1738.18
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "normal",
+          "frameColor": "#1C1C1E",
+          "screenshotSrc": "/data/projects/hoppi-screen-workout.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "hp-b5-drop",
+          "type": "image",
+          "name": "Water drop sticker",
+          "position": {
+            "x": 93.51,
+            "y": 309.4
+          },
+          "size": {
+            "width": 231,
+            "height": 290.5
+          },
+          "rotation": 12,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-drop.png",
+          "objectFit": "contain",
+          "groupId": "hp-b5-g-stickers",
+          "groupName": "Stickers"
+        },
+        {
+          "id": "hp-b5-treadmill",
+          "type": "image",
+          "name": "Treadmill sticker",
+          "position": {
+            "x": 987.51,
+            "y": 1133.82
+          },
+          "size": {
+            "width": 295.8,
+            "height": 268.6
+          },
+          "rotation": -8,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-treadmill.png",
+          "objectFit": "contain",
+          "groupId": "hp-b5-g-stickers",
+          "groupName": "Stickers"
+        },
+        {
+          "id": "hp-b5-dumbbell",
+          "type": "image",
+          "name": "Dumbbell sticker",
+          "position": {
+            "x": -122.25,
+            "y": 1556
+          },
+          "size": {
+            "width": 424.5,
+            "height": 399
+          },
+          "rotation": 0,
+          "scale": 1,
+          "spanArtboards": true,
+          "imageSrc": "/elements/images/stickers/sticker-dumbbell.png",
+          "objectFit": "contain",
+          "groupId": "hp-b5-g-stickers",
+          "groupName": "Stickers"
+        },
+        {
+          "id": "hp-b5-turn-pill",
+          "type": "shape",
+          "name": "Turn pill",
+          "position": {
+            "x": 404,
+            "y": 1985
+          },
+          "size": {
+            "width": 394,
+            "height": 165
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 26,
+            "color": "rgba(0,60,180,0.3)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#2F7BFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 82,
+          "groupId": "hp-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b5-turn",
+          "type": "text",
+          "name": "Turn",
+          "position": {
+            "x": 462.73,
+            "y": 1983.44
+          },
+          "size": {
+            "width": 278,
+            "height": 163.52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Turn",
+          "fontSize": 33.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hp-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b5-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 207.16,
+            "y": 2121.84
+          },
+          "size": {
+            "width": 790,
+            "height": 268.2
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Reps into",
+          "fontSize": 55.11,
+          "color": "#111111",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.55,
+          "groupId": "hp-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b5-headline-2",
+          "type": "text",
+          "name": "Headline line 2",
+          "position": {
+            "x": 280.67,
+            "y": 2311.66
+          },
+          "size": {
+            "width": 648,
+            "height": 162.5
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Screen Time",
+          "fontSize": 33.39,
+          "color": "#111111",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.33,
+          "groupId": "hp-b5-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    },
+    {
+      "id": "hp-board-6",
+      "name": "Track Screen Time",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#2682FD",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "hp-b6-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 224.19,
+            "y": 163.71
+          },
+          "size": {
+            "width": 732,
+            "height": 179.14
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Track screen",
+          "fontSize": 36.81,
+          "color": "#FFFFFF",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.37,
+          "groupId": "hp-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b6-headline-2",
+          "type": "text",
+          "name": "Headline line 2",
+          "position": {
+            "x": 312.77,
+            "y": 257.13
+          },
+          "size": {
+            "width": 628,
+            "height": 275.79
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Time &",
+          "fontSize": 56.67,
+          "color": "#FFFFFF",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.57,
+          "groupId": "hp-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b6-headline-3",
+          "type": "text",
+          "name": "Headline line 3",
+          "position": {
+            "x": 223.22,
+            "y": 403.05
+          },
+          "size": {
+            "width": 732,
+            "height": 353.9
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Habits",
+          "fontSize": 72.72,
+          "color": "#FFFFFF",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.73,
+          "groupId": "hp-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hp-b6-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 140,
+            "y": 770
+          },
+          "size": {
+            "width": 908,
+            "height": 1972.84
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-17-pro-max",
+          "styleType": "normal",
+          "frameColor": "#1C1C1E",
+          "screenshotSrc": "/data/projects/hoppi-screen-stats.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "hp-b6-bolt",
+          "type": "image",
+          "name": "Lightning sticker",
+          "position": {
+            "x": 864.6,
+            "y": 1119.53
+          },
+          "size": {
+            "width": 267.43,
+            "height": 392
+          },
+          "rotation": 10,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-bolt.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "hp-b6-clouds",
+          "type": "image",
+          "name": "Clouds",
+          "position": {
+            "x": 0,
+            "y": 1460
+          },
+          "size": {
+            "width": 1206,
+            "height": 1300
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/hoppi-clouds-wide.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "hp-b6-best-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 84,
+            "y": 1775
+          },
+          "size": {
+            "width": 494,
+            "height": 580
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 34,
+            "color": "rgba(200,90,0,0.3)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FF9A10",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 60,
+          "fillGradient": {
+            "color1": "#FFB51F",
+            "color2": "#FF7A00",
+            "angle": 180
+          },
+          "groupId": "hp-b6-g-best-streak",
+          "groupName": "Best streak card"
+        },
+        {
+          "id": "hp-b6-best-flame-0",
+          "type": "shape",
+          "name": "Flame",
+          "position": {
+            "x": 100,
+            "y": 1790
+          },
+          "size": {
+            "width": 120,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.85,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFD15A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 6 C62 30 84 42 84 66 C84 84 70 96 50 96 C30 96 16 84 16 66 C16 52 26 42 32 34 C34 48 42 54 48 54 C42 36 44 20 50 6 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "hp-b6-g-best-streak",
+          "groupName": "Best streak card"
+        },
+        {
+          "id": "hp-b6-best-flame-1",
+          "type": "shape",
+          "name": "Flame",
+          "position": {
+            "x": 470,
+            "y": 1800
+          },
+          "size": {
+            "width": 100,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.85,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFD15A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 6 C62 30 84 42 84 66 C84 84 70 96 50 96 C30 96 16 84 16 66 C16 52 26 42 32 34 C34 48 42 54 48 54 C42 36 44 20 50 6 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "hp-b6-g-best-streak",
+          "groupName": "Best streak card"
+        },
+        {
+          "id": "hp-b6-best-flame-2",
+          "type": "shape",
+          "name": "Flame",
+          "position": {
+            "x": 96,
+            "y": 2140
+          },
+          "size": {
+            "width": 110,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.85,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFD15A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 6 C62 30 84 42 84 66 C84 84 70 96 50 96 C30 96 16 84 16 66 C16 52 26 42 32 34 C34 48 42 54 48 54 C42 36 44 20 50 6 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "hp-b6-g-best-streak",
+          "groupName": "Best streak card"
+        },
+        {
+          "id": "hp-b6-best-flame-3",
+          "type": "shape",
+          "name": "Flame",
+          "position": {
+            "x": 470,
+            "y": 2170
+          },
+          "size": {
+            "width": 96,
+            "height": 96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.85,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFD15A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 6 C62 30 84 42 84 66 C84 84 70 96 50 96 C30 96 16 84 16 66 C16 52 26 42 32 34 C34 48 42 54 48 54 C42 36 44 20 50 6 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "hp-b6-g-best-streak",
+          "groupName": "Best streak card"
+        },
+        {
+          "id": "hp-b6-best-number",
+          "type": "text",
+          "name": "Streak number",
+          "position": {
+            "x": 245.34,
+            "y": 1789.36
+          },
+          "size": {
+            "width": 173,
+            "height": 175.2
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "64",
+          "fontSize": 36,
+          "color": "#111111",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "outlineColor": "#FFFFFF",
+          "outlineWidth": 2.4,
+          "groupId": "hp-b6-g-best-streak",
+          "groupName": "Best streak card"
+        },
+        {
+          "id": "hp-b6-best-label",
+          "type": "text",
+          "name": "Card title",
+          "position": {
+            "x": 188.48,
+            "y": 1932.59
+          },
+          "size": {
+            "width": 284,
+            "height": 68.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Best Streak",
+          "fontSize": 13.8,
+          "color": "#111111",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hp-b6-g-best-streak",
+          "groupName": "Best streak card"
+        },
+        {
+          "id": "hp-b6-best-bunny",
+          "type": "image",
+          "name": "Bunny with medal",
+          "position": {
+            "x": 211.38,
+            "y": 2025
+          },
+          "size": {
+            "width": 239.25,
+            "height": 330
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/mascots/mascot-bunny-medal.png",
+          "objectFit": "contain",
+          "groupId": "hp-b6-g-best-streak",
+          "groupName": "Best streak card"
+        },
+        {
+          "id": "hp-b6-streak-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 620,
+            "y": 1925
+          },
+          "size": {
+            "width": 494,
+            "height": 580
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 34,
+            "color": "rgba(0,0,0,0.3)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#141416",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 60,
+          "groupId": "hp-b6-g-streak",
+          "groupName": "Streak card"
+        },
+        {
+          "id": "hp-b6-streak-stripes",
+          "type": "shape",
+          "name": "Stripes",
+          "position": {
+            "x": 640,
+            "y": 1945
+          },
+          "size": {
+            "width": 454,
+            "height": 540
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#24252B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 380 L300 0 L420 0 L0 520 Z M180 540 L454 200 L454 330 L300 540 Z",
+          "specialProps": {
+            "viewBox": "0 0 454 540"
+          },
+          "groupId": "hp-b6-g-streak",
+          "groupName": "Streak card"
+        },
+        {
+          "id": "hp-b6-streak-bubble",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 670,
+            "y": 1960
+          },
+          "size": {
+            "width": 394,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#2F7BFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 50,
+          "groupId": "hp-b6-g-streak",
+          "groupName": "Streak card"
+        },
+        {
+          "id": "hp-b6-streak-bubble-tail",
+          "type": "shape",
+          "name": "Bubble tail",
+          "position": {
+            "x": 846,
+            "y": 2096
+          },
+          "size": {
+            "width": 44,
+            "height": 34
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#2F7BFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 0 H44 L22 34 Z",
+          "specialProps": {
+            "viewBox": "0 0 44 34"
+          },
+          "groupId": "hp-b6-g-streak",
+          "groupName": "Streak card"
+        },
+        {
+          "id": "hp-b6-streak-label",
+          "type": "text",
+          "name": "Bubble text",
+          "position": {
+            "x": 728.51,
+            "y": 1984.93
+          },
+          "size": {
+            "width": 278,
+            "height": 87.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "STREAK!",
+          "fontSize": 18,
+          "color": "#FFFFFF",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hp-b6-g-streak",
+          "groupName": "Streak card"
+        },
+        {
+          "id": "hp-b6-streak-bunny",
+          "type": "image",
+          "name": "Bunny with party horn",
+          "position": {
+            "x": 708.83,
+            "y": 2085
+          },
+          "size": {
+            "width": 336,
+            "height": 380.63
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/mascots/mascot-bunny-party.png",
+          "objectFit": "contain",
+          "groupId": "hp-b6-g-streak",
+          "groupName": "Streak card"
+        }
+      ]
+    }
+  ]
+}

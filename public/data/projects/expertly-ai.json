@@ -1,0 +1,2923 @@
+{
+  "id": "template_expertly_ai",
+  "name": "Expertly AI",
+  "description": "App Store & Play Store screenshots for a gig, marketplace or AI app. Crisp Noto Sans headlines with rainbow gradient words, a glossy robot mascot, rings and ribbons, glass money pills, a 3D dollar sign, expert avatars and a payout notification, each part grouped as editable layers.",
+  "previewImage": "/data/projects/previews/expertly-ai.png",
+  "timestamp": "2026-11-17T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "ex-board-1",
+      "name": "Earn Helping AI",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "ex-b1-ring-1",
+          "type": "shape",
+          "name": "Dashed ring",
+          "position": {
+            "x": 0,
+            "y": 1410
+          },
+          "size": {
+            "width": 1280,
+            "height": 1280
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.7,
+          "shapeType": "custom-svg",
+          "fillColor": "#F6B48A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M1280 640 L1279.47 665.99 M1278.21 687.83 L1275.74 713.71 M1272.85 735.39 L1268.46 761.01 M1263.95 782.41 L1257.66 807.64 M1251.57 828.64 L1243.4 853.33 M1235.76 873.82 L1225.77 897.82 M1216.62 917.69 L1204.87 940.88 M1194.26 960 L1180.8 982.25 M1168.79 1000.52 L1153.71 1021.7 M1140.37 1039.03 L1123.75 1059.03 M1109.15 1075.31 L1091.09 1094.01 M1075.31 1109.15 L1055.9 1126.45 M1039.03 1140.37 L1018.38 1156.17 M1000.52 1168.79 L978.75 1183 M960 1194.26 L937.23 1206.8 M917.69 1216.62 L894.04 1227.42 M873.82 1235.76 L849.43 1244.76 M828.64 1251.57 L803.65 1258.72 M782.41 1263.95 L756.95 1269.22 M735.39 1272.85 L709.61 1276.2 M687.83 1278.21 L661.87 1279.63 M640 1280 L614.01 1279.47 M592.17 1278.21 L566.29 1275.74 M544.61 1272.85 L518.99 1268.46 M497.59 1263.95 L472.36 1257.66 M451.36 1251.57 L426.67 1243.4 M406.18 1235.76 L382.18 1225.77 M362.31 1216.62 L339.12 1204.87 M320 1194.26 L297.75 1180.8 M279.48 1168.79 L258.3 1153.71 M240.97 1140.37 L220.97 1123.75 M204.69 1109.15 L185.99 1091.09 M170.85 1075.31 L153.55 1055.9 M139.63 1039.03 L123.83 1018.38 M111.21 1000.52 L97 978.75 M85.74 960 L73.2 937.23 M63.38 917.69 L52.58 894.04 M44.24 873.82 L35.24 849.43 M28.43 828.64 L21.28 803.65 M16.05 782.41 L10.78 756.95 M7.15 735.39 L3.8 709.61 M1.79 687.83 L0.37 661.87 M0 640 L0.53 614.01 M1.79 592.17 L4.26 566.29 M7.15 544.61 L11.54 518.99 M16.05 497.59 L22.34 472.36 M28.43 451.36 L36.6 426.67 M44.24 406.18 L54.23 382.18 M63.38 362.31 L75.13 339.12 M85.74 320 L99.2 297.75 M111.21 279.48 L126.29 258.3 M139.63 240.97 L156.25 220.97 M170.85 204.69 L188.91 185.99 M204.69 170.85 L224.1 153.55 M240.97 139.63 L261.62 123.83 M279.48 111.21 L301.25 97 M320 85.74 L342.77 73.2 M362.31 63.38 L385.96 52.58 M406.18 44.24 L430.57 35.24 M451.36 28.43 L476.35 21.28 M497.59 16.05 L523.05 10.78 M544.61 7.15 L570.39 3.8 M592.17 1.79 L618.13 0.37 M640 0 L665.99 0.53 M687.83 1.79 L713.71 4.26 M735.39 7.15 L761.01 11.54 M782.41 16.05 L807.64 22.34 M828.64 28.43 L853.33 36.6 M873.82 44.24 L897.82 54.23 M917.69 63.38 L940.88 75.13 M960 85.74 L982.25 99.2 M1000.52 111.21 L1021.7 126.29 M1039.03 139.63 L1059.03 156.25 M1075.31 170.85 L1094.01 188.91 M1109.15 204.69 L1126.45 224.1 M1140.37 240.97 L1156.17 261.62 M1168.79 279.48 L1183 301.25 M1194.26 320 L1206.8 342.77 M1216.62 362.31 L1227.42 385.96 M1235.76 406.18 L1244.76 430.57 M1251.57 451.36 L1258.72 476.35 M1263.95 497.59 L1269.22 523.05 M1272.85 544.61 L1276.2 570.39 M1278.21 592.17 L1279.63 618.13",
+          "specialProps": {
+            "viewBox": "0 0 1280 1280",
+            "strokeOnly": true,
+            "baseStrokeWidth": 3
+          },
+          "groupId": "ex-b1-g-decor",
+          "groupName": "Background rings"
+        },
+        {
+          "id": "ex-b1-ring-2",
+          "type": "shape",
+          "name": "Dashed ring",
+          "position": {
+            "x": -260,
+            "y": 1150
+          },
+          "size": {
+            "width": 1800,
+            "height": 1800
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.5,
+          "shapeType": "custom-svg",
+          "fillColor": "#F6B48A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M1800 900 L1799.62 926 M1798.72 947.9 L1796.97 973.84 M1794.9 995.66 L1791.76 1021.47 M1788.54 1043.16 L1784.04 1068.76 M1779.66 1090.24 L1773.8 1115.57 M1768.29 1136.79 L1761.09 1161.77 M1754.46 1182.67 L1745.94 1207.23 M1738.2 1227.74 L1728.39 1251.82 M1719.57 1271.89 L1708.49 1295.41 M1698.62 1314.98 L1686.3 1337.88 M1675.4 1356.9 L1661.88 1379.11 M1649.98 1397.52 L1635.3 1418.98 M1622.44 1436.73 L1606.64 1457.37 M1592.85 1474.42 L1575.97 1494.19 M1561.3 1510.48 L1543.39 1529.33 M1527.87 1544.81 L1508.98 1562.68 M1492.66 1577.31 L1472.85 1594.15 M1455.77 1607.9 L1435.09 1623.65 M1417.31 1636.47 L1395.82 1651.11 M1377.38 1662.96 L1355.14 1676.43 M1336.1 1687.29 L1313.17 1699.55 M1293.58 1709.38 L1270.03 1720.41 M1249.94 1729.18 L1225.84 1738.94 M1205.31 1746.63 L1180.73 1755.1 M1159.82 1761.68 L1134.82 1768.83 M1113.59 1774.29 L1088.25 1780.09 M1066.76 1784.42 L1041.14 1788.86 M1019.45 1792.04 L993.64 1795.12 M971.81 1797.13 L945.86 1798.83 M923.96 1799.68 L897.96 1800 M876.04 1799.68 L850.06 1798.61 M828.19 1797.13 L802.31 1794.68 M780.55 1792.04 L754.83 1788.21 M733.24 1784.42 L707.76 1779.23 M686.41 1774.29 L661.24 1767.75 M640.18 1761.68 L615.4 1753.82 M594.69 1746.63 L570.36 1737.46 M550.06 1729.18 L526.25 1718.73 M506.42 1709.38 L483.21 1697.67 M463.9 1687.29 L441.35 1674.36 M422.62 1662.96 L400.78 1648.85 M382.69 1636.47 L361.63 1621.22 M344.23 1607.9 L324.01 1591.55 M307.34 1577.31 L288.02 1559.91 M272.13 1544.81 L253.77 1526.41 M238.7 1510.48 L221.35 1491.12 M207.15 1474.42 L190.85 1454.17 M177.56 1436.73 L162.36 1415.64 M150.02 1397.52 L135.96 1375.65 M124.6 1356.9 L111.73 1334.31 M101.38 1314.98 L89.73 1291.74 M80.43 1271.89 L70.03 1248.06 M61.8 1227.74 L52.68 1203.4 M45.54 1182.67 L37.73 1157.87 M31.71 1136.79 L25.23 1111.61 M20.34 1090.24 L15.21 1064.76 M11.46 1043.16 L7.69 1017.43 M5.1 995.66 L2.71 969.78 M1.28 947.9 L0.27 921.92 M0 900 L0.38 874 M1.28 852.1 L3.03 826.16 M5.1 804.34 L8.24 778.53 M11.46 756.84 L15.96 731.24 M20.34 709.76 L26.2 684.43 M31.71 663.21 L38.91 638.23 M45.54 617.33 L54.06 592.77 M61.8 572.26 L71.61 548.18 M80.43 528.11 L91.51 504.59 M101.38 485.02 L113.7 462.12 M124.6 443.1 L138.12 420.89 M150.02 402.48 L164.7 381.02 M177.56 363.27 L193.36 342.63 M207.15 325.58 L224.03 305.81 M238.7 289.52 L256.61 270.67 M272.13 255.19 L291.02 237.32 M307.34 222.69 L327.15 205.85 M344.23 192.1 L364.91 176.35 M382.69 163.53 L404.18 148.89 M422.62 137.04 L444.86 123.57 M463.9 112.71 L486.83 100.45 M506.42 90.62 L529.97 79.59 M550.06 70.82 L574.16 61.06 M594.69 53.37 L619.27 44.9 M640.18 38.32 L665.18 31.17 M686.41 25.71 L711.75 19.91 M733.24 15.58 L758.86 11.14 M780.55 7.96 L806.36 4.88 M828.19 2.87 L854.14 1.17 M876.04 0.32 L902.04 0 M923.96 0.32 L949.94 1.39 M971.81 2.87 L997.69 5.32 M1019.45 7.96 L1045.17 11.79 M1066.76 15.58 L1092.24 20.77 M1113.59 25.71 L1138.76 32.25 M1159.82 38.32 L1184.6 46.18 M1205.31 53.37 L1229.64 62.54 M1249.94 70.82 L1273.75 81.27 M1293.58 90.62 L1316.79 102.33 M1336.1 112.71 L1358.65 125.64 M1377.38 137.04 L1399.22 151.15 M1417.31 163.53 L1438.37 178.78 M1455.77 192.1 L1475.99 208.45 M1492.66 222.69 L1511.98 240.09 M1527.87 255.19 L1546.23 273.59 M1561.3 289.52 L1578.65 308.88 M1592.85 325.58 L1609.15 345.83 M1622.44 363.27 L1637.64 384.36 M1649.98 402.48 L1664.04 424.35 M1675.4 443.1 L1688.27 465.69 M1698.62 485.02 L1710.27 508.26 M1719.57 528.11 L1729.97 551.94 M1738.2 572.26 L1747.32 596.6 M1754.46 617.33 L1762.27 642.13 M1768.29 663.21 L1774.77 688.39 M1779.66 709.76 L1784.79 735.24 M1788.54 756.84 L1792.31 782.57 M1794.9 804.34 L1797.29 830.22 M1798.72 852.1 L1799.73 878.08",
+          "specialProps": {
+            "viewBox": "0 0 1800 1800",
+            "strokeOnly": true,
+            "baseStrokeWidth": 3
+          },
+          "groupId": "ex-b1-g-decor",
+          "groupName": "Background rings"
+        },
+        {
+          "id": "ex-b1-ring-3",
+          "type": "shape",
+          "name": "Ring",
+          "position": {
+            "x": -480,
+            "y": 930
+          },
+          "size": {
+            "width": 2240,
+            "height": 2240
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#F1F1F3",
+          "strokeWidth": 3,
+          "groupId": "ex-b1-g-decor",
+          "groupName": "Background rings"
+        },
+        {
+          "id": "ex-b1-ribbon",
+          "type": "shape",
+          "name": "Ribbon",
+          "position": {
+            "x": -120,
+            "y": 1290
+          },
+          "size": {
+            "width": 1520,
+            "height": 1520
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF6A1A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M760 0 A760 760 0 1 1 759.99 0 Z",
+          "specialProps": {
+            "viewBox": "0 0 1520 1520",
+            "strokeOnly": true,
+            "baseStrokeWidth": 72
+          },
+          "fillGradient": {
+            "color1": "#FF6A1A",
+            "color2": "#3FD3F0",
+            "angle": 45
+          },
+          "groupId": "ex-b1-g-decor",
+          "groupName": "Background rings"
+        },
+        {
+          "id": "ex-b1-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 69.99,
+            "y": 128.02
+          },
+          "size": {
+            "width": 922,
+            "height": 237.73
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Earn money",
+          "fontSize": 50.58,
+          "color": "#2B2B2B",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.05,
+          "letterSpacing": -2.53,
+          "groupId": "ex-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b1-headline-2",
+          "type": "text",
+          "name": "Headline line 2",
+          "position": {
+            "x": 72.25,
+            "y": 302.02
+          },
+          "size": {
+            "width": 594,
+            "height": 237.73
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "helping",
+          "fontSize": 50.58,
+          "color": "#2B2B2B",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.05,
+          "letterSpacing": -2.53,
+          "groupId": "ex-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b1-headline-3",
+          "type": "text",
+          "name": "Headline accent",
+          "position": {
+            "x": 86,
+            "y": 466.04
+          },
+          "size": {
+            "width": 967,
+            "height": 318.94
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Ai Agents",
+          "fontSize": 67.86,
+          "color": "#2B2B2B",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.05,
+          "letterSpacing": -3.39,
+          "fillGradient": {
+            "color1": "#4CC4FF",
+            "via": [
+              "#6DB4FF",
+              "#FFEFC6",
+              "#FF9B38"
+            ],
+            "color2": "#E04400",
+            "angle": 90
+          },
+          "groupId": "ex-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b1-robot",
+          "type": "image",
+          "name": "Robot",
+          "position": {
+            "x": -184.82,
+            "y": 1171.57
+          },
+          "size": {
+            "width": 2009.96,
+            "height": 1799.59
+          },
+          "rotation": 12,
+          "scale": 1,
+          "spanArtboards": true,
+          "imageSrc": "/elements/images/mascots/mascot-robot.png",
+          "objectFit": "contain",
+          "groupId": "ex-b1-g-robot",
+          "groupName": "Robot"
+        },
+        {
+          "id": "ex-b1-logo",
+          "type": "shape",
+          "name": "Logo tile",
+          "position": {
+            "x": 104,
+            "y": 1690
+          },
+          "size": {
+            "width": 250,
+            "height": 250
+          },
+          "rotation": -10,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 17.5,
+            "blur": 40,
+            "color": "rgba(20,30,60,0.18)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 60,
+          "groupId": "ex-b1-g-robot",
+          "groupName": "Robot"
+        },
+        {
+          "id": "ex-b1-logo-mark",
+          "type": "shape",
+          "name": "Logo",
+          "position": {
+            "x": 159,
+            "y": 1745
+          },
+          "size": {
+            "width": 140,
+            "height": 140
+          },
+          "rotation": -10,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#2A2A2E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 0 C56 30 70 44 100 50 C70 56 56 70 50 100 C44 70 30 56 0 50 C30 44 44 30 50 0 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ex-b1-g-robot",
+          "groupName": "Robot"
+        },
+        {
+          "id": "ex-b1-pill-1",
+          "type": "shape",
+          "name": "Glass pill",
+          "position": {
+            "x": 800,
+            "y": 1800
+          },
+          "size": {
+            "width": 400,
+            "height": 140
+          },
+          "rotation": 30,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 30,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "fillOpacity": 0.82,
+          "shapeType": "rectangle",
+          "fillColor": "#C7CED8",
+          "strokeColor": "rgba(255,255,255,0.75)",
+          "strokeWidth": 3,
+          "borderRadius": 70,
+          "fillGradient": {
+            "color1": "#76808E",
+            "color2": "#C3CAD4",
+            "angle": 160
+          },
+          "groupId": "ex-b1-g-robot",
+          "groupName": "Robot"
+        },
+        {
+          "id": "ex-b1-pill-1-text",
+          "type": "text",
+          "name": "Pill amount",
+          "position": {
+            "x": 870.33,
+            "y": 1824.62
+          },
+          "size": {
+            "width": 258,
+            "height": 87.6
+          },
+          "rotation": 30,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 2,
+            "blur": 6,
+            "color": "rgba(0,0,0,0.35)"
+          },
+          "content": "+$4,330",
+          "fontSize": 18,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.36,
+          "groupId": "ex-b1-g-robot",
+          "groupName": "Robot"
+        },
+        {
+          "id": "ex-b1-pill-2",
+          "type": "shape",
+          "name": "Glass pill",
+          "position": {
+            "x": 220,
+            "y": 2408
+          },
+          "size": {
+            "width": 300,
+            "height": 124
+          },
+          "rotation": -10,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 30,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "fillOpacity": 0.82,
+          "shapeType": "rectangle",
+          "fillColor": "#C7CED8",
+          "strokeColor": "rgba(255,255,255,0.75)",
+          "strokeWidth": 3,
+          "borderRadius": 62,
+          "fillGradient": {
+            "color1": "#76808E",
+            "color2": "#C3CAD4",
+            "angle": 160
+          },
+          "groupId": "ex-b1-g-robot",
+          "groupName": "Robot"
+        },
+        {
+          "id": "ex-b1-pill-2-text",
+          "type": "text",
+          "name": "Pill amount",
+          "position": {
+            "x": 275.42,
+            "y": 2430.1
+          },
+          "size": {
+            "width": 188,
+            "height": 75.92
+          },
+          "rotation": -10,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 2,
+            "blur": 6,
+            "color": "rgba(0,0,0,0.35)"
+          },
+          "content": "+$230",
+          "fontSize": 15.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.31,
+          "groupId": "ex-b1-g-robot",
+          "groupName": "Robot"
+        },
+        {
+          "id": "ex-b1-bubble",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 225,
+            "y": 1175
+          },
+          "size": {
+            "width": 680,
+            "height": 250
+          },
+          "rotation": -8,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 30,
+            "color": "rgba(0,0,0,0.2)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#2A2A2C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 54,
+          "groupId": "ex-b1-g-bubble",
+          "groupName": "Speech bubble"
+        },
+        {
+          "id": "ex-b1-bubble-tail",
+          "type": "shape",
+          "name": "Bubble tail",
+          "position": {
+            "x": 790,
+            "y": 1392
+          },
+          "size": {
+            "width": 70,
+            "height": 60
+          },
+          "rotation": -8,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#2A2A2C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 0 L70 0 L30 60 Z",
+          "specialProps": {
+            "viewBox": "0 0 70 60"
+          },
+          "groupId": "ex-b1-g-bubble",
+          "groupName": "Speech bubble"
+        },
+        {
+          "id": "ex-b1-bubble-text",
+          "type": "text",
+          "name": "Bubble text",
+          "position": {
+            "x": 245,
+            "y": 1212.59
+          },
+          "size": {
+            "width": 640,
+            "height": 141.44
+          },
+          "rotation": -8,
+          "scale": 1,
+          "content": "Earn $40 to $500 per\nday, on your schedule.",
+          "fontSize": 15.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.18,
+          "letterSpacing": -0.31,
+          "groupId": "ex-b1-g-bubble",
+          "groupName": "Speech bubble"
+        }
+      ]
+    },
+    {
+      "id": "ex-board-2",
+      "name": "Experts Needed",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#333333",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "ex-b2-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 82,
+            "y": 123.28
+          },
+          "size": {
+            "width": 738,
+            "height": 248.05
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "AI agents",
+          "fontSize": 50.97,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -2.55,
+          "groupId": "ex-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b2-headline-2-a",
+          "type": "text",
+          "name": "Headline line 2",
+          "position": {
+            "x": 68.14,
+            "y": 303.28
+          },
+          "size": {
+            "width": 417,
+            "height": 248.05
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "need",
+          "fontSize": 50.97,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -2.55,
+          "groupId": "ex-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b2-headline-2-b",
+          "type": "text",
+          "name": "Headline line 2 part 2",
+          "position": {
+            "x": 476.73,
+            "y": 303.28
+          },
+          "size": {
+            "width": 594,
+            "height": 248.05
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "experts",
+          "fontSize": 50.97,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -2.55,
+          "fillGradient": {
+            "color1": "#4CC4FF",
+            "via": [
+              "#6DB4FF",
+              "#FFEFC6",
+              "#FF9B38"
+            ],
+            "color2": "#E04400",
+            "angle": 90
+          },
+          "groupId": "ex-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b2-headline-3",
+          "type": "text",
+          "name": "Headline line 3",
+          "position": {
+            "x": 68.14,
+            "y": 471.28
+          },
+          "size": {
+            "width": 605,
+            "height": 248.05
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "like you",
+          "fontSize": 50.97,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -2.55,
+          "groupId": "ex-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b2-subtitle",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 71.61,
+            "y": 717.87
+          },
+          "size": {
+            "width": 1050,
+            "height": 212.94
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "New requests, every day,\nin your domain.",
+          "fontSize": 24.57,
+          "color": "#A3A3A6",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.12,
+          "letterSpacing": -0.98,
+          "groupId": "ex-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b2-frame",
+          "type": "image",
+          "name": "Gradient frame",
+          "position": {
+            "x": 78,
+            "y": 1000
+          },
+          "size": {
+            "width": 1048,
+            "height": 1530
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/expertly-frame.png",
+          "objectFit": "contain",
+          "groupId": "ex-b2-g-request",
+          "groupName": "Request card"
+        },
+        {
+          "id": "ex-b2-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 102,
+            "y": 1024
+          },
+          "size": {
+            "width": 1000,
+            "height": 1482
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 50,
+          "groupId": "ex-b2-g-request",
+          "groupName": "Request card"
+        },
+        {
+          "id": "ex-b2-sk-avatar-0",
+          "type": "shape",
+          "name": "Placeholder avatar",
+          "position": {
+            "x": 194,
+            "y": 1140
+          },
+          "size": {
+            "width": 140,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#EFEFF1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ex-b2-g-request",
+          "groupName": "Request card"
+        },
+        {
+          "id": "ex-b2-sk-line-a-0",
+          "type": "shape",
+          "name": "Placeholder line",
+          "position": {
+            "x": 380,
+            "y": 1180
+          },
+          "size": {
+            "width": 400,
+            "height": 24
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#EFEFF1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 12,
+          "groupId": "ex-b2-g-request",
+          "groupName": "Request card"
+        },
+        {
+          "id": "ex-b2-sk-line-b-0",
+          "type": "shape",
+          "name": "Placeholder line",
+          "position": {
+            "x": 380,
+            "y": 1226
+          },
+          "size": {
+            "width": 220,
+            "height": 24
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#F3F3F5",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 12,
+          "groupId": "ex-b2-g-request",
+          "groupName": "Request card"
+        },
+        {
+          "id": "ex-b2-sk-avatar-1",
+          "type": "shape",
+          "name": "Placeholder avatar",
+          "position": {
+            "x": 194,
+            "y": 1330
+          },
+          "size": {
+            "width": 140,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#EFEFF1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ex-b2-g-request",
+          "groupName": "Request card"
+        },
+        {
+          "id": "ex-b2-sk-line-a-1",
+          "type": "shape",
+          "name": "Placeholder line",
+          "position": {
+            "x": 380,
+            "y": 1370
+          },
+          "size": {
+            "width": 400,
+            "height": 24
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#EFEFF1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 12,
+          "groupId": "ex-b2-g-request",
+          "groupName": "Request card"
+        },
+        {
+          "id": "ex-b2-sk-line-b-1",
+          "type": "shape",
+          "name": "Placeholder line",
+          "position": {
+            "x": 380,
+            "y": 1416
+          },
+          "size": {
+            "width": 220,
+            "height": 24
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#F3F3F5",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 12,
+          "groupId": "ex-b2-g-request",
+          "groupName": "Request card"
+        },
+        {
+          "id": "ex-b2-accept",
+          "type": "shape",
+          "name": "Accept button",
+          "position": {
+            "x": 398,
+            "y": 1660
+          },
+          "size": {
+            "width": 366,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3FD9F2",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 18,
+          "fillGradient": {
+            "color1": "#3FD9F2",
+            "color2": "#FF7A1A",
+            "angle": 90
+          },
+          "groupId": "ex-b2-g-request",
+          "groupName": "Request card"
+        },
+        {
+          "id": "ex-b2-accept-text",
+          "type": "text",
+          "name": "Accept button text",
+          "position": {
+            "x": 424.1,
+            "y": 1690.67
+          },
+          "size": {
+            "width": 314,
+            "height": 59.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Accept Request",
+          "fontSize": 11.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.23,
+          "groupId": "ex-b2-g-request",
+          "groupName": "Request card"
+        },
+        {
+          "id": "ex-b2-cursor",
+          "type": "shape",
+          "name": "Cursor",
+          "position": {
+            "x": 588,
+            "y": 1866
+          },
+          "size": {
+            "width": 54,
+            "height": 54
+          },
+          "rotation": -18,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#1A1A1C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4 2 L44 22 L26 27 L19 46 Z",
+          "specialProps": {
+            "viewBox": "0 0 48 48"
+          },
+          "groupId": "ex-b2-g-request",
+          "groupName": "Request card"
+        },
+        {
+          "id": "ex-b2-avatar-ring",
+          "type": "shape",
+          "name": "Avatar ring",
+          "position": {
+            "x": 628,
+            "y": 1918
+          },
+          "size": {
+            "width": 104,
+            "height": 104
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 8,
+            "blur": 18,
+            "color": "rgba(0,0,0,0.15)"
+          },
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ex-b2-g-request",
+          "groupName": "Request card"
+        },
+        {
+          "id": "ex-b2-avatar",
+          "type": "image",
+          "name": "Expert photo",
+          "position": {
+            "x": 634,
+            "y": 1924
+          },
+          "size": {
+            "width": 92,
+            "height": 92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover",
+          "borderRadius": 46,
+          "imageSrc": "/data/projects/expertly-avatar-6.png",
+          "groupId": "ex-b2-g-request",
+          "groupName": "Request card"
+        }
+      ]
+    },
+    {
+      "id": "ex-board-3",
+      "name": "Online When You Want",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "ex-b3-ring-1",
+          "type": "shape",
+          "name": "Dashed ring",
+          "position": {
+            "x": 106,
+            "y": 460
+          },
+          "size": {
+            "width": 1000,
+            "height": 1000
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.75,
+          "shapeType": "custom-svg",
+          "fillColor": "#F6B48A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M1000 500 L999.32 525.99 M997.67 548.26 L994.48 574.06 M990.69 596.06 L985.03 621.44 M979.12 642.97 L971.04 667.68 M963.09 688.55 L952.66 712.36 M942.73 732.36 L930.05 755.06 M918.24 774.01 L903.43 795.37 M889.84 813.09 L873.04 832.93 M857.8 849.26 L839.16 867.38 M822.42 882.16 L802.12 898.4 M784.03 911.49 L762.26 925.7 M742.99 936.98 L719.95 949.02 M699.68 958.4 L675.59 968.16 M654.51 975.53 L629.58 982.92 M607.89 988.22 L582.37 993.17 M560.27 996.35 L534.39 998.82 M512.08 999.85 L486.08 999.81 M463.78 998.69 L437.91 996.13 M415.82 992.86 L390.32 987.82 M368.65 982.44 L343.75 974.96 M322.7 967.51 L298.64 957.66 M278.4 948.21 L255.41 936.09 M236.18 924.73 L214.46 910.45 M196.42 897.29 L176.18 880.97 M159.49 866.13 L140.92 847.94 M125.74 831.56 L109.02 811.66 M95.49 793.89 L80.76 772.47 M69.02 753.48 L56.42 730.74 M46.56 710.7 L36.22 686.85 M28.34 665.95 L20.36 641.21 M14.53 619.66 L8.97 594.26 M5.25 572.24 L2.16 546.43 M0.58 524.16 L0 498.17 M0.58 475.84 L2.51 449.92 M5.25 427.76 L9.67 402.14 M14.53 380.34 L21.4 355.27 M28.34 334.05 L37.61 309.76 M46.56 289.3 L58.13 266.02 M69.02 246.52 L82.77 224.46 M95.49 206.11 L111.31 185.48 M125.74 168.44 L143.48 149.43 M159.49 133.87 L178.98 116.66 M196.42 102.71 L217.48 87.47 M236.18 75.27 L258.61 62.13 M278.4 51.79 L302 40.87 M322.7 32.49 L347.24 23.91 M368.65 17.56 L393.9 11.39 M415.82 7.14 L441.55 3.43 M463.78 1.31 L489.75 0.11 M512.08 0.15 L538.05 1.45 M560.27 3.65 L585.99 7.45 M607.89 11.78 L633.12 18.05 M654.51 24.47 L679.02 33.15 M699.68 41.6 L723.24 52.6 M742.99 63.02 L765.38 76.24 M784.03 88.51 L805.04 103.83 M822.42 117.84 L841.85 135.12 M857.8 150.74 L875.47 169.81 M889.84 186.91 L905.58 207.59 M918.24 225.99 L931.91 248.1 M942.73 267.64 L954.21 290.96 M963.09 311.45 L972.26 335.78 M979.12 357.03 L985.91 382.12 M990.69 403.94 L995.01 429.57 M997.67 451.74 L999.5 477.68",
+          "specialProps": {
+            "viewBox": "0 0 1000 1000",
+            "strokeOnly": true,
+            "baseStrokeWidth": 3
+          },
+          "groupId": "ex-b3-g-decor",
+          "groupName": "Background rings"
+        },
+        {
+          "id": "ex-b3-ring-2",
+          "type": "shape",
+          "name": "Dashed ring",
+          "position": {
+            "x": -94,
+            "y": 260
+          },
+          "size": {
+            "width": 1400,
+            "height": 1400
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.6,
+          "shapeType": "custom-svg",
+          "fillColor": "#F6B48A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M1400 700 L1399.52 725.99 M1398.37 747.77 L1396.11 773.67 M1393.48 795.32 L1389.46 821 M1385.36 842.42 L1379.6 867.77 M1374.04 888.86 L1366.56 913.76 M1359.58 934.42 L1350.42 958.75 M1342.05 978.88 L1331.25 1002.53 M1321.52 1022.05 L1309.13 1044.9 M1298.09 1063.71 L1284.17 1085.67 M1271.88 1103.68 L1256.49 1124.63 M1243 1141.76 L1226.22 1161.62 M1211.59 1177.79 L1193.49 1196.46 M1177.79 1211.59 L1158.46 1228.97 M1141.76 1243 L1121.29 1259.03 M1103.68 1271.88 L1082.16 1286.47 M1063.71 1298.09 L1041.25 1311.19 M1022.05 1321.52 L998.74 1333.05 M978.88 1342.05 L954.85 1351.96 M934.42 1359.58 L909.76 1367.83 M888.86 1374.04 L863.7 1380.59 M842.42 1385.36 L816.87 1390.17 M795.32 1393.48 L769.5 1396.54 M747.77 1398.37 L721.8 1399.66 M700 1400 L674.01 1399.52 M652.23 1398.37 L626.33 1396.11 M604.68 1393.48 L579 1389.46 M557.58 1385.36 L532.23 1379.6 M511.14 1374.04 L486.24 1366.56 M465.58 1359.58 L441.25 1350.42 M421.12 1342.05 L397.47 1331.25 M377.95 1321.52 L355.1 1309.13 M336.29 1298.09 L314.33 1284.17 M296.32 1271.88 L275.37 1256.49 M258.24 1243 L238.38 1226.22 M222.21 1211.59 L203.54 1193.49 M188.41 1177.79 L171.03 1158.46 M157 1141.76 L140.97 1121.29 M128.12 1103.68 L113.53 1082.16 M101.91 1063.71 L88.81 1041.25 M78.48 1022.05 L66.95 998.74 M57.95 978.88 L48.04 954.85 M40.42 934.42 L32.17 909.76 M25.96 888.86 L19.41 863.7 M14.64 842.42 L9.83 816.87 M6.52 795.32 L3.46 769.5 M1.63 747.77 L0.34 721.8 M0 700 L0.48 674.01 M1.63 652.23 L3.89 626.33 M6.52 604.68 L10.54 579 M14.64 557.58 L20.4 532.23 M25.96 511.14 L33.44 486.24 M40.42 465.58 L49.58 441.25 M57.95 421.12 L68.75 397.47 M78.48 377.95 L90.87 355.1 M101.91 336.29 L115.83 314.33 M128.12 296.32 L143.51 275.37 M157 258.24 L173.78 238.38 M188.41 222.21 L206.51 203.54 M222.21 188.41 L241.54 171.03 M258.24 157 L278.71 140.97 M296.32 128.12 L317.84 113.53 M336.29 101.91 L358.75 88.81 M377.95 78.48 L401.26 66.95 M421.12 57.95 L445.15 48.04 M465.58 40.42 L490.24 32.17 M511.14 25.96 L536.3 19.41 M557.58 14.64 L583.13 9.83 M604.68 6.52 L630.5 3.46 M652.23 1.63 L678.2 0.34 M700 0 L725.99 0.48 M747.77 1.63 L773.67 3.89 M795.32 6.52 L821 10.54 M842.42 14.64 L867.77 20.4 M888.86 25.96 L913.76 33.44 M934.42 40.42 L958.75 49.58 M978.88 57.95 L1002.53 68.75 M1022.05 78.48 L1044.9 90.87 M1063.71 101.91 L1085.67 115.83 M1103.68 128.12 L1124.63 143.51 M1141.76 157 L1161.62 173.78 M1177.79 188.41 L1196.46 206.51 M1211.59 222.21 L1228.97 241.54 M1243 258.24 L1259.03 278.71 M1271.88 296.32 L1286.47 317.84 M1298.09 336.29 L1311.19 358.75 M1321.52 377.95 L1333.05 401.26 M1342.05 421.12 L1351.96 445.15 M1359.58 465.58 L1367.83 490.24 M1374.04 511.14 L1380.59 536.3 M1385.36 557.58 L1390.17 583.13 M1393.48 604.68 L1396.54 630.5 M1398.37 652.23 L1399.66 678.2",
+          "specialProps": {
+            "viewBox": "0 0 1400 1400",
+            "strokeOnly": true,
+            "baseStrokeWidth": 3
+          },
+          "groupId": "ex-b3-g-decor",
+          "groupName": "Background rings"
+        },
+        {
+          "id": "ex-b3-ring-3",
+          "type": "shape",
+          "name": "Ring",
+          "position": {
+            "x": -294,
+            "y": 60
+          },
+          "size": {
+            "width": 1800,
+            "height": 1800
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#F0F0F2",
+          "strokeWidth": 3,
+          "groupId": "ex-b3-g-decor",
+          "groupName": "Background rings"
+        },
+        {
+          "id": "ex-b3-logo",
+          "type": "shape",
+          "name": "Logo tile",
+          "position": {
+            "x": 352,
+            "y": 712
+          },
+          "size": {
+            "width": 512,
+            "height": 512
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 35.84,
+            "blur": 81.92,
+            "color": "rgba(20,30,60,0.18)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 122.88,
+          "groupId": "ex-b3-g-logo",
+          "groupName": "App logo"
+        },
+        {
+          "id": "ex-b3-logo-mark",
+          "type": "shape",
+          "name": "Logo",
+          "position": {
+            "x": 464.64,
+            "y": 824.64
+          },
+          "size": {
+            "width": 286.72,
+            "height": 286.72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#2A2A2E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 0 C56 30 70 44 100 50 C70 56 56 70 50 100 C44 70 30 56 0 50 C30 44 44 30 50 0 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ex-b3-g-logo",
+          "groupName": "App logo"
+        },
+        {
+          "id": "ex-b3-online",
+          "type": "shape",
+          "name": "Online dot",
+          "position": {
+            "x": 752,
+            "y": 1076
+          },
+          "size": {
+            "width": 142,
+            "height": 142
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 0,
+            "blur": 30,
+            "color": "rgba(30,220,70,0.6)"
+          },
+          "shapeType": "circle",
+          "fillColor": "#22DD48",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#3BF05E",
+            "color2": "#10C936",
+            "angle": 135
+          },
+          "groupId": "ex-b3-g-logo",
+          "groupName": "App logo"
+        },
+        {
+          "id": "ex-b3-p1-bg",
+          "type": "shape",
+          "name": "Photo background",
+          "position": {
+            "x": 284,
+            "y": 214
+          },
+          "size": {
+            "width": 180,
+            "height": 180
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#F8C9DA",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ex-b3-g-person-1",
+          "groupName": "Expert 1"
+        },
+        {
+          "id": "ex-b3-p1-photo",
+          "type": "image",
+          "name": "Photo",
+          "position": {
+            "x": 284,
+            "y": 214
+          },
+          "size": {
+            "width": 180,
+            "height": 180
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover",
+          "borderRadius": 90,
+          "imageSrc": "/data/projects/expertly-avatar-1.png",
+          "groupId": "ex-b3-g-person-1",
+          "groupName": "Expert 1"
+        },
+        {
+          "id": "ex-b3-p1-dot",
+          "type": "shape",
+          "name": "Online dot",
+          "position": {
+            "x": 426,
+            "y": 218
+          },
+          "size": {
+            "width": 28,
+            "height": 28
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#2BDB4C",
+          "strokeColor": "#FFFFFF",
+          "strokeWidth": 4,
+          "groupId": "ex-b3-g-person-1",
+          "groupName": "Expert 1"
+        },
+        {
+          "id": "ex-b3-p1-label-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 248.66,
+            "y": 408
+          },
+          "size": {
+            "width": 250.67,
+            "height": 54
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 4,
+            "blur": 10,
+            "color": "rgba(0,0,0,0.06)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#ECECEF",
+          "strokeWidth": 2,
+          "borderRadius": 27,
+          "groupId": "ex-b3-g-person-1",
+          "groupName": "Expert 1"
+        },
+        {
+          "id": "ex-b3-p1-label",
+          "type": "text",
+          "name": "Role",
+          "position": {
+            "x": 247.4,
+            "y": 411.18
+          },
+          "size": {
+            "width": 251,
+            "height": 45.5
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Product Strategist",
+          "fontSize": 7.5,
+          "color": "#2B2B2E",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.15,
+          "groupId": "ex-b3-g-person-1",
+          "groupName": "Expert 1"
+        },
+        {
+          "id": "ex-b3-p2-bg",
+          "type": "shape",
+          "name": "Photo background",
+          "position": {
+            "x": 878,
+            "y": 436
+          },
+          "size": {
+            "width": 180,
+            "height": 180
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#F7EDA6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ex-b3-g-person-2",
+          "groupName": "Expert 2"
+        },
+        {
+          "id": "ex-b3-p2-photo",
+          "type": "image",
+          "name": "Photo",
+          "position": {
+            "x": 878,
+            "y": 436
+          },
+          "size": {
+            "width": 180,
+            "height": 180
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover",
+          "borderRadius": 90,
+          "imageSrc": "/data/projects/expertly-avatar-2.png",
+          "groupId": "ex-b3-g-person-2",
+          "groupName": "Expert 2"
+        },
+        {
+          "id": "ex-b3-p2-dot",
+          "type": "shape",
+          "name": "Online dot",
+          "position": {
+            "x": 1020,
+            "y": 440
+          },
+          "size": {
+            "width": 28,
+            "height": 28
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#2BDB4C",
+          "strokeColor": "#FFFFFF",
+          "strokeWidth": 4,
+          "groupId": "ex-b3-g-person-2",
+          "groupName": "Expert 2"
+        },
+        {
+          "id": "ex-b3-p2-label-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 844.95,
+            "y": 630
+          },
+          "size": {
+            "width": 246.11,
+            "height": 54
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 4,
+            "blur": 10,
+            "color": "rgba(0,0,0,0.06)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#ECECEF",
+          "strokeWidth": 2,
+          "borderRadius": 27,
+          "groupId": "ex-b3-g-person-2",
+          "groupName": "Expert 2"
+        },
+        {
+          "id": "ex-b3-p2-label",
+          "type": "text",
+          "name": "Role",
+          "position": {
+            "x": 843.25,
+            "y": 633.18
+          },
+          "size": {
+            "width": 247,
+            "height": 45.5
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Mobile Developer",
+          "fontSize": 7.5,
+          "color": "#2B2B2E",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.15,
+          "groupId": "ex-b3-g-person-2",
+          "groupName": "Expert 2"
+        },
+        {
+          "id": "ex-b3-p3-bg",
+          "type": "shape",
+          "name": "Photo background",
+          "position": {
+            "x": 32,
+            "y": 806
+          },
+          "size": {
+            "width": 180,
+            "height": 180
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#F9DAB6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ex-b3-g-person-3",
+          "groupName": "Expert 3"
+        },
+        {
+          "id": "ex-b3-p3-photo",
+          "type": "image",
+          "name": "Photo",
+          "position": {
+            "x": 32,
+            "y": 806
+          },
+          "size": {
+            "width": 180,
+            "height": 180
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover",
+          "borderRadius": 90,
+          "imageSrc": "/data/projects/expertly-avatar-3.png",
+          "groupId": "ex-b3-g-person-3",
+          "groupName": "Expert 3"
+        },
+        {
+          "id": "ex-b3-p3-dot",
+          "type": "shape",
+          "name": "Online dot",
+          "position": {
+            "x": 174,
+            "y": 810
+          },
+          "size": {
+            "width": 28,
+            "height": 28
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#2BDB4C",
+          "strokeColor": "#FFFFFF",
+          "strokeWidth": 4,
+          "groupId": "ex-b3-g-person-3",
+          "groupName": "Expert 3"
+        },
+        {
+          "id": "ex-b3-p3-label-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": -0.47,
+            "y": 1000
+          },
+          "size": {
+            "width": 244.94,
+            "height": 54
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 4,
+            "blur": 10,
+            "color": "rgba(0,0,0,0.06)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#ECECEF",
+          "strokeWidth": 2,
+          "borderRadius": 27,
+          "groupId": "ex-b3-g-person-3",
+          "groupName": "Expert 3"
+        },
+        {
+          "id": "ex-b3-p3-label",
+          "type": "text",
+          "name": "Role",
+          "position": {
+            "x": -1.19,
+            "y": 1003.18
+          },
+          "size": {
+            "width": 245,
+            "height": 45.5
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Security Engineer",
+          "fontSize": 7.5,
+          "color": "#2B2B2E",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.15,
+          "groupId": "ex-b3-g-person-3",
+          "groupName": "Expert 3"
+        },
+        {
+          "id": "ex-b3-p4-bg",
+          "type": "shape",
+          "name": "Photo background",
+          "position": {
+            "x": 912,
+            "y": 1174
+          },
+          "size": {
+            "width": 180,
+            "height": 180
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#F6BDBA",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ex-b3-g-person-4",
+          "groupName": "Expert 4"
+        },
+        {
+          "id": "ex-b3-p4-photo",
+          "type": "image",
+          "name": "Photo",
+          "position": {
+            "x": 912,
+            "y": 1174
+          },
+          "size": {
+            "width": 180,
+            "height": 180
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover",
+          "borderRadius": 90,
+          "imageSrc": "/data/projects/expertly-avatar-4.png",
+          "groupId": "ex-b3-g-person-4",
+          "groupName": "Expert 4"
+        },
+        {
+          "id": "ex-b3-p4-dot",
+          "type": "shape",
+          "name": "Online dot",
+          "position": {
+            "x": 1054,
+            "y": 1178
+          },
+          "size": {
+            "width": 28,
+            "height": 28
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#2BDB4C",
+          "strokeColor": "#FFFFFF",
+          "strokeWidth": 4,
+          "groupId": "ex-b3-g-person-4",
+          "groupName": "Expert 4"
+        },
+        {
+          "id": "ex-b3-p4-label-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 901.63,
+            "y": 1368
+          },
+          "size": {
+            "width": 200.75,
+            "height": 54
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 4,
+            "blur": 10,
+            "color": "rgba(0,0,0,0.06)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#ECECEF",
+          "strokeWidth": 2,
+          "borderRadius": 27,
+          "groupId": "ex-b3-g-person-4",
+          "groupName": "Expert 4"
+        },
+        {
+          "id": "ex-b3-p4-label",
+          "type": "text",
+          "name": "Role",
+          "position": {
+            "x": 900.4,
+            "y": 1371.18
+          },
+          "size": {
+            "width": 201,
+            "height": 45.5
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Data Scientist",
+          "fontSize": 7.5,
+          "color": "#2B2B2E",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.15,
+          "groupId": "ex-b3-g-person-4",
+          "groupName": "Expert 4"
+        },
+        {
+          "id": "ex-b3-p5-bg",
+          "type": "shape",
+          "name": "Photo background",
+          "position": {
+            "x": 172,
+            "y": 1346
+          },
+          "size": {
+            "width": 180,
+            "height": 180
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#C9F0E6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ex-b3-g-person-5",
+          "groupName": "Expert 5"
+        },
+        {
+          "id": "ex-b3-p5-photo",
+          "type": "image",
+          "name": "Photo",
+          "position": {
+            "x": 172,
+            "y": 1346
+          },
+          "size": {
+            "width": 180,
+            "height": 180
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover",
+          "borderRadius": 90,
+          "imageSrc": "/data/projects/expertly-avatar-5.png",
+          "groupId": "ex-b3-g-person-5",
+          "groupName": "Expert 5"
+        },
+        {
+          "id": "ex-b3-p5-dot",
+          "type": "shape",
+          "name": "Online dot",
+          "position": {
+            "x": 314,
+            "y": 1350
+          },
+          "size": {
+            "width": 28,
+            "height": 28
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#2BDB4C",
+          "strokeColor": "#FFFFFF",
+          "strokeWidth": 4,
+          "groupId": "ex-b3-g-person-5",
+          "groupName": "Expert 5"
+        },
+        {
+          "id": "ex-b3-p5-label-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 112.09,
+            "y": 1540
+          },
+          "size": {
+            "width": 299.83,
+            "height": 54
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 4,
+            "blur": 10,
+            "color": "rgba(0,0,0,0.06)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#ECECEF",
+          "strokeWidth": 2,
+          "borderRadius": 27,
+          "groupId": "ex-b3-g-person-5",
+          "groupName": "Expert 5"
+        },
+        {
+          "id": "ex-b3-p5-label",
+          "type": "text",
+          "name": "Role",
+          "position": {
+            "x": 110.76,
+            "y": 1543.18
+          },
+          "size": {
+            "width": 300,
+            "height": 45.5
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Backend/API Engineer",
+          "fontSize": 7.5,
+          "color": "#2B2B2E",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.15,
+          "groupId": "ex-b3-g-person-5",
+          "groupName": "Expert 5"
+        },
+        {
+          "id": "ex-b3-headline-a",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 72.44,
+            "y": 1840.33
+          },
+          "size": {
+            "width": 531,
+            "height": 243.97
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Online",
+          "fontSize": 50.13,
+          "color": "#111111",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -2.51,
+          "fillGradient": {
+            "color1": "#4CC4FF",
+            "via": [
+              "#6DB4FF",
+              "#FFEFC6",
+              "#FF9B38"
+            ],
+            "color2": "#E04400",
+            "angle": 90
+          },
+          "groupId": "ex-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b3-headline-b",
+          "type": "text",
+          "name": "Headline part 2",
+          "position": {
+            "x": 594.35,
+            "y": 1840.33
+          },
+          "size": {
+            "width": 461,
+            "height": 243.97
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "when",
+          "fontSize": 50.13,
+          "color": "#111111",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -2.51,
+          "groupId": "ex-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b3-headline-2",
+          "type": "text",
+          "name": "Headline line 2",
+          "position": {
+            "x": 81.96,
+            "y": 2014.33
+          },
+          "size": {
+            "width": 733,
+            "height": 243.97
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "you want",
+          "fontSize": 50.13,
+          "color": "#111111",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -2.51,
+          "groupId": "ex-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b3-subtitle",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 76.99,
+            "y": 2262.69
+          },
+          "size": {
+            "width": 1080,
+            "height": 210.18
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "One tap. No commitments,\nno quotas.",
+          "fontSize": 24.63,
+          "color": "#111111",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.11,
+          "groupId": "ex-b3-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    },
+    {
+      "id": "ex-board-4",
+      "name": "Vetted Experts",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "ex-b4-ribbon",
+          "type": "shape",
+          "name": "Ribbon",
+          "position": {
+            "x": -40,
+            "y": 920
+          },
+          "size": {
+            "width": 1280,
+            "height": 1280
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#4E9BF5",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M640 0 A640 640 0 1 1 639.99 0 Z",
+          "specialProps": {
+            "viewBox": "0 0 1280 1280",
+            "strokeOnly": true,
+            "baseStrokeWidth": 84
+          },
+          "fillGradient": {
+            "color1": "#4E9BF5",
+            "color2": "#3FD8F0",
+            "angle": 90
+          },
+          "groupId": "ex-b4-g-decor",
+          "groupName": "Ribbons"
+        },
+        {
+          "id": "ex-b4-ribbon-top",
+          "type": "shape",
+          "name": "Ribbon",
+          "position": {
+            "x": 760,
+            "y": 760
+          },
+          "size": {
+            "width": 480,
+            "height": 240
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF8A2A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 230 Q220 20 480 40",
+          "specialProps": {
+            "viewBox": "0 0 480 240",
+            "strokeOnly": true,
+            "baseStrokeWidth": 54
+          },
+          "fillGradient": {
+            "color1": "#FF6A1A",
+            "color2": "#FFA448",
+            "angle": 90
+          },
+          "groupId": "ex-b4-g-decor",
+          "groupName": "Ribbons"
+        },
+        {
+          "id": "ex-b4-ribbon-bottom",
+          "type": "shape",
+          "name": "Ribbon",
+          "position": {
+            "x": -40,
+            "y": 2400
+          },
+          "size": {
+            "width": 520,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF8A2A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 40 Q260 170 520 150",
+          "specialProps": {
+            "viewBox": "0 0 520 200",
+            "strokeOnly": true,
+            "baseStrokeWidth": 54
+          },
+          "fillGradient": {
+            "color1": "#FFB04A",
+            "color2": "#FF6A1A",
+            "angle": 90
+          },
+          "groupId": "ex-b4-g-decor",
+          "groupName": "Ribbons"
+        },
+        {
+          "id": "ex-b4-spark",
+          "type": "shape",
+          "name": "Spark lines",
+          "position": {
+            "x": 372,
+            "y": 780
+          },
+          "size": {
+            "width": 110,
+            "height": 190
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF7A1A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M100 10 Q30 50 18 180",
+          "specialProps": {
+            "viewBox": "0 0 110 190",
+            "strokeOnly": true,
+            "baseStrokeWidth": 12
+          },
+          "groupId": "ex-b4-g-decor",
+          "groupName": "Ribbons"
+        },
+        {
+          "id": "ex-b4-photo",
+          "type": "image",
+          "name": "Expert photo",
+          "position": {
+            "x": -20,
+            "y": 600
+          },
+          "size": {
+            "width": 1260,
+            "height": 1176
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "contain",
+          "imageSrc": "/data/projects/expertly-woman.png"
+        },
+        {
+          "id": "ex-b4-headline-a",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 86,
+            "y": 127.44
+          },
+          "size": {
+            "width": 497,
+            "height": 233.45
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Vetted",
+          "fontSize": 47.97,
+          "color": "#2B2B2B",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -2.4,
+          "fillGradient": {
+            "color1": "#4CC4FF",
+            "via": [
+              "#6DB4FF",
+              "#FFEFC6",
+              "#FF9B38"
+            ],
+            "color2": "#E04400",
+            "angle": 90
+          },
+          "groupId": "ex-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b4-headline-b",
+          "type": "text",
+          "name": "Headline part 2",
+          "position": {
+            "x": 571.67,
+            "y": 127.44
+          },
+          "size": {
+            "width": 597,
+            "height": 233.45
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "experts.",
+          "fontSize": 47.97,
+          "color": "#2B2B2B",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -2.4,
+          "groupId": "ex-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b4-headline-2",
+          "type": "text",
+          "name": "Headline line 2",
+          "position": {
+            "x": 76.53,
+            "y": 307.44
+          },
+          "size": {
+            "width": 958,
+            "height": 233.45
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Quality work.",
+          "fontSize": 47.97,
+          "color": "#2B2B2B",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -2.4,
+          "groupId": "ex-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b4-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 80,
+            "y": 1960
+          },
+          "size": {
+            "width": 1070,
+            "height": 400
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 44,
+            "color": "rgba(0,0,0,0.12)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 46,
+          "groupId": "ex-b4-g-card",
+          "groupName": "Match card"
+        },
+        {
+          "id": "ex-b4-card-text",
+          "type": "text",
+          "name": "Card text",
+          "position": {
+            "x": 162.71,
+            "y": 2111.73
+          },
+          "size": {
+            "width": 960,
+            "height": 176.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Pass once. Get matched to\nhigh signal work.",
+          "fontSize": 20.4,
+          "color": "#141416",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.12,
+          "letterSpacing": -1.02,
+          "groupId": "ex-b4-g-card",
+          "groupName": "Match card"
+        },
+        {
+          "id": "ex-b4-card-robot",
+          "type": "image",
+          "name": "Robot",
+          "position": {
+            "x": 53.86,
+            "y": 1712.52
+          },
+          "size": {
+            "width": 368.8,
+            "height": 330.2
+          },
+          "rotation": -8,
+          "scale": 1,
+          "imageSrc": "/elements/images/mascots/mascot-robot.png",
+          "objectFit": "contain",
+          "groupId": "ex-b4-g-card",
+          "groupName": "Match card"
+        },
+        {
+          "id": "ex-b4-arrow",
+          "type": "shape",
+          "name": "Arrow",
+          "position": {
+            "x": 1040,
+            "y": 1926
+          },
+          "size": {
+            "width": 170,
+            "height": 196
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#4A9BF5",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M14 186 L70 130 L46 108 L150 22",
+          "specialProps": {
+            "viewBox": "0 0 170 196",
+            "strokeOnly": true,
+            "baseStrokeWidth": 20
+          },
+          "fillGradient": {
+            "color1": "#FF7A1A",
+            "color2": "#4AB0FF",
+            "angle": 30
+          },
+          "groupId": "ex-b4-g-card",
+          "groupName": "Match card"
+        },
+        {
+          "id": "ex-b4-arrow-head",
+          "type": "shape",
+          "name": "Arrow head",
+          "position": {
+            "x": 1124,
+            "y": 1914
+          },
+          "size": {
+            "width": 80,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#4AB0FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M10 18 L72 8 L58 70 Z",
+          "specialProps": {
+            "viewBox": "0 0 80 80"
+          },
+          "groupId": "ex-b4-g-card",
+          "groupName": "Match card"
+        }
+      ]
+    },
+    {
+      "id": "ex-board-5",
+      "name": "Chat And Get Paid",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#000000",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "ex-b5-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 101.01,
+            "y": 76.47
+          },
+          "size": {
+            "width": 459,
+            "height": 367.48
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Just",
+          "fontSize": 75.51,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -3.78,
+          "groupId": "ex-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b5-headline-2",
+          "type": "text",
+          "name": "Headline line 2",
+          "position": {
+            "x": 69.4,
+            "y": 292.47
+          },
+          "size": {
+            "width": 971,
+            "height": 367.48
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "chat like",
+          "fontSize": 75.51,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -3.78,
+          "groupId": "ex-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b5-headline-3",
+          "type": "text",
+          "name": "Headline line 3",
+          "position": {
+            "x": 71.38,
+            "y": 510.47
+          },
+          "size": {
+            "width": 863,
+            "height": 367.48
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "always,",
+          "fontSize": 75.51,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -3.78,
+          "groupId": "ex-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b5-headline-4-a",
+          "type": "text",
+          "name": "Headline line 4",
+          "position": {
+            "x": 62.42,
+            "y": 726.47
+          },
+          "size": {
+            "width": 427,
+            "height": 367.48
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "but",
+          "fontSize": 75.51,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -3.78,
+          "groupId": "ex-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b5-headline-4-b",
+          "type": "text",
+          "name": "Headline line 4 part 2",
+          "position": {
+            "x": 497.84,
+            "y": 726.47
+          },
+          "size": {
+            "width": 525,
+            "height": 367.48
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Paid",
+          "fontSize": 75.51,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -3.78,
+          "fillGradient": {
+            "color1": "#22D8E8",
+            "via": [
+              "#4AA8FF",
+              "#FFC266"
+            ],
+            "color2": "#FF6A1A",
+            "angle": 90
+          },
+          "groupId": "ex-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b5-dollar",
+          "type": "image",
+          "name": "Dollar sign",
+          "position": {
+            "x": 40.3,
+            "y": 1000
+          },
+          "size": {
+            "width": 1207.8,
+            "height": 1834.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-dollar.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "ex-b5-pill-1",
+          "type": "shape",
+          "name": "Glass pill",
+          "position": {
+            "x": 647,
+            "y": 1187
+          },
+          "size": {
+            "width": 430,
+            "height": 150
+          },
+          "rotation": 30,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 30,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "fillOpacity": 0.95,
+          "shapeType": "rectangle",
+          "fillColor": "#C7CED8",
+          "strokeColor": "rgba(255,255,255,0.7)",
+          "strokeWidth": 3,
+          "borderRadius": 75,
+          "fillGradient": {
+            "color1": "#4A4B50",
+            "color2": "#18181B",
+            "angle": 160
+          },
+          "groupId": "ex-b5-g-pills",
+          "groupName": "Amounts"
+        },
+        {
+          "id": "ex-b5-pill-1-text",
+          "type": "text",
+          "name": "Pill amount",
+          "position": {
+            "x": 728.3,
+            "y": 1214.87
+          },
+          "size": {
+            "width": 266,
+            "height": 90.52
+          },
+          "rotation": 30,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 2,
+            "blur": 6,
+            "color": "rgba(0,0,0,0.35)"
+          },
+          "content": "+$4,330",
+          "fontSize": 18.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.37,
+          "groupId": "ex-b5-g-pills",
+          "groupName": "Amounts"
+        },
+        {
+          "id": "ex-b5-pill-2",
+          "type": "shape",
+          "name": "Glass pill",
+          "position": {
+            "x": 120,
+            "y": 2187
+          },
+          "size": {
+            "width": 420,
+            "height": 150
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 30,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "fillOpacity": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#C7CED8",
+          "strokeColor": "rgba(255,255,255,0.7)",
+          "strokeWidth": 3,
+          "borderRadius": 75,
+          "fillGradient": {
+            "color1": "#FFD34D",
+            "color2": "#E8920E",
+            "angle": 160
+          },
+          "groupId": "ex-b5-g-pills",
+          "groupName": "Amounts"
+        },
+        {
+          "id": "ex-b5-pill-2-text",
+          "type": "text",
+          "name": "Pill amount",
+          "position": {
+            "x": 196.3,
+            "y": 2214.87
+          },
+          "size": {
+            "width": 266,
+            "height": 90.52
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 2,
+            "blur": 6,
+            "color": "rgba(0,0,0,0.35)"
+          },
+          "content": "+$1,230",
+          "fontSize": 18.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.37,
+          "groupId": "ex-b5-g-pills",
+          "groupName": "Amounts"
+        },
+        {
+          "id": "ex-b5-note-back-2",
+          "type": "shape",
+          "name": "Card behind",
+          "position": {
+            "x": 196,
+            "y": 1990
+          },
+          "size": {
+            "width": 812,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "fillOpacity": 0.7,
+          "shapeType": "rectangle",
+          "fillColor": "#2C2C2E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 30,
+          "groupId": "ex-b5-g-notification",
+          "groupName": "Notification"
+        },
+        {
+          "id": "ex-b5-note-back-1",
+          "type": "shape",
+          "name": "Card behind",
+          "position": {
+            "x": 140,
+            "y": 1962
+          },
+          "size": {
+            "width": 924,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "fillOpacity": 0.8,
+          "shapeType": "rectangle",
+          "fillColor": "#323234",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 34,
+          "groupId": "ex-b5-g-notification",
+          "groupName": "Notification"
+        },
+        {
+          "id": "ex-b5-note-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 90,
+            "y": 1656
+          },
+          "size": {
+            "width": 1024,
+            "height": 296
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 20,
+            "blur": 40,
+            "color": "rgba(0,0,0,0.5)"
+          },
+          "fillOpacity": 0.9,
+          "shapeType": "rectangle",
+          "fillColor": "#2A2A2C",
+          "strokeColor": "rgba(255,255,255,0.18)",
+          "strokeWidth": 2,
+          "borderRadius": 44,
+          "groupId": "ex-b5-g-notification",
+          "groupName": "Notification"
+        },
+        {
+          "id": "ex-b5-note-logo",
+          "type": "shape",
+          "name": "Logo tile",
+          "position": {
+            "x": 140,
+            "y": 1706
+          },
+          "size": {
+            "width": 194,
+            "height": 194
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 46.56,
+          "groupId": "ex-b5-g-notification",
+          "groupName": "Notification"
+        },
+        {
+          "id": "ex-b5-note-logo-mark",
+          "type": "shape",
+          "name": "Logo",
+          "position": {
+            "x": 182.68,
+            "y": 1748.68
+          },
+          "size": {
+            "width": 108.64,
+            "height": 108.64
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#2A2A2E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 0 C56 30 70 44 100 50 C70 56 56 70 50 100 C44 70 30 56 0 50 C30 44 44 30 50 0 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ex-b5-g-notification",
+          "groupName": "Notification"
+        },
+        {
+          "id": "ex-b5-note-app",
+          "type": "text",
+          "name": "App name",
+          "position": {
+            "x": 392.29,
+            "y": 1722.06
+          },
+          "size": {
+            "width": 198,
+            "height": 62
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Expertly",
+          "fontSize": 12,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.24,
+          "groupId": "ex-b5-g-notification",
+          "groupName": "Notification"
+        },
+        {
+          "id": "ex-b5-note-body",
+          "type": "text",
+          "name": "Message",
+          "position": {
+            "x": 396,
+            "y": 1787.96
+          },
+          "size": {
+            "width": 700,
+            "height": 102.96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "You have just been credited. Your funds\nare now available.",
+          "fontSize": 10.8,
+          "color": "rgba(255,255,255,0.85)",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.18,
+          "letterSpacing": -0.22,
+          "groupId": "ex-b5-g-notification",
+          "groupName": "Notification"
+        }
+      ]
+    },
+    {
+      "id": "ex-board-6",
+      "name": "Cash Out Same Day",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "ex-b6-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 66.95,
+            "y": 37.67
+          },
+          "size": {
+            "width": 762,
+            "height": 486.33
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Cash",
+          "fontSize": 99.93,
+          "color": "#111111",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -5,
+          "fillGradient": {
+            "color1": "#4CC4FF",
+            "via": [
+              "#7AB8FF",
+              "#FFD58A"
+            ],
+            "color2": "#FF6A12",
+            "angle": 90
+          },
+          "groupId": "ex-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b6-headline-2-a",
+          "type": "text",
+          "name": "Headline line 2",
+          "position": {
+            "x": 69.32,
+            "y": 317.67
+          },
+          "size": {
+            "width": 548,
+            "height": 486.33
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "out",
+          "fontSize": 99.93,
+          "color": "#111111",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -5,
+          "fillGradient": {
+            "color1": "#4CC4FF",
+            "via": [
+              "#7AB8FF",
+              "#FFD58A"
+            ],
+            "color2": "#FF6A12",
+            "angle": 90
+          },
+          "groupId": "ex-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b6-headline-2-b",
+          "type": "text",
+          "name": "Headline line 2 part 2",
+          "position": {
+            "x": 642.73,
+            "y": 317.67
+          },
+          "size": {
+            "width": 537,
+            "height": 486.33
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "the",
+          "fontSize": 99.93,
+          "color": "#111111",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -5,
+          "groupId": "ex-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b6-headline-3",
+          "type": "text",
+          "name": "Headline line 3",
+          "position": {
+            "x": 70.15,
+            "y": 595.67
+          },
+          "size": {
+            "width": 851,
+            "height": 486.33
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "same",
+          "fontSize": 99.93,
+          "color": "#111111",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -5,
+          "groupId": "ex-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b6-headline-4",
+          "type": "text",
+          "name": "Headline line 4",
+          "position": {
+            "x": 69.32,
+            "y": 875.67
+          },
+          "size": {
+            "width": 656,
+            "height": 486.33
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "day!",
+          "fontSize": 99.93,
+          "color": "#111111",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -5,
+          "groupId": "ex-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b6-subtitle",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 81.11,
+            "y": 1354.9
+          },
+          "size": {
+            "width": 1080,
+            "height": 300.95
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Paid out fast. Money\nin your bank, hours not\nweeks.",
+          "fontSize": 24.27,
+          "color": "#111111",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.12,
+          "letterSpacing": -1.09,
+          "groupId": "ex-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ex-b6-ribbon",
+          "type": "shape",
+          "name": "Ribbon",
+          "position": {
+            "x": -60,
+            "y": 1820
+          },
+          "size": {
+            "width": 1300,
+            "height": 900
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF7A1A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 70 C420 0 640 300 820 520 C930 660 1080 780 1300 900",
+          "specialProps": {
+            "viewBox": "0 0 1300 900",
+            "strokeOnly": true,
+            "baseStrokeWidth": 64
+          },
+          "fillGradient": {
+            "color1": "#FF6A1A",
+            "color2": "#4A9BF5",
+            "angle": 120
+          },
+          "groupId": "ex-b6-g-logo",
+          "groupName": "App logo"
+        },
+        {
+          "id": "ex-b6-logo",
+          "type": "shape",
+          "name": "Logo tile",
+          "position": {
+            "x": 330,
+            "y": 1790
+          },
+          "size": {
+            "width": 560,
+            "height": 560
+          },
+          "rotation": 20,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 39.2,
+            "blur": 89.60000000000001,
+            "color": "rgba(20,30,60,0.18)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 134.4,
+          "groupId": "ex-b6-g-logo",
+          "groupName": "App logo"
+        },
+        {
+          "id": "ex-b6-logo-mark",
+          "type": "shape",
+          "name": "Logo",
+          "position": {
+            "x": 453.2,
+            "y": 1913.2
+          },
+          "size": {
+            "width": 313.6,
+            "height": 313.6
+          },
+          "rotation": 20,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#2A2A2E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 0 C56 30 70 44 100 50 C70 56 56 70 50 100 C44 70 30 56 0 50 C30 44 44 30 50 0 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ex-b6-g-logo",
+          "groupName": "App logo"
+        }
+      ]
+    }
+  ]
+}

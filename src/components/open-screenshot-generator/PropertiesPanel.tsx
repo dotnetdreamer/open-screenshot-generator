@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { CaptureFromDeviceButton } from './capture/CaptureFromDeviceButton';
-import { UploadCloudIcon, PaintbrushIcon, Palette, Plus, Minus, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, ClapperboardIcon, Trash2Icon, Languages, CheckIcon, CopyIcon, RotateCcw, LinkIcon, UnlinkIcon, MoreHorizontalIcon, BringToFront, SendToBack } from 'lucide-react';
+import { UploadCloudIcon, PaintbrushIcon, Palette, Blend, Plus, Minus, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, ClapperboardIcon, Trash2Icon, Languages, CheckIcon, CopyIcon, RotateCcw, LinkIcon, UnlinkIcon, MoreHorizontalIcon, BringToFront, SendToBack } from 'lucide-react';
 import type { SpanChange } from '@/lib/spanArtboards';
 import {
   AlertDialog,
@@ -522,6 +522,12 @@ const TEXT_STYLE_KEYS: DetachableKey[] = ['fontWeight', 'fontStyle', 'textDecora
 
 /** A text outline is its colour and its width, one control. */
 const TEXT_OUTLINE_KEYS: DetachableKey[] = ['outlineColor', 'outlineWidth'];
+
+/** A text gradient wins over its colour, so the fill is one decision, as for shapes. */
+const TEXT_FILL_KEYS: DetachableKey[] = ['color', 'fillGradient'];
+
+/** Where a new text gradient ends: orange, or blue when the text already is that orange. */
+const textGradientEnd = (start: string) => (start.trim().toLowerCase() === '#ff7a1f' ? '#3b82f6' : '#ff7a1f');
 
 /**
  * The colour a text outline gets when only its width is set. The outline's
@@ -3159,28 +3165,98 @@ export function PropertiesPanel({
           </div>
         </div>
 
-        {/* Font Color */}
+        {/* Font Color: one colour, or a two-stop gradient across the letters,
+            which wins over the colour while it is set. */}
         <div className="space-y-2">
           {detachLabelRow(
             <Label htmlFor="fontColor" className="text-xs font-medium">Color</Label>,
-            'color',
+            TEXT_FILL_KEYS,
             'Color'
           )}
-          <div className="flex items-center gap-2">
-            <Input
-              id="fontColor"
-              type="color"
-              value={element.color}
-              onChange={(e) => onUpdateElement({ color: e.target.value })}
-              className="w-10 h-10 p-1"
-            />
-            <Input
-              type="text"
-              value={element.color}
-              onChange={(e) => onUpdateElement({ color: e.target.value })}
-              className="flex-1 text-xs font-mono"
-            />
-          </div>
+          {element.fillGradient ? (
+            <div className="flex items-center gap-2">
+              <Input
+                id="fontColor"
+                type="color"
+                value={element.fillGradient.color1}
+                onChange={(e) => onUpdateElement({ fillGradient: { ...element.fillGradient!, color1: e.target.value } })}
+                className="w-10 h-10 p-1"
+                title="Gradient start color"
+                aria-label="Gradient start color"
+              />
+              {(element.fillGradient.via ?? []).map((middle, index) => (
+                <Input
+                  key={index}
+                  type="color"
+                  value={middle}
+                  onChange={(e) => {
+                    const via = [...(element.fillGradient!.via ?? [])];
+                    via[index] = e.target.value;
+                    onUpdateElement({ fillGradient: { ...element.fillGradient!, via } });
+                  }}
+                  className="w-10 h-10 p-1"
+                  title={`Gradient color ${index + 2}`}
+                  aria-label={`Gradient color ${index + 2}`}
+                />
+              ))}
+              <Input
+                type="color"
+                value={element.fillGradient.color2}
+                onChange={(e) => onUpdateElement({ fillGradient: { ...element.fillGradient!, color2: e.target.value } })}
+                className="w-10 h-10 p-1"
+                title="Gradient end color"
+                aria-label="Gradient end color"
+              />
+              <Input
+                type="number"
+                min={0}
+                max={360}
+                step={15}
+                value={element.fillGradient.angle}
+                onChange={(e) => {
+                  const angle = Number.parseFloat(e.currentTarget.value);
+                  if (Number.isFinite(angle)) onUpdateElement({ fillGradient: { ...element.fillGradient!, angle } });
+                }}
+                className="h-8 w-16 text-xs"
+                title="Gradient angle in degrees"
+                aria-label="Gradient angle in degrees"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs"
+                onClick={() => onUpdateElement({ fillGradient: undefined, color: element.fillGradient!.color1 })}
+              >
+                Use one color
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Input
+                id="fontColor"
+                type="color"
+                value={element.color}
+                onChange={(e) => onUpdateElement({ color: e.target.value })}
+                className="w-10 h-10 p-1"
+              />
+              <Input
+                type="text"
+                value={element.color}
+                onChange={(e) => onUpdateElement({ color: e.target.value })}
+                className="flex-1 text-xs font-mono"
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                onClick={() => onUpdateElement({ fillGradient: { color1: element.color, color2: textGradientEnd(element.color), angle: 90 } })}
+                title="Fill with a gradient"
+                aria-label="Fill with a gradient"
+              >
+                <Blend className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Outline: a band of colour outside the letters, the way game titles
@@ -3216,6 +3292,9 @@ export function PropertiesPanel({
               aria-label="Outline width"
             />
           </div>
+          {element.fillGradient && (
+            <div className="text-xs text-muted-foreground">Outlines don't show on gradient text</div>
+          )}
         </div>
 
         {/* Font Style. One toggle for the four buttons: a language that wants
