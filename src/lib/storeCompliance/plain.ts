@@ -16,10 +16,14 @@
 // was written from. When the playbook rewords a rule or moves a date, the
 // fingerprint stops matching and the screens show the playbook's words again,
 // so a plain sentence never says something the playbook no longer says. A box
-// of the checklist is keyed by its id, which is already the hash of its words.
+// of the checklist is keyed by its id, which is already the hash of its words;
+// a section by the fingerprint of its title and intro; a group by its id.
+//
+// Plain text may run over a few lines: a short first line, then a list whose
+// lines start with "- ". Everything else in it is plain text, never Markdown.
 
 import { hash32 } from '@/lib/i18n/hash';
-import type { Checklist, Deadline, PlainDeadline, PlainRule, RejectionRule } from './types';
+import type { Checklist, ChecklistGroup, ChecklistSection, Deadline, PlainDeadline, PlainRule, RejectionRule } from './types';
 
 export const PLAIN_FILE = 'data/plain-language.json';
 
@@ -45,15 +49,27 @@ export function checklistKey(id: string): string {
   return id.replace(/-\d+$/, '');
 }
 
+/** What a section's plain words were written from: its title and the lines under it (parse.ts). */
+export function sectionFingerprint(section: Pick<ChecklistSection, 'title' | 'introSource'>): string {
+  return hash32(`${section.title}\n${section.introSource ?? ''}`);
+}
+
 export interface PlainLanguage {
   rules: Map<string, PlainRule & { from: string }>;
   deadlines: Map<string, PlainDeadline & { from: string }>;
   checklist: Map<string, string>;
+  sections: Map<string, { from: string; title: string; intro: string | null }>;
+  groups: Map<string, string>;
 }
 
+/** Plain text, line by line: spaces folded within a line, empty lines dropped, the line breaks kept. */
 function words(value: unknown, max: number): string | null {
   if (typeof value !== 'string') return null;
-  const text = value.replace(/\s+/g, ' ').trim();
+  const text = value
+    .split('\n')
+    .map((line) => line.replace(/\s+/g, ' ').trim())
+    .filter(Boolean)
+    .join('\n');
   return text && text.length <= max ? text : null;
 }
 
@@ -68,7 +84,7 @@ function entries(data: Record<string, unknown>, key: string): Array<[string, Rec
  * a broken file only loses the plain words, never the rules.
  */
 export function parsePlainLanguage(source: string | null | undefined): PlainLanguage {
-  const plain: PlainLanguage = { rules: new Map(), deadlines: new Map(), checklist: new Map() };
+  const plain: PlainLanguage = { rules: new Map(), deadlines: new Map(), checklist: new Map(), sections: new Map(), groups: new Map() };
   if (!source) return plain;
   let data: unknown;
   try {
@@ -96,6 +112,15 @@ export function parsePlainLanguage(source: string | null | undefined): PlainLang
     const text = words(entry.text, PLAIN_TEXT_MAX);
     if (text) plain.checklist.set(id, text);
   }
+  for (const [id, entry] of entries(file, 'sections')) {
+    const from = words(entry.from, 64);
+    const title = words(entry.title, PLAIN_TITLE_MAX);
+    if (from && title) plain.sections.set(id, { from, title, intro: words(entry.intro, PLAIN_TEXT_MAX) });
+  }
+  for (const [id, entry] of entries(file, 'groups')) {
+    const title = words(entry.title, PLAIN_TITLE_MAX);
+    if (title) plain.groups.set(id, title);
+  }
   return plain;
 }
 
@@ -117,16 +142,24 @@ export function withPlainLanguage(
     }),
     checklist: checklist && {
       ...checklist,
-      sections: checklist.sections.map((section) => ({
-        ...section,
-        groups: section.groups.map((group) => ({
-          ...group,
-          items: group.items.map((item) => {
-            const text = plain.checklist.get(checklistKey(item.id));
-            return text ? { ...item, plain: text } : item;
+      sections: checklist.sections.map((section) => {
+        const entry = plain.sections.get(section.id);
+        return {
+          ...section,
+          ...(entry && entry.from === sectionFingerprint(section) ? { plain: { title: entry.title, intro: entry.intro } } : {}),
+          groups: section.groups.map((group) => {
+            const title = plain.groups.get(group.id);
+            return {
+              ...group,
+              ...(title && group.title ? { plainTitle: title } : {}),
+              items: group.items.map((item) => {
+                const text = plain.checklist.get(checklistKey(item.id));
+                return text ? { ...item, plain: text } : item;
+              }),
+            };
           }),
-        })),
-      })),
+        };
+      }),
     },
   };
 }
@@ -156,6 +189,55 @@ export function deadlineSummary(deadline: Deadline): string {
 
 export function checkText(item: { text: string; plain?: string }): string {
   return item.plain ?? item.text;
+}
+
+export function sectionTitle(section: Pick<ChecklistSection, 'title' | 'plain'>): string {
+  return section.plain?.title ?? section.title;
+}
+
+export function groupTitle(group: Pick<ChecklistGroup, 'title' | 'plainTitle'>): string | null {
+  return group.plainTitle ?? group.title;
+}
+
+/**
+ * The links in a checklist section's own words, for the screen to show under
+ * its plain words. The repository leaves out a line that only points to a
+ * guide ("The full rules are in the [EU regulatory guide](...)"), so the
+ * guide is reached from here. Each link once, images left out.
+ */
+export function introLinks(paragraphs: string[]): Array<{ label: string; href: string }> {
+  const links: Array<{ label: string; href: string }> = [];
+  for (const paragraph of paragraphs) {
+    for (const match of paragraph.matchAll(/(!?)\[([^\]\n]+)\]\(([^)\n]*)\)/g)) {
+      if (match[1]) continue;
+      const href = (match[3].trim().split(/\s+/)[0] ?? '').replace(/^<|>$/g, '');
+      const label = match[2].replace(/[*_`]/g, '').trim();
+      if (!href || !label || links.some((link) => link.href === href)) continue;
+      links.push({ label: label.charAt(0).toUpperCase() + label.slice(1), href });
+    }
+  }
+  return links;
+}
+
+/** The first line of plain text, for a card that shows one: the lead line, or the first item of a list. */
+export function firstLine(text: string): string {
+  const line = text.split('\n').find((each) => each.trim()) ?? '';
+  return line.replace(/^-\s+/, '');
+}
+
+/** Plain text as blocks to draw: lines, and runs of "- " lines as lists. */
+export function plainBlocks(text: string): Array<{ kind: 'line'; text: string } | { kind: 'list'; items: string[] }> {
+  const blocks: Array<{ kind: 'line'; text: string } | { kind: 'list'; items: string[] }> = [];
+  for (const raw of text.split('\n')) {
+    const line = raw.trim();
+    if (!line) continue;
+    const item = /^-\s+(.*)$/.exec(line);
+    const last = blocks[blocks.length - 1];
+    if (item && last?.kind === 'list') last.items.push(item[1]);
+    else if (item) blocks.push({ kind: 'list', items: [item[1]] });
+    else blocks.push({ kind: 'line', text: line });
+  }
+  return blocks;
 }
 
 /**

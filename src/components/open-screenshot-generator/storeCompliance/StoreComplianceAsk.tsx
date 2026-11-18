@@ -4,7 +4,8 @@
 // message after a rejection, and a check of the open project's screenshots
 // and the store page against the playbook. The same AI as Growth answers
 // (the picker sets Growth's one AI setting), and the conversation lives in
-// chat.ts, so it outlives this screen.
+// chat.ts, so it outlives this screen. With the app's code folder added
+// (StoreComplianceCodeFolder.tsx), Claude Code reads the code for all three.
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -12,6 +13,7 @@ import {
   CheckCircle2Icon,
   CircleAlertIcon,
   ClipboardCheckIcon,
+  FileCode2Icon,
   FileTextIcon,
   ImageIcon,
   Loader2Icon,
@@ -35,7 +37,8 @@ import { getProjectLocales } from '@/lib/i18n/localization';
 import { cn } from '@/lib/utils';
 import { AiLogo, AiPicker, type AiChoice } from '../growth/AiPicker';
 import { RulesMarkdown, useMarkdown } from './RulesMarkdown';
-import { CopyButton, DeadlineChip, Gate, RuleChip, SeverityBadge, formatAgo, useRulesView } from './StoreComplianceShared';
+import { CheckAgain, CodeFolderControl, useCodeFolderState } from './StoreComplianceCodeFolder';
+import { CopyButton, DeadlineChip, Gate, PlainText, RuleChip, SeverityBadge, formatAgo, useRulesView } from './StoreComplianceShared';
 
 const STARTERS = [
   'Can I link to my website so people pay there instead?',
@@ -45,12 +48,13 @@ const STARTERS = [
 ];
 
 /** What the check form holds between visits to the screen. */
-const form: { traits: AppTrait[]; about: string; pasted: string; useArtboards: boolean; useListing: boolean } = {
+const form: { traits: AppTrait[]; about: string; pasted: string; useArtboards: boolean; useListing: boolean; useCode: boolean } = {
   traits: [],
   about: '',
   pasted: '',
   useArtboards: true,
   useListing: true,
+  useCode: true,
 };
 
 function Answer({ text }: { text: string }) {
@@ -94,11 +98,16 @@ function CheckCard({ result, projectName }: { result: CheckResult; projectName: 
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold">
-            {findings.length === 0 ? 'Nothing to fix in the words the AI read' : `${findings.length} thing${findings.length === 1 ? '' : 's'} to look at`}
+            {findings.length === 0
+              ? result.code
+                ? 'No problems found in your text or code'
+                : 'No problems found in your text'
+              : `${findings.length} thing${findings.length === 1 ? '' : 's'} to look at`}
           </p>
           <p className="text-xs text-muted-foreground">
             {projectName ? `${projectName}, ` : ''}
             {result.placeCount} place{result.placeCount === 1 ? '' : 's'} read
+            {result.code ? ` and the code in ${result.code.name}` : ''}
             {result.skipped ? `, ${result.skipped} left out because there was too much text` : ''}, {formatAgo(result.at)}
             {result.ai ? `, by ${result.ai}` : ''}
           </p>
@@ -117,6 +126,21 @@ function CheckCard({ result, projectName }: { result: CheckResult; projectName: 
                     {ruleTitle(rule)}
                   </button>
                 </div>
+                {finding.code && (
+                  <div className="space-y-1 text-xs" data-code-file={finding.code.file}>
+                    <p className="inline-flex min-w-0 max-w-full items-center gap-1 text-muted-foreground">
+                      <FileCode2Icon className="h-3 w-3 shrink-0" />
+                      <span className="min-w-0 truncate" title={`${finding.code.file}, line ${finding.code.line}`}>
+                        {finding.code.file}, line {finding.code.line}
+                      </span>
+                    </p>
+                    {finding.quote && (
+                      <pre className="max-h-24 overflow-auto whitespace-pre-wrap break-all rounded-md bg-muted px-2 py-1.5 font-mono text-[11px] leading-snug text-foreground">
+                        {finding.quote}
+                      </pre>
+                    )}
+                  </div>
+                )}
                 {finding.place && (
                   <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-xs">
                     <span className="inline-flex items-center gap-1 text-muted-foreground">
@@ -128,10 +152,10 @@ function CheckCard({ result, projectName }: { result: CheckResult; projectName: 
                 )}
                 {finding.why && <p className="text-sm leading-relaxed text-muted-foreground">{finding.why}</p>}
                 {ruleFix(rule) && (
-                  <p className="rounded-lg bg-[hsl(var(--rules-accent))]/5 px-3 py-2 text-xs leading-relaxed">
-                    <span className="font-semibold text-[hsl(var(--rules-accent))]">How to fix it: </span>
-                    {ruleFix(rule)}
-                  </p>
+                  <div className="rounded-lg bg-[hsl(var(--rules-accent))]/5 px-3 py-2 text-xs leading-relaxed">
+                    <p className="font-semibold text-[hsl(var(--rules-accent))]">How to fix it</p>
+                    <PlainText text={ruleFix(rule)} />
+                  </div>
                 )}
               </li>
             );
@@ -139,7 +163,9 @@ function CheckCard({ result, projectName }: { result: CheckResult; projectName: 
         </ol>
       ) : (
         <p className="px-4 py-3 text-xs leading-relaxed text-muted-foreground">
-          The AI only reads words. Work through the checklist too: most rejections come from things no screenshot shows, like a demo account or the privacy form.
+          {result.code
+            ? "AI can miss things. Go through the checklist too. Most rejections come from things like a demo login or your privacy answers."
+            : 'AI only reads text. Go through the checklist too. Most rejections come from things like a demo login or your privacy answers.'}
         </p>
       )}
     </div>
@@ -191,11 +217,14 @@ function CheckForm({ onClose }: { onClose: () => void }) {
   const [pasted, setPasted] = useState(form.pasted);
   const [useArtboards, setUseArtboards] = useState(form.useArtboards);
   const [useListing, setUseListing] = useState(form.useListing);
+  const [useCode, setUseCode] = useState(form.useCode);
   const [listing, setListing] = useState<ListingSnapshot | null>(null);
+  const code = useCodeFolderState();
+  const readsCode = code.readsCode && useCode;
 
   useEffect(() => {
-    Object.assign(form, { traits, about, pasted, useArtboards, useListing });
-  }, [traits, about, pasted, useArtboards, useListing]);
+    Object.assign(form, { traits, about, pasted, useArtboards, useListing, useCode });
+  }, [traits, about, pasted, useArtboards, useListing, useCode]);
 
   useEffect(() => {
     const appId = getGrowthSettings().appId;
@@ -217,14 +246,14 @@ function CheckForm({ onClose }: { onClose: () => void }) {
   const boardsWithText = new Set(artboards.map((place) => place.id.split(' ')[0])).size;
   const listingPlaces = storePagePlaces(listing);
   const listingName = listing?.locales.find((entry) => entry.locale === listing.primaryLocale)?.name ?? listing?.locales[0]?.name ?? '';
-  const ruleCount = checkRules(view.library, view.stores).length;
+  const ruleCount = checkRules(view.library, view.stores, readsCode).length;
   const running = useRulesChat().running;
 
   const run = () => {
     const places = [...(useArtboards ? artboards : []), ...(listing && useListing ? listingPlaces : pastedPlace(pasted))];
     onClose();
     void runRulesCheck(
-      { stores: view.stores, traits, about, places, skipped: useArtboards ? skipped.length : 0 },
+      { stores: view.stores, traits, about, places, skipped: useArtboards ? skipped.length : 0, code: readsCode ? code.folder : null },
       { library: view.library, ai: view.ai.label, projectId: project.id, projectName: project.name }
     );
   };
@@ -238,7 +267,7 @@ function CheckForm({ onClose }: { onClose: () => void }) {
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold">Check my app</p>
           <p className="text-xs text-muted-foreground">
-            The AI compares your app with {ruleCount} rules for {view.stores.length === 2 ? 'the App Store and Google Play' : view.stores[0] === 'apple' ? 'the App Store' : 'Google Play'}.
+            AI checks your app against {ruleCount} rules for {view.stores.length === 2 ? 'the App Store and Google Play' : view.stores[0] === 'apple' ? 'the App Store' : 'Google Play'}.
           </p>
         </div>
         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose} aria-label="Close the check" title="Close">
@@ -305,12 +334,38 @@ function CheckForm({ onClose }: { onClose: () => void }) {
         ) : (
           <div>
             <label className="mb-1.5 block text-xs text-muted-foreground" htmlFor="rules-check-pasted">
-              Paste your store page text too, if you like: the name, subtitle and description
+              Paste your store page text (optional)
             </label>
             <Textarea id="rules-check-pasted" value={pasted} onChange={(event) => setPasted(event.target.value)} className="min-h-[60px] font-sans text-sm" />
             {pasted.trim().length > MAX_PASTED && (
               <p className="mt-1 text-xs text-[hsl(var(--rules-medium))]">The AI reads the first {MAX_PASTED.toLocaleString()} characters of this</p>
             )}
+          </div>
+        )}
+        {code.hidden ? null : code.folder ? (
+          <label className={cn('flex items-start gap-2.5 rounded-lg border px-3 py-2 text-sm', !code.readsCode && !code.block && 'opacity-60')}>
+            <input
+              type="checkbox"
+              className="mt-1 accent-[hsl(var(--rules-accent))]"
+              checked={readsCode}
+              disabled={!code.readsCode}
+              onChange={(event) => setUseCode(event.target.checked)}
+            />
+            <span className="min-w-0">
+              <span className="block">Your app&apos;s code in {code.folder.name}</span>
+              <span className={cn('block text-xs', code.reason ? 'text-[hsl(var(--rules-medium))]' : 'text-muted-foreground')}>
+                {code.reason ?? 'Claude Code reads it on this computer. This can take a few minutes.'}
+              </span>
+              {code.block && <CheckAgain folder={code.folder} />}
+            </span>
+          </label>
+        ) : (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-dashed px-3 py-2 text-sm">
+            <span className="min-w-0">
+              <span className="block">Your app&apos;s code</span>
+              <span className="block text-xs text-muted-foreground">Add your app&apos;s folder and Claude Code checks the code too</span>
+            </span>
+            <CodeFolderControl state={code} addLabel="Add folder" />
           </div>
         )}
       </div>
@@ -329,10 +384,18 @@ function RejectedForm({ onClose }: { onClose: () => void }) {
   const view = useRulesView();
   const [message, setMessage] = useState('');
   const running = useRulesChat().running;
+  const code = useCodeFolderState();
   const send = () => {
     if (!message.trim()) return;
     onClose();
-    void askRulesQuestion(message, { library: view.library, stores: view.stores, today: view.today, ai: view.ai.label, rejected: true });
+    void askRulesQuestion(message, {
+      library: view.library,
+      stores: view.stores,
+      today: view.today,
+      ai: view.ai.label,
+      rejected: true,
+      code: code.readsCode ? code.folder : null,
+    });
   };
   return (
     <div className="rounded-2xl border bg-card p-5 shadow-sm" data-testid="store-compliance-rejected-form">
@@ -357,6 +420,9 @@ function RejectedForm({ onClose }: { onClose: () => void }) {
         className="mb-3 min-h-[120px] font-sans text-sm"
         maxLength={8000}
       />
+      <div className="mb-3">
+        <CodeFolderControl state={code} compact />
+      </div>
       <Gate reason={view.ai.reason ?? (running ? 'Wait for the answer that is on its way' : !message.trim() ? 'Paste the message first' : null)}>
         <Button className="gap-1.5" onClick={send}>
           <SparklesIcon className="h-4 w-4" />
@@ -373,6 +439,13 @@ const RUNNING_WORDS: Record<NonNullable<ReturnType<typeof useRulesChat>['running
   check: 'Reading your screenshots against the rules',
 };
 
+/** The same, while Claude Code reads the code too, which takes longer. */
+const RUNNING_WITH_CODE: Record<NonNullable<ReturnType<typeof useRulesChat>['running']>, string> = {
+  question: 'Looking through the rules and your code',
+  rejection: 'Reading the message and your code',
+  check: 'Reading your screenshots and code. This can take a few minutes',
+};
+
 export function StoreComplianceAsk() {
   const view = useRulesView();
   const chat = useRulesChat();
@@ -381,6 +454,7 @@ export function StoreComplianceAsk() {
   const [draft, setDraft] = useState('');
   const scroller = useRef<HTMLDivElement>(null);
   const aiChoice: AiChoice | null = settings.aiWriter && settings.aiWriter !== 'auto' ? settings.aiWriter : view.ai.inUse;
+  const code = useCodeFolderState();
 
   useEffect(() => {
     const element = scroller.current;
@@ -392,7 +466,13 @@ export function StoreComplianceAsk() {
     if (!question || chat.running || view.ai.reason) return;
     setDraft('');
     setMode(null);
-    void askRulesQuestion(question, { library: view.library, stores: view.stores, today: view.today, ai: view.ai.label });
+    void askRulesQuestion(question, {
+      library: view.library,
+      stores: view.stores,
+      today: view.today,
+      ai: view.ai.label,
+      code: code.readsCode ? code.folder : null,
+    });
   };
   const composerReason = view.ai.reason ?? (chat.running ? 'Wait for the answer that is on its way' : null);
 
@@ -441,7 +521,7 @@ export function StoreComplianceAsk() {
                 >
                   <ClipboardCheckIcon className="h-5 w-5 text-[hsl(var(--rules-accent))]" />
                   <span className="text-sm font-semibold">Check my app</span>
-                  <span className="text-xs text-muted-foreground">Read your screenshots and store page against the rules</span>
+                  <span className="text-xs text-muted-foreground">AI reads your screenshots and store page and finds problems</span>
                 </button>
                 <button
                   type="button"
@@ -450,7 +530,7 @@ export function StoreComplianceAsk() {
                 >
                   <MessageSquareWarningIcon className="h-5 w-5 text-[hsl(var(--rules-high))]" />
                   <span className="text-sm font-semibold">I got rejected</span>
-                  <span className="text-xs text-muted-foreground">Find the rule, the fix, and a reply for the reviewer</span>
+                  <span className="text-xs text-muted-foreground">Paste the message you got. Get the fix and a reply.</span>
                 </button>
               </div>
               <div className="flex flex-wrap justify-center gap-2">
@@ -470,7 +550,7 @@ export function StoreComplianceAsk() {
           {chat.running && (
             <div className="flex items-center gap-3 text-sm text-muted-foreground" role="status" data-testid="store-compliance-thinking">
               <Loader2Icon className="h-4 w-4 animate-spin text-[hsl(var(--rules-accent))]" />
-              <span className="flex-1">{RUNNING_WORDS[chat.running]}</span>
+              <span className="flex-1">{(chat.readsCode ? RUNNING_WITH_CODE : RUNNING_WORDS)[chat.running]}</span>
               <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs" onClick={stopRulesChat}>
                 <SquareIcon className="h-3 w-3" />
                 Stop
@@ -493,6 +573,9 @@ export function StoreComplianceAsk() {
             </button>
           </div>
         )}
+        <div className="mb-1.5">
+          <CodeFolderControl state={code} compact />
+        </div>
         <form
           className="relative"
           onSubmit={(event) => {

@@ -226,6 +226,12 @@ export function parseChecklist(source: string): Checklist {
   const checklist: Checklist = { title: 'Checklist', intro: [], sections: [], always: [] };
   // The paragraph just read said which checks can never be marked not applicable.
   let alwaysNext = false;
+  // The raw lines under the section heading, until its first box or heading.
+  let introLines: string[] | null = null;
+  const endIntro = () => {
+    if (section && introLines) section.introSource = introLines.join('\n').replace(/\s+/g, ' ').trim();
+    introLines = null;
+  };
   let section: ChecklistSection | null = null;
   let group: ChecklistGroup | null = null;
   let paragraph: string[] = [];
@@ -267,6 +273,8 @@ export function parseChecklist(source: string): Checklist {
   for (let index = 0; index < lines.length; index++) {
     const line = lines[index];
     const head = heading(line);
+    if (head || /^\s*[-*]\s+\[[ xX]\]\s+/.test(line)) endIntro();
+    else if (introLines) introLines.push(line);
     if (head) {
       flush();
       dropLabel();
@@ -277,6 +285,7 @@ export function parseChecklist(source: string): Checklist {
         section = { id: hash32(head.text), title: head.text, intro: [], store: storeOfTitle(head.text), groups: [] };
         checklist.sections.push(section);
         group = null;
+        introLines = [];
       } else if (section) {
         startGroup(head.text);
       }
@@ -316,6 +325,7 @@ export function parseChecklist(source: string): Checklist {
   }
   flush();
   dropLabel();
+  endIntro();
   checklist.sections = checklist.sections
     .map((entry) => ({ ...entry, groups: entry.groups.filter((candidate) => candidate.items.length > 0) }))
     .filter((entry) => entry.groups.length > 0);

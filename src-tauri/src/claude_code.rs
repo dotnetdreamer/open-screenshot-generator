@@ -79,6 +79,10 @@ const SYSTEM_PROMPT: &str = include_str!("../claude-agent/system-prompt.md");
 /// for a process started with code folders (folder_prompt).
 const PROJECT_FOLDERS_PROMPT: &str = include_str!("../claude-agent/project-folders.md");
 
+/// Appended to a one-shot prompt's own instructions, with the same map after
+/// it, when the prompt may read the user's code (once_instructions).
+const CODE_READING_PROMPT: &str = include_str!("../claude-agent/code-reading.md");
+
 /// The skills, by name. Only a chat with a code folder has Read, and only for
 /// that folder, so each has to stand on its own; osg-design is loaded before
 /// the first design tool call and the other two when a request needs them.
@@ -103,6 +107,20 @@ const SPAWN_FILE_MAX_AGE: Duration = Duration::from_secs(7 * 24 * 60 * 60);
 /// Claude Code before 2.1.257 an absolute pattern lists file names outside
 /// every working folder, and nothing but that version's fence stops it.
 const FOLDER_TOOLS: &str = "Skill,Read,Grep";
+
+/// The built-in tools of a one-shot prompt that reads code folders: the
+/// chat's, without Skill, since a one-shot prompt has no plugin.
+const ONCE_CODE_TOOLS: &str = "Read,Grep";
+
+/// The grant book of the folders one-shot prompts may read (Ask AI in the
+/// Store compliance view), kept apart from the chats' (code_folders::GRANT_BOOK):
+/// a chat that lets go of a folder must not take it away from Store
+/// compliance, nor Store compliance from a chat.
+pub(crate) const PROMPT_BOOK: &str = "prompt-folders.json";
+
+/// The answer when a one-shot prompt or a quote check names a folder that
+/// PROMPT_BOOK no longer holds, or that no longer passes the folder rules.
+const CODE_FOLDER_GONE: &str = "Claude Code can no longer read that folder. Pick it again";
 
 /// Code folders one chat can have.
 const MAX_FOLDERS: usize = 3;
@@ -919,9 +937,19 @@ fn unreadable_folder() -> String {
     }
 }
 
-fn pick_blocking<R: Runtime>(app: &AppHandle<R>, near_agent: bool) -> Result<Option<PickedFolder>, String> {
+/// The grant book a pick or a forget is for: the chats' when none is named,
+/// the one-shot prompts' for "prompt".
+fn book_for(book: Option<&str>) -> Result<&'static str, String> {
+    match book {
+        None => Ok(code_folders::GRANT_BOOK),
+        Some("prompt") => Ok(PROMPT_BOOK),
+        Some(_) => Err("That folder list is not one the app keeps".into()),
+    }
+}
+
+fn pick_blocking<R: Runtime>(app: &AppHandle<R>, near_agent: bool, book: &'static str) -> Result<Option<PickedFolder>, String> {
     let state = app.state::<ClaudeState>();
-    let book_file = workspace_dir(app)?.join(code_folders::GRANT_BOOK);
+    let book_file = workspace_dir(app)?.join(book);
     // Open where the last pick was, so the Android repo beside the iOS one is
     // one click away. The book is not held while the dialog is up.
     let start_in = {
@@ -972,17 +1000,20 @@ fn pick_blocking<R: Runtime>(app: &AppHandle<R>, near_agent: bool) -> Result<Opt
 /// The native folder dialog, run from Rust so a path reaches Claude Code only
 /// if the user picked it there. `{ name, path }` for a pick, the canonical
 /// path as the book holds it, and null for a cancel. A refusal comes back as
-/// the sentence the user reads.
+/// the sentence the user reads. `book` is "prompt" for a folder one-shot
+/// prompts may read (PROMPT_BOOK), and left out for a chat's.
 #[tauri::command]
 pub async fn abs_claude_pick_folder<R: Runtime>(
     app: AppHandle<R>,
     window: tauri::Window<R>,
     near: Option<String>,
+    book: Option<String>,
 ) -> Result<Option<PickedFolder>, String> {
     require_editor(&window)?;
     if sandboxed() {
         return Err(SANDBOXED.into());
     }
+    let book = book_for(book.as_deref())?;
     let state = app.state::<ClaudeState>();
     if state.picking.swap(true, Ordering::SeqCst) {
         return Err(PICKER_OPEN.into());
@@ -990,12 +1021,13 @@ pub async fn abs_claude_pick_folder<R: Runtime>(
     let _open = PickerOpen(&state.picking);
     let near_agent = near.as_deref() == Some("agent");
     let handle = app.clone();
-    tauri::async_runtime::spawn_blocking(move || pick_blocking(&handle, near_agent))
+    tauri::async_runtime::spawn_blocking(move || pick_blocking(&handle, near_agent, book))
         .await
         .map_err(|e| e.to_string())?
 }
 
-/// Take a folder out of the book, once no saved chat uses it, so it cannot be
+/// Take a folder out of the book, once nothing on the page uses it (no saved
+/// chat for the chats' book, no project for PROMPT_BOOK), so it cannot be
 /// granted again without the dialog. A process running with it keeps it
 /// until it exits.
 #[tauri::command]
@@ -1003,15 +1035,17 @@ pub async fn abs_claude_forget_folder<R: Runtime>(
     app: AppHandle<R>,
     window: tauri::Window<R>,
     path: String,
+    book: Option<String>,
 ) -> Result<(), String> {
     require_editor(&window)?;
     if path.chars().count() > code_folders::MAX_FOLDER_PATH {
         return Err("That code folder's path is too long".into());
     }
+    let book = book_for(book.as_deref())?;
     let handle = app.clone();
     tauri::async_runtime::spawn_blocking(move || {
         let state = handle.state::<ClaudeState>();
-        let book_file = workspace_dir(&handle)?.join(code_folders::GRANT_BOOK);
+        let book_file = workspace_dir(&handle)?.join(book);
         let _book = state.book.lock().unwrap();
         let mut book = GrantBook::load(&book_file);
         if book.forget(Path::new(&path)) {
@@ -1181,12 +1215,21 @@ const CONFIG_LOADING_VARS: &[&str] = &["CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUD
 /// that started the app would quietly replace the level picked in the panel.
 const CHOICE_OVERRIDING_VARS: &[&str] = &["CLAUDE_CODE_EFFORT_LEVEL"];
 
+/// Where the app itself was started, which says nothing about the child's
+/// working folder. Claude Code reads the folder PWD names when it starts, and
+/// the shells it runs look at it too. For an app started from a terminal in
+/// ~/Documents that is a folder macOS guards: the app, launched on its own,
+/// gets asked whether it may open Documents, and Claude Code waits on that
+/// question with no folder of the user's in play (seen in a 2026-11-17 audit).
+const STARTED_FROM_VARS: &[&str] = &["PWD", "OLDPWD"];
+
 fn scrub_env(command: &mut Command) {
     for key in REROUTING_VARS
         .iter()
         .chain(NESTED_SESSION_VARS)
         .chain(CONFIG_LOADING_VARS)
         .chain(CHOICE_OVERRIDING_VARS)
+        .chain(STARTED_FROM_VARS)
     {
         command.env_remove(key);
     }
@@ -1978,9 +2021,18 @@ pub fn abs_claude_list(state: tauri::State<'_, ClaudeState>) -> Vec<ListedSessio
 // exit, on the user's own plan. No conversation is kept. Any editor window may
 // ask, a torn-off tab too, and Stop (abs_claude_prompt_stop) kills the process
 // of the prompt it was pressed for.
+//
+// Ask AI in the Store compliance view can also hand Claude Code the user's
+// app code: the path of a folder the user picked in the dialog for it
+// (PROMPT_BOOK), never the files. Claude Code then gets Read and Grep and the
+// chat's fence (code_folders), reads what it needs and answers once.
 
 /// How long a one-shot prompt may take before its process is stopped.
 pub(crate) const PROMPT_TIMEOUT: Duration = Duration::from_secs(180);
+
+/// How long one that reads the user's code may take: it reads file after
+/// file before it answers.
+pub(crate) const CODE_PROMPT_TIMEOUT: Duration = Duration::from_secs(600);
 
 /// One-shot prompts one CLI runs at once. A translation runs this many
 /// languages side by side, and a page queues the rest itself
@@ -1997,6 +2049,7 @@ const PROMPT_NOT_FOUND: &str = "Claude Code was not found on this computer. Inst
 const PROMPT_BUSY: &str = "Claude Code is still answering. Try again when it has finished";
 const PROMPT_TOO_LONG: &str = "That is too much text to send to Claude Code";
 const PROMPT_TIMED_OUT: &str = "Claude Code took longer than 3 minutes to answer. Try again";
+const CODE_PROMPT_TIMED_OUT: &str = "Claude Code took longer than 10 minutes to read your code and answer. Try again";
 const PROMPT_SIGNED_OUT: &str = "Claude Code is not signed in. Run claude in a terminal to sign in, then try again";
 const PROMPT_STOPPED: &str = "Claude Code was stopped";
 pub(crate) const PROMPT_BAD_ID: &str = "That prompt id is not valid";
@@ -2126,6 +2179,15 @@ impl PromptTicket<'_> {
 
     fn stopped(&self) -> bool {
         self.runs.0.lock().unwrap().runs.iter().any(|run| run.serial == self.serial && run.stopped)
+    }
+
+    /// The process started last has ended and been waited for, so a Stop
+    /// has nothing of it to kill, and never a later process given its pid.
+    fn ended(&self) {
+        let mut book = self.runs.0.lock().unwrap();
+        if let Some(run) = book.runs.iter_mut().find(|run| run.serial == self.serial) {
+            run.pid = None;
+        }
     }
 }
 
@@ -2259,7 +2321,12 @@ fn once_input(prompt: &str) -> String {
 /// The instructions replace Claude Code's own and come from a file, since an
 /// npm shim on Windows passes arguments through cmd.exe, which mangles a long
 /// text with quotes and line breaks in it. The prompt goes in on stdin.
-fn prompt_command(binary: &Path, cwd: &Path, system_prompt: &Path, settings: &Path, model: Option<&str>, path: &str) -> Command {
+///
+/// One that reads code (`reads_code`) differs in its tools alone: Read and
+/// Grep, as a chat with code folders has them. Its settings file, written by
+/// prompt_blocking, grants the folders and holds the chat's deny rules, and as
+/// for the chat there is no allow list and no `--add-dir`.
+fn prompt_command(binary: &Path, cwd: &Path, system_prompt: &Path, settings: &Path, model: Option<&str>, path: &str, reads_code: bool) -> Command {
     let mut command = Command::new(binary);
     command
         .current_dir(cwd)
@@ -2268,7 +2335,7 @@ fn prompt_command(binary: &Path, cwd: &Path, system_prompt: &Path, settings: &Pa
         .args(["--setting-sources", ""])
         .arg("--settings")
         .arg(settings)
-        .args(["--tools", ""])
+        .args(["--tools", if reads_code { ONCE_CODE_TOOLS } else { "" }])
         .arg("--strict-mcp-config")
         .arg("--disable-slash-commands")
         .arg("--no-session-persistence")
@@ -2283,6 +2350,11 @@ fn prompt_command(binary: &Path, cwd: &Path, system_prompt: &Path, settings: &Pa
         .env("PATH", path)
         .env("NO_COLOR", "1")
         .env("CLAUDE_CODE_DISABLE_CLAUDE_MDS", "1");
+    if reads_code {
+        // As for a chat with code folders (agent_command): only Glob reads
+        // these, and Glob is off.
+        command.env("CLAUDE_CODE_GLOB_NO_IGNORE", "false").env("CLAUDE_CODE_GLOB_HIDDEN", "false");
+    }
     command.stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());
     hide_console(&mut command);
     #[cfg(unix)]
@@ -2291,6 +2363,210 @@ fn prompt_command(binary: &Path, cwd: &Path, system_prompt: &Path, settings: &Pa
         command.process_group(0);
     }
     command
+}
+
+/// How long a prompt that reads code waits for the user to answer macOS's
+/// question about a folder before it stops and says what is going on.
+const FOLDER_ACCESS_WAIT: Duration = Duration::from_secs(60);
+
+/// How long a look the page asks for (abs_claude_folder_access) waits: it
+/// only says what to show beside the folder, and macOS's question, if there
+/// is one, stays on screen after it.
+const FOLDER_LOOK_WAIT: Duration = Duration::from_secs(5);
+
+/// How the two answers below start. The page knows a prompt's failure by
+/// them (folderBlockOf... in codeFolder.ts), so change both sides together.
+pub(crate) const FOLDER_REFUSED_START: &str = "macOS won't let Open Screenshot Generator open the folder ";
+pub(crate) const FOLDER_ASKING_START: &str = "macOS is asking if Open Screenshot Generator can open the folder ";
+
+/// What macOS made of a program the app started opening a code folder.
+#[derive(Debug, PartialEq, Eq)]
+enum FolderAccess {
+    Open,
+    /// macOS keeps the app out: the user said no for Documents, the Desktop,
+    /// Downloads, iCloud Drive or a disk.
+    Refused,
+    /// macOS is still asking the user, past the wait.
+    Asking,
+    /// The prompt was stopped meanwhile.
+    Stopped,
+}
+
+/// Wait for `child`, a look at a folder, and say what macOS made of it. One
+/// that fails with "Operation not permitted" (EPERM) was kept out. One that
+/// fails for any other reason counts as open, so the folder checks and
+/// Claude Code say what is wrong in their own words. One still going at
+/// `wait`, or once `stopped` says so, is killed and left to a thread of its
+/// own to reap: a read macOS holds for its question may end only once the
+/// question is answered, and nothing here waits for that.
+fn await_folder_probe(mut child: std::process::Child, wait: Duration, stopped: &dyn Fn() -> bool) -> Result<FolderAccess, String> {
+    let deadline = Instant::now() + wait;
+    loop {
+        match child.try_wait().map_err(|e| e.to_string())? {
+            Some(status) => {
+                let mut errors = String::new();
+                if let Some(mut pipe) = child.stderr.take() {
+                    let _ = pipe.read_to_string(&mut errors);
+                }
+                return Ok(if stopped() {
+                    FolderAccess::Stopped
+                } else if !status.success() && errors.contains("Operation not permitted") {
+                    FolderAccess::Refused
+                } else {
+                    FolderAccess::Open
+                });
+            }
+            None if stopped() || Instant::now() >= deadline => {
+                let was_stopped = stopped();
+                let _ = child.kill();
+                std::thread::spawn(move || {
+                    let _ = child.wait();
+                });
+                return Ok(if was_stopped { FolderAccess::Stopped } else { FolderAccess::Asking });
+            }
+            None => std::thread::sleep(Duration::from_millis(40)),
+        }
+    }
+}
+
+/// The look itself: /bin/ls listing the folder, as Claude Code would read it,
+/// in a group of its own as every process a prompt starts, so a Stop's
+/// kill_tree reaches it.
+#[cfg(target_os = "macos")]
+fn folder_probe(folder: &Path) -> Command {
+    use std::os::unix::process::CommandExt;
+    let mut probe = Command::new("/bin/ls");
+    probe.arg("-1").arg("--").arg(folder).env("LC_ALL", "C").stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::piped());
+    probe.process_group(0);
+    probe
+}
+
+fn folder_name(folder: &Path) -> String {
+    folder.file_name().map(|name| name.to_string_lossy().into_owned()).unwrap_or_else(|| folder.display().to_string())
+}
+
+/// Whether macOS lets Claude Code into `folder`. It judges a program the app
+/// starts as the app, and where the app may not go yet (Documents, the
+/// Desktop, Downloads, iCloud Drive, a disk) a read makes macOS ask the user
+/// and waits for the answer, however long that takes: a prompt sat on an
+/// unanswered question all night in a 2026-11-17 audit. A folder picked in
+/// the dialog was read with no question in a recheck, even after a restart,
+/// but nothing promises that for every folder (another disk, a No given
+/// before), and the app's own reads prove nothing about its children. So a
+/// child, /bin/ls, reads the folder first, and the prompt says what is going
+/// on rather than waiting in silence. macOS's question stays on screen after
+/// FOLDER_ACCESS_WAIT, and the answer counts for the next try. Windows and
+/// Linux ask nothing.
+#[cfg(target_os = "macos")]
+fn check_folder_access(folder: &Path, ticket: &PromptTicket) -> Result<(), String> {
+    let Some(child) = ticket.spawn(&mut folder_probe(folder))? else {
+        return Err(PROMPT_STOPPED.into());
+    };
+    let access = await_folder_probe(child, FOLDER_ACCESS_WAIT, &|| ticket.stopped());
+    ticket.ended();
+    match access? {
+        FolderAccess::Open => Ok(()),
+        FolderAccess::Stopped => Err(PROMPT_STOPPED.into()),
+        FolderAccess::Asking => Err(folder_asking(folder)),
+        FolderAccess::Refused => Err(folder_refused(folder)),
+    }
+}
+
+fn folder_asking(folder: &Path) -> String {
+    format!("{FOLDER_ASKING_START}{}. Click Allow, then try again", folder_name(folder))
+}
+
+fn folder_refused(folder: &Path) -> String {
+    format!(
+        "{FOLDER_REFUSED_START}{}. Turn it on in System Settings > Privacy & Security > Files & Folders, then try again",
+        folder_name(folder)
+    )
+}
+
+/// What macOS says now about a program the app starts opening `folder`,
+/// for the page to show beside it: "open", "refused" or "asking". Elsewhere
+/// than macOS always "open".
+fn folder_access_now(folder: &Path) -> Result<&'static str, String> {
+    #[cfg(target_os = "macos")]
+    {
+        let child = folder_probe(folder).spawn().map_err(|e| e.to_string())?;
+        Ok(match await_folder_probe(child, FOLDER_LOOK_WAIT, &|| false)? {
+            FolderAccess::Refused => "refused",
+            FolderAccess::Asking => "asking",
+            FolderAccess::Open | FolderAccess::Stopped => "open",
+        })
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = folder;
+        Ok("open")
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn check_folder_access(_folder: &Path, _ticket: &PromptTicket) -> Result<(), String> {
+    Ok(())
+}
+
+/// The code folders a one-shot prompt reads: the ones it asked for, as
+/// PROMPT_BOOK grants them, and the config folder the deny rules fence off.
+pub(crate) struct OnceCode {
+    folders: Vec<PathBuf>,
+    config_dir: Option<PathBuf>,
+}
+
+/// The folders a one-shot prompt asked for, or None when it asked for none.
+/// Each has to pass the folder rules and be in PROMPT_BOOK, which only the
+/// dialog writes, so a path the page makes up gets nowhere; one that does
+/// not refuses the whole prompt rather than answering without it. With a
+/// `ticket` (a prompt, not a look for quotes after one) macOS is asked about
+/// each booked folder first, before anything here opens it.
+fn once_code<R: Runtime>(app: &AppHandle<R>, requested: &[String], ticket: Option<&PromptTicket>) -> Result<Option<OnceCode>, String> {
+    if requested.is_empty() {
+        return Ok(None);
+    }
+    let state = app.state::<ClaudeState>();
+    let book_file = workspace_dir(app)?.join(PROMPT_BOOK);
+    let book = {
+        let _book = state.book.lock().unwrap();
+        GrantBook::load(&book_file)
+    };
+    if let Some(ticket) = ticket {
+        // holds() compares the paths as text, so nothing has opened them yet.
+        for raw in requested.iter().filter(|raw| book.holds(Path::new(raw.as_str()))) {
+            check_folder_access(Path::new(raw), ticket)?;
+        }
+    }
+    let (folders, missing) = resolve_start_folders(requested, &FolderRules::for_app(app), &book);
+    if !missing.is_empty() || folders.is_empty() {
+        return Err(CODE_FOLDER_GONE.into());
+    }
+    Ok(Some(OnceCode { folders, config_dir: claude_config_dir() }))
+}
+
+/// A one-shot prompt's instructions file: the page's own, then for one that
+/// reads code what code-reading.md says about it and the map of its folders.
+fn once_instructions(system: &str, code: Option<&OnceCode>) -> String {
+    let own = if system.trim().is_empty() { "Answer the request." } else { system };
+    match code {
+        None => own.to_string(),
+        Some(code) => format!(
+            "{}\n\n{}\n\n{}",
+            own.trim_end(),
+            CODE_READING_PROMPT.trim_end(),
+            code_folders::folders_section(&code.folders, &code_folders::MAP_LIMITS)
+        ),
+    }
+}
+
+/// A one-shot prompt's settings file: hooks off, as for the agent
+/// (prepare_workspace), and for one that reads code the folders it may read
+/// and the deny rules, as for a chat with code folders (SpawnFiles).
+fn once_settings(code: Option<&OnceCode>) -> Result<Vec<u8>, String> {
+    match code {
+        None => Ok(br#"{"disableAllHooks":true}"#.to_vec()),
+        Some(code) => code_folders::settings_json(&code.folders, &code_folders::deny_rules(code.config_dir.as_deref())),
+    }
 }
 
 /// The answer in what `claude -p --output-format json` printed, or why there
@@ -2329,6 +2605,9 @@ fn claude_failure(reason: String) -> String {
     format!("Claude Code could not answer: {reason}")
 }
 
+/// One prompt, start to answer. `code` finds the code folders it reads, once
+/// the prompt is under way, so a Stop also ends the look at the folders
+/// (check_folder_access) that can come first.
 fn prompt_blocking(
     state: &ClaudeState,
     id: &str,
@@ -2336,6 +2615,7 @@ fn prompt_blocking(
     system: &str,
     prompt: &str,
     model: Option<&str>,
+    code: &dyn Fn(&PromptTicket) -> Result<Option<OnceCode>, String>,
 ) -> Result<String, String> {
     if sandboxed() {
         return Err(SANDBOXED.into());
@@ -2349,17 +2629,18 @@ fn prompt_blocking(
     }
     let binary = find_binary(state).ok_or(PROMPT_NOT_FOUND)?;
     let _slot = claim_prompt_slot(&state.prompting).ok_or(PROMPT_BUSY)?;
+    let code = code(&ticket)?;
+    let code = code.as_ref();
     let dir = OnceDir::create("osg-claude-prompt")?;
     let system_prompt = dir.root.join("system-prompt.md");
     let settings = dir.root.join("settings.json");
-    let instructions = if system.trim().is_empty() { "Answer the request." } else { system };
-    std::fs::write(&system_prompt, instructions).map_err(|e| e.to_string())?;
-    // Hooks off, as for the agent (prepare_workspace).
-    std::fs::write(&settings, br#"{"disableAllHooks":true}"#).map_err(|e| e.to_string())?;
-    let command = prompt_command(&binary, &dir.cwd, &system_prompt, &settings, model, &effective_path(state));
-    match run_once(command, once_input(prompt), PROMPT_TIMEOUT, &ticket)? {
+    write_private(&system_prompt, once_instructions(system, code).as_bytes())?;
+    write_private(&settings, &once_settings(code)?)?;
+    let command = prompt_command(&binary, &dir.cwd, &system_prompt, &settings, model, &effective_path(state), code.is_some());
+    let (timeout, timed_out) = if code.is_some() { (CODE_PROMPT_TIMEOUT, CODE_PROMPT_TIMED_OUT) } else { (PROMPT_TIMEOUT, PROMPT_TIMED_OUT) };
+    match run_once(command, once_input(prompt), timeout, &ticket)? {
         OnceOutcome::Exited(captured) => claude_answer(&captured),
-        OnceOutcome::TimedOut => Err(PROMPT_TIMED_OUT.into()),
+        OnceOutcome::TimedOut => Err(timed_out.into()),
         OnceOutcome::Stopped => Err(PROMPT_STOPPED.into()),
     }
 }
@@ -2367,7 +2648,9 @@ fn prompt_blocking(
 /// Send one prompt to Claude Code and return its answer. `id` is the page's
 /// own for this call (a UUID), which abs_claude_prompt_stop takes; `system`
 /// replaces Claude Code's own instructions; `model` is an alias such as
-/// "sonnet", or none for the CLI's default.
+/// "sonnet", or none for the CLI's default. `folders` are code folders for
+/// Claude Code to read, each picked in the dialog for one-shot prompts
+/// (abs_claude_pick_folder with book "prompt"); only their paths are sent.
 #[tauri::command]
 pub async fn abs_claude_prompt<R: Runtime>(
     app: AppHandle<R>,
@@ -2376,6 +2659,7 @@ pub async fn abs_claude_prompt<R: Runtime>(
     system: String,
     prompt: String,
     model: Option<String>,
+    folders: Option<Vec<String>>,
 ) -> Result<String, String> {
     require_editor_window(&window)?;
     if !valid_uuid(&id) {
@@ -2388,9 +2672,80 @@ pub async fn abs_claude_prompt<R: Runtime>(
     if model.as_deref().is_some_and(|model| !valid_model(model)) {
         return Err("Claude Code does not take that model name".into());
     }
+    check_start_folders(folders.as_deref())?;
+    let folders = folders.unwrap_or_default();
     let label = window.label().to_string();
     tauri::async_runtime::spawn_blocking(move || {
-        prompt_blocking(&app.state::<ClaudeState>(), &id, &label, &system, &prompt, model.as_deref())
+        if sandboxed() {
+            return Err(SANDBOXED.into());
+        }
+        let code = |ticket: &PromptTicket| once_code(&app, &folders, Some(ticket));
+        prompt_blocking(&app.state::<ClaudeState>(), &id, &label, &system, &prompt, model.as_deref(), &code)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+/// Whether macOS lets Claude Code into a code folder picked for one-shot
+/// prompts, looked at now: "open", "refused" or "asking". Store compliance
+/// shows it beside the folder, and asks again when the window comes back to
+/// the front, as it does after a visit to System Settings. Only a folder in
+/// PROMPT_BOOK is looked at, compared as text, so the page cannot have the
+/// app list any other folder.
+#[tauri::command]
+pub async fn abs_claude_folder_access<R: Runtime>(app: AppHandle<R>, window: tauri::Window<R>, folder: String) -> Result<String, String> {
+    require_editor_window(&window)?;
+    if folder.chars().count() > code_folders::MAX_FOLDER_PATH {
+        return Err(CODE_FOLDER_GONE.into());
+    }
+    tauri::async_runtime::spawn_blocking(move || {
+        let state = app.state::<ClaudeState>();
+        let book_file = workspace_dir(&app)?.join(PROMPT_BOOK);
+        let book = {
+            let _book = state.book.lock().unwrap();
+            GrantBook::load(&book_file)
+        };
+        if !book.holds(Path::new(&folder)) {
+            return Err(CODE_FOLDER_GONE.to_string());
+        }
+        folder_access_now(Path::new(&folder)).map(str::to_string)
+    })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+/// The most quotes one abs_claude_find_quotes call checks: more than a check
+/// shows findings.
+const MAX_QUOTES: usize = 24;
+
+#[derive(Deserialize)]
+pub struct QuoteAsk {
+    /// The file, relative to the folder or absolute inside it.
+    file: String,
+    quote: String,
+}
+
+/// Where each quote is in the user's code: the line it starts on, or null
+/// when the file is not inside `folder`, is one the deny rules keep from
+/// Claude Code, cannot be read as text, or does not hold the words
+/// (code_folders::find_quote). Store compliance shows a finding about the
+/// code only when its quote is really there. `folder` has to be in
+/// PROMPT_BOOK. Only line numbers come back, never what a file holds.
+#[tauri::command]
+pub async fn abs_claude_find_quotes<R: Runtime>(
+    app: AppHandle<R>,
+    window: tauri::Window<R>,
+    folder: String,
+    quotes: Vec<QuoteAsk>,
+) -> Result<Vec<Option<usize>>, String> {
+    require_editor_window(&window)?;
+    if quotes.len() > MAX_QUOTES || folder.chars().count() > code_folders::MAX_FOLDER_PATH {
+        return Err("That is too much to look for at once".into());
+    }
+    tauri::async_runtime::spawn_blocking(move || {
+        let code = once_code(&app, std::slice::from_ref(&folder), None)?.ok_or(CODE_FOLDER_GONE)?;
+        let root = &code.folders[0];
+        Ok(quotes.iter().map(|ask| code_folders::find_quote(root, &ask.file, &ask.quote)).collect())
     })
     .await
     .map_err(|e| e.to_string())?
@@ -2483,7 +2838,7 @@ mod tests {
                 .collect();
             assert_eq!(keys, ["name", "description"], "{name} frontmatter");
         }
-        for text in SKILLS.iter().map(|(_, contents)| *contents).chain([SYSTEM_PROMPT, PROJECT_FOLDERS_PROMPT]) {
+        for text in SKILLS.iter().map(|(_, contents)| *contents).chain([SYSTEM_PROMPT, PROJECT_FOLDERS_PROMPT, CODE_READING_PROMPT]) {
             assert!(!text.contains("!`"), "a shell line");
             assert!(!text.contains("```!"), "a shell block");
             // .gitattributes pins these to LF, so every platform ships the same bytes.
@@ -2492,6 +2847,8 @@ mod tests {
         // Appended to the system prompt, so it has no frontmatter of its own.
         assert!(!PROJECT_FOLDERS_PROMPT.starts_with("---"));
         assert!(PROJECT_FOLDERS_PROMPT.is_ascii(), "project-folders.md is ASCII");
+        assert!(!CODE_READING_PROMPT.starts_with("---"));
+        assert!(CODE_READING_PROMPT.is_ascii(), "code-reading.md is ASCII");
     }
 
     #[test]
@@ -2986,6 +3343,8 @@ mod tests {
             "CLAUDECODE",
             "CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD",
             "CLAUDE_CODE_EFFORT_LEVEL",
+            "PWD",
+            "OLDPWD",
         ] {
             assert_eq!(env.get(removed), Some(&None), "{removed} is removed");
         }
@@ -3157,6 +3516,7 @@ mod tests {
             Path::new("/once/settings.json"),
             Some("sonnet"),
             "/usr/bin",
+            false,
         );
         let expected: Vec<&str> = vec![
             "-p",
@@ -3188,8 +3548,73 @@ mod tests {
             assert_eq!(env.get(removed), Some(&None), "{removed} is removed");
         }
 
-        let default_model = prompt_command(Path::new("claude"), Path::new("/w"), Path::new("/s"), Path::new("/t"), None, "/usr/bin");
+        let default_model = prompt_command(Path::new("claude"), Path::new("/w"), Path::new("/s"), Path::new("/t"), None, "/usr/bin", false);
         assert!(!args_of(&default_model).iter().any(|arg| arg == "--model"));
+        assert_eq!(env.get("CLAUDE_CODE_GLOB_NO_IGNORE"), None);
+    }
+
+    #[test]
+    fn a_one_shot_prompt_that_reads_code_gets_read_and_grep_and_nothing_more() {
+        let command = prompt_command(Path::new("claude"), Path::new("/once/work"), Path::new("/s"), Path::new("/t"), None, "/usr/bin", true);
+        let args = args_of(&command);
+        let tools = args.iter().position(|arg| arg == "--tools").map(|at| args[at + 1].as_str());
+        assert_eq!(tools, Some("Read,Grep"));
+        for absent in ["--allowedTools", "--add-dir", "--mcp-config", "--plugin-dir", "--resume"] {
+            assert!(!args.iter().any(|arg| arg == absent), "{absent}");
+        }
+        assert!(!args.iter().any(|arg| arg.contains("Glob") || arg.contains("Bash")));
+        assert_eq!(command.get_current_dir(), Some(Path::new("/once/work")), "the empty folder, with the code granted in settings");
+        let env = envs_of(&command);
+        assert_eq!(env.get("CLAUDE_CODE_GLOB_NO_IGNORE"), Some(&Some("false".to_string())));
+        assert_eq!(env.get("CLAUDE_CODE_DISABLE_CLAUDE_MDS"), Some(&Some("1".to_string())));
+        // Not where the app was started: Claude Code would open that folder too.
+        assert_eq!(env.get("PWD"), Some(&None));
+        assert_eq!(env.get("OLDPWD"), Some(&None));
+    }
+
+    #[test]
+    fn a_one_shot_prompt_that_reads_code_is_fenced_like_a_chat() {
+        let root = scratch("once-code");
+        std::fs::create_dir_all(root.join("ios")).unwrap();
+        std::fs::write(root.join("ios").join("Info.plist"), "<plist/>").unwrap();
+        let code = OnceCode { folders: vec![root.clone()], config_dir: None };
+
+        let settings: Value = serde_json::from_slice(&once_settings(Some(&code)).unwrap()).unwrap();
+        assert_eq!(settings["disableAllHooks"], json!(true));
+        assert_eq!(settings["permissions"]["additionalDirectories"], json!([root.to_str().unwrap()]));
+        assert_eq!(settings["permissions"]["blockReadsOutsideWorkingDirectories"], json!(true));
+        let deny: Vec<String> = serde_json::from_value(settings["permissions"]["deny"].clone()).unwrap();
+        assert_eq!(deny, code_folders::deny_rules(None));
+        assert!(deny.iter().any(|rule| rule == "Read(**/.env)"));
+        assert!(settings.get("permissions").and_then(|p| p.get("allow")).is_none(), "no allow list");
+        assert_eq!(once_settings(None).unwrap(), br#"{"disableAllHooks":true}"#.to_vec());
+
+        let instructions = once_instructions("Check the app.", Some(&code));
+        assert!(instructions.starts_with("Check the app.\n\n# The user's app code"));
+        assert!(instructions.contains(root.to_str().unwrap()), "the map names the folder");
+        assert!(instructions.contains("Info.plist"));
+        assert_eq!(once_instructions("Reply to this", None), "Reply to this");
+        assert_eq!(once_instructions("  ", None), "Answer the request.");
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn a_pick_or_a_forget_names_its_book() {
+        assert_eq!(book_for(None), Ok(code_folders::GRANT_BOOK));
+        assert_eq!(book_for(Some("prompt")), Ok(PROMPT_BOOK));
+        assert!(book_for(Some("../folders.json")).is_err());
+        assert!(book_for(Some("")).is_err());
+        assert_ne!(PROMPT_BOOK, code_folders::GRANT_BOOK);
+        for message in [CODE_PROMPT_TIMED_OUT, CODE_FOLDER_GONE] {
+            assert!(!message.contains(['\u{2013}', '\u{2014}']) && !message.ends_with('.'), "{message}");
+        }
+    }
+
+    #[test]
+    fn a_quote_check_takes_the_files_and_words_only() {
+        let asks: Vec<QuoteAsk> = serde_json::from_value(json!([{ "file": "ios/Info.plist", "quote": "NSCameraUsageDescription" }])).unwrap();
+        assert_eq!(asks[0].file, "ios/Info.plist");
+        assert!(serde_json::from_value::<Vec<QuoteAsk>>(json!([{ "file": "a" }])).is_err(), "a quote is required");
     }
 
     #[test]
@@ -3251,6 +3676,91 @@ mod tests {
         assert!(claim_prompt_slot(&counter).is_none());
         drop(slots);
         assert!(claim_prompt_slot(&counter).is_some());
+    }
+
+    /// A look at a folder, as a shell that writes `errors` and exits `code`.
+    #[cfg(unix)]
+    fn folder_look(errors: &str, code: i32) -> Command {
+        let mut look = Command::new("sh");
+        look.args(["-c", &format!("printf '%s\\n' '{errors}' >&2; exit {code}")]).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::piped());
+        look
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_look_at_a_folder_says_whether_macos_lets_claude_code_in() {
+        let runs = PromptRuns::default();
+        let ticket = runs.begin("look", "main").unwrap();
+        let wait = Duration::from_secs(10);
+        let kept_out = ticket.spawn(&mut folder_look("ls: /Users/me/Documents/App: Operation not permitted", 1)).unwrap().unwrap();
+        assert_eq!(await_folder_probe(kept_out, wait, &|| ticket.stopped()).unwrap(), FolderAccess::Refused);
+        // Any other failure is the folder checks' to name: a folder that is gone, say.
+        let gone = ticket.spawn(&mut folder_look("ls: /Users/me/App: No such file or directory", 1)).unwrap().unwrap();
+        assert_eq!(await_folder_probe(gone, wait, &|| ticket.stopped()).unwrap(), FolderAccess::Open);
+        let fine = ticket.spawn(&mut folder_look("", 0)).unwrap().unwrap();
+        assert_eq!(await_folder_probe(fine, wait, &|| ticket.stopped()).unwrap(), FolderAccess::Open);
+
+        // macOS still asking: the look gives up at the wait, and its process is gone.
+        let started = Instant::now();
+        let asking = ticket.spawn(&mut sleeper()).unwrap().unwrap();
+        let pid = asking.id().to_string();
+        assert_eq!(await_folder_probe(asking, Duration::from_millis(300), &|| ticket.stopped()).unwrap(), FolderAccess::Asking);
+        assert!(started.elapsed() < Duration::from_secs(5));
+        let alive = || Command::new("kill").args(["-0", pid.as_str()]).stderr(Stdio::null()).status().is_ok_and(|status| status.success());
+        let until = Instant::now() + Duration::from_secs(5);
+        while alive() && Instant::now() < until {
+            std::thread::sleep(Duration::from_millis(50));
+        }
+        assert!(!alive(), "the look was killed, and reaped");
+        drop(ticket);
+
+        // A Stop while macOS asks ends the look at once.
+        std::thread::scope(|scope| {
+            let looking = scope.spawn(|| {
+                let ticket = runs.begin("stopped-look", "main").unwrap();
+                let child = ticket.spawn(&mut sleeper()).unwrap().unwrap();
+                let started = Instant::now();
+                (await_folder_probe(child, Duration::from_secs(20), &|| ticket.stopped()).unwrap(), started.elapsed())
+            });
+            std::thread::sleep(Duration::from_millis(300));
+            for pid in runs.stop("stopped-look", "main") {
+                kill_tree(pid);
+            }
+            let (access, took) = looking.join().unwrap();
+            assert_eq!(access, FolderAccess::Stopped);
+            assert!(took < Duration::from_secs(5));
+        });
+    }
+
+    #[test]
+    fn the_folder_answers_start_the_way_the_page_reads_them() {
+        let folder = Path::new("/Users/me/Documents/Marbly");
+        let refused = folder_refused(folder);
+        let asking = folder_asking(folder);
+        // The same text as FOLDER_REFUSED_START and FOLDER_ASKING_START in src/lib/storeCompliance/codeFolder.ts.
+        assert!(refused.starts_with("macOS won't let Open Screenshot Generator open the folder Marbly. Turn it on in System Settings"));
+        assert!(asking.starts_with("macOS is asking if Open Screenshot Generator can open the folder Marbly. Click Allow"));
+        assert!(refused.starts_with(FOLDER_REFUSED_START) && asking.starts_with(FOLDER_ASKING_START));
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn a_folder_anyone_may_open_passes_the_look_at_once() {
+        let root = scratch("folder-look");
+        std::fs::create_dir_all(root.join("ios")).unwrap();
+        let runs = PromptRuns::default();
+        let ticket = runs.begin("look", "main").unwrap();
+        let started = Instant::now();
+        assert_eq!(check_folder_access(&root, &ticket), Ok(()));
+        assert_eq!(check_folder_access(&root.join("not-there"), &ticket), Ok(()), "a missing folder is the folder checks' to report");
+        assert!(started.elapsed() < Duration::from_secs(5));
+        assert!(runs.0.lock().unwrap().runs.iter().all(|run| run.pid.is_none()), "an ended look leaves no pid for a Stop to kill");
+        assert_eq!(folder_access_now(&root), Ok("open"));
+        drop(ticket);
+        let ticket = runs.begin("stopped", "main").unwrap();
+        runs.stop("stopped", "main");
+        assert_eq!(check_folder_access(&root, &ticket), Err(PROMPT_STOPPED.to_string()), "a stopped prompt starts no look");
+        let _ = std::fs::remove_dir_all(&root);
     }
 
     /// A process that writes back what it reads on stdin.

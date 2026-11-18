@@ -12,11 +12,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { openExternal } from '@/lib/desktop';
 import { deadlineDay } from '@/lib/storeCompliance/parse';
-import { deadlineSummary, deadlineTitle, placeName } from '@/lib/storeCompliance/plain';
+import { deadlineSummary, deadlineTitle, firstLine, placeName } from '@/lib/storeCompliance/plain';
 import { daysUntil, deadlineStore, deadlinesByDay, searchDeadlines } from '@/lib/storeCompliance/search';
 import type { Deadline } from '@/lib/storeCompliance/types';
 import { cn } from '@/lib/utils';
-import { SEVERITY_STYLE, SeverityBadge, formatDay, fromToday, useRulesView } from './StoreComplianceShared';
+import { PlainText, SEVERITY_STYLE, SeverityBadge, formatDay, fromToday, useRulesView } from './StoreComplianceShared';
 
 const REGIONS = ['App Store', 'Google Play', 'EU', 'USA', 'UK', 'Other countries'] as const;
 type Region = (typeof REGIONS)[number];
@@ -64,7 +64,11 @@ function DeadlineCard({ deadline, today, open, onToggle, onAsk }: { deadline: De
               </span>
             </span>
             <span className="mt-2 block text-sm font-semibold leading-snug">{deadlineTitle(deadline)}</span>
-            <span className={cn('mt-1 text-xs leading-relaxed text-muted-foreground', open ? 'block' : 'line-clamp-2')}>{deadlineSummary(deadline)}</span>
+            {open ? (
+              <PlainText className="mt-1 text-xs leading-relaxed text-muted-foreground" text={deadlineSummary(deadline)} />
+            ) : (
+              <span className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{firstLine(deadlineSummary(deadline))}</span>
+            )}
           </span>
           <span className="flex shrink-0 flex-col items-end gap-1">
             {days !== null && (
@@ -101,7 +105,7 @@ function DeadlineCard({ deadline, today, open, onToggle, onAsk }: { deadline: De
                 </div>
                 {deadline.requirement && (
                   <div>
-                    <dt className="text-muted-foreground">In the playbook&apos;s words</dt>
+                    <dt className="text-muted-foreground">Original wording</dt>
                     <dd className="leading-relaxed">{deadline.requirement}</dd>
                   </div>
                 )}

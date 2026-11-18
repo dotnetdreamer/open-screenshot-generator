@@ -17,7 +17,7 @@ import { countsAsDone, DEVICE_LIST, useTicks } from '@/lib/storeCompliance/ticks
 import type { CheckResult } from '@/lib/storeCompliance/ai';
 import { cn } from '@/lib/utils';
 import { InlineMarkdown } from './RulesMarkdown';
-import { Credits, SEVERITY_STYLE, SeverityBadge, StoreMarks, formatAgo, formatDay, fromToday, useRulesView } from './StoreComplianceShared';
+import { PlainText, SEVERITY_STYLE, SeverityBadge, StoreMarks, formatAgo, formatDay, fromToday, useRulesView } from './StoreComplianceShared';
 
 export function ProgressRing({ done, total, size = 76 }: { done: number; total: number; size?: number }) {
   const stroke = 7;
@@ -170,7 +170,7 @@ export function StoreComplianceOverview() {
                           {ticked && <CheckIcon className="h-3.5 w-3.5" strokeWidth={3} />}
                         </span>
                         <span className={cn('leading-relaxed', ticked && 'text-muted-foreground')}>
-                          <InlineMarkdown text={checkText(item)} />
+                          {item.plain ? <PlainText text={checkText(item)} listClassName="text-[13px] text-muted-foreground" /> : <InlineMarkdown text={item.text} />}
                         </span>
                       </button>
                     </li>
@@ -192,14 +192,14 @@ export function StoreComplianceOverview() {
                 Let AI check your app
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                The AI reads the words on your screenshots and store page, and tells you which {storeWords} rules they might break.
+                AI reads the text on your screenshots and store page. It tells you what could get your app rejected.
               </p>
             </div>
             <ul className="space-y-1.5 text-xs text-muted-foreground">
               {[
-                'The text on every artboard, in every language',
-                'Your store page, from Growth or pasted in',
-                `${rules.length} rules from the playbook, each with its fix`,
+                'Text on all your screenshots, in every language',
+                'Your store page text',
+                `Checked against ${rules.length} rules`,
               ].map((line) => (
                 <li key={line} className="flex items-start gap-2">
                   <CheckIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[hsl(var(--rules-accent))]" />
@@ -309,8 +309,6 @@ export function StoreComplianceOverview() {
           </ul>
         </section>
       </div>
-
-      <Credits library={library} className="pt-2 text-center" />
     </div>
   );
 }

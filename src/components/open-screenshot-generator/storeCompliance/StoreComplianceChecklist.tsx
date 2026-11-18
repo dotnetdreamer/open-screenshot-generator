@@ -6,20 +6,21 @@
 // applying with a one-line reason, and both count as done, except the boxes
 // the checklist says every app has (`always`): those can only be ticked. A
 // box reads in plain words where the repository has them (plain.ts); the (i)
-// beside it shows the playbook's own.
+// beside it shows the playbook's own. A section's plain words leave out a line
+// that only points to a guide, so its links show as buttons under them.
 
 import React, { useMemo, useState } from 'react';
-import { CheckIcon, ChevronDownIcon, InfoIcon, MinusIcon, RotateCcwIcon, SparklesIcon } from 'lucide-react';
+import { BookOpenIcon, CheckIcon, ChevronDownIcon, InfoIcon, MinusIcon, RotateCcwIcon, SparklesIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { checklistItemsFor } from '@/lib/storeCompliance/parse';
-import { checkText } from '@/lib/storeCompliance/plain';
+import { checkText, groupTitle, introLinks, sectionTitle } from '@/lib/storeCompliance/plain';
 import { countsAsDone, DEVICE_LIST, useTicks, type Tick } from '@/lib/storeCompliance/ticks';
 import type { ChecklistItem, ChecklistSection } from '@/lib/storeCompliance/types';
 import { cn } from '@/lib/utils';
 import { InlineMarkdown } from './RulesMarkdown';
-import { CHECKLIST_PATH, useGuideLinks, useRulesView } from './StoreComplianceShared';
+import { CHECKLIST_PATH, PlainText, useGuideLinks, useRulesView } from './StoreComplianceShared';
 
 function Item({
   item,
@@ -62,32 +63,37 @@ function Item({
           {skipped && <MinusIcon className="h-3.5 w-3.5" strokeWidth={3} />}
         </button>
         <div className="min-w-0 flex-1">
-          <p className={cn('text-sm leading-relaxed', (ticked || skipped) && 'text-muted-foreground')}>
-            <InlineMarkdown text={checkText(item)} onLink={onLink} />
-            {item.always && (
-              <span
-                className="ml-1.5 inline-flex translate-y-[-1px] rounded-full bg-muted px-1.5 py-px text-[10px] font-medium text-muted-foreground"
-                title="Every app has to do this one, so it can't be marked as not applying"
-              >
-                Every app
-              </span>
+          <div className={cn('text-sm leading-relaxed', (ticked || skipped) && 'text-muted-foreground')}>
+            {item.plain ? (
+              <PlainText text={checkText(item)} listClassName="text-[13px] text-muted-foreground" />
+            ) : (
+              <p>
+                <InlineMarkdown text={item.text} onLink={onLink} />
+              </p>
             )}
-            {item.plain && (
-              <button
-                type="button"
-                className="ml-1 inline-flex translate-y-0.5 rounded p-0.5 text-muted-foreground/70 hover:bg-muted hover:text-foreground"
-                onClick={() => setOriginal((value) => !value)}
-                aria-expanded={original}
-                aria-label="Show the playbook's own words"
-                title="Show the playbook's own words"
-              >
-                <InfoIcon className="h-3.5 w-3.5" />
-              </button>
-            )}
-          </p>
+            <span className="mt-1 flex items-center gap-1.5">
+              {item.always && (
+                <span className="inline-flex rounded-full bg-muted px-1.5 py-px text-[10px] font-medium text-muted-foreground" title="Every app must do this one">
+                  Every app
+                </span>
+              )}
+              {item.plain && (
+                <button
+                  type="button"
+                  className="inline-flex rounded p-0.5 text-muted-foreground/70 hover:bg-muted hover:text-foreground"
+                  onClick={() => setOriginal((value) => !value)}
+                  aria-expanded={original}
+                  aria-label="Show the original wording"
+                  title="Show the original wording"
+                >
+                  <InfoIcon className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </span>
+          </div>
           {original && item.plain && (
             <p className="mt-1 rounded-lg border bg-muted/40 px-2.5 py-1.5 text-xs leading-relaxed text-muted-foreground" data-testid="store-check-original">
-              <span className="font-medium text-foreground">In the playbook&apos;s words: </span>
+              <span className="font-medium text-foreground">Original wording: </span>
               <InlineMarkdown text={item.text} onLink={onLink} />
             </p>
           )}
@@ -148,6 +154,27 @@ function Item({
   );
 }
 
+/** The guides a section's own words link to, kept when its plain words show instead. */
+function GuideLinks({ paragraphs, onLink }: { paragraphs: string[]; onLink: (href: string) => void }) {
+  const links = introLinks(paragraphs);
+  if (links.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-1.5 px-3 pb-2 pt-1" data-testid="store-checklist-guides">
+      {links.map((link) => (
+        <button
+          key={link.href}
+          type="button"
+          onClick={() => onLink(link.href)}
+          className="inline-flex items-center gap-1.5 rounded-full border bg-background px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <BookOpenIcon className="h-3.5 w-3.5" />
+          {link.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function Section({
   section,
   ticks,
@@ -190,7 +217,7 @@ function Section({
           {complete ? <CheckIcon className="h-4 w-4" strokeWidth={3} /> : items.length - done}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold">{section.title}</span>
+          <span className="block text-sm font-semibold">{sectionTitle(section)}</span>
           <span className="block text-xs text-muted-foreground">
             {done} of {items.length} done
           </span>
@@ -202,15 +229,22 @@ function Section({
       </button>
       {open && (
         <div className="border-t px-2 pb-3 pt-2">
-          {section.intro.map((paragraph, index) => (
-            <p key={index} className="px-3 pb-2 pt-1 text-xs leading-relaxed text-muted-foreground">
-              <InlineMarkdown text={paragraph} onLink={onLink} />
-            </p>
-          ))}
+          {section.plain ? (
+            <>
+              {section.plain.intro && <PlainText className="px-3 pb-2 pt-1 text-xs leading-relaxed text-muted-foreground" text={section.plain.intro} />}
+              <GuideLinks paragraphs={section.intro} onLink={onLink} />
+            </>
+          ) : (
+            section.intro.map((paragraph, index) => (
+              <p key={index} className="px-3 pb-2 pt-1 text-xs leading-relaxed text-muted-foreground">
+                <InlineMarkdown text={paragraph} onLink={onLink} />
+              </p>
+            ))
+          )}
           {remaining.length === 0 && <p className="px-3 py-2 text-xs text-muted-foreground">Every box here is done</p>}
           {remaining.map((group) => (
             <div key={group.id} className="mt-1">
-              {group.title && <p className="px-3 pb-1 pt-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{group.title}</p>}
+              {groupTitle(group) && <p className="px-3 pb-1 pt-3 text-xs font-semibold text-foreground/80">{groupTitle(group)}</p>}
               <ul className="space-y-0.5">
                 {group.items.filter(visible).map((item) => (
                   <Item
@@ -257,14 +291,14 @@ export function StoreComplianceChecklist() {
       <div className="rounded-2xl border bg-card p-5">
         <div className="flex flex-wrap items-start gap-4">
           <div className="min-w-0 flex-1">
-            <h2 className="text-base font-semibold">Before you submit</h2>
+            <h2 className="text-base font-semibold">Before you send your app for review</h2>
             <p className="mt-0.5 text-sm text-muted-foreground">
               {project.name ? (
                 <>
-                  Checklist for <span className="font-medium text-foreground">{project.name}</span>. Your ticks stay with this project.
+                  For <span className="font-medium text-foreground">{project.name}</span>. Each project has its own checklist.
                 </>
               ) : (
-                'Your ticks stay on this computer.'
+                'Saved on this computer.'
               )}
             </p>
           </div>
@@ -281,8 +315,8 @@ export function StoreComplianceChecklist() {
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
           <label className="flex items-center gap-2">
-            <Switch checked={hideDone} onCheckedChange={setHideDone} aria-label="Hide the boxes that are done" />
-            Hide the boxes that are done
+            <Switch checked={hideDone} onCheckedChange={setHideDone} aria-label="Hide done boxes" />
+            Hide done boxes
           </label>
           {otherStore && hidden > 0 && <span>{hidden === 1 ? `1 box only for ${otherStore} is hidden` : `${hidden} boxes only for ${otherStore} are hidden`}</span>}
           <span className="ml-auto flex items-center gap-2">
@@ -305,7 +339,7 @@ export function StoreComplianceChecklist() {
                 </Button>
               </>
             ) : (
-              <Button size="sm" variant="ghost" className="h-7 gap-1.5 text-xs" disabled={done === 0} onClick={() => setConfirmReset(true)} title="Start the checklist again for the next version of your app">
+              <Button size="sm" variant="ghost" className="h-7 gap-1.5 text-xs" disabled={done === 0} onClick={() => setConfirmReset(true)} title="Untick everything, for your next version">
                 <RotateCcwIcon className="h-3.5 w-3.5" />
                 Start over
               </Button>

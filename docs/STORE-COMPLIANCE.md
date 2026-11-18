@@ -8,7 +8,7 @@ The rules come from the [App Store Compliance Playbook](https://github.com/dotne
 
 ## Plain words
 
-The playbook is written for developers and lawyers. Where it has a plain-words version of a rule, a deadline or a checklist box, that's what you see. The exact wording is always one click away:
+The playbook is written for developers and lawyers. Where it has a plain-words version of a rule, a deadline, a checklist box or a checklist heading, that's what you see. The exact wording is always one click away:
 
 - On a rule, open it and look under **For your developer**.
 - On a deadline, open it to see the law's full name and the playbook's words.
@@ -36,6 +36,19 @@ Ask AI uses the same AI as Growth: Claude Code or Codex on your own plan, or the
 - Or ask anything: "Can I link to my website so people pay there?", "Do I have to let people delete their account?"
 
 A rule the AI names shows as a chip. Click it to read the rule and its fix. The AI can only name rules that are in the playbook, and a quote has to be on your screenshots: anything else the AI makes up is left out. The AI only reads words, so it can't see things like a broken demo account. Go through the checklist too.
+
+### Let Claude Code read your app's code
+
+In the desktop app, click **Add your app's code** above the message box and pick the top folder of your app's code. From then on Claude Code looks in your code when it answers a question, works out a rejection or checks your app. Each project keeps its own folder.
+
+- Only the folder's location goes to Claude Code. It opens the files it needs itself, the same way it does in your terminal, and it can't change a file or run anything.
+- It can't open files that hold passwords or keys, such as `.env` files and signing files, or anything outside the folder.
+- A problem it finds in your code shows the file, the line and the code itself. The app checks that those words really are in that file, and leaves the finding out when they aren't.
+- Only Claude Code reads code. With Codex or the AI panel picked, the folder stays but isn't read.
+- What Claude Code finds in your code goes only to Claude Code. If you switch to Codex or the AI panel later in the chat, they get the chat without those answers.
+- If macOS asks whether Open Screenshot Generator can open the folder, click **Allow**. If macOS blocks the folder, the folder says so and Ask AI answers without your code. Allow it in System Settings > Privacy & Security > Files & Folders, then come back to the app or click **Check again**.
+- Reading code uses your Claude plan, and a check can take a few minutes.
+- To stop Claude Code reading the folder, click the **x** on it.
 
 ## Checklist
 
@@ -71,4 +84,4 @@ The app checks GitHub when you first open Store compliance after starting the ap
 
 ## Credits
 
-The rules, the checklist and the guides are the work of the App Store Compliance Playbook's authors, shown under the license the playbook names. The Overview shows the playbook's copyright line, its license and its version.
+The rules, the checklist and the guides are the work of the App Store Compliance Playbook's author, Mirza Iqbal (mjmirza), under the OpenRoots Agent License 2.3. The copy the app keeps on your computer always includes the playbook's NOTICE file, with its copyright line and its license.

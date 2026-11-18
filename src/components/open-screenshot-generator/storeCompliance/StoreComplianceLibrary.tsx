@@ -8,7 +8,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { SearchIcon, SparklesIcon, XIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ruleFix, ruleTitle } from '@/lib/storeCompliance/plain';
+import { firstLine, ruleFix, ruleTitle } from '@/lib/storeCompliance/plain';
 import { ruleForStores, searchRules } from '@/lib/storeCompliance/search';
 import type { RejectionRule, Severity } from '@/lib/storeCompliance/types';
 import { cn } from '@/lib/utils';
@@ -34,7 +34,7 @@ function RuleCard({ rule, isNew, onOpen }: { rule: RejectionRule; isNew: boolean
       {ruleFix(rule) && (
         <span className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
           <span className="font-medium text-foreground">Fix: </span>
-          {ruleFix(rule)}
+          {firstLine(ruleFix(rule))}
         </span>
       )}
       {rule.guideline && <span className="mt-auto truncate text-[11px] text-muted-foreground">{/^\d/.test(rule.guideline) ? `Guideline ${rule.guideline}` : rule.guideline}</span>}

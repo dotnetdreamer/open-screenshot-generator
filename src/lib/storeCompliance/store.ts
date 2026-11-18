@@ -2,7 +2,8 @@
 // (`OpenScreenshotGeneratorStoreCompliance`), apart from the projects like
 // Growth's and the Website's, so a project export or a cloud save never
 // carries it and clearing it loses nothing GitHub cannot send again. Only the
-// boxes ticked in the checklist are the user's own.
+// boxes ticked in the checklist are the user's own, and the code folder each
+// project lets Claude Code read (codeFolder.ts), which is quick to pick again.
 //
 // The update (sync.ts) talks to a `RulesStore`, so the unit tests can give it
 // one in memory; the app uses the Dexie one.
@@ -170,4 +171,10 @@ export async function readMetaValue<T>(key: string): Promise<T | null> {
 export async function writeMetaValue(key: string, value: unknown): Promise<void> {
   if (value === null || value === undefined) await db().meta.delete(key);
   else await db().meta.put({ key, value });
+}
+
+/** Every value whose key starts with `prefix`, such as each project's code folder. */
+export async function readMetaValues<T>(prefix: string): Promise<Array<{ key: string; value: T }>> {
+  const rows = await db().meta.where('key').startsWith(prefix).toArray();
+  return rows.map((row) => ({ key: row.key, value: row.value as T }));
 }

@@ -451,6 +451,12 @@ fn scrub_env(command: &mut Command) {
             command.env_remove(&name);
         }
     }
+    // Where the app itself was started, as for Claude Code (STARTED_FROM_VARS
+    // in claude_code.rs): a shell the child runs looks at that folder, and in
+    // ~/Documents macOS stops to ask the app whether it may open it.
+    for key in ["PWD", "OLDPWD"] {
+        command.env_remove(key);
+    }
     if std::env::var_os("APPIMAGE").is_some() {
         for key in ["LD_LIBRARY_PATH", "LD_PRELOAD", "GIO_EXTRA_MODULES", "GDK_BACKEND"] {
             command.env_remove(key);
@@ -2513,6 +2519,8 @@ mod tests {
         #[cfg(unix)]
         assert_eq!(env.get("HOME"), Some(&Some("/ws/user".to_string())));
         assert!(!env.contains_key(TOKEN_VAR));
+        assert_eq!(env.get("PWD"), Some(&None), "not where the app was started");
+        assert_eq!(env.get("OLDPWD"), Some(&None));
 
         let defaults = prompt_command(Path::new("codex"), &workspace, Path::new("/w"), Path::new("/a"), None, None, "/usr/bin");
         let args = prompt_args(&defaults);

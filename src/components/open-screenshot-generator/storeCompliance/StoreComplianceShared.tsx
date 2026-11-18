@@ -13,8 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { openExternal } from '@/lib/desktop';
 import { repoPath } from '@/lib/storeCompliance/parse';
-import { deadlineTitle, ruleFix, ruleProblem, ruleTitle } from '@/lib/storeCompliance/plain';
-import { filePageUrl, RULES_REPO_URL } from '@/lib/storeCompliance/source';
+import { deadlineTitle, plainBlocks, ruleFix, ruleProblem, ruleTitle } from '@/lib/storeCompliance/plain';
+import { filePageUrl } from '@/lib/storeCompliance/source';
 import type { RulesState } from '@/lib/storeCompliance/sync';
 import type { Deadline, RejectionRule, RuleStore, RulesLibrary, Severity, ShipStore } from '@/lib/storeCompliance/types';
 import type { ArtboardState } from '@/types/artboard';
@@ -271,23 +271,6 @@ export function DeadlineChip({ deadline, onOpen }: { deadline: Deadline; onOpen:
   );
 }
 
-/** Where the rules come from, as the playbook's NOTICE says it, which its licence asks every copy to keep. */
-export function Credits({ library, className }: { library: RulesLibrary; className?: string }) {
-  const lines = (library.notice ?? '').split('\n').map((line) => line.trim().replace(/\.$/, ''));
-  const copyright = lines.find((line) => /^copyright\b/i.test(line));
-  const licence = lines.find((line) => /^licensed under\b/i.test(line));
-  const parts = ['From the App Store Compliance Playbook', copyright, licence, library.version ? `Version ${library.version}` : null].filter(Boolean);
-  return (
-    <p className={cn('text-xs leading-relaxed text-muted-foreground', className)} data-testid="store-compliance-credits">
-      {parts.join('. ')}
-      {library.rulesUpdated ? `, rules updated ${formatDay(library.rulesUpdated)}` : ''}.{' '}
-      <button type="button" className="font-medium text-foreground underline underline-offset-2" onClick={() => void openExternal(RULES_REPO_URL)}>
-        View on GitHub
-      </button>
-    </p>
-  );
-}
-
 // --- one rule, over any screen ---------------------------------------------------
 
 export function RuleSheet({ rule, isNew, onClose, onAsk }: { rule: RejectionRule | null; isNew: boolean; onClose: () => void; onAsk: (rule: RejectionRule) => void }) {
@@ -322,15 +305,15 @@ export function RuleSheet({ rule, isNew, onClose, onAsk }: { rule: RejectionRule
             </SheetHeader>
             <div className="flex-1 space-y-5 p-5 text-sm">
               <section>
-                <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">What gets an app rejected</h3>
-                <p className="leading-relaxed">{ruleProblem(rule) || 'The playbook gives no detail for this rule.'}</p>
+                <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">The problem</h3>
+                <PlainText className="leading-relaxed" text={ruleProblem(rule) || 'The playbook gives no detail for this rule.'} />
               </section>
               <section className="rounded-xl border border-[hsl(var(--rules-accent))]/25 bg-[hsl(var(--rules-accent))]/5 p-4">
                 <h3 className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[hsl(var(--rules-accent))]">
                   <CheckIcon className="h-3.5 w-3.5" />
                   How to fix it
                 </h3>
-                <p className="leading-relaxed">{ruleFix(rule) || 'The playbook gives no fix for this rule yet.'}</p>
+                <PlainText className="leading-relaxed" text={ruleFix(rule) || 'The playbook gives no fix for this rule yet.'} />
               </section>
               {(rule.plain || rule.signals.length > 0 || rule.counterSignals.length > 0 || rule.recipe) && (
                 <section>
@@ -338,14 +321,14 @@ export function RuleSheet({ rule, isNew, onClose, onAsk }: { rule: RejectionRule
                   {rule.plain && (
                     // The plain words leave out what a developer needs: the playbook's own are exact.
                     <div className="mb-3 space-y-1 rounded-lg border bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground" data-testid="store-rule-original">
-                      <p className="font-medium text-foreground">In the playbook&apos;s words: {rule.title}</p>
+                      <p className="font-medium text-foreground">Original wording: {rule.title}</p>
                       {rule.detection && <p>{rule.detection}</p>}
                       {rule.fix && <p>Fix: {rule.fix}</p>}
                     </div>
                   )}
                   {rule.signals.length > 0 && (
                     <p className="mb-2 text-xs leading-relaxed text-muted-foreground">
-                      Words in the app&apos;s code that point to it:{' '}
+                      Look for these in the code:{' '}
                       {rule.signals.map((word) => (
                         <code key={word} className="mx-0.5 rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">
                           {word}
@@ -355,7 +338,7 @@ export function RuleSheet({ rule, isNew, onClose, onAsk }: { rule: RejectionRule
                   )}
                   {rule.counterSignals.length > 0 && (
                     <p className="mb-2 text-xs leading-relaxed text-muted-foreground">
-                      Words that show it&apos;s handled:{' '}
+                      These show it&apos;s fixed:{' '}
                       {rule.counterSignals.map((word) => (
                         <code key={word} className="mx-0.5 rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">
                           {word}
@@ -386,6 +369,25 @@ export function RuleSheet({ rule, isNew, onClose, onAsk }: { rule: RejectionRule
         )}
       </SheetContent>
     </Sheet>
+  );
+}
+
+/** Plain words as they are written: short lines, and "- " lines as a list. */
+export function PlainText({ text, className, listClassName }: { text: string; className?: string; listClassName?: string }) {
+  return (
+    <div className={cn('space-y-1', className)}>
+      {plainBlocks(text).map((block, index) =>
+        block.kind === 'line' ? (
+          <p key={index}>{block.text}</p>
+        ) : (
+          <ul key={index} className={cn('list-disc space-y-0.5 pl-5 marker:text-muted-foreground', listClassName)}>
+            {block.items.map((item, at) => (
+              <li key={at}>{item}</li>
+            ))}
+          </ul>
+        )
+      )}
+    </div>
   );
 }
 

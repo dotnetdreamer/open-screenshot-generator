@@ -80,6 +80,8 @@ export interface ChecklistItem {
 export interface ChecklistGroup {
   id: string;
   title: string | null;
+  /** The group's name in everyday words (plain.ts). */
+  plainTitle?: string;
   /** A group about one store only ("Apple." in the platform section). */
   store: ShipStore | null;
   items: ChecklistItem[];
@@ -93,6 +95,10 @@ export interface ChecklistSection {
   /** A section about one store only, so a user shipping to the other can hide it. */
   store: ShipStore | null;
   groups: ChecklistGroup[];
+  /** The lines between the heading and the first box or heading, spaces folded: what plain words for the section are checked against. */
+  introSource?: string;
+  /** The section's title and intro in everyday words (plain.ts), the intro null when it needs none. */
+  plain?: { title: string; intro: string | null };
 }
 
 export interface Checklist {

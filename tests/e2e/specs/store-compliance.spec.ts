@@ -23,6 +23,17 @@ const CLAUDE_READY = {
   subscriptionType: 'max',
 };
 
+/** abs_codex_detect for a Codex signed in with ChatGPT. */
+const CODEX_READY = {
+  found: true,
+  path: '/opt/homebrew/bin/codex',
+  version: 'codex-cli 0.162.0',
+  loggedIn: true,
+  authMethod: 'chatgpt',
+  planType: 'plus',
+  models: [{ id: 'gpt-6.1-sol', displayName: 'GPT-6.1-Sol', efforts: ['low', 'medium'], defaultEffort: 'low', isDefault: true }],
+};
+
 const RULES = {
   version: '1.0.0',
   updated: '2026-11-01',
@@ -56,6 +67,8 @@ These two stop most rejections on both stores. Do them first.
 - [ ] The privacy form matches what the app collects.
 
 ## Apple specific
+
+The full map is in the [Apple rejection map](APPLE.md).
 
 - [ ] Notes for Review explain every feature. See the [Apple rejection map](APPLE.md).
 
@@ -124,6 +137,8 @@ const PLAIN = JSON.stringify({
     },
   },
   checklist: { [fingerprint(['a working demo account is in the review notes.'])]: { text: 'Your review notes have a demo account that works today.' } },
+  // Plain words leave out a line that only points to a guide.
+  sections: { [fingerprint(['Apple specific'])]: { from: fingerprint(['Apple specific', 'The full map is in the [Apple rejection map](APPLE.md).']), title: 'Apple App Store only', intro: '' } },
 });
 
 function blobSha(text: string): string {
@@ -256,10 +271,10 @@ test.describe('Store compliance', () => {
       `https://api.github.com/repos/${OWNER_REPO}/git/trees/${repo.head}?recursive=1`,
     ]);
     // The core files, each once and by commit; the guides wait to be opened.
+    // NOTICE among them: the licence asks every copy to keep it, though nothing shows it on screen.
     expect(repo.downloads().sort()).toEqual(['NOTICE', 'VERSION', 'data/regulatory-deadlines.json', 'data/rejection-patterns.json', 'docs/PRE-SUBMISSION-CHECKLIST.md', 'docs/index.md']);
     expect(repo.requests.some((url) => url.includes('/main/'))).toBe(false);
-    await expect(view.getByTestId('store-compliance-credits')).toContainText('Copyright (c) 2026 Test Author');
-    await expect(view.getByTestId('store-compliance-credits')).toContainText('Licensed under the Test Licence 1.0');
+    await expect(view.getByText('Copyright (c) 2026 Test Author')).toHaveCount(0);
 
     // Back in the editor and out again: the same sitting asks nothing.
     const before = repo.requests.length;
@@ -356,8 +371,14 @@ test.describe('Store compliance', () => {
 
     await section(view, 'Checklist').click();
     const box = view.locator('[data-checklist-item]', { hasText: 'Your review notes have a demo account that works today.' });
-    await box.getByRole('button', { name: "Show the playbook's own words" }).click();
+    await box.getByRole('button', { name: 'Show the original wording' }).click();
     await expect(box.getByTestId('store-check-original')).toContainText('A working demo account is in the review notes.');
+    // The plain heading has no line about the guide, and the guide is still a click away.
+    const apple = view.locator('[data-checklist-section="Apple specific"]');
+    await expect(apple.getByRole('button', { name: /^Apple App Store only/ })).toBeVisible();
+    await expect(apple).not.toContainText('The full map is in');
+    await apple.getByTestId('store-checklist-guides').getByRole('button', { name: 'Apple rejection map' }).click();
+    await expect(view.getByTestId('store-compliance-guide').getByRole('heading', { name: 'Apple rejection map' })).toBeVisible();
   });
 
   test('a broken file in the repository keeps the last rules that worked', async ({ page, app, browserName }) => {
@@ -443,6 +464,9 @@ test.describe('Store compliance', () => {
     await section(view, 'Ask AI').click();
     const status = view.getByTestId('store-compliance-ai-status');
     await expect(status).toContainText('Set up an AI first');
+    // Only Claude Code reads code, and only the desktop app can start it.
+    await expect(view.getByRole('button', { name: "Add your app's code folder" })).toBeDisabled();
+    await expect(view.locator('[data-gated-reason="Reading your code needs the desktop app"]')).toHaveCount(1);
     // A key added in the AI panel is saved without telling anyone.
     await page.evaluate(() =>
       localStorage.setItem(
@@ -530,6 +554,201 @@ test.describe('Store compliance', () => {
       await expect(answer).not.toContainText('MADE-UP');
       await answer.locator('[data-rule-chip="APPLE-2.1-DEMO"]').click();
       await expect(page.getByTestId('store-rule-sheet')).toContainText('Put a working demo account in the review notes.');
+    });
+
+    test("Ask AI reads the app's code by its folder's path, and keeps only quotes that are in the code", async ({ page, app, isDesktop, tauri, browserName }) => {
+      test.skip(!isDesktop, 'Claude Code runs in the desktop app');
+      const repo = new FakeRepo(files(), browserName !== 'webkit');
+      await repo.install(page);
+      await app.startBlankProject();
+      const view = await openRules(page);
+      await section(view, 'Ask AI').click();
+      await expect(view.getByTestId('store-compliance-ai-status')).toContainText('Using Claude Code');
+
+      await view.getByRole('button', { name: "Add your app's code folder" }).click();
+      await expect(view.getByText('Claude Code can read this folder')).toBeVisible();
+      const [pick] = await tauri.callsTo('abs_claude_pick_folder');
+      expect(pick.args).toMatchObject({ book: 'prompt' });
+
+      await tauri.setResponse(
+        'abs_claude_prompt',
+        JSON.stringify({
+          summary: 'One thing in the code.',
+          findings: [
+            { rule: 'APPLE-2.1-PLACEHOLDER', place: 'code', file: '/Users/e2e/code/marbly/ios/Runner/Main.storyboard', quote: 'text="Lorem ipsum"', why: 'A screen still says Lorem ipsum.' },
+            { rule: 'BOTH-OTHER-STORE', place: 'code', file: 'ios/Runner/AppDelegate.swift', quote: 'Get it on Android', why: 'Words that are not in that file.' },
+          ],
+        })
+      );
+      await tauri.setResponse('abs_claude_find_quotes', [42, null]);
+      await view.getByRole('button', { name: /^Check my app/ }).first().click();
+      const form = view.getByTestId('store-compliance-check-form');
+      await expect(form).toContainText("Your app's code in marbly");
+      await form.getByRole('button', { name: 'Run the check' }).click();
+
+      const result = view.getByTestId('store-compliance-check-result');
+      await expect(result).toContainText('1 thing to look at');
+      await expect(result).toContainText('and the code in marbly');
+      await expect(result).toContainText('ios/Runner/Main.storyboard, line 42');
+      await expect(result).toContainText('text="Lorem ipsum"');
+      await expect(result).not.toContainText('Get it on Android');
+
+      const [call] = await tauri.callsTo('abs_claude_prompt');
+      const args = call.args as { system: string; prompt: string; folders: string[] | null };
+      expect(args.folders).toEqual(['/Users/e2e/code/marbly']);
+      expect(args.prompt).not.toContain('/Users/e2e/code/marbly');
+      expect(args.system).toContain('"place" is "code"');
+      const [find] = await tauri.callsTo('abs_claude_find_quotes');
+      expect(find.args).toEqual({
+        folder: '/Users/e2e/code/marbly',
+        quotes: [
+          { file: 'ios/Runner/Main.storyboard', quote: 'text="Lorem ipsum"' },
+          { file: 'ios/Runner/AppDelegate.swift', quote: 'Get it on Android' },
+        ],
+      });
+
+      // Taken off, the folder leaves Rust's list and the next question goes without it.
+      await view.getByRole('button', { name: 'Stop reading the marbly folder' }).click();
+      const forget = await tauri.waitForCall('abs_claude_forget_folder');
+      expect(forget.args).toEqual({ path: '/Users/e2e/code/marbly', book: 'prompt' });
+      await tauri.setResponse('abs_claude_prompt', 'Yes. Reviewers need to sign in [APPLE-2.1-DEMO].');
+      await view.getByLabel('Ask a question').fill('Do I need a demo account?');
+      await view.getByLabel('Ask a question').press('Enter');
+      await expect(view.getByTestId('store-compliance-answer').last()).toContainText('Reviewers need to sign in');
+      const calls = await tauri.callsTo('abs_claude_prompt');
+      expect((calls[calls.length - 1].args as { folders: unknown }).folders).toBeNull();
+    });
+  });
+
+  test.describe('with Claude Code and a folder macOS blocks', () => {
+    test.use({ tauriConfig: { responses: { abs_claude_detect: CLAUDE_READY, abs_claude_folder_access: 'refused' } } });
+
+    test('the folder says macOS blocks it, Ask AI goes on without the code, and a look after allowing it brings the code back', async ({ page, app, isDesktop, tauri, browserName }) => {
+      test.skip(!isDesktop, 'Claude Code runs in the desktop app');
+      const repo = new FakeRepo(files(), browserName !== 'webkit');
+      await repo.install(page);
+      await app.startBlankProject();
+      let view = await openRules(page);
+      await section(view, 'Ask AI').click();
+      await expect(view.getByTestId('store-compliance-ai-status')).toContainText('Using Claude Code');
+      const reason = view.getByTestId('store-compliance-code-folder-reason');
+      const blocked = 'macOS blocks this folder. Allow it in System Settings > Privacy & Security > Files & Folders';
+      const lastPrompt = async () => {
+        const calls = await tauri.callsTo('abs_claude_prompt');
+        return calls[calls.length - 1].args as { prompt: string; folders: string[] | null };
+      };
+      const ask = async (question: string, answer: string) => {
+        await tauri.setResponse('abs_claude_prompt', answer);
+        await view.getByLabel('Ask a question').fill(question);
+        await view.getByLabel('Ask a question').press('Enter');
+        await expect(view.getByTestId('store-compliance-answer').last()).toContainText(answer);
+      };
+
+      // macOS is looked at right after the pick, and its no shows on the folder.
+      await view.getByRole('button', { name: "Add your app's code folder" }).click();
+      await expect(reason).toHaveText(blocked);
+      const [look] = await tauri.callsTo('abs_claude_folder_access');
+      expect(look.args).toEqual({ folder: '/Users/e2e/code/marbly' });
+      await expect(view.getByText('Claude Code can read this folder')).toHaveCount(0);
+      // A question still gets an answer, without the code.
+      await ask('Do I need a demo account?', 'Yes, reviewers sign in.');
+      expect((await lastPrompt()).folders).toBeNull();
+      // So does the check, with the code row saying why it is off.
+      await view.getByRole('button', { name: /^Check my app/ }).first().click();
+      const form = view.getByTestId('store-compliance-check-form');
+      await expect(form).toContainText(blocked);
+      await expect(form.getByRole('checkbox', { name: /Your app's code in marbly/ })).toBeDisabled();
+      await tauri.setResponse('abs_claude_prompt', JSON.stringify({ summary: 'Nothing found.', findings: [] }));
+      await form.getByRole('button', { name: 'Run the check' }).click();
+      await expect(view.getByTestId('store-compliance-check-result')).toBeVisible();
+      expect((await lastPrompt()).folders).toBeNull();
+
+      // After a restart the folder still says so, and macOS is asked again.
+      const looksBefore = (await tauri.callsTo('abs_claude_folder_access')).length;
+      await page.reload({ waitUntil: 'domcontentloaded' });
+      await app.waitForBoot();
+      view = await openRules(page);
+      await section(view, 'Ask AI').click();
+      await expect(view.getByTestId('store-compliance-code-folder-reason')).toHaveText(blocked);
+      await expect.poll(async () => (await tauri.callsTo('abs_claude_folder_access')).length).toBeGreaterThan(0);
+      expect(looksBefore).toBeGreaterThan(0);
+
+      // Allowed in System Settings: back in the window, the folder is looked at again.
+      await tauri.setResponse('abs_claude_folder_access', 'open');
+      await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+      await expect(view.getByText('Claude Code can read this folder')).toBeVisible();
+      await ask('What does my Info.plist say?', 'It names the app Marbly.');
+      expect((await lastPrompt()).folders).toEqual(['/Users/e2e/code/marbly']);
+
+      // macOS saying no to a prompt that reads the code shows on the folder too.
+      await tauri.setError('abs_claude_prompt', "macOS won't let Open Screenshot Generator open the folder marbly. Turn it on in System Settings > Privacy & Security > Files & Folders, then try again");
+      await view.getByLabel('Ask a question').fill('And the camera text?');
+      await view.getByLabel('Ask a question').press('Enter');
+      await expect(view.getByText("macOS won't let Open Screenshot Generator open the folder marbly", { exact: false })).toBeVisible();
+      await expect(view.getByTestId('store-compliance-code-folder-reason')).toHaveText(blocked);
+      await tauri.clearError('abs_claude_prompt');
+      // Still asking: the folder says what to click, and Check again looks once more.
+      await tauri.setResponse('abs_claude_folder_access', 'asking');
+      await view.getByRole('button', { name: 'Check again' }).first().click();
+      await expect(view.getByTestId('store-compliance-code-folder-reason')).toHaveText('macOS is asking about this folder. Click Allow in its message');
+      await tauri.setResponse('abs_claude_folder_access', 'open');
+      await view.getByRole('button', { name: 'Check again' }).first().click();
+      await expect(view.getByText('Claude Code can read this folder')).toBeVisible();
+      await expect(view.getByRole('button', { name: 'Check again' })).toHaveCount(0);
+    });
+  });
+
+  test.describe('with Claude Code and Codex', () => {
+    test.use({ tauriConfig: { responses: { abs_claude_detect: CLAUDE_READY, abs_codex_detect: CODEX_READY } } });
+
+    test('what Claude Code read in the code never reaches Codex, even after the folder is off', async ({ page, app, isDesktop, tauri, browserName }) => {
+      test.skip(!isDesktop, 'Claude Code and Codex run in the desktop app');
+      const repo = new FakeRepo(files(), browserName !== 'webkit');
+      await repo.install(page);
+      await app.startBlankProject();
+      const view = await openRules(page);
+      await section(view, 'Ask AI').click();
+      await expect(view.getByTestId('store-compliance-ai-status')).toContainText('Using Claude Code');
+      const ask = async (question: string, answer: string, cli: 'abs_claude_prompt' | 'abs_codex_prompt') => {
+        await tauri.setResponse(cli, answer);
+        const before = (await tauri.callsTo(cli)).length;
+        await view.getByLabel('Ask a question').fill(question);
+        await view.getByLabel('Ask a question').press('Enter');
+        await expect(view.getByTestId('store-compliance-answer').last()).toContainText(answer);
+        const calls = await tauri.callsTo(cli);
+        expect(calls).toHaveLength(before + 1);
+        return calls[calls.length - 1].args as { prompt: string; folders?: string[] | null };
+      };
+
+      await ask('Do I need a demo account?', 'Yes, reviewers sign in.', 'abs_claude_prompt');
+      await view.getByRole('button', { name: "Add your app's code folder" }).click();
+      await expect(view.getByText('Claude Code can read this folder')).toBeVisible();
+      const read = await ask('What is my app called in Info.plist?', 'It is OrchidPebble41893.', 'abs_claude_prompt');
+      expect(read.folders).toEqual(['/Users/e2e/code/marbly']);
+      // With the folder off, Claude Code still has the conversation, and its answer repeats the code.
+      await view.getByRole('button', { name: 'Stop reading the marbly folder' }).click();
+      await tauri.waitForCall('abs_claude_forget_folder');
+      const again = await ask('Say the name again', 'OrchidPebble41893, as I said.', 'abs_claude_prompt');
+      expect(again.folders).toBeNull();
+      expect(again.prompt).toContain('It is OrchidPebble41893.');
+
+      // Codex gets the conversation without any of it.
+      const choices = view.getByRole('radiogroup', { name: 'AI to use' });
+      await choices.getByRole('radio', { name: 'Codex' }).click();
+      await expect(view.getByTestId('store-compliance-ai-status')).toContainText('Using Codex');
+      const codex = await ask('What exact name did you read?', 'I have not read your code.', 'abs_codex_prompt');
+      expect(codex.prompt).toContain('Do I need a demo account?');
+      expect(codex.prompt).toContain('Yes, reviewers sign in.');
+      expect(codex.prompt).not.toContain('OrchidPebble41893');
+      expect(codex.prompt).not.toContain('Info.plist');
+      expect(codex.prompt).not.toContain('Say the name again');
+
+      // Back on Claude Code, the whole conversation goes again.
+      await choices.getByRole('radio', { name: 'Claude Code' }).click();
+      await expect(view.getByTestId('store-compliance-ai-status')).toContainText('Using Claude Code');
+      const back = await ask('And now?', 'Still OrchidPebble41893.', 'abs_claude_prompt');
+      expect(back.prompt).toContain('It is OrchidPebble41893.');
+      expect(back.prompt).toContain('What exact name did you read?');
     });
   });
 });

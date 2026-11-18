@@ -11,7 +11,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { askPrompt, checkPrompt, checkRules, cleanAnswer, readCheckAnswer, type CheckInput } from '@/lib/storeCompliance/ai';
+import { askPrompt, checkPrompt, checkRules, cleanAnswer, codeFile, historyFor, readCheckAnswer, verifyCodeFindings, type CheckInput } from '@/lib/storeCompliance/ai';
+import { turnsOf, type ChatEntry } from '@/lib/storeCompliance/chat';
+import { folderBlockFromError } from '@/lib/storeCompliance/codeFolder';
 import {
   BrokenFileError,
   buildLibrary,
@@ -30,6 +32,12 @@ import {
   checklistKey,
   checkText,
   deadlineFingerprint,
+  firstLine,
+  groupTitle,
+  introLinks,
+  plainBlocks,
+  sectionFingerprint,
+  sectionTitle,
   deadlineSummary,
   deadlineTitle,
   placeName,
@@ -462,6 +470,65 @@ test('plain: the fingerprints are the ones the playbook repository writes', () =
     parseChecklist('# Checklist\n\n- [ ] Before any section: not a box.\n\n## Start here\n\n- [ ] A working **demo** account is in the review notes.\n- [x] A box that goes on\n  over two lines, with  extra   spaces.\n\n### Group\n\n* [ ] Café ✓ 😀 box.\n')
   );
   assert.deepEqual(boxes.map((box) => checklistKey(box.id)), ['2dddae10', '35b8c0d1', '3ac9ecd7']);
+});
+
+const SECTIONS_SAMPLE =
+  '# Checklist\n\nRead this first.\n\n## Start here. Two checks\n\nThese two stop most rejections.\nSee the [guide](GUIDE.md).\n\n- [ ] A working demo account.\n\n### Privacy and data\n\n- [ ] A privacy policy.\n\n## Platform mechanics gate\n\nApple.\n\n- [ ] A label box.\n\nCross-cutting.\n- [ ] Another box.\n';
+
+test('plain: sections and groups are keyed the way the playbook repository writes them', () => {
+  // The same values as the playbook repository's scripts/test-plain-language.py.
+  const sections = parseChecklist(SECTIONS_SAMPLE).sections;
+  assert.deepEqual(
+    sections.map((section) => [section.id, section.introSource, sectionFingerprint(section), section.groups.map((group) => group.id)]),
+    [
+      ['6a1ff01a', 'These two stop most rejections. See the [guide](GUIDE.md).', 'd1ffbabe', ['6a1ff01a/811c9dc5', '6a1ff01a/acb13c22']],
+      ['722b6718', 'Apple.', '90ae4c74', ['722b6718/b6779c5f', '722b6718/e2a1620e']],
+    ]
+  );
+});
+
+test('plain: section names, intros, group names and lists show, the original once the playbook rewords a section', () => {
+  const file = JSON.stringify({
+    sections: {
+      '6a1ff01a': { from: 'd1ffbabe', title: 'Start here: 2 quick checks', intro: 'These 2 stop most rejections. Do them first.' },
+      '722b6718': { from: '00000000', title: 'Old words', intro: '' },
+    },
+    groups: { '6a1ff01a/acb13c22': { title: 'Privacy' }, '722b6718/e2a1620e': { title: 'Both stores' } },
+    checklist: { [checklistItems(parseChecklist(SECTIONS_SAMPLE))[0].id]: { text: 'Add a demo login to your review notes.\n- Test it   today.\n\n- Keep it working during review.' } },
+  });
+  const checklist = buildLibrary(
+    new Map(Object.entries(repoFiles({ 'docs/PRE-SUBMISSION-CHECKLIST.md': SECTIONS_SAMPLE, 'data/plain-language.json': file })).map(([path, text]) => [path, { path, text }])),
+    'abc'
+  )!.checklist!;
+  const [start, mechanics] = checklist.sections;
+  assert.equal(sectionTitle(start), 'Start here: 2 quick checks');
+  assert.equal(start.plain?.intro, 'These 2 stop most rejections. Do them first.');
+  assert.equal(groupTitle(start.groups[1]), 'Privacy');
+  assert.equal(groupTitle(start.groups[0]), null, 'a group with no name gets none');
+  assert.equal(sectionTitle(mechanics), 'Platform mechanics gate', 'written from other words: the original shows');
+  assert.equal(groupTitle(mechanics.groups[1]), 'Both stores');
+  const box = start.groups[0].items[0];
+  assert.equal(box.plain, 'Add a demo login to your review notes.\n- Test it today.\n- Keep it working during review.', 'line breaks stay, spaces fold');
+  assert.deepEqual(plainBlocks(box.plain!), [
+    { kind: 'line', text: 'Add a demo login to your review notes.' },
+    { kind: 'list', items: ['Test it today.', 'Keep it working during review.'] },
+  ]);
+  assert.equal(firstLine(box.plain!), 'Add a demo login to your review notes.');
+  assert.equal(firstLine('- Only a list.\n- Two.'), 'Only a list.');
+});
+
+test('plain: a section keeps the guide links its plain words leave out', () => {
+  assert.deepEqual(
+    introLinks([
+      'Passing App Review does not make an app EU-legal. The full hard rules are in the [EU regulatory guide](EU-REGULATORY-2026.md).',
+      'For a deep-dive, see the [mobile security guide](MOBILE-SECURITY-2026.md "Mobile") beside ![a picture](shot.png), and the [EU guide](EU-REGULATORY-2026.md) again.',
+    ]),
+    [
+      { label: 'EU regulatory guide', href: 'EU-REGULATORY-2026.md' },
+      { label: 'Mobile security guide', href: 'MOBILE-SECURITY-2026.md' },
+    ]
+  );
+  assert.deepEqual(introLinks(['No link here.', '[](empty.md) and [no target]()']), []);
 });
 
 test('plain: where a deadline applies, in short words', () => {
@@ -948,6 +1015,127 @@ test('check: only findings that hold are kept, with the playbook deciding the or
   );
   assert.equal(result.placeCount, 2);
   assert.throws(() => readCheckAnswer('I could not do it', library(), input, null, 1), /could not be read/);
+});
+
+const CODE = { name: 'Marbly', path: '/Users/me/code/Marbly' };
+
+test('code: only the folder goes with a prompt, and the AI is told to read it', () => {
+  const plainAsk = askPrompt({ library: library(), question: 'Do I need a demo account?', history: [], stores: ['apple'], today: '2026-11-17' });
+  assert.doesNotMatch(plainAsk.system, /Read and Grep/);
+  const ask = askPrompt({ library: library(), question: 'Do I need a demo account?', history: [], stores: ['apple'], today: '2026-11-17', code: CODE });
+  assert.match(ask.system, /read the user's app code, in the folder your instructions name, with Read and Grep/);
+  assert.match(ask.system, /Never repeat a password, a key or any other secret/);
+  assert.match(ask.user, /The app's code is in the folder Marbly/);
+  assert.doesNotMatch(ask.user, /\/Users\/me/, 'the path reaches Claude Code through Rust, not the prompt');
+  const rejected = askPrompt({ library: library(), question: 'Guideline 2.1', history: [], stores: ['apple'], today: '2026-11-17', rejected: true, code: CODE });
+  assert.match(rejected.system, /Reply to the reviewer:[\s\S]*Read and Grep[\s\S]*which files to change/);
+
+  const input: CheckInput = { stores: ['apple'], traits: [], about: '', places: [], code: CODE };
+  assert.ok(checkRules(library(), ['apple'], true).some((rule) => rule.id === 'FLUTTER-MANIFEST'), 'reading code, a framework rule can apply');
+  const check = checkPrompt(library(), input);
+  assert.match(check.user, /APPLE-2\.1-DEMO[^\n]*code signs: login[^\n]*search: grep -rn 'login' \./);
+  assert.match(check.user, /FLUTTER-MANIFEST[^\n]*only for flutter apps/);
+  assert.match(check.system, /"place" is "code", "file" is the path of the file from the folder/);
+  assert.doesNotMatch(checkPrompt(library(), { ...input, code: null }).user, /code signs|FLUTTER-MANIFEST/);
+});
+
+test('code: a finding in the code needs a file in the folder and a real quote', () => {
+  assert.equal(codeFile('ios/Runner/Info.plist', CODE), 'ios/Runner/Info.plist');
+  assert.equal(codeFile('/Users/me/code/Marbly/ios/Runner/Info.plist', CODE), 'ios/Runner/Info.plist');
+  assert.equal(codeFile('./android\\app\\build.gradle', CODE), 'android/app/build.gradle');
+  for (const outside of ['/etc/passwd', '../secrets.txt', 'ios/../../x', 'C:/x.txt', '', 5]) assert.equal(codeFile(outside, CODE), '', String(outside));
+
+  const input: CheckInput = { stores: ['apple'], traits: [], about: '', places: [], code: CODE };
+  const raw = JSON.stringify({
+    summary: 'One thing.',
+    findings: [
+      { rule: 'APPLE-2.1-DEMO', place: 'code', file: 'Sources/Login.swift', quote: 'let demoUser = ""', why: 'No demo account.' },
+      { rule: 'APPLE-2.1-DEMO', place: 'code', file: 'Sources/Login.swift', quote: 'again', why: 'Twice for one file.' },
+      { rule: 'APPLE-5.1.1-DELETE', place: 'code', file: 'Sources/Account.swift', quote: 'ok', why: 'A quote too short to prove anything.' },
+      { rule: 'BOTH-OTHER-STORE', place: 'code', file: '../outside.swift', quote: 'Android version', why: 'Outside the folder.' },
+      { rule: 'FLUTTER-MANIFEST', place: 'about', quote: '', why: 'No privacy manifest in the plugin.' },
+    ],
+  });
+  const result = readCheckAnswer(raw, library(), input, 'Claude Code', 1);
+  assert.deepEqual(
+    result.findings.map((finding) => [finding.rule, finding.code?.file ?? null]),
+    [
+      ['APPLE-2.1-DEMO', 'Sources/Login.swift'],
+      ['FLUTTER-MANIFEST', null],
+    ]
+  );
+  assert.deepEqual(result.code, { name: 'Marbly' });
+  const noCode = readCheckAnswer(raw, library(), { ...input, code: null }, 'Claude Code', 1);
+  assert.ok(noCode.findings.every((finding) => !finding.code), 'a check that read no code keeps no finding in it');
+});
+
+test('code: a finding stays only when Rust finds its quote in the file, with the line', async () => {
+  const input: CheckInput = { stores: ['apple'], traits: [], about: '', places: [], code: CODE };
+  const raw = JSON.stringify({
+    summary: '',
+    findings: [
+      { rule: 'APPLE-2.1-DEMO', place: 'code', file: 'Sources/Login.swift', quote: 'let demoUser = ""', why: 'Real.' },
+      { rule: 'APPLE-5.1.1-DELETE', place: 'code', file: 'Sources/Account.swift', quote: 'func deleteAccount() {}', why: 'Made up.' },
+      { rule: 'BOTH-OTHER-STORE', place: 'about', quote: '', why: 'Not about the code.' },
+    ],
+  });
+  const result = readCheckAnswer(raw, library(), input, 'Claude Code', 1);
+  const asked: unknown[] = [];
+  const kept = await verifyCodeFindings(result, CODE, async (folder, quotes) => {
+    asked.push(folder, quotes);
+    return [12, null];
+  });
+  assert.deepEqual(asked, ['/Users/me/code/Marbly', [{ file: 'Sources/Login.swift', quote: 'let demoUser = ""' }, { file: 'Sources/Account.swift', quote: 'func deleteAccount() {}' }]]);
+  assert.deepEqual(
+    kept.findings.map((finding) => [finding.rule, finding.code ?? null]),
+    [
+      ['APPLE-2.1-DEMO', { file: 'Sources/Login.swift', line: 12 }],
+      ['BOTH-OTHER-STORE', null],
+    ]
+  );
+  const failed = await verifyCodeFindings(result, CODE, async () => {
+    throw new Error('Claude Code can no longer read that folder. Pick it again');
+  });
+  assert.deepEqual(failed.findings.map((finding) => finding.rule), ['BOTH-OTHER-STORE'], 'nothing proves them, so they go');
+  const odd = await verifyCodeFindings(result, CODE, async () => [0, 2.5] as Array<number | null>);
+  assert.deepEqual(odd.findings.map((finding) => finding.rule), ['BOTH-OTHER-STORE'], 'a line has to be a whole number from 1');
+});
+
+test('code: a prompt macOS kept out of the folder, or is still asking about, is known by the words Rust starts it with', () => {
+  // The same text as the_folder_answers_start_the_way_the_page_reads_them in claude_code.rs.
+  assert.equal(
+    folderBlockFromError("macOS won't let Open Screenshot Generator open the folder Marbly. Turn it on in System Settings > Privacy & Security > Files & Folders, then try again"),
+    'refused'
+  );
+  assert.equal(folderBlockFromError('macOS is asking if Open Screenshot Generator can open the folder Marbly. Click Allow, then try again'), 'asking');
+  for (const other of ['Claude Code took longer than 10 minutes to read your code and answer. Try again', 'Claude Code can no longer read that folder. Pick it again', '']) {
+    assert.equal(folderBlockFromError(other), null, other);
+  }
+});
+
+test('code: what Claude Code read in the code goes back to Claude Code only, with the question that asked for it', () => {
+  const entries: ChatEntry[] = [
+    { id: '1', kind: 'question', text: 'Do I need a demo account?', rejected: false, fromCode: false },
+    { id: '2', kind: 'answer', text: 'Yes, reviewers sign in.', ai: 'Claude Code', fromCode: false },
+    { id: '3', kind: 'question', text: 'What is my app called in Info.plist?', rejected: false, fromCode: true },
+    { id: '4', kind: 'answer', text: 'It is OrchidPebble41893.', ai: 'Claude Code', fromCode: true },
+    // Asked with the folder off, but Claude Code answered from the turn above.
+    { id: '5', kind: 'question', text: 'Say the name again', rejected: false, fromCode: false },
+    { id: '6', kind: 'answer', text: 'OrchidPebble41893, as I said.', ai: 'Claude Code', fromCode: true },
+    { id: '7', kind: 'question', text: 'Can I link to my website?', rejected: false, fromCode: true },
+    { id: '8', kind: 'error', text: 'The AI did not answer. Try again.' },
+    { id: '9', kind: 'question', text: 'What about refunds?', rejected: false, fromCode: false },
+    { id: '10', kind: 'answer', text: 'Apple handles refunds.', ai: 'Codex', fromCode: false },
+  ];
+  const turns = turnsOf(entries);
+  const toOthers = historyFor(turns, false);
+  assert.deepEqual(
+    toOthers.map((turn) => turn.text),
+    ['Do I need a demo account?', 'Yes, reviewers sign in.', 'What about refunds?', 'Apple handles refunds.']
+  );
+  assert.doesNotMatch(JSON.stringify(toOthers), /OrchidPebble|Info\.plist|Say the name|link to my website/);
+  assert.deepEqual(historyFor(turns, true), turns, 'Claude Code gets the whole conversation');
+  assert.equal(turns.length, 9, 'an error is no turn');
 });
 
 // --- what a check reads ------------------------------------------------------------
