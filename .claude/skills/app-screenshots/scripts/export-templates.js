@@ -8,6 +8,10 @@ const path = require('path');
 const { launch, startBlankProject, sleep, exportArtboards, clickTab, dismissTipsDialog, waitForProjectFonts, APP_URL } = require('./lib');
 
 const TEMPLATES = [
+  { slug: 'wishmint-wishlist', card: 'Wishmint Wishlist', boards: 5 },
+  { slug: 'lavish-creator-wishlist', card: 'Lavish Creator Wishlist', boards: 5 },
+  { slug: 'postie-cards', card: 'Postie Cards', boards: 5 },
+  { slug: 'hummi-cash-gifts', card: 'Hummi Cash Gifts', boards: 5 },
   { slug: 'hoppi-screen-time', card: 'Hoppi Screen Time', boards: 6 },
   { slug: 'roamo-esim', card: 'Roamo eSIM', boards: 6 },
   { slug: 'expertly-ai', card: 'Expertly AI', boards: 6 },

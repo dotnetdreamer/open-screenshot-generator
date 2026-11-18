@@ -1,0 +1,3623 @@
+{
+  "id": "template_hummi_cash_gifts",
+  "name": "Hummi Cash Gifts",
+  "description": "App Store & Play Store screenshots for a cash gift, payments or greeting card app. Midnight, violet and coral gradient boards with Space Grotesk headlines and slanted second lines, a tilted gift card, a keypad with amount chips, a wall of illustrated cards, a pop-out notification and glowing review bubbles, all grouped into editable layers.",
+  "previewImage": "/data/projects/previews/hummi-cash-gifts.png",
+  "timestamp": "2026-11-18T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "hm-board-1",
+      "name": "Cash Gifts Just Got Good",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#17192E",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "hm-b1-glow-1",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 420.85,
+            "y": -379.15
+          },
+          "size": {
+            "width": 1158.3,
+            "height": 1158.3
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.45,
+          "blur": 223,
+          "shapeType": "circle",
+          "fillColor": "#58308C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "hm-b1-glow-2",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": -379.15,
+            "y": 1820.85
+          },
+          "size": {
+            "width": 1158.3,
+            "height": 1158.3
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.37,
+          "blur": 223,
+          "shapeType": "circle",
+          "fillColor": "#3C2878",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "hm-b1-glow-3",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 249.55,
+            "y": 849.55
+          },
+          "size": {
+            "width": 900.9,
+            "height": 900.9
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.29,
+          "blur": 173,
+          "shapeType": "circle",
+          "fillColor": "#46286E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "hm-b1-logo-mark",
+          "type": "shape",
+          "name": "Logo mark",
+          "position": {
+            "x": 90,
+            "y": 104
+          },
+          "size": {
+            "width": 80,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#F1D9FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M3 14c4-1 7-3.5 9-8 1.5 3 4 4.5 9 4.5-3 1-5.5 3-7 6.5-1-2.5-3.5-3.5-6-3",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 9
+          },
+          "groupId": "hm-b1-g-logo",
+          "groupName": "Logo"
+        },
+        {
+          "id": "hm-b1-logo-name",
+          "type": "text",
+          "name": "Logo name",
+          "position": {
+            "x": 169.71,
+            "y": 79.42
+          },
+          "size": {
+            "width": 306,
+            "height": 125.56
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "hummi",
+          "fontSize": 25.8,
+          "color": "#F1D9FF",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.77,
+          "groupId": "hm-b1-g-logo",
+          "groupName": "Logo"
+        },
+        {
+          "id": "hm-b1-phone-ring",
+          "type": "shape",
+          "name": "Phone ring",
+          "position": {
+            "x": 749.5,
+            "y": 311.5
+          },
+          "size": {
+            "width": 937,
+            "height": 1949
+          },
+          "rotation": 9.1,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#9590FC",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 118,
+          "groupId": "hm-b1-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "hm-b1-phone-screen",
+          "type": "image",
+          "name": "Screen",
+          "position": {
+            "x": 759.5,
+            "y": 321.5
+          },
+          "size": {
+            "width": 917,
+            "height": 1929
+          },
+          "rotation": 9.1,
+          "scale": 1,
+          "objectFit": "cover",
+          "borderRadius": 108,
+          "imageSrc": "/data/projects/hummi-screen-poster.png",
+          "groupId": "hm-b1-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "hm-b1-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 101.64,
+            "y": 460.54
+          },
+          "size": {
+            "width": 900,
+            "height": 464.86
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Cash gifts\njust got\ngood",
+          "fontSize": 41.13,
+          "color": "#FFFFFF",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.01021,
+          "fontStyle": "italic",
+          "letterSpacing": -2.34
+        },
+        {
+          "id": "hm-b1-card-bottom",
+          "type": "shape",
+          "name": "Card base",
+          "position": {
+            "x": 234.59,
+            "y": 1546.76
+          },
+          "size": {
+            "width": 796,
+            "height": 268
+          },
+          "rotation": -7.2,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 30,
+            "blur": 60,
+            "color": "rgba(0,0,0,0.45)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#221D4D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 0 H796 V208 A60 60 0 0 1 736 268 H60 A60 60 0 0 1 0 208 Z",
+          "specialProps": {
+            "viewBox": "0 0 796 268"
+          },
+          "fillGradient": {
+            "color1": "#2E2668",
+            "color2": "#1A173E",
+            "angle": 180
+          },
+          "groupId": "hm-b1-g-gift-card",
+          "groupName": "Gift card"
+        },
+        {
+          "id": "hm-b1-card-top",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 182.21,
+            "y": 982.06
+          },
+          "size": {
+            "width": 796,
+            "height": 568
+          },
+          "rotation": -7.2,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#8B66F8",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 60 A60 60 0 0 1 60 0 H736 A60 60 0 0 1 796 60 V568 H0 Z",
+          "specialProps": {
+            "viewBox": "0 0 796 568"
+          },
+          "fillGradient": {
+            "color1": "#A9C2FB",
+            "color2": "#7A49FB",
+            "angle": 225
+          },
+          "groupId": "hm-b1-g-gift-card",
+          "groupName": "Gift card"
+        },
+        {
+          "id": "hm-b1-card-dollar",
+          "type": "text",
+          "name": "Currency",
+          "position": {
+            "x": 353.48,
+            "y": 1206.22
+          },
+          "size": {
+            "width": 103,
+            "height": 140.16
+          },
+          "rotation": -7.2,
+          "scale": 1,
+          "content": "$",
+          "fontSize": 28.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "hm-b1-g-gift-card",
+          "groupName": "Gift card"
+        },
+        {
+          "id": "hm-b1-card-amount",
+          "type": "text",
+          "name": "Amount",
+          "position": {
+            "x": 418.09,
+            "y": 1125.15
+          },
+          "size": {
+            "width": 461,
+            "height": 344.56
+          },
+          "rotation": -7.2,
+          "scale": 1,
+          "content": "200",
+          "fontSize": 70.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -2.83,
+          "groupId": "hm-b1-g-gift-card",
+          "groupName": "Gift card"
+        },
+        {
+          "id": "hm-b1-card-from",
+          "type": "text",
+          "name": "From",
+          "position": {
+            "x": 544.77,
+            "y": 1452.96
+          },
+          "size": {
+            "width": 125,
+            "height": 55.4
+          },
+          "rotation": -7.2,
+          "scale": 1,
+          "content": "From",
+          "fontSize": 10.2,
+          "color": "rgba(255,255,255,0.7)",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hm-b1-g-gift-card",
+          "groupName": "Gift card"
+        },
+        {
+          "id": "hm-b1-card-avatar",
+          "type": "shape",
+          "name": "Sender",
+          "position": {
+            "x": 577.8,
+            "y": 1509.82
+          },
+          "size": {
+            "width": 76,
+            "height": 76
+          },
+          "rotation": -7.2,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#221D4D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "hm-b1-g-gift-card",
+          "groupName": "Gift card"
+        },
+        {
+          "id": "hm-b1-card-initials",
+          "type": "text",
+          "name": "Initials",
+          "position": {
+            "x": 576.09,
+            "y": 1521.84
+          },
+          "size": {
+            "width": 79,
+            "height": 51
+          },
+          "rotation": -7.2,
+          "scale": 1,
+          "content": "JL",
+          "fontSize": 9,
+          "color": "#FFFFFF",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hm-b1-g-gift-card",
+          "groupName": "Gift card"
+        },
+        {
+          "id": "hm-b1-card-name",
+          "type": "text",
+          "name": "Sender name",
+          "position": {
+            "x": 485.27,
+            "y": 1601.67
+          },
+          "size": {
+            "width": 284,
+            "height": 66.4
+          },
+          "rotation": -7.2,
+          "scale": 1,
+          "content": "Jordan Lee",
+          "fontSize": 13.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.13,
+          "groupId": "hm-b1-g-gift-card",
+          "groupName": "Gift card"
+        },
+        {
+          "id": "hm-b1-card-handle",
+          "type": "text",
+          "name": "Handle",
+          "position": {
+            "x": 524.43,
+            "y": 1675.44
+          },
+          "size": {
+            "width": 221,
+            "height": 53.2
+          },
+          "rotation": -7.2,
+          "scale": 1,
+          "content": "@jordanlee",
+          "fontSize": 9.6,
+          "color": "rgba(255,255,255,0.55)",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hm-b1-g-gift-card",
+          "groupName": "Gift card"
+        }
+      ]
+    },
+    {
+      "id": "hm-board-2",
+      "name": "Gift Up To 2000",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#8A5BEA",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#995BED",
+        "color2": "#6F4CCC",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "hm-b2-glow-1",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 435.2,
+            "y": -214.8
+          },
+          "size": {
+            "width": 1029.6,
+            "height": 1029.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.7,
+          "blur": 198,
+          "shapeType": "circle",
+          "fillColor": "#BEAAF0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "hm-b2-glow-2",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": -250.45,
+            "y": 449.55
+          },
+          "size": {
+            "width": 900.9,
+            "height": 900.9
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.49,
+          "blur": 173,
+          "shapeType": "circle",
+          "fillColor": "#785AFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "hm-b2-glow-3",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 713.9,
+            "y": 613.9
+          },
+          "size": {
+            "width": 772.2,
+            "height": 772.2
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.45,
+          "blur": 149,
+          "shapeType": "circle",
+          "fillColor": "#96C8FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "hm-b2-glow-4",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": -21.75,
+            "y": -121.75
+          },
+          "size": {
+            "width": 643.5,
+            "height": 643.5
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.29,
+          "blur": 124,
+          "shapeType": "circle",
+          "fillColor": "#E68CE6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "hm-b2-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 17.32,
+            "y": 218.89
+          },
+          "size": {
+            "width": 1150,
+            "height": 127.22
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Gift up to $2,000,",
+          "fontSize": 26.14,
+          "color": "#FFFFFF",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.97,
+          "groupId": "hm-b2-g-title",
+          "groupName": "Title"
+        },
+        {
+          "id": "hm-b2-headline-2",
+          "type": "text",
+          "name": "Headline line 2",
+          "position": {
+            "x": 20.99,
+            "y": 309.39
+          },
+          "size": {
+            "width": 1150,
+            "height": 127.22
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "instantly & securely",
+          "fontSize": 26.14,
+          "color": "#FFFFFF",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "fontStyle": "italic",
+          "letterSpacing": -1.31,
+          "groupId": "hm-b2-g-title",
+          "groupName": "Title"
+        },
+        {
+          "id": "hm-b2-phone-ring",
+          "type": "shape",
+          "name": "Phone ring",
+          "position": {
+            "x": 178,
+            "y": 630
+          },
+          "size": {
+            "width": 850,
+            "height": 1768
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#9590FC",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 122,
+          "groupId": "hm-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "hm-b2-phone-screen",
+          "type": "image",
+          "name": "Screen",
+          "position": {
+            "x": 188,
+            "y": 640
+          },
+          "size": {
+            "width": 830,
+            "height": 1748
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover",
+          "borderRadius": 112,
+          "imageSrc": "/data/projects/hummi-screen-keypad.png",
+          "groupId": "hm-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "hm-b2-to-left",
+          "type": "shape",
+          "name": "Recipient",
+          "position": {
+            "x": 255,
+            "y": 694
+          },
+          "size": {
+            "width": 554,
+            "height": 158
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 30,
+            "color": "rgba(20,10,60,0.35)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "rgba(120,116,160,0.92)",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 20,
+          "groupId": "hm-b2-g-to-bar",
+          "groupName": "Recipient"
+        },
+        {
+          "id": "hm-b2-to-right",
+          "type": "shape",
+          "name": "Amount",
+          "position": {
+            "x": 812,
+            "y": 694
+          },
+          "size": {
+            "width": 288,
+            "height": 158
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 30,
+            "color": "rgba(20,10,60,0.35)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "rgba(170,166,230,0.92)",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 20,
+          "groupId": "hm-b2-g-to-bar",
+          "groupName": "Recipient"
+        },
+        {
+          "id": "hm-b2-to-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 282.09,
+            "y": 710.6
+          },
+          "size": {
+            "width": 91,
+            "height": 55.4
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "To:",
+          "fontSize": 10.2,
+          "color": "rgba(255,255,255,0.75)",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "hm-b2-g-to-bar",
+          "groupName": "Recipient"
+        },
+        {
+          "id": "hm-b2-to-name",
+          "type": "text",
+          "name": "Recipient name",
+          "position": {
+            "x": 280.98,
+            "y": 765.8
+          },
+          "size": {
+            "width": 264,
+            "height": 64.2
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Sam Rivera",
+          "fontSize": 12.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "hm-b2-g-to-bar",
+          "groupName": "Recipient"
+        },
+        {
+          "id": "hm-b2-amount-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 835.96,
+            "y": 710.6
+          },
+          "size": {
+            "width": 251,
+            "height": 55.4
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Gift Amount:",
+          "fontSize": 10.2,
+          "color": "rgba(255,255,255,0.75)",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "hm-b2-g-to-bar",
+          "groupName": "Recipient"
+        },
+        {
+          "id": "hm-b2-amount-value",
+          "type": "text",
+          "name": "Amount",
+          "position": {
+            "x": 835.98,
+            "y": 765.8
+          },
+          "size": {
+            "width": 213,
+            "height": 64.2
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "$200.00",
+          "fontSize": 12.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "hm-b2-g-to-bar",
+          "groupName": "Recipient"
+        },
+        {
+          "id": "hm-b2-chip-$100",
+          "type": "shape",
+          "name": "Chip",
+          "position": {
+            "x": 108,
+            "y": 1168
+          },
+          "size": {
+            "width": 222,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 24,
+            "color": "rgba(10,5,40,0.35)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#1B1A38",
+          "strokeColor": "#55529A",
+          "strokeWidth": 3,
+          "borderRadius": 50,
+          "groupId": "hm-b2-g-chips",
+          "groupName": "Amount chips"
+        },
+        {
+          "id": "hm-b2-chip-$100-text",
+          "type": "text",
+          "name": "Chip amount",
+          "position": {
+            "x": 153.22,
+            "y": 1188.4
+          },
+          "size": {
+            "width": 132,
+            "height": 59.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "$100",
+          "fontSize": 11.4,
+          "color": "#E6E3FA",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hm-b2-g-chips",
+          "groupName": "Amount chips"
+        },
+        {
+          "id": "hm-b2-chip-$200",
+          "type": "shape",
+          "name": "Chip",
+          "position": {
+            "x": 360,
+            "y": 1168
+          },
+          "size": {
+            "width": 228,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 24,
+            "color": "rgba(10,5,40,0.35)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#A7A3F5",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 50,
+          "groupId": "hm-b2-g-chips",
+          "groupName": "Amount chips"
+        },
+        {
+          "id": "hm-b2-chip-$200-text",
+          "type": "text",
+          "name": "Chip amount",
+          "position": {
+            "x": 404.73,
+            "y": 1188.4
+          },
+          "size": {
+            "width": 139,
+            "height": 59.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "$200",
+          "fontSize": 11.4,
+          "color": "#1B1A38",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hm-b2-g-chips",
+          "groupName": "Amount chips"
+        },
+        {
+          "id": "hm-b2-chip-$500",
+          "type": "shape",
+          "name": "Chip",
+          "position": {
+            "x": 615,
+            "y": 1168
+          },
+          "size": {
+            "width": 228,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 24,
+            "color": "rgba(10,5,40,0.35)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#1B1A38",
+          "strokeColor": "#55529A",
+          "strokeWidth": 3,
+          "borderRadius": 50,
+          "groupId": "hm-b2-g-chips",
+          "groupName": "Amount chips"
+        },
+        {
+          "id": "hm-b2-chip-$500-text",
+          "type": "text",
+          "name": "Chip amount",
+          "position": {
+            "x": 659.73,
+            "y": 1188.4
+          },
+          "size": {
+            "width": 139,
+            "height": 59.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "$500",
+          "fontSize": 11.4,
+          "color": "#E6E3FA",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hm-b2-g-chips",
+          "groupName": "Amount chips"
+        },
+        {
+          "id": "hm-b2-chip-$1,000",
+          "type": "shape",
+          "name": "Chip",
+          "position": {
+            "x": 872,
+            "y": 1168
+          },
+          "size": {
+            "width": 228,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 24,
+            "color": "rgba(10,5,40,0.35)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#1B1A38",
+          "strokeColor": "#55529A",
+          "strokeWidth": 3,
+          "borderRadius": 50,
+          "groupId": "hm-b2-g-chips",
+          "groupName": "Amount chips"
+        },
+        {
+          "id": "hm-b2-chip-$1,000-text",
+          "type": "text",
+          "name": "Chip amount",
+          "position": {
+            "x": 903.23,
+            "y": 1188.4
+          },
+          "size": {
+            "width": 166,
+            "height": 59.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "$1,000",
+          "fontSize": 11.4,
+          "color": "#E6E3FA",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hm-b2-g-chips",
+          "groupName": "Amount chips"
+        }
+      ]
+    },
+    {
+      "id": "hm-board-3",
+      "name": "Curated Greetings",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FE8765",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#FE7852",
+        "color2": "#FBF0EC",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "hm-b3-card--3--1",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": -336.04,
+            "y": 351.1
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-soup.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card--3-1",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 294.44,
+            "y": 96.37
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-cat.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card--2--1",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": -163.72,
+            "y": 777.61
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-bunny.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card--2-0",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 65.36,
+            "y": 436.99
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-oldie.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card--2-1",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 466.76,
+            "y": 522.88
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-lettuce.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card--2-2",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 695.85,
+            "y": 182.26
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-mugs.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card--1--2",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": -392.8,
+            "y": 1118.23
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-cats.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card--1--1",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 8.6,
+            "y": 1204.11
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-person.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card--1-0",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 237.68,
+            "y": 863.5
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-birds.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card--1-1",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 639.08,
+            "y": 949.38
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-dance.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card--1-2",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 868.17,
+            "y": 608.76
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-yourself.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card-0--2",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": -220.49,
+            "y": 1544.73
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-crime.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card-0--1",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 180.92,
+            "y": 1630.62
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-kicking.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card-0-0",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 410,
+            "y": 1290
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-street.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card-0-1",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 811.4,
+            "y": 1375.89
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-home.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card-0-2",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 1040.49,
+            "y": 1035.27
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-cake.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card-1--2",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": -48.17,
+            "y": 1971.24
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-dog.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card-1--1",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 353.24,
+            "y": 2057.12
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-matter.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card-1-0",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 582.32,
+            "y": 1716.5
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-roses.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card-1-1",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 983.72,
+            "y": 1802.39
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-minds.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card-1-2",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 1212.8,
+            "y": 1461.77
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-love.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card-2--2",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 124.15,
+            "y": 2397.74
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-soup.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card-2--1",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 525.56,
+            "y": 2483.63
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-cat.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card-2-0",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 754.64,
+            "y": 2143.01
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-bunny.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card-2-1",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 1156.04,
+            "y": 2228.9
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-oldie.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card-3--2",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 296.47,
+            "y": 2824.25
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-lettuce.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card-3-0",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 926.96,
+            "y": 2569.51
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-mugs.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-card-3-1",
+          "type": "image",
+          "name": "Card",
+          "position": {
+            "x": 1328.36,
+            "y": 2655.4
+          },
+          "size": {
+            "width": 300,
+            "height": 420
+          },
+          "rotation": -22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(120,50,30,0.25)"
+          },
+          "borderRadius": 16,
+          "imageSrc": "/elements/images/cards/card-cats.png",
+          "objectFit": "contain",
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-fade",
+          "type": "shape",
+          "name": "Fade",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1206,
+            "height": 1250
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "rgba(254,135,101,0)",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 0,
+          "fillGradient": {
+            "color1": "rgba(254,135,101,1)",
+            "color2": "rgba(254,135,101,0)",
+            "angle": 180
+          },
+          "groupId": "hm-b3-g-cards",
+          "groupName": "Card wall"
+        },
+        {
+          "id": "hm-b3-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 17.45,
+            "y": 218.39
+          },
+          "size": {
+            "width": 1150,
+            "height": 127.22
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Curated greetings",
+          "fontSize": 26.14,
+          "color": "#FFFFFF",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.97,
+          "groupId": "hm-b3-g-title",
+          "groupName": "Title"
+        },
+        {
+          "id": "hm-b3-headline-2",
+          "type": "text",
+          "name": "Headline line 2",
+          "position": {
+            "x": 21.1,
+            "y": 308.89
+          },
+          "size": {
+            "width": 1150,
+            "height": 127.22
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "by independent artists",
+          "fontSize": 26.14,
+          "color": "#FFFFFF",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "fontStyle": "italic",
+          "letterSpacing": -1.31,
+          "groupId": "hm-b3-g-title",
+          "groupName": "Title"
+        }
+      ]
+    },
+    {
+      "id": "hm-board-4",
+      "name": "Get Updates",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#8D5BEF",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#9A5BE9",
+        "color2": "#7F52EC",
+        "angle": 170
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "hm-b4-glow-1",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 420.85,
+            "y": -79.15
+          },
+          "size": {
+            "width": 1158.3,
+            "height": 1158.3
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.74,
+          "blur": 223,
+          "shapeType": "circle",
+          "fillColor": "#AABEFA",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "hm-b4-glow-2",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 699.55,
+            "y": 949.55
+          },
+          "size": {
+            "width": 900.9,
+            "height": 900.9
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.49,
+          "blur": 173,
+          "shapeType": "circle",
+          "fillColor": "#96BEFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "hm-b4-glow-3",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": -186.1,
+            "y": -186.1
+          },
+          "size": {
+            "width": 772.2,
+            "height": 772.2
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.29,
+          "blur": 149,
+          "shapeType": "circle",
+          "fillColor": "#E18CD7",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "hm-b4-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 16.15,
+            "y": 218.89
+          },
+          "size": {
+            "width": 1150,
+            "height": 127.22
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Get updates when",
+          "fontSize": 26.14,
+          "color": "#FFFFFF",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.97,
+          "groupId": "hm-b4-g-title",
+          "groupName": "Title"
+        },
+        {
+          "id": "hm-b4-headline-2",
+          "type": "text",
+          "name": "Headline line 2",
+          "position": {
+            "x": 14.31,
+            "y": 309.39
+          },
+          "size": {
+            "width": 1150,
+            "height": 127.22
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "your gift is viewed",
+          "fontSize": 26.14,
+          "color": "#FFFFFF",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "fontStyle": "italic",
+          "letterSpacing": -1.31,
+          "groupId": "hm-b4-g-title",
+          "groupName": "Title"
+        },
+        {
+          "id": "hm-b4-phone-ring",
+          "type": "shape",
+          "name": "Phone ring",
+          "position": {
+            "x": 160,
+            "y": 622
+          },
+          "size": {
+            "width": 843,
+            "height": 1810
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#EFEDEC",
+          "strokeColor": "#D9D6D4",
+          "strokeWidth": 3,
+          "borderRadius": 124,
+          "groupId": "hm-b4-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "hm-b4-phone-screen",
+          "type": "image",
+          "name": "Screen",
+          "position": {
+            "x": 182,
+            "y": 644
+          },
+          "size": {
+            "width": 799,
+            "height": 1766
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover",
+          "borderRadius": 104,
+          "imageSrc": "/data/projects/hummi-screen-wall.png",
+          "groupId": "hm-b4-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "hm-b4-note-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 108,
+            "y": 1163
+          },
+          "size": {
+            "width": 948,
+            "height": 1141
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 30,
+            "blur": 70,
+            "color": "rgba(40,10,90,0.45)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 40,
+          "groupId": "hm-b4-g-notification",
+          "groupName": "Notification"
+        },
+        {
+          "id": "hm-b4-note-icon",
+          "type": "image",
+          "name": "App icon",
+          "position": {
+            "x": 132,
+            "y": 1196
+          },
+          "size": {
+            "width": 100,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/hummi-icon.png",
+          "objectFit": "contain",
+          "groupId": "hm-b4-g-notification",
+          "groupName": "Notification"
+        },
+        {
+          "id": "hm-b4-note-app",
+          "type": "text",
+          "name": "App name",
+          "position": {
+            "x": 255.92,
+            "y": 1187.22
+          },
+          "size": {
+            "width": 203,
+            "height": 66.4
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Hummi",
+          "fontSize": 13.2,
+          "color": "#111111",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "hm-b4-g-notification",
+          "groupName": "Notification"
+        },
+        {
+          "id": "hm-b4-note-text",
+          "type": "text",
+          "name": "Message",
+          "position": {
+            "x": 257.96,
+            "y": 1242.06
+          },
+          "size": {
+            "width": 641,
+            "height": 62
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Sam Rivera just viewed your gift!",
+          "fontSize": 12,
+          "color": "#222222",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.12,
+          "groupId": "hm-b4-g-notification",
+          "groupName": "Notification"
+        },
+        {
+          "id": "hm-b4-note-time",
+          "type": "text",
+          "name": "Time",
+          "position": {
+            "x": 848.85,
+            "y": 1179.58
+          },
+          "size": {
+            "width": 185,
+            "height": 55.4
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "23m ago",
+          "fontSize": 10.2,
+          "color": "#9A9AA0",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "400",
+          "textAlign": "right",
+          "lineHeight": 1.1,
+          "groupId": "hm-b4-g-notification",
+          "groupName": "Notification"
+        },
+        {
+          "id": "hm-b4-note-art",
+          "type": "image",
+          "name": "Card art",
+          "position": {
+            "x": 108,
+            "y": 1331
+          },
+          "size": {
+            "width": 948,
+            "height": 973
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover",
+          "borderRadius": 40,
+          "imageSrc": "/data/projects/hummi-wavy.png",
+          "groupId": "hm-b4-g-notification",
+          "groupName": "Notification"
+        }
+      ]
+    },
+    {
+      "id": "hm-board-5",
+      "name": "Feel The Love",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#181A31",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "hm-b5-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 20.28,
+            "y": 218.39
+          },
+          "size": {
+            "width": 1150,
+            "height": 127.22
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Feel the love",
+          "fontSize": 26.14,
+          "color": "#FFFFFF",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.97,
+          "groupId": "hm-b5-g-title",
+          "groupName": "Title"
+        },
+        {
+          "id": "hm-b5-headline-2",
+          "type": "text",
+          "name": "Headline line 2",
+          "position": {
+            "x": 21.87,
+            "y": 308.39
+          },
+          "size": {
+            "width": 1150,
+            "height": 127.22
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "from the perfect gift",
+          "fontSize": 26.14,
+          "color": "#FFFFFF",
+          "fontFamily": "Space Grotesk",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "fontStyle": "italic",
+          "letterSpacing": -1.05,
+          "groupId": "hm-b5-g-title",
+          "groupName": "Title"
+        },
+        {
+          "id": "hm-b5-review-1-pill",
+          "type": "shape",
+          "name": "Review",
+          "position": {
+            "x": 75,
+            "y": 675
+          },
+          "size": {
+            "width": 1015,
+            "height": 205
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 36,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFF1EA",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 102.5,
+          "fillGradient": {
+            "color1": "#FFF1EA",
+            "color2": "#FFB07C",
+            "angle": 90
+          },
+          "groupId": "hm-b5-g-review-1",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-1-avatar",
+          "type": "shape",
+          "name": "Avatar",
+          "position": {
+            "x": 109,
+            "y": 711
+          },
+          "size": {
+            "width": 133,
+            "height": 133
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFB08A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#FFB08A",
+            "color2": "#F07850",
+            "angle": 135
+          },
+          "groupId": "hm-b5-g-review-1",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-1-initials",
+          "type": "text",
+          "name": "Initials",
+          "position": {
+            "x": 121.18,
+            "y": 741.54
+          },
+          "size": {
+            "width": 107,
+            "height": 68.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "KD",
+          "fontSize": 13.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hm-b5-g-review-1",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-1-text",
+          "type": "text",
+          "name": "Quote",
+          "position": {
+            "x": 279.31,
+            "y": 713.81
+          },
+          "size": {
+            "width": 775,
+            "height": 115.28
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Every wedding gift came through\nHummi, and we adored them all!",
+          "fontSize": 11.4,
+          "color": "#2B2550",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.28,
+          "letterSpacing": -0.11,
+          "groupId": "hm-b5-g-review-1",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-1-tag",
+          "type": "shape",
+          "name": "Name tag",
+          "position": {
+            "x": 845.62,
+            "y": 645
+          },
+          "size": {
+            "width": 204.38,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#E8946E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 33,
+          "fillGradient": {
+            "color1": "#E8946E",
+            "color2": "#D9784F",
+            "angle": 90
+          },
+          "groupId": "hm-b5-g-review-1",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-1-name",
+          "type": "text",
+          "name": "Name",
+          "position": {
+            "x": 854.27,
+            "y": 650.13
+          },
+          "size": {
+            "width": 188,
+            "height": 54.3
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "— Kira D.",
+          "fontSize": 9.9,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hm-b5-g-review-1",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-2-pill",
+          "type": "shape",
+          "name": "Review",
+          "position": {
+            "x": -260,
+            "y": 908
+          },
+          "size": {
+            "width": 484,
+            "height": 205
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 36,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#B78CF6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 102.5,
+          "fillGradient": {
+            "color1": "#B78CF6",
+            "color2": "#9C6BF2",
+            "angle": 90
+          },
+          "groupId": "hm-b5-g-review-2",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-2-text",
+          "type": "text",
+          "name": "Quote",
+          "position": {
+            "x": -524,
+            "y": 946.81
+          },
+          "size": {
+            "width": 700,
+            "height": 115.28
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "send!! So\nsweet",
+          "fontSize": 11.4,
+          "color": "#2B2550",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "400",
+          "textAlign": "right",
+          "lineHeight": 1.28,
+          "letterSpacing": -0.11,
+          "groupId": "hm-b5-g-review-2",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-3-pill",
+          "type": "shape",
+          "name": "Review",
+          "position": {
+            "x": 251,
+            "y": 908
+          },
+          "size": {
+            "width": 913,
+            "height": 205
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 36,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#DCD9FB",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 102.5,
+          "fillGradient": {
+            "color1": "#DCD9FB",
+            "color2": "#8E8CE9",
+            "angle": 90
+          },
+          "groupId": "hm-b5-g-review-3",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-3-avatar",
+          "type": "shape",
+          "name": "Avatar",
+          "position": {
+            "x": 285,
+            "y": 944
+          },
+          "size": {
+            "width": 133,
+            "height": 133
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#8E8BF0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#8E8BF0",
+            "color2": "#6461D8",
+            "angle": 135
+          },
+          "groupId": "hm-b5-g-review-3",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-3-initials",
+          "type": "text",
+          "name": "Initials",
+          "position": {
+            "x": 308.67,
+            "y": 974.54
+          },
+          "size": {
+            "width": 86,
+            "height": 68.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "IS",
+          "fontSize": 13.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hm-b5-g-review-3",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-3-text",
+          "type": "text",
+          "name": "Quote",
+          "position": {
+            "x": 457.06,
+            "y": 946.81
+          },
+          "size": {
+            "width": 673,
+            "height": 115.28
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Sending money finally feels\nlike a real present to me...",
+          "fontSize": 11.4,
+          "color": "#2B2550",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.28,
+          "letterSpacing": -0.11,
+          "groupId": "hm-b5-g-review-3",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-3-tag",
+          "type": "shape",
+          "name": "Name tag",
+          "position": {
+            "x": 411,
+            "y": 1077
+          },
+          "size": {
+            "width": 208.81,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#7C79D8",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 33,
+          "fillGradient": {
+            "color1": "#7C79D8",
+            "color2": "#5F5CC4",
+            "angle": 90
+          },
+          "groupId": "hm-b5-g-review-3",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-3-name",
+          "type": "text",
+          "name": "Name",
+          "position": {
+            "x": 419.36,
+            "y": 1082.13
+          },
+          "size": {
+            "width": 193,
+            "height": 54.3
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "— Idris S.",
+          "fontSize": 9.9,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hm-b5-g-review-3",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-4-pill",
+          "type": "shape",
+          "name": "Review",
+          "position": {
+            "x": 12,
+            "y": 1157
+          },
+          "size": {
+            "width": 1110,
+            "height": 205
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 36,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#F2EAFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 102.5,
+          "fillGradient": {
+            "color1": "#F2EAFF",
+            "color2": "#9A68F3",
+            "angle": 90
+          },
+          "groupId": "hm-b5-g-review-4",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-4-avatar",
+          "type": "shape",
+          "name": "Avatar",
+          "position": {
+            "x": 46,
+            "y": 1193
+          },
+          "size": {
+            "width": 133,
+            "height": 133
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#4B2C8E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#4B2C8E",
+            "color2": "#2B1A5E",
+            "angle": 135
+          },
+          "groupId": "hm-b5-g-review-4",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-4-initials",
+          "type": "text",
+          "name": "Initials",
+          "position": {
+            "x": 61.48,
+            "y": 1223.54
+          },
+          "size": {
+            "width": 99,
+            "height": 68.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "BL",
+          "fontSize": 13.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hm-b5-g-review-4",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-4-text",
+          "type": "text",
+          "name": "Quote",
+          "position": {
+            "x": 218.25,
+            "y": 1195.81
+          },
+          "size": {
+            "width": 870,
+            "height": 115.28
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Used it for my nephew's birthday\nand he loved the card",
+          "fontSize": 11.4,
+          "color": "#2B2550",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.28,
+          "letterSpacing": -0.11,
+          "groupId": "hm-b5-g-review-4",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-4-tag",
+          "type": "shape",
+          "name": "Name tag",
+          "position": {
+            "x": 885.33,
+            "y": 1326
+          },
+          "size": {
+            "width": 196.67,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#7C79D8",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 33,
+          "fillGradient": {
+            "color1": "#7C79D8",
+            "color2": "#5F5CC4",
+            "angle": 90
+          },
+          "groupId": "hm-b5-g-review-4",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-4-name",
+          "type": "text",
+          "name": "Name",
+          "position": {
+            "x": 893.62,
+            "y": 1331.13
+          },
+          "size": {
+            "width": 181,
+            "height": 54.3
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "— Bea L.",
+          "fontSize": 9.9,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hm-b5-g-review-4",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-5-pill",
+          "type": "shape",
+          "name": "Review",
+          "position": {
+            "x": 1149,
+            "y": 1157
+          },
+          "size": {
+            "width": 400,
+            "height": 205
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 36,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#F3EEFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 102.5,
+          "fillGradient": {
+            "color1": "#F3EEFF",
+            "color2": "#E6DEFF",
+            "angle": 90
+          },
+          "groupId": "hm-b5-g-review-5",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-6-pill",
+          "type": "shape",
+          "name": "Review",
+          "position": {
+            "x": -260,
+            "y": 1417
+          },
+          "size": {
+            "width": 469,
+            "height": 205
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 36,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#EDBB9C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 102.5,
+          "fillGradient": {
+            "color1": "#EDBB9C",
+            "color2": "#DB9670",
+            "angle": 90
+          },
+          "groupId": "hm-b5-g-review-6",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-6-text",
+          "type": "text",
+          "name": "Quote",
+          "position": {
+            "x": -539,
+            "y": 1455.81
+          },
+          "size": {
+            "width": 700,
+            "height": 115.28
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "gift\nidea",
+          "fontSize": 11.4,
+          "color": "#2B2550",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "400",
+          "textAlign": "right",
+          "lineHeight": 1.28,
+          "letterSpacing": -0.11,
+          "groupId": "hm-b5-g-review-6",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-7-pill",
+          "type": "shape",
+          "name": "Review",
+          "position": {
+            "x": 239,
+            "y": 1417
+          },
+          "size": {
+            "width": 880,
+            "height": 205
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 36,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#A9ACF1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 102.5,
+          "fillGradient": {
+            "color1": "#A9ACF1",
+            "color2": "#7F83E3",
+            "angle": 90
+          },
+          "groupId": "hm-b5-g-review-7",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-7-avatar",
+          "type": "shape",
+          "name": "Avatar",
+          "position": {
+            "x": 273,
+            "y": 1453
+          },
+          "size": {
+            "width": 133,
+            "height": 133
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#9EA1F3",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#9EA1F3",
+            "color2": "#6E72DE",
+            "angle": 135
+          },
+          "groupId": "hm-b5-g-review-7",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-7-initials",
+          "type": "text",
+          "name": "Initials",
+          "position": {
+            "x": 283.85,
+            "y": 1483.54
+          },
+          "size": {
+            "width": 107,
+            "height": 68.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "DK",
+          "fontSize": 13.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hm-b5-g-review-7",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-7-text",
+          "type": "text",
+          "name": "Quote",
+          "position": {
+            "x": 446.62,
+            "y": 1455.81
+          },
+          "size": {
+            "width": 640,
+            "height": 115.28
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "The cards are gorgeous and the\nmoney arrives right away!!",
+          "fontSize": 11.4,
+          "color": "#F4F2FF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.28,
+          "letterSpacing": -0.11,
+          "groupId": "hm-b5-g-review-7",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-7-tag",
+          "type": "shape",
+          "name": "Name tag",
+          "position": {
+            "x": 578.87,
+            "y": 1586
+          },
+          "size": {
+            "width": 200.26,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#7C79D8",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 33,
+          "fillGradient": {
+            "color1": "#7C79D8",
+            "color2": "#5F5CC4",
+            "angle": 90
+          },
+          "groupId": "hm-b5-g-review-7",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-7-name",
+          "type": "text",
+          "name": "Name",
+          "position": {
+            "x": 587.46,
+            "y": 1591.13
+          },
+          "size": {
+            "width": 184,
+            "height": 54.3
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "— Dev K.",
+          "fontSize": 9.9,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hm-b5-g-review-7",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-8-pill",
+          "type": "shape",
+          "name": "Review",
+          "position": {
+            "x": 82,
+            "y": 1672
+          },
+          "size": {
+            "width": 1003,
+            "height": 205
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.85,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 36,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#EDBB9C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 102.5,
+          "fillGradient": {
+            "color1": "#EDBB9C",
+            "color2": "#DB9670",
+            "angle": 90
+          },
+          "groupId": "hm-b5-g-review-8",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-8-avatar",
+          "type": "shape",
+          "name": "Avatar",
+          "position": {
+            "x": 116,
+            "y": 1708
+          },
+          "size": {
+            "width": 133,
+            "height": 133
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.85,
+          "shapeType": "circle",
+          "fillColor": "#E99A76",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#E99A76",
+            "color2": "#D9734E",
+            "angle": 135
+          },
+          "groupId": "hm-b5-g-review-8",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-8-initials",
+          "type": "text",
+          "name": "Initials",
+          "position": {
+            "x": 125.02,
+            "y": 1738.54
+          },
+          "size": {
+            "width": 115,
+            "height": 68.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.85,
+          "content": "NH",
+          "fontSize": 13.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hm-b5-g-review-8",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-8-text",
+          "type": "text",
+          "name": "Quote",
+          "position": {
+            "x": 288.48,
+            "y": 1710.81
+          },
+          "size": {
+            "width": 763,
+            "height": 115.28
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.85,
+          "content": "It's my go-to for graduations\nand every birthday in between",
+          "fontSize": 11.4,
+          "color": "#3A2418",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.28,
+          "letterSpacing": -0.11,
+          "groupId": "hm-b5-g-review-8",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-8-tag",
+          "type": "shape",
+          "name": "Name tag",
+          "position": {
+            "x": 242,
+            "y": 1841
+          },
+          "size": {
+            "width": 224.18,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.85,
+          "shapeType": "rectangle",
+          "fillColor": "#E8946E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 33,
+          "fillGradient": {
+            "color1": "#E8946E",
+            "color2": "#D9784F",
+            "angle": 90
+          },
+          "groupId": "hm-b5-g-review-8",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-8-name",
+          "type": "text",
+          "name": "Name",
+          "position": {
+            "x": 250.55,
+            "y": 1846.13
+          },
+          "size": {
+            "width": 208,
+            "height": 54.3
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.85,
+          "content": "— Noor H.",
+          "fontSize": 9.9,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hm-b5-g-review-8",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-9-pill",
+          "type": "shape",
+          "name": "Review",
+          "position": {
+            "x": -330,
+            "y": 1672
+          },
+          "size": {
+            "width": 390,
+            "height": 205
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.85,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 36,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#DCD9FB",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 102.5,
+          "fillGradient": {
+            "color1": "#DCD9FB",
+            "color2": "#8E8CE9",
+            "angle": 90
+          },
+          "groupId": "hm-b5-g-review-9",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-10-pill",
+          "type": "shape",
+          "name": "Review",
+          "position": {
+            "x": 1130,
+            "y": 1672
+          },
+          "size": {
+            "width": 400,
+            "height": 205
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.85,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 36,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#DCD9FB",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 102.5,
+          "fillGradient": {
+            "color1": "#DCD9FB",
+            "color2": "#8E8CE9",
+            "angle": 90
+          },
+          "groupId": "hm-b5-g-review-10",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-11-pill",
+          "type": "shape",
+          "name": "Review",
+          "position": {
+            "x": -250,
+            "y": 1940
+          },
+          "size": {
+            "width": 616,
+            "height": 205
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.5,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 36,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#8F6BE6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 102.5,
+          "fillGradient": {
+            "color1": "#8F6BE6",
+            "color2": "#7458D0",
+            "angle": 90
+          },
+          "groupId": "hm-b5-g-review-11",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-11-text",
+          "type": "text",
+          "name": "Quote",
+          "position": {
+            "x": -382,
+            "y": 1978.81
+          },
+          "size": {
+            "width": 700,
+            "height": 115.28
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.5,
+          "content": "best gift app!! So\nthoughtful",
+          "fontSize": 11.4,
+          "color": "#D8D0F8",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "400",
+          "textAlign": "right",
+          "lineHeight": 1.28,
+          "letterSpacing": -0.11,
+          "groupId": "hm-b5-g-review-11",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-12-pill",
+          "type": "shape",
+          "name": "Review",
+          "position": {
+            "x": 396,
+            "y": 1940
+          },
+          "size": {
+            "width": 900,
+            "height": 205
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.45,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 36,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#DCD9FB",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 102.5,
+          "fillGradient": {
+            "color1": "#DCD9FB",
+            "color2": "#8E8CE9",
+            "angle": 90
+          },
+          "groupId": "hm-b5-g-review-12",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-12-avatar",
+          "type": "shape",
+          "name": "Avatar",
+          "position": {
+            "x": 430,
+            "y": 1976
+          },
+          "size": {
+            "width": 133,
+            "height": 133
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.45,
+          "shapeType": "circle",
+          "fillColor": "#8E8BF0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#8E8BF0",
+            "color2": "#6461D8",
+            "angle": 135
+          },
+          "groupId": "hm-b5-g-review-12",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-12-initials",
+          "type": "text",
+          "name": "Initials",
+          "position": {
+            "x": 441.04,
+            "y": 2006.54
+          },
+          "size": {
+            "width": 111,
+            "height": 68.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.45,
+          "content": "LM",
+          "fontSize": 13.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hm-b5-g-review-12",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-12-text",
+          "type": "text",
+          "name": "Quote",
+          "position": {
+            "x": 603.43,
+            "y": 1978.81
+          },
+          "size": {
+            "width": 660,
+            "height": 115.28
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.45,
+          "content": "Five stars, the cards make it\nfeel so thoughtful!!",
+          "fontSize": 11.4,
+          "color": "#2B2550",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.28,
+          "letterSpacing": -0.11,
+          "groupId": "hm-b5-g-review-12",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-12-tag",
+          "type": "shape",
+          "name": "Name tag",
+          "position": {
+            "x": 748.33,
+            "y": 2109
+          },
+          "size": {
+            "width": 195.34,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.45,
+          "shapeType": "rectangle",
+          "fillColor": "#7C79D8",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 33,
+          "fillGradient": {
+            "color1": "#7C79D8",
+            "color2": "#5F5CC4",
+            "angle": 90
+          },
+          "groupId": "hm-b5-g-review-12",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-12-name",
+          "type": "text",
+          "name": "Name",
+          "position": {
+            "x": 756.96,
+            "y": 2114.13
+          },
+          "size": {
+            "width": 179,
+            "height": 54.3
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.45,
+          "content": "— Lia M.",
+          "fontSize": 9.9,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hm-b5-g-review-12",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-13-pill",
+          "type": "shape",
+          "name": "Review",
+          "position": {
+            "x": 258,
+            "y": 2198
+          },
+          "size": {
+            "width": 637,
+            "height": 205
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.28,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 36,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#EDBB9C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 102.5,
+          "fillGradient": {
+            "color1": "#EDBB9C",
+            "color2": "#DB9670",
+            "angle": 90
+          },
+          "groupId": "hm-b5-g-review-13",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-13-avatar",
+          "type": "shape",
+          "name": "Avatar",
+          "position": {
+            "x": 292,
+            "y": 2234
+          },
+          "size": {
+            "width": 133,
+            "height": 133
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.28,
+          "shapeType": "circle",
+          "fillColor": "#E99A76",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#E99A76",
+            "color2": "#D9734E",
+            "angle": 135
+          },
+          "groupId": "hm-b5-g-review-13",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-13-initials",
+          "type": "text",
+          "name": "Initials",
+          "position": {
+            "x": 311.82,
+            "y": 2264.54
+          },
+          "size": {
+            "width": 96,
+            "height": 68.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.28,
+          "content": "IN",
+          "fontSize": 13.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hm-b5-g-review-13",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-13-text",
+          "type": "text",
+          "name": "Quote",
+          "position": {
+            "x": 464.06,
+            "y": 2236.81
+          },
+          "size": {
+            "width": 397,
+            "height": 115.28
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.28,
+          "content": "Such pretty card\ndesigns inside",
+          "fontSize": 11.4,
+          "color": "#3A2418",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.28,
+          "letterSpacing": -0.11,
+          "groupId": "hm-b5-g-review-13",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-13-tag",
+          "type": "shape",
+          "name": "Name tag",
+          "position": {
+            "x": 480.65,
+            "y": 2367
+          },
+          "size": {
+            "width": 191.7,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.28,
+          "shapeType": "rectangle",
+          "fillColor": "#E8946E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 33,
+          "fillGradient": {
+            "color1": "#E8946E",
+            "color2": "#D9784F",
+            "angle": 90
+          },
+          "groupId": "hm-b5-g-review-13",
+          "groupName": "Review"
+        },
+        {
+          "id": "hm-b5-review-13-name",
+          "type": "text",
+          "name": "Name",
+          "position": {
+            "x": 488.96,
+            "y": 2372.13
+          },
+          "size": {
+            "width": 176,
+            "height": 54.3
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.28,
+          "content": "— Ivy N.",
+          "fontSize": 9.9,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "hm-b5-g-review-13",
+          "groupName": "Review"
+        }
+      ],
+      "backgroundImage": "/data/projects/hummi-bg-5.png",
+      "backgroundImageFit": "cover"
+    }
+  ]
+}

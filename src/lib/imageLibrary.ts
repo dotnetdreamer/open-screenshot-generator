@@ -4,9 +4,10 @@
  * Photo groups: Adobe Stock (free collection) photos licensed through the
  * project owner's Adobe account and background-removed; filenames embed the
  * Stock asset ID (<group>-as<ID>.png). Badges: official vendor marketing
- * badges from each store's badge program. Mascots, 3D objects and stickers:
- * illustrations drawn for this project's templates, which also use them, so a
- * template and the palette share one file. Full license record:
+ * badges from each store's badge program. Mascots, 3D objects, stickers,
+ * products and cards: illustrations drawn for this project's templates, which
+ * also use them, so a template and the palette share one file. Three cards
+ * build on library photos (see the license record). Full license record:
  * docs/image-asset-licenses.md.
  *
  * Each item becomes an image element with imageSrc pointing at the asset;
@@ -180,6 +181,11 @@ export const IMAGE_CATEGORIES: ImageCategory[] = [
       { id: 'object-cloud-valley', label: 'Cloud valley', src: '/elements/images/objects/object-cloud-valley.png', defaultSize: { width: 409, height: 430 } },
       { id: 'object-alarm-clock', label: 'Alarm clock', src: '/data/projects/sunup-clock.png', defaultSize: { width: 430, height: 430 } },
       { id: 'object-glow', label: 'Warm glow', src: '/data/projects/sunup-glow.png', defaultSize: { width: 430, height: 430 } },
+      { id: 'object-app-heart', label: 'Heart app icon', src: '/elements/images/objects/object-app-heart.png', defaultSize: { width: 387, height: 430 } },
+      { id: 'object-app-hash', label: 'Hashtag app icon', src: '/elements/images/objects/object-app-hash.png', defaultSize: { width: 412, height: 430 } },
+      { id: 'object-app-globe', label: 'Globe app icon', src: '/elements/images/objects/object-app-globe.png', defaultSize: { width: 430, height: 429 } },
+      { id: 'object-app-gallery', label: 'Gallery app icon', src: '/elements/images/objects/object-app-gallery.png', defaultSize: { width: 430, height: 429 } },
+      { id: 'object-app-lens', label: 'Camera app icon', src: '/elements/images/objects/object-app-lens.png', defaultSize: { width: 415, height: 430 } },
     ],
   },
   {
@@ -195,6 +201,58 @@ export const IMAGE_CATEGORIES: ImageCategory[] = [
       { id: 'sticker-flag-us', label: 'US flag', src: '/elements/images/stickers/sticker-flag-us.png', defaultSize: { width: 430, height: 430 } },
       { id: 'sticker-flag-uk', label: 'UK flag', src: '/elements/images/stickers/sticker-flag-uk.png', defaultSize: { width: 430, height: 430 } },
       { id: 'sticker-flag-ca', label: 'Canada flag', src: '/elements/images/stickers/sticker-flag-ca.png', defaultSize: { width: 430, height: 430 } },
+      { id: 'sticker-sunglasses', label: 'Pink sunglasses', src: '/elements/images/stickers/sticker-sunglasses.png', defaultSize: { width: 430, height: 223 } },
+      { id: 'sticker-earphones', label: 'Earphones', src: '/elements/images/stickers/sticker-earphones.png', defaultSize: { width: 236, height: 430 } },
+      { id: 'sticker-handbag', label: 'Handbag', src: '/elements/images/stickers/sticker-handbag.png', defaultSize: { width: 430, height: 401 } },
+    ],
+  },
+  {
+    id: 'products',
+    label: 'Products',
+    items: [
+      { id: 'product-cap', label: 'Baseball cap', src: '/elements/images/products/product-cap.png', defaultSize: { width: 430, height: 322 } },
+      { id: 'product-blazer', label: 'Blazer', src: '/elements/images/products/product-blazer.png', defaultSize: { width: 280, height: 430 } },
+      { id: 'product-shirt', label: 'Shirt', src: '/elements/images/products/product-shirt.png', defaultSize: { width: 345, height: 430 } },
+      { id: 'product-hoodie', label: 'Hoodie', src: '/elements/images/products/product-hoodie.png', defaultSize: { width: 430, height: 394 } },
+      { id: 'product-perfume', label: 'Perfume', src: '/elements/images/products/product-perfume.png', defaultSize: { width: 266, height: 430 } },
+      { id: 'product-perfume-porcelain', label: 'Porcelain perfume', src: '/elements/images/products/product-perfume-porcelain.png', defaultSize: { width: 188, height: 430 } },
+      { id: 'product-lip-tint', label: 'Lip tint', src: '/elements/images/products/product-lip-tint.png', defaultSize: { width: 107, height: 430 } },
+      { id: 'product-earbuds', label: 'Earbuds', src: '/elements/images/products/product-earbuds.png', defaultSize: { width: 430, height: 351 } },
+      { id: 'product-sunglasses-amber', label: 'Amber sunglasses', src: '/elements/images/products/product-sunglasses-amber.png', defaultSize: { width: 430, height: 195 } },
+      { id: 'product-necklace', label: 'Heart necklace', src: '/elements/images/products/product-necklace.png', defaultSize: { width: 430, height: 379 } },
+      { id: 'product-gold-rings', label: 'Gold rings', src: '/elements/images/products/product-gold-rings.png', defaultSize: { width: 430, height: 339 } },
+      { id: 'product-gold-chain', label: 'Gold chain', src: '/elements/images/products/product-gold-chain.png', defaultSize: { width: 175, height: 430 } },
+      { id: 'product-crystal-bag', label: 'Crystal bag', src: '/elements/images/products/product-crystal-bag.png', defaultSize: { width: 286, height: 430 } },
+      { id: 'product-phone-orange', label: 'Orange phone', src: '/elements/images/products/product-phone-orange.png', defaultSize: { width: 352, height: 430 } },
+      { id: 'product-oven-mitts', label: 'Oven mitts', src: '/elements/images/products/product-oven-mitts.png', defaultSize: { width: 430, height: 399 } },
+    ],
+  },
+  {
+    id: 'cards',
+    label: 'Cards',
+    items: [
+      { id: 'card-soup', label: 'Soup fixes everything', src: '/elements/images/cards/card-soup.png', defaultSize: { width: 307, height: 430 } },
+      { id: 'card-cat', label: 'Hello cat', src: '/elements/images/cards/card-cat.png', defaultSize: { width: 307, height: 430 } },
+      { id: 'card-bunny', label: 'Bunny love', src: '/elements/images/cards/card-bunny.png', defaultSize: { width: 307, height: 430 } },
+      { id: 'card-oldie', label: 'Birthday hat', src: '/elements/images/cards/card-oldie.png', defaultSize: { width: 307, height: 430 } },
+      { id: 'card-lettuce', label: 'Lettuce celebrate', src: '/elements/images/cards/card-lettuce.png', defaultSize: { width: 307, height: 430 } },
+      { id: 'card-mugs', label: 'Thank you mugs', src: '/elements/images/cards/card-mugs.png', defaultSize: { width: 307, height: 430 } },
+      { id: 'card-cats', label: 'Cozy cats', src: '/elements/images/cards/card-cats.png', defaultSize: { width: 307, height: 430 } },
+      { id: 'card-person', label: 'You are my person', src: '/elements/images/cards/card-person.png', defaultSize: { width: 307, height: 430 } },
+      { id: 'card-birds', label: 'Anniversary birds', src: '/elements/images/cards/card-birds.png', defaultSize: { width: 307, height: 430 } },
+      { id: 'card-dance', label: 'Go get them', src: '/elements/images/cards/card-dance.png', defaultSize: { width: 307, height: 430 } },
+      { id: 'card-yourself', label: 'Be yourself', src: '/elements/images/cards/card-yourself.png', defaultSize: { width: 307, height: 430 } },
+      { id: 'card-crime', label: 'Partners in crime', src: '/elements/images/cards/card-crime.png', defaultSize: { width: 307, height: 430 } },
+      { id: 'card-kicking', label: 'Still kicking', src: '/elements/images/cards/card-kicking.png', defaultSize: { width: 307, height: 430 } },
+      { id: 'card-street', label: 'Best friends', src: '/elements/images/cards/card-street.png', defaultSize: { width: 307, height: 430 } },
+      { id: 'card-home', label: 'Home sweet home', src: '/elements/images/cards/card-home.png', defaultSize: { width: 307, height: 430 } },
+      { id: 'card-cake', label: 'Birthday cake', src: '/elements/images/cards/card-cake.png', defaultSize: { width: 307, height: 430 } },
+      { id: 'card-dog', label: 'Love you dog', src: '/elements/images/cards/card-dog.png', defaultSize: { width: 307, height: 430 } },
+      { id: 'card-matter', label: 'You matter', src: '/elements/images/cards/card-matter.png', defaultSize: { width: 307, height: 430 } },
+      { id: 'card-roses', label: 'Roses', src: '/elements/images/cards/card-roses.png', defaultSize: { width: 307, height: 430 } },
+      { id: 'card-minds', label: 'We get each other', src: '/elements/images/cards/card-minds.png', defaultSize: { width: 307, height: 430 } },
+      { id: 'card-love', label: 'Sending love', src: '/elements/images/cards/card-love.png', defaultSize: { width: 307, height: 430 } },
+      { id: 'card-space', label: 'Out of this world', src: '/elements/images/cards/card-space.png', defaultSize: { width: 325, height: 430 } },
     ],
   },
 ];

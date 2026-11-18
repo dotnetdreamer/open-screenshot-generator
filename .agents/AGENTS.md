@@ -9,7 +9,7 @@ Editor for App Store and Play Store screenshots and preview videos. Next.js 15 *
 | Data model, read this first | [src/types/artboard.ts](../src/types/artboard.ts) |
 | All state, export, MCP api | [OpenScreenshotGeneratorLayout.tsx](../src/components/open-screenshot-generator/OpenScreenshotGeneratorLayout.tsx) |
 | Canvas and element renderers | [CanvasArea.tsx](../src/components/open-screenshot-generator/CanvasArea.tsx), [Artboard.tsx](../src/components/open-screenshot-generator/Artboard.tsx), [elements/](../src/components/open-screenshot-generator/elements/) |
-| Templates (107 JSON files) | [public/data/projects/](../public/data/projects/), registered in [templateCategories.ts](../src/lib/templateCategories.ts) |
+| Templates (111 JSON files) | [public/data/projects/](../public/data/projects/), registered in [templateCategories.ts](../src/lib/templateCategories.ts) |
 | Screenshots in, finished designs out | [src/lib/intake/](../src/lib/intake/) + [start/quickstart/](../src/components/open-screenshot-generator/start/quickstart/) |
 | AI agent | [src/lib/ai/](../src/lib/ai/) |
 | MCP server | [src/lib/mcp/](../src/lib/mcp/) + [src-tauri/src/mcp_server.rs](../src-tauri/src/mcp_server.rs) |

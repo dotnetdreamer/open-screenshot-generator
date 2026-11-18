@@ -75,6 +75,9 @@ export const GOOGLE_FONTS: AppFont[] = [
   { family: 'Satisfy', category: 'handwriting', fallback: 'cursive', script: 'latin' },
 
   { family: 'Playfair Display', variants: ['400', '500', '600', '700', '800', '900'], category: 'serif', fallback: 'serif', script: 'latin' },
+  // A narrow, high-contrast serif for headlines. Google Fonts serves one
+  // weight, so it is listed without variants.
+  { family: 'Instrument Serif', category: 'serif', fallback: 'serif', script: 'latin' },
   { family: 'Poppins', variants: ['300', '400', '500', '600', '700', '800', '900'], category: 'sans-serif', fallback: 'sans-serif', script: 'latin' },
   { family: 'Space Grotesk', variants: ['300', '400', '500', '600', '700'], category: 'sans-serif', fallback: 'sans-serif', script: 'latin' },
   { family: 'Outfit', variants: ['300', '400', '500', '600', '700', '800', '900'], category: 'sans-serif', fallback: 'sans-serif', script: 'latin' },

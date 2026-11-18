@@ -1,0 +1,1456 @@
+{
+  "id": "template_wishmint_wishlist",
+  "name": "Wishmint Wishlist",
+  "description": "App Store & Play Store screenshots for a wishlist, gifting or shopping app. Five bold color blocks (forest and mint green, navy, pink and maroon) with heavy Noto Sans headlines, tilted phones with a white rim, sticker cut-outs of sunglasses, earphones and a handbag, price tags, friend avatars and brand bubbles, all grouped into editable layers.",
+  "previewImage": "/data/projects/previews/wishmint-wishlist.png",
+  "timestamp": "2026-11-18T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "wm-board-1",
+      "name": "Create Your Wishlist",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#00341E",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "wm-b1-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 13,
+            "y": 36.65
+          },
+          "size": {
+            "width": 1180,
+            "height": 745.71
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Create\nYour\nWishlist",
+          "fontSize": 71.43,
+          "color": "#56E070",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "900",
+          "textAlign": "center",
+          "lineHeight": 0.92398,
+          "letterSpacing": -3.57
+        },
+        {
+          "id": "wm-b1-phone-rim",
+          "type": "shape",
+          "name": "Phone outline",
+          "position": {
+            "x": 226.65,
+            "y": 681.85
+          },
+          "size": {
+            "width": 836.5,
+            "height": 1730.5
+          },
+          "rotation": 6.5,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#E8EBEC",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 125.03
+        },
+        {
+          "id": "wm-b1-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 237.65,
+            "y": 692.85
+          },
+          "size": {
+            "width": 814.5,
+            "height": 1708.5
+          },
+          "rotation": 6.5,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#0A0A0A",
+          "screenshotSrc": "/data/projects/wishmint-screen-profile.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "wm-b1-friends-pill",
+          "type": "shape",
+          "name": "Badge",
+          "position": {
+            "x": 85,
+            "y": 1345
+          },
+          "size": {
+            "width": 370,
+            "height": 177
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 30,
+            "color": "rgba(0,0,0,0.18)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 88.5,
+          "groupId": "wm-b1-g-friends",
+          "groupName": "Friends badge"
+        },
+        {
+          "id": "wm-b1-friends-faces",
+          "type": "image",
+          "name": "Friends",
+          "position": {
+            "x": 114,
+            "y": 1370
+          },
+          "size": {
+            "width": 318,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/wishmint-avatars.png",
+          "objectFit": "contain",
+          "groupId": "wm-b1-g-friends",
+          "groupName": "Friends badge"
+        },
+        {
+          "id": "wm-b1-join-pill",
+          "type": "shape",
+          "name": "Badge",
+          "position": {
+            "x": 642,
+            "y": 1967
+          },
+          "size": {
+            "width": 523,
+            "height": 165
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 32,
+            "color": "rgba(0,20,60,0.22)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#CAE2FE",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 82.5,
+          "groupId": "wm-b1-g-join",
+          "groupName": "Join badge"
+        },
+        {
+          "id": "wm-b1-join-globe",
+          "type": "shape",
+          "name": "Globe",
+          "position": {
+            "x": 689,
+            "y": 2009
+          },
+          "size": {
+            "width": 82,
+            "height": 82
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#020930",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z M3 12h18 M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 7.5
+          },
+          "groupId": "wm-b1-g-join",
+          "groupName": "Join badge"
+        },
+        {
+          "id": "wm-b1-join-text",
+          "type": "text",
+          "name": "Badge text",
+          "position": {
+            "x": 810.42,
+            "y": 1996.99
+          },
+          "size": {
+            "width": 360,
+            "height": 104.05
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Join millions of\nusers worldwide",
+          "fontSize": 13.45,
+          "color": "#020930",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 0.96,
+          "letterSpacing": -0.27,
+          "groupId": "wm-b1-g-join",
+          "groupName": "Join badge"
+        }
+      ]
+    },
+    {
+      "id": "wm-board-2",
+      "name": "Add Items From Any Store",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#56E070",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "wm-b2-earphones",
+          "type": "image",
+          "name": "Earphones sticker",
+          "position": {
+            "x": 36.56,
+            "y": 1074.34
+          },
+          "size": {
+            "width": 320.67,
+            "height": 565.1
+          },
+          "rotation": -4,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-earphones.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "wm-b2-phone-rim",
+          "type": "shape",
+          "name": "Phone outline",
+          "position": {
+            "x": 192.55,
+            "y": 188.05
+          },
+          "size": {
+            "width": 836.5,
+            "height": 1730.5
+          },
+          "rotation": -7.48,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#E8EBEC",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 125.03
+        },
+        {
+          "id": "wm-b2-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 203.55,
+            "y": 199.05
+          },
+          "size": {
+            "width": 814.5,
+            "height": 1708.5
+          },
+          "rotation": -7.48,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#0A0A0A",
+          "screenshotSrc": "/data/projects/wishmint-screen-birthday.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "wm-b2-sunglasses",
+          "type": "image",
+          "name": "Sunglasses sticker",
+          "position": {
+            "x": 760.66,
+            "y": 50.45
+          },
+          "size": {
+            "width": 434.19,
+            "height": 224.97
+          },
+          "rotation": -2,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-sunglasses.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "wm-b2-handbag",
+          "type": "image",
+          "name": "Handbag sticker",
+          "position": {
+            "x": 901.92,
+            "y": 1459.74
+          },
+          "size": {
+            "width": 497.54,
+            "height": 463.79
+          },
+          "rotation": 2,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-handbag.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "wm-b2-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 13,
+            "y": 1937.7
+          },
+          "size": {
+            "width": 1180,
+            "height": 597.59
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Add Items\nFrom Any\nStore",
+          "fontSize": 59.24,
+          "color": "#00341E",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "900",
+          "textAlign": "center",
+          "lineHeight": 0.8887,
+          "letterSpacing": -4.74
+        }
+      ]
+    },
+    {
+      "id": "wm-board-3",
+      "name": "Shop Your Favorite Brands",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#060E3C",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "wm-b3-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 13,
+            "y": 56.7
+          },
+          "size": {
+            "width": 1180,
+            "height": 600.59
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Shop Your\nFavorite\nBrands",
+          "fontSize": 59.24,
+          "color": "#9DC3FE",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "900",
+          "textAlign": "center",
+          "lineHeight": 0.89376,
+          "letterSpacing": -4.3
+        },
+        {
+          "id": "wm-b3-bubble-0",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 67,
+            "y": 1497
+          },
+          "size": {
+            "width": 150,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#619DF3",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "wm-b3-g-bubbles",
+          "groupName": "Brand bubbles"
+        },
+        {
+          "id": "wm-b3-bubble-1",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 7,
+            "y": 1617
+          },
+          "size": {
+            "width": 150,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#619DF3",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "wm-b3-g-bubbles",
+          "groupName": "Brand bubbles"
+        },
+        {
+          "id": "wm-b3-bubble-2",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": -53,
+            "y": 1775
+          },
+          "size": {
+            "width": 330,
+            "height": 330
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#619DF3",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "wm-b3-g-bubbles",
+          "groupName": "Brand bubbles"
+        },
+        {
+          "id": "wm-b3-bubble-3",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": -95,
+            "y": 2080
+          },
+          "size": {
+            "width": 580,
+            "height": 580
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#619DF3",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "wm-b3-g-bubbles",
+          "groupName": "Brand bubbles"
+        },
+        {
+          "id": "wm-b3-bubble-4",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 350,
+            "y": 2370
+          },
+          "size": {
+            "width": 380,
+            "height": 380
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#619DF3",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "wm-b3-g-bubbles",
+          "groupName": "Brand bubbles"
+        },
+        {
+          "id": "wm-b3-bubble-5",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": -50,
+            "y": 1740
+          },
+          "size": {
+            "width": 140,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#619DF3",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "wm-b3-g-bubbles",
+          "groupName": "Brand bubbles"
+        },
+        {
+          "id": "wm-b3-bubble-6",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 997,
+            "y": 1452
+          },
+          "size": {
+            "width": 210,
+            "height": 210
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#619DF3",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "wm-b3-g-bubbles",
+          "groupName": "Brand bubbles"
+        },
+        {
+          "id": "wm-b3-bubble-7",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 1020,
+            "y": 1625
+          },
+          "size": {
+            "width": 194,
+            "height": 194
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#619DF3",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "wm-b3-g-bubbles",
+          "groupName": "Brand bubbles"
+        },
+        {
+          "id": "wm-b3-bubble-8",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 885,
+            "y": 1805
+          },
+          "size": {
+            "width": 390,
+            "height": 390
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#619DF3",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "wm-b3-g-bubbles",
+          "groupName": "Brand bubbles"
+        },
+        {
+          "id": "wm-b3-bubble-9",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 775,
+            "y": 2165
+          },
+          "size": {
+            "width": 470,
+            "height": 470
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#619DF3",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "wm-b3-g-bubbles",
+          "groupName": "Brand bubbles"
+        },
+        {
+          "id": "wm-b3-bubble-10",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 1100,
+            "y": 1770
+          },
+          "size": {
+            "width": 160,
+            "height": 160
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#619DF3",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "wm-b3-g-bubbles",
+          "groupName": "Brand bubbles"
+        },
+        {
+          "id": "wm-b3-bubble-11",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 640,
+            "y": 2440
+          },
+          "size": {
+            "width": 320,
+            "height": 320
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#619DF3",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "wm-b3-g-bubbles",
+          "groupName": "Brand bubbles"
+        },
+        {
+          "id": "wm-b3-mark-1",
+          "type": "shape",
+          "name": "Brand mark",
+          "position": {
+            "x": 97,
+            "y": 1527
+          },
+          "size": {
+            "width": 90,
+            "height": 90
+          },
+          "rotation": -10,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#0B1640",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M12 2.5c2.2 0 3.6 2 3.6 4.4 0 1-.3 2-.8 2.8.8-.5 1.8-.8 2.8-.8 2.4 0 4.4 1.4 4.4 3.6s-2 3.6-4.4 3.6c-1 0-2-.3-2.8-.8.5.8.8 1.8.8 2.8 0 2.4-1.4 4.4-3.6 4.4s-3.6-2-3.6-4.4c0-1 .3-2 .8-2.8-.8.5-1.8.8-2.8.8C4 16.1 2 14.7 2 12.5s2-3.6 4.4-3.6c1 0 2 .3 2.8.8-.5-.8-.8-1.8-.8-2.8C8.4 4.5 9.8 2.5 12 2.5Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24"
+          },
+          "groupId": "wm-b3-g-bubbles",
+          "groupName": "Brand bubbles"
+        },
+        {
+          "id": "wm-b3-mark-2",
+          "type": "shape",
+          "name": "Brand mark",
+          "position": {
+            "x": 52,
+            "y": 1662
+          },
+          "size": {
+            "width": 60,
+            "height": 60
+          },
+          "rotation": -12,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#0B1640",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M12 20.5s-8-4.6-8-10.4A4.6 4.6 0 0 1 12 7.3a4.6 4.6 0 0 1 8 2.8c0 5.8-8 10.4-8 10.4Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24"
+          },
+          "groupId": "wm-b3-g-bubbles",
+          "groupName": "Brand bubbles"
+        },
+        {
+          "id": "wm-b3-mark-3",
+          "type": "text",
+          "name": "Brand mark",
+          "position": {
+            "x": -20.64,
+            "y": 1868.15
+          },
+          "size": {
+            "width": 290,
+            "height": 122.64
+          },
+          "rotation": -8,
+          "scale": 1,
+          "content": "Brimly",
+          "fontSize": 25.2,
+          "color": "#0B1640",
+          "fontFamily": "Playfair Display",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "fontStyle": "italic",
+          "groupId": "wm-b3-g-bubbles",
+          "groupName": "Brand bubbles"
+        },
+        {
+          "id": "wm-b3-mark-4",
+          "type": "shape",
+          "name": "Brand mark",
+          "position": {
+            "x": 20,
+            "y": 2290
+          },
+          "size": {
+            "width": 150,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#0B1640",
+          "strokeWidth": 26,
+          "groupId": "wm-b3-g-bubbles",
+          "groupName": "Brand bubbles"
+        },
+        {
+          "id": "wm-b3-mark-5",
+          "type": "shape",
+          "name": "Brand mark",
+          "position": {
+            "x": 470,
+            "y": 2470
+          },
+          "size": {
+            "width": 110,
+            "height": 110
+          },
+          "rotation": 14,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#0B1640",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4 20 12 4l8 16Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24"
+          },
+          "groupId": "wm-b3-g-bubbles",
+          "groupName": "Brand bubbles"
+        },
+        {
+          "id": "wm-b3-mark-6",
+          "type": "text",
+          "name": "Brand mark",
+          "position": {
+            "x": 983.36,
+            "y": 1498.64
+          },
+          "size": {
+            "width": 191,
+            "height": 84.68
+          },
+          "rotation": 62,
+          "scale": 1,
+          "content": "KELDA",
+          "fontSize": 17.4,
+          "color": "#0B1640",
+          "fontFamily": "Oswald",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "wm-b3-g-bubbles",
+          "groupName": "Brand bubbles"
+        },
+        {
+          "id": "wm-b3-mark-7",
+          "type": "text",
+          "name": "Brand mark",
+          "position": {
+            "x": 1023.42,
+            "y": 1688.52
+          },
+          "size": {
+            "width": 187,
+            "height": 90.52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "ruvo",
+          "fontSize": 18.6,
+          "color": "#0B1640",
+          "fontFamily": "Poppins",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "wm-b3-g-bubbles",
+          "groupName": "Brand bubbles"
+        },
+        {
+          "id": "wm-b3-mark-8",
+          "type": "text",
+          "name": "Brand mark",
+          "position": {
+            "x": 943.77,
+            "y": 1936.56
+          },
+          "size": {
+            "width": 347,
+            "height": 128.48
+          },
+          "rotation": -10,
+          "scale": 1,
+          "content": "Storella",
+          "fontSize": 26.4,
+          "color": "#0B1640",
+          "fontFamily": "Playfair Display",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "wm-b3-g-bubbles",
+          "groupName": "Brand bubbles"
+        },
+        {
+          "id": "wm-b3-mark-9",
+          "type": "text",
+          "name": "Brand mark",
+          "position": {
+            "x": 889.51,
+            "y": 2359.46
+          },
+          "size": {
+            "width": 339,
+            "height": 151.84
+          },
+          "rotation": -8,
+          "scale": 1,
+          "content": "NOVIK'S",
+          "fontSize": 31.2,
+          "color": "#0B1640",
+          "fontFamily": "Anton",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "wm-b3-g-bubbles",
+          "groupName": "Brand bubbles"
+        },
+        {
+          "id": "wm-b3-phone-rim",
+          "type": "shape",
+          "name": "Phone outline",
+          "position": {
+            "x": 195.25,
+            "y": 739.05
+          },
+          "size": {
+            "width": 836.5,
+            "height": 1730.5
+          },
+          "rotation": 6.2,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#E8EBEC",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 125.03
+        },
+        {
+          "id": "wm-b3-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 206.25,
+            "y": 750.05
+          },
+          "size": {
+            "width": 814.5,
+            "height": 1708.5
+          },
+          "rotation": 6.2,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#0A0A0A",
+          "screenshotSrc": "/data/projects/wishmint-screen-brands.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "wm-board-4",
+      "name": "Compare Prices Instantly",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FF8AF2",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "wm-b4-phone-rim",
+          "type": "shape",
+          "name": "Phone outline",
+          "position": {
+            "x": 182.05,
+            "y": 118.65
+          },
+          "size": {
+            "width": 836.5,
+            "height": 1730.5
+          },
+          "rotation": 5.48,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#E8EBEC",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 125.03
+        },
+        {
+          "id": "wm-b4-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 193.05,
+            "y": 129.65
+          },
+          "size": {
+            "width": 814.5,
+            "height": 1708.5
+          },
+          "rotation": 5.48,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#0A0A0A",
+          "screenshotSrc": "/data/projects/wishmint-screen-compare.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "wm-b4-tag-1-pill",
+          "type": "shape",
+          "name": "Tag",
+          "position": {
+            "x": 69.8,
+            "y": 561.7
+          },
+          "size": {
+            "width": 350,
+            "height": 149
+          },
+          "rotation": -13.03,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3B0A06",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 74.5,
+          "groupId": "wm-b4-g-tag-1",
+          "groupName": "Price tag"
+        },
+        {
+          "id": "wm-b4-tag-1-logo",
+          "type": "shape",
+          "name": "Store logo",
+          "position": {
+            "x": 90.4,
+            "y": 602.97
+          },
+          "size": {
+            "width": 112,
+            "height": 112
+          },
+          "rotation": -13.03,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FBC3F4",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "wm-b4-g-tag-1",
+          "groupName": "Price tag"
+        },
+        {
+          "id": "wm-b4-tag-1-letter",
+          "type": "text",
+          "name": "Store letter",
+          "position": {
+            "x": 85.92,
+            "y": 589.27
+          },
+          "size": {
+            "width": 118,
+            "height": 134.32
+          },
+          "rotation": -13.03,
+          "scale": 1,
+          "content": "Q",
+          "fontSize": 27.6,
+          "color": "#3B0A06",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "900",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "wm-b4-g-tag-1",
+          "groupName": "Price tag"
+        },
+        {
+          "id": "wm-b4-tag-1-price",
+          "type": "text",
+          "name": "Price",
+          "position": {
+            "x": 197.91,
+            "y": 573.58
+          },
+          "size": {
+            "width": 193,
+            "height": 96.36
+          },
+          "rotation": -13.03,
+          "scale": 1,
+          "content": "$165",
+          "fontSize": 19.8,
+          "color": "#FBC3F4",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.2,
+          "groupId": "wm-b4-g-tag-1",
+          "groupName": "Price tag"
+        },
+        {
+          "id": "wm-b4-tag-2-pill",
+          "type": "shape",
+          "name": "Tag",
+          "position": {
+            "x": 782.5,
+            "y": 468.7
+          },
+          "size": {
+            "width": 350,
+            "height": 149
+          },
+          "rotation": 14.68,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3B0A06",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 74.5,
+          "groupId": "wm-b4-g-tag-2",
+          "groupName": "Price tag"
+        },
+        {
+          "id": "wm-b4-tag-2-logo",
+          "type": "shape",
+          "name": "Store logo",
+          "position": {
+            "x": 803.8,
+            "y": 461.6
+          },
+          "size": {
+            "width": 112,
+            "height": 112
+          },
+          "rotation": 14.68,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FBC3F4",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "wm-b4-g-tag-2",
+          "groupName": "Price tag"
+        },
+        {
+          "id": "wm-b4-tag-2-letter",
+          "type": "text",
+          "name": "Store letter",
+          "position": {
+            "x": 809.73,
+            "y": 447.26
+          },
+          "size": {
+            "width": 98,
+            "height": 134.32
+          },
+          "rotation": 14.68,
+          "scale": 1,
+          "content": "L",
+          "fontSize": 27.6,
+          "color": "#3B0A06",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "900",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "wm-b4-g-tag-2",
+          "groupName": "Price tag"
+        },
+        {
+          "id": "wm-b4-tag-2-price",
+          "type": "text",
+          "name": "Price",
+          "position": {
+            "x": 911.39,
+            "y": 505.24
+          },
+          "size": {
+            "width": 193,
+            "height": 96.36
+          },
+          "rotation": 14.68,
+          "scale": 1,
+          "content": "$132",
+          "fontSize": 19.8,
+          "color": "#FBC3F4",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.2,
+          "groupId": "wm-b4-g-tag-2",
+          "groupName": "Price tag"
+        },
+        {
+          "id": "wm-b4-tag-3-pill",
+          "type": "shape",
+          "name": "Tag",
+          "position": {
+            "x": 769.2,
+            "y": 1043.1
+          },
+          "size": {
+            "width": 350,
+            "height": 149
+          },
+          "rotation": 15.79,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3B0A06",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 74.5,
+          "groupId": "wm-b4-g-tag-3",
+          "groupName": "Price tag"
+        },
+        {
+          "id": "wm-b4-tag-3-logo",
+          "type": "shape",
+          "name": "Store logo",
+          "position": {
+            "x": 791.01,
+            "y": 1034.12
+          },
+          "size": {
+            "width": 112,
+            "height": 112
+          },
+          "rotation": 15.79,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FBC3F4",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "wm-b4-g-tag-3",
+          "groupName": "Price tag"
+        },
+        {
+          "id": "wm-b4-tag-3-letter",
+          "type": "text",
+          "name": "Store letter",
+          "position": {
+            "x": 790.34,
+            "y": 1019.14
+          },
+          "size": {
+            "width": 107,
+            "height": 134.32
+          },
+          "rotation": 15.79,
+          "scale": 1,
+          "content": "R",
+          "fontSize": 27.6,
+          "color": "#3B0A06",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "900",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "wm-b4-g-tag-3",
+          "groupName": "Price tag"
+        },
+        {
+          "id": "wm-b4-tag-3-price",
+          "type": "text",
+          "name": "Price",
+          "position": {
+            "x": 897.78,
+            "y": 1080.59
+          },
+          "size": {
+            "width": 193,
+            "height": 96.36
+          },
+          "rotation": 15.79,
+          "scale": 1,
+          "content": "$126",
+          "fontSize": 19.8,
+          "color": "#FBC3F4",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.2,
+          "groupId": "wm-b4-g-tag-3",
+          "groupName": "Price tag"
+        },
+        {
+          "id": "wm-b4-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 13,
+            "y": 1925.2
+          },
+          "size": {
+            "width": 1180,
+            "height": 603.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Compare\nPrices\nInstantly",
+          "fontSize": 59.24,
+          "color": "#3B0A06",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "900",
+          "textAlign": "center",
+          "lineHeight": 0.89883,
+          "letterSpacing": -5.04
+        }
+      ]
+    },
+    {
+      "id": "wm-board-5",
+      "name": "Share With Friends",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#3B0A06",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "wm-b5-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 13,
+            "y": 55.7
+          },
+          "size": {
+            "width": 1180,
+            "height": 594.59
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Share\nWith\nFriends",
+          "fontSize": 59.24,
+          "color": "#FF8AF2",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "900",
+          "textAlign": "center",
+          "lineHeight": 0.88363,
+          "letterSpacing": -4.3
+        },
+        {
+          "id": "wm-b5-phone-rim",
+          "type": "shape",
+          "name": "Phone outline",
+          "position": {
+            "x": 183.35,
+            "y": 738.25
+          },
+          "size": {
+            "width": 836.5,
+            "height": 1730.5
+          },
+          "rotation": -4.33,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#E8EBEC",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 125.03
+        },
+        {
+          "id": "wm-b5-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 194.35,
+            "y": 749.25
+          },
+          "size": {
+            "width": 814.5,
+            "height": 1708.5
+          },
+          "rotation": -4.33,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#0A0A0A",
+          "screenshotSrc": "/data/projects/wishmint-screen-friends.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "wm-b5-friend-1-photo",
+          "type": "image",
+          "name": "Friend photo",
+          "position": {
+            "x": 38,
+            "y": 668
+          },
+          "size": {
+            "width": 280,
+            "height": 280
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/wishmint-avatar-beanie.png",
+          "objectFit": "contain",
+          "groupId": "wm-b5-g-friend-1",
+          "groupName": "Friend"
+        },
+        {
+          "id": "wm-b5-friend-1-share",
+          "type": "shape",
+          "name": "Share button",
+          "position": {
+            "x": 259,
+            "y": 832
+          },
+          "size": {
+            "width": 80,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#0A3A16",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "wm-b5-g-friend-1",
+          "groupName": "Friend"
+        },
+        {
+          "id": "wm-b5-friend-1-icon",
+          "type": "shape",
+          "name": "Share icon",
+          "position": {
+            "x": 281,
+            "y": 854
+          },
+          "size": {
+            "width": 36,
+            "height": 36
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#56E070",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M14 5l6 6-6 6 M20 11H10a6 6 0 0 0-6 6v1",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 3.6
+          },
+          "groupId": "wm-b5-g-friend-1",
+          "groupName": "Friend"
+        },
+        {
+          "id": "wm-b5-friend-2",
+          "type": "image",
+          "name": "Friend photo",
+          "position": {
+            "x": 879,
+            "y": 1919
+          },
+          "size": {
+            "width": 282,
+            "height": 282
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/wishmint-avatar-curly.png",
+          "objectFit": "contain"
+        }
+      ]
+    }
+  ]
+}

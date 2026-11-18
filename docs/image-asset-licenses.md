@@ -179,15 +179,42 @@ in editable templates, not standalone downloads.
 | expertly-avatar-4.png | 299117684 | Head crop of guys-as299117684.png (section 1) | expertly-ai.json |
 | expertly-avatar-5.png | 405130341 | Head crop of education-as405130341.png (section 1) | expertly-ai.json |
 | expertly-avatar-6.png | 625425247 | Head crop of guys-as625425247.png (section 1) | expertly-ai.json |
+| wishmint-avatars.png | 479330034, 298905292, 608612382 | Head crops of girls-as479330034, couples-as298905292 and girls-as608612382 (section 1) | wishmint-wishlist.json |
+| wishmint-avatar-beanie.png | 176708273 | Head crop of guys-as176708273.png (section 1) | wishmint-wishlist.json |
+| wishmint-avatar-curly.png | 298905292 | Head crop of couples-as298905292.png (section 1) | wishmint-wishlist.json |
+| wishmint-screen-profile.png | 299117684 | App screen with a head crop of guys-as299117684.png (section 1) | wishmint-wishlist.json |
+| wishmint-screen-birthday.png | 479330034, 568002174 | App screen with girls-as479330034 and a blurred girls-as568002174 (section 1) | wishmint-wishlist.json |
+| wishmint-screen-brands.png | 568605361, 608612382, 211660510 | App screen with girls-as568605361, girls-as608612382 and guys-as211660510 (section 1) | wishmint-wishlist.json |
+| wishmint-screen-friends.png | 616151886, 211660510, 568002174, 479330034 | App screen with head crops of those library photos (section 1) | wishmint-wishlist.json |
+| lavish-screen-profile.png | 436941892, 568605361 | App screen with education-as436941892 and girls-as568605361 (section 1) | lavish-creator-wishlist.json |
+| lavish-screen-inbox.png | 436941892 | App screen with a head crop of education-as436941892.png (section 1) | lavish-creator-wishlist.json |
+| lavish-screen-share.png, lavish-share-photo.png | 568002174 | girls-as568002174.png on a drawn sofa (section 1) | lavish-creator-wishlist.json |
+| lavish-room.png | 622285813 | girls-as622285813.png in a drawn room (section 1) | lavish-creator-wishlist.json |
+| lavish-screen-lookbook.png | 622285813, 268560315 | App screen with lavish-room.png and education-as268560315 (section 1) | lavish-creator-wishlist.json |
+| lavish-screen-lock.png | 398965262 | group-as398965262.png on a drawn beach (section 1) | lavish-creator-wishlist.json |
+| postie-park.png, postie-screen-photo.png | 262780760 | couples-as262780760.png in a drawn park (section 1) | postie-cards.json |
+| postie-screen-circle.png | 299117684, 488088494, 405130341, 298905292, 616151886, 268560315, 568002174 | App screen with head crops of those library photos (section 1) | postie-cards.json |
+| postie-artist-1.png to postie-artist-9.png | 476183094, 622285813, 722428418, 436829852, 616151886, 176708273, 298618010, 307920555, 479330034 | Head crops of those library photos, one per file in that order (section 1) | postie-cards.json |
+| hummi-bg-5.png | 483315298 | group-as483315298.png, blurred and darkened (section 1) | hummi-cash-gifts.json |
 
 The `fg-screens/*.png` skeleton screens in that folder are original in-house
 artwork (generated placeholders), not licensed stock.
 
-## 5. Original illustrations (`mascots/`, `objects/`, `stickers/`)
+## 5. Original illustrations (`mascots/`, `objects/`, `stickers/`, `products/`, `cards/`)
 
-The Mascots, 3D objects and Stickers groups are original artwork drawn for this
-project (SVG written for the Hoppi, Expertly, Roamo, Formpal and Sunup
-templates, rendered to PNG and trimmed). None of it is stock or traced. The
+The Mascots, 3D objects, Stickers, Products and Cards groups are original
+artwork drawn for this project (SVG and HTML written for the Hoppi, Expertly,
+Roamo, Formpal, Sunup, Wishmint, Lavish, Postie and Hummi templates, rendered to
+PNG and trimmed). None of it is stock or traced. The app icons in 3D objects
+are invented designs, not the icons of real apps. Three cards build on library
+photos from section 1: card-person.png is girls-as622285813 in black and white,
+and card-dance.png and card-yourself.png use guys-as211660510 and
+girls-as608612382 as one-colour silhouettes. Lettering in the cards and stickers
+uses Google Fonts under the SIL Open Font License (Anton, Bangers, Caveat,
+Luckiest Guy, Permanent Marker, Playfair Display, Shrikhand, Alfa Slab One,
+Abril Fatface, Pacifico, Inter), which allows pictures made with the fonts. The
+emoji in the template screens are Noto Color Emoji, also under the SIL Open Font
+License. The
 Dollar sign is the "$" of Outfit, a Google Font under the SIL Open Font
 License, which allows pictures made with the font. The flag stickers draw the
 public national flag designs of the United States, the United Kingdom and

@@ -27,6 +27,7 @@ const MAX_SCREENS = 6;
 
 // The App Screenshots category, in gallery order.
 const SLUGS = [
+  'wishmint-wishlist', 'lavish-creator-wishlist', 'postie-cards', 'hummi-cash-gifts',
   'hoppi-screen-time', 'roamo-esim', 'expertly-ai', 'formpal-forms',
   'sunup-missions', 'sunup-alarm',
   'somnia-sleep', 'kassa-money', 'pixara-ai', 'amoura-dating', 'scrappi-journal',

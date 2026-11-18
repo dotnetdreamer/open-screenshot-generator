@@ -1,0 +1,2080 @@
+{
+  "id": "template_lavish_creator_wishlist",
+  "name": "Lavish Creator Wishlist",
+  "description": "App Store & Play Store screenshots for a creator wishlist, gifting or fan support app. A soft cream backdrop with elegant Playfair Display headlines, deep purple phones, product cards that spill out of the screen, blue gift amounts, glossy 3D app icons, a share sheet card and a lock screen notification, all grouped into editable layers.",
+  "previewImage": "/data/projects/previews/lavish-creator-wishlist.png",
+  "timestamp": "2026-11-18T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "lv-board-1",
+      "name": "Privacy-Focused Wishlist",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#F4EDDC",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#F5ECDC",
+        "color2": "#F3F0D6",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "lv-b1-glow-1",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": -267.95,
+            "y": 1382.05
+          },
+          "size": {
+            "width": 835.9,
+            "height": 835.9
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.73,
+          "blur": 161,
+          "shapeType": "circle",
+          "fillColor": "#F3DEAA",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "lv-b1-glow-2",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 873,
+            "y": 1773
+          },
+          "size": {
+            "width": 754,
+            "height": 754
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.74,
+          "blur": 145,
+          "shapeType": "circle",
+          "fillColor": "#EEF4E4",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "lv-b1-glow-3",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 783.5,
+            "y": 833.5
+          },
+          "size": {
+            "width": 533,
+            "height": 533
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.57,
+          "blur": 103,
+          "shapeType": "circle",
+          "fillColor": "#F4E8C4",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "lv-b1-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 13,
+            "y": 165.65
+          },
+          "size": {
+            "width": 1180,
+            "height": 294.69
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Privacy-focused\nwishlist for creators",
+          "fontSize": 35.58,
+          "color": "#141414",
+          "fontFamily": "Playfair Display",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.0623900000000002,
+          "letterSpacing": 0.44,
+          "groupId": "lv-b1-g-title",
+          "groupName": "Title"
+        },
+        {
+          "id": "lv-b1-sparkle",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 272,
+            "y": 545
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M12 1.5c.6 5.4 3.6 9 10.5 10.5C15.6 13.5 12.6 17 12 22.5 11.4 17 8.4 13.5 1.5 12 8.4 10.5 11.4 7 12 1.5Z M20 2.5c.2 1.6 1 2.6 2.5 3-1.5.4-2.3 1.4-2.5 3-.2-1.6-1-2.6-2.5-3 1.5-.4 2.3-1.4 2.5-3Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24"
+          },
+          "groupId": "lv-b1-g-title",
+          "groupName": "Title"
+        },
+        {
+          "id": "lv-b1-subtitle",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 307.17,
+            "y": 520.26
+          },
+          "size": {
+            "width": 655,
+            "height": 88.48
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Let your fans spoil you",
+          "fontSize": 18.18,
+          "color": "#141414",
+          "fontFamily": "Playfair Display",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "lv-b1-g-title",
+          "groupName": "Title"
+        },
+        {
+          "id": "lv-b1-btn-1",
+          "type": "shape",
+          "name": "Side button",
+          "position": {
+            "x": 194,
+            "y": 1046.12
+          },
+          "size": {
+            "width": 8,
+            "height": 48.43
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3E3448",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 3,
+          "groupId": "lv-b1-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b1-btn-2",
+          "type": "shape",
+          "name": "Side button",
+          "position": {
+            "x": 194,
+            "y": 1159.68
+          },
+          "size": {
+            "width": 8,
+            "height": 111.89
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3E3448",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 3,
+          "groupId": "lv-b1-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b1-btn-3",
+          "type": "shape",
+          "name": "Side button",
+          "position": {
+            "x": 194,
+            "y": 1304.96
+          },
+          "size": {
+            "width": 8,
+            "height": 111.89
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3E3448",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 3,
+          "groupId": "lv-b1-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b1-btn-4",
+          "type": "shape",
+          "name": "Side button",
+          "position": {
+            "x": 1007,
+            "y": 1249.02
+          },
+          "size": {
+            "width": 8,
+            "height": 167
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3E3448",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 3,
+          "groupId": "lv-b1-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b1-rim",
+          "type": "shape",
+          "name": "Phone rim",
+          "position": {
+            "x": 200,
+            "y": 738
+          },
+          "size": {
+            "width": 809,
+            "height": 1670
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#4B4155",
+          "strokeColor": "#2A2230",
+          "strokeWidth": 2,
+          "borderRadius": 128,
+          "fillGradient": {
+            "color1": "#6A5F72",
+            "color2": "#3A3142",
+            "angle": 135
+          },
+          "groupId": "lv-b1-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b1-device",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 212,
+            "y": 750
+          },
+          "size": {
+            "width": 785,
+            "height": 1646
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#000000",
+          "screenshotSrc": "/data/projects/lavish-screen-profile.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "lv-b1-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b1-card-rings",
+          "type": "image",
+          "name": "Rings card",
+          "position": {
+            "x": 261.81,
+            "y": 2184.22
+          },
+          "size": {
+            "width": 351,
+            "height": 545
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/lavish-card-rings.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "lv-b1-card-bag",
+          "type": "image",
+          "name": "Bag card",
+          "position": {
+            "x": 592.9,
+            "y": 2530.45
+          },
+          "size": {
+            "width": 355,
+            "height": 444
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/lavish-card-bag.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "lv-b1-card-perfume",
+          "type": "image",
+          "name": "Perfume card",
+          "position": {
+            "x": 592.9,
+            "y": 2100.19
+          },
+          "size": {
+            "width": 355,
+            "height": 444
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/lavish-card-perfume.png",
+          "objectFit": "contain"
+        }
+      ]
+    },
+    {
+      "id": "lv-board-2",
+      "name": "Receive Gifts",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#F4EDDC",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#F5ECDC",
+        "color2": "#F3F0D6",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "lv-b2-glow-1",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": -267.95,
+            "y": 1382.05
+          },
+          "size": {
+            "width": 835.9,
+            "height": 835.9
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.73,
+          "blur": 161,
+          "shapeType": "circle",
+          "fillColor": "#F3DEAA",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "lv-b2-glow-2",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 873,
+            "y": 1773
+          },
+          "size": {
+            "width": 754,
+            "height": 754
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.74,
+          "blur": 145,
+          "shapeType": "circle",
+          "fillColor": "#EEF4E4",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "lv-b2-glow-3",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 783.5,
+            "y": 833.5
+          },
+          "size": {
+            "width": 533,
+            "height": 533
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.57,
+          "blur": 103,
+          "shapeType": "circle",
+          "fillColor": "#F4E8C4",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "lv-b2-btn-1",
+          "type": "shape",
+          "name": "Side button",
+          "position": {
+            "x": 194,
+            "y": 500.12
+          },
+          "size": {
+            "width": 8,
+            "height": 48.43
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3E3448",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 3,
+          "groupId": "lv-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b2-btn-2",
+          "type": "shape",
+          "name": "Side button",
+          "position": {
+            "x": 194,
+            "y": 613.67
+          },
+          "size": {
+            "width": 8,
+            "height": 111.89
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3E3448",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 3,
+          "groupId": "lv-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b2-btn-3",
+          "type": "shape",
+          "name": "Side button",
+          "position": {
+            "x": 194,
+            "y": 758.96
+          },
+          "size": {
+            "width": 8,
+            "height": 111.89
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3E3448",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 3,
+          "groupId": "lv-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b2-btn-4",
+          "type": "shape",
+          "name": "Side button",
+          "position": {
+            "x": 1007,
+            "y": 703.02
+          },
+          "size": {
+            "width": 8,
+            "height": 167
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3E3448",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 3,
+          "groupId": "lv-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b2-rim",
+          "type": "shape",
+          "name": "Phone rim",
+          "position": {
+            "x": 200,
+            "y": 192
+          },
+          "size": {
+            "width": 809,
+            "height": 1670
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#4B4155",
+          "strokeColor": "#2A2230",
+          "strokeWidth": 2,
+          "borderRadius": 128,
+          "fillGradient": {
+            "color1": "#6A5F72",
+            "color2": "#3A3142",
+            "angle": 135
+          },
+          "groupId": "lv-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b2-device",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 212,
+            "y": 204
+          },
+          "size": {
+            "width": 785,
+            "height": 1646
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#000000",
+          "screenshotSrc": "/data/projects/lavish-screen-inbox.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "lv-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b2-orange-phone",
+          "type": "image",
+          "name": "Phone sticker",
+          "position": {
+            "x": -150,
+            "y": 1887.33
+          },
+          "size": {
+            "width": 420,
+            "height": 512.67
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/products/product-phone-orange.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "lv-b2-crystal-bag",
+          "type": "image",
+          "name": "Crystal bag",
+          "position": {
+            "x": 966.11,
+            "y": 1851.42
+          },
+          "size": {
+            "width": 326,
+            "height": 489.33
+          },
+          "rotation": -8,
+          "scale": 1,
+          "imageSrc": "/elements/images/products/product-crystal-bag.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "lv-b2-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 13,
+            "y": 1953.65
+          },
+          "size": {
+            "width": 1180,
+            "height": 294.69
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Receive gifts,\neasy payouts",
+          "fontSize": 35.58,
+          "color": "#141414",
+          "fontFamily": "Playfair Display",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.0623900000000002,
+          "letterSpacing": 0.44,
+          "groupId": "lv-b2-g-title",
+          "groupName": "Title"
+        },
+        {
+          "id": "lv-b2-subtitle",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 153.96,
+            "y": 2314.76
+          },
+          "size": {
+            "width": 896,
+            "height": 82.49
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "You get money to buy a real thing!",
+          "fontSize": 16.95,
+          "color": "#141414",
+          "fontFamily": "Playfair Display",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "lv-b2-g-title",
+          "groupName": "Title"
+        },
+        {
+          "id": "lv-b2-gift-1",
+          "type": "shape",
+          "name": "Gift amount",
+          "position": {
+            "x": 848,
+            "y": 1778
+          },
+          "size": {
+            "width": 349,
+            "height": 135
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 24,
+            "color": "rgba(30,80,200,0.28)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#2C6DF3",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 67.5,
+          "fillGradient": {
+            "color1": "#4483F6",
+            "color2": "#1B5FEF",
+            "angle": 180
+          },
+          "groupId": "lv-b2-g-gift-1",
+          "groupName": "Gift amount"
+        },
+        {
+          "id": "lv-b2-gift-1-text",
+          "type": "text",
+          "name": "Gift amount text",
+          "position": {
+            "x": 885.54,
+            "y": 1789.4
+          },
+          "size": {
+            "width": 313,
+            "height": 108.04
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "+$3,800",
+          "fontSize": 22.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.22,
+          "groupId": "lv-b2-g-gift-1",
+          "groupName": "Gift amount"
+        },
+        {
+          "id": "lv-b2-gift-2",
+          "type": "shape",
+          "name": "Gift amount",
+          "position": {
+            "x": -36,
+            "y": 2208
+          },
+          "size": {
+            "width": 263,
+            "height": 103
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 24,
+            "color": "rgba(30,80,200,0.28)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#2C6DF3",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 51.5,
+          "fillGradient": {
+            "color1": "#4483F6",
+            "color2": "#1B5FEF",
+            "angle": 180
+          },
+          "groupId": "lv-b2-g-gift-2",
+          "groupName": "Gift amount"
+        },
+        {
+          "id": "lv-b2-gift-2-text",
+          "type": "text",
+          "name": "Gift amount text",
+          "position": {
+            "x": -8.63,
+            "y": 2216.61
+          },
+          "size": {
+            "width": 248,
+            "height": 81.76
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "+$1,250",
+          "fontSize": 16.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.17,
+          "groupId": "lv-b2-g-gift-2",
+          "groupName": "Gift amount"
+        }
+      ]
+    },
+    {
+      "id": "lv-board-3",
+      "name": "Add Wishes From Anywhere",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#F4EDDC",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#F5ECDC",
+        "color2": "#F3F0D6",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "lv-b3-glow-1",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": -267.95,
+            "y": 1382.05
+          },
+          "size": {
+            "width": 835.9,
+            "height": 835.9
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.73,
+          "blur": 161,
+          "shapeType": "circle",
+          "fillColor": "#F3DEAA",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "lv-b3-glow-2",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 873,
+            "y": 1773
+          },
+          "size": {
+            "width": 754,
+            "height": 754
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.74,
+          "blur": 145,
+          "shapeType": "circle",
+          "fillColor": "#EEF4E4",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "lv-b3-glow-3",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 783.5,
+            "y": 833.5
+          },
+          "size": {
+            "width": 533,
+            "height": 533
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.57,
+          "blur": 103,
+          "shapeType": "circle",
+          "fillColor": "#F4E8C4",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "lv-b3-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 13,
+            "y": 165.65
+          },
+          "size": {
+            "width": 1180,
+            "height": 294.69
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Add wishes\nfrom anywhere",
+          "fontSize": 35.58,
+          "color": "#141414",
+          "fontFamily": "Playfair Display",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.0623900000000002,
+          "letterSpacing": 0.44,
+          "groupId": "lv-b3-g-title",
+          "groupName": "Title"
+        },
+        {
+          "id": "lv-b3-subtitle",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 53,
+            "y": 523.21
+          },
+          "size": {
+            "width": 1100,
+            "height": 163.09
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "See it, snap it, add it.\nFrom any photo or link!",
+          "fontSize": 16.74,
+          "color": "#141414",
+          "fontFamily": "Playfair Display",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.2813599999999998,
+          "groupId": "lv-b3-g-title",
+          "groupName": "Title"
+        },
+        {
+          "id": "lv-b3-icon-heartcam",
+          "type": "image",
+          "name": "App icon",
+          "position": {
+            "x": 148.6,
+            "y": 761
+          },
+          "size": {
+            "width": 183,
+            "height": 203.4
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-app-heart.png",
+          "objectFit": "contain",
+          "groupId": "lv-b3-g-icons",
+          "groupName": "App icons"
+        },
+        {
+          "id": "lv-b3-icon-hash",
+          "type": "image",
+          "name": "App icon",
+          "position": {
+            "x": 330.8,
+            "y": 765.8
+          },
+          "size": {
+            "width": 187.2,
+            "height": 195.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-app-hash.png",
+          "objectFit": "contain",
+          "groupId": "lv-b3-g-icons",
+          "groupName": "App icons"
+        },
+        {
+          "id": "lv-b3-icon-globe",
+          "type": "image",
+          "name": "App icon",
+          "position": {
+            "x": 514.2,
+            "y": 771.2
+          },
+          "size": {
+            "width": 186.6,
+            "height": 186
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-app-globe.png",
+          "objectFit": "contain",
+          "groupId": "lv-b3-g-icons",
+          "groupName": "App icons"
+        },
+        {
+          "id": "lv-b3-icon-bloom",
+          "type": "image",
+          "name": "App icon",
+          "position": {
+            "x": 695.8,
+            "y": 769.4
+          },
+          "size": {
+            "width": 190.8,
+            "height": 190.2
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-app-gallery.png",
+          "objectFit": "contain",
+          "groupId": "lv-b3-g-icons",
+          "groupName": "App icons"
+        },
+        {
+          "id": "lv-b3-icon-lens",
+          "type": "image",
+          "name": "App icon",
+          "position": {
+            "x": 878.6,
+            "y": 764
+          },
+          "size": {
+            "width": 192.6,
+            "height": 199.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-app-lens.png",
+          "objectFit": "contain",
+          "groupId": "lv-b3-g-icons",
+          "groupName": "App icons"
+        },
+        {
+          "id": "lv-b3-btn-1",
+          "type": "shape",
+          "name": "Side button",
+          "position": {
+            "x": 194,
+            "y": 1409.12
+          },
+          "size": {
+            "width": 8,
+            "height": 48.43
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3E3448",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 3,
+          "groupId": "lv-b3-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b3-btn-2",
+          "type": "shape",
+          "name": "Side button",
+          "position": {
+            "x": 194,
+            "y": 1522.68
+          },
+          "size": {
+            "width": 8,
+            "height": 111.89
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3E3448",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 3,
+          "groupId": "lv-b3-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b3-btn-3",
+          "type": "shape",
+          "name": "Side button",
+          "position": {
+            "x": 194,
+            "y": 1667.97
+          },
+          "size": {
+            "width": 8,
+            "height": 111.89
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3E3448",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 3,
+          "groupId": "lv-b3-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b3-btn-4",
+          "type": "shape",
+          "name": "Side button",
+          "position": {
+            "x": 1007,
+            "y": 1612.02
+          },
+          "size": {
+            "width": 8,
+            "height": 167
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3E3448",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 3,
+          "groupId": "lv-b3-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b3-rim",
+          "type": "shape",
+          "name": "Phone rim",
+          "position": {
+            "x": 200,
+            "y": 1101
+          },
+          "size": {
+            "width": 809,
+            "height": 1670
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#4B4155",
+          "strokeColor": "#2A2230",
+          "strokeWidth": 2,
+          "borderRadius": 128,
+          "fillGradient": {
+            "color1": "#6A5F72",
+            "color2": "#3A3142",
+            "angle": 135
+          },
+          "groupId": "lv-b3-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b3-device",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 212,
+            "y": 1113
+          },
+          "size": {
+            "width": 785,
+            "height": 1646
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#000000",
+          "screenshotSrc": "/data/projects/lavish-screen-share.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "lv-b3-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b3-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 65,
+            "y": 2027
+          },
+          "size": {
+            "width": 1075,
+            "height": 560
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 24,
+            "blur": 60,
+            "color": "rgba(90,70,30,0.22)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#F6F1E7",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 100,
+          "fillGradient": {
+            "color1": "#EFE8DA",
+            "color2": "#FBF8F1",
+            "angle": 180
+          },
+          "groupId": "lv-b3-g-wish-card",
+          "groupName": "Wish card"
+        },
+        {
+          "id": "lv-b3-photo",
+          "type": "image",
+          "name": "Product photo",
+          "position": {
+            "x": 131,
+            "y": 2096
+          },
+          "size": {
+            "width": 170,
+            "height": 197
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/lavish-share-photo.png",
+          "objectFit": "contain",
+          "groupId": "lv-b3-g-wish-card",
+          "groupName": "Wish card"
+        },
+        {
+          "id": "lv-b3-name",
+          "type": "text",
+          "name": "Name",
+          "position": {
+            "x": 324.32,
+            "y": 2087.67
+          },
+          "size": {
+            "width": 195,
+            "height": 75.92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Nadia",
+          "fontSize": 15.6,
+          "color": "#141414",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.16,
+          "groupId": "lv-b3-g-wish-card",
+          "groupName": "Wish card"
+        },
+        {
+          "id": "lv-b3-product",
+          "type": "text",
+          "name": "Product",
+          "position": {
+            "x": 323.96,
+            "y": 2155.67
+          },
+          "size": {
+            "width": 703,
+            "height": 75.92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Butter Knit Sweater - Yellow",
+          "fontSize": 15.6,
+          "color": "#141414",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.16,
+          "groupId": "lv-b3-g-wish-card",
+          "groupName": "Wish card"
+        },
+        {
+          "id": "lv-b3-price",
+          "type": "text",
+          "name": "Price",
+          "position": {
+            "x": 325.78,
+            "y": 2221.67
+          },
+          "size": {
+            "width": 163,
+            "height": 75.92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "$175",
+          "fontSize": 15.6,
+          "color": "#141414",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "lv-b3-g-wish-card",
+          "groupName": "Wish card"
+        },
+        {
+          "id": "lv-b3-button",
+          "type": "shape",
+          "name": "Add button",
+          "position": {
+            "x": 133,
+            "y": 2340
+          },
+          "size": {
+            "width": 940,
+            "height": 153
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#000000",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 76.5,
+          "groupId": "lv-b3-g-wish-card",
+          "groupName": "Wish card"
+        },
+        {
+          "id": "lv-b3-button-text",
+          "type": "text",
+          "name": "Button text",
+          "position": {
+            "x": 388.49,
+            "y": 2376.6
+          },
+          "size": {
+            "width": 409,
+            "height": 75.92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Add to wishlist",
+          "fontSize": 15.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "lv-b3-g-wish-card",
+          "groupName": "Wish card"
+        },
+        {
+          "id": "lv-b3-button-plus",
+          "type": "shape",
+          "name": "Plus",
+          "position": {
+            "x": 775.51,
+            "y": 2396.5
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M12 5v14 M5 12h14",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4.5
+          },
+          "groupId": "lv-b3-g-wish-card",
+          "groupName": "Wish card"
+        },
+        {
+          "id": "lv-b3-recognized",
+          "type": "shape",
+          "name": "Recognized badge",
+          "position": {
+            "x": 411,
+            "y": 1970
+          },
+          "size": {
+            "width": 385,
+            "height": 94
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 24,
+            "color": "rgba(30,80,200,0.28)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#2C6DF3",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 47,
+          "fillGradient": {
+            "color1": "#4483F6",
+            "color2": "#1B5FEF",
+            "angle": 180
+          },
+          "groupId": "lv-b3-g-recognized",
+          "groupName": "Recognized badge"
+        },
+        {
+          "id": "lv-b3-recognized-icon",
+          "type": "shape",
+          "name": "Recognized badge check",
+          "position": {
+            "x": 462.48,
+            "y": 1997.2
+          },
+          "size": {
+            "width": 39.6,
+            "height": 39.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M5 12.5l4.5 4.5L19 7.5",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4.95
+          },
+          "groupId": "lv-b3-g-recognized",
+          "groupName": "Recognized badge"
+        },
+        {
+          "id": "lv-b3-recognized-text",
+          "type": "text",
+          "name": "Recognized badge text",
+          "position": {
+            "x": 508.29,
+            "y": 1982.51
+          },
+          "size": {
+            "width": 282,
+            "height": 66.4
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Recognized",
+          "fontSize": 13.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.13,
+          "groupId": "lv-b3-g-recognized",
+          "groupName": "Recognized badge"
+        }
+      ]
+    },
+    {
+      "id": "lv-board-4",
+      "name": "Discover Curated Inspiration",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#F4EDDC",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#F5ECDC",
+        "color2": "#F3F0D6",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "lv-b4-glow-1",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": -267.95,
+            "y": 1382.05
+          },
+          "size": {
+            "width": 835.9,
+            "height": 835.9
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.73,
+          "blur": 161,
+          "shapeType": "circle",
+          "fillColor": "#F3DEAA",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "lv-b4-glow-2",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 873,
+            "y": 1773
+          },
+          "size": {
+            "width": 754,
+            "height": 754
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.74,
+          "blur": 145,
+          "shapeType": "circle",
+          "fillColor": "#EEF4E4",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "lv-b4-glow-3",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 783.5,
+            "y": 833.5
+          },
+          "size": {
+            "width": 533,
+            "height": 533
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.57,
+          "blur": 103,
+          "shapeType": "circle",
+          "fillColor": "#F4E8C4",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "lv-b4-room",
+          "type": "image",
+          "name": "Lookbook photo",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1206,
+            "height": 980
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover",
+          "imageSrc": "/data/projects/lavish-room.png"
+        },
+        {
+          "id": "lv-b4-btn-1",
+          "type": "shape",
+          "name": "Side button",
+          "position": {
+            "x": 190,
+            "y": 500.12
+          },
+          "size": {
+            "width": 8,
+            "height": 48.43
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3E3448",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 3,
+          "groupId": "lv-b4-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b4-btn-2",
+          "type": "shape",
+          "name": "Side button",
+          "position": {
+            "x": 190,
+            "y": 613.67
+          },
+          "size": {
+            "width": 8,
+            "height": 111.89
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3E3448",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 3,
+          "groupId": "lv-b4-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b4-btn-3",
+          "type": "shape",
+          "name": "Side button",
+          "position": {
+            "x": 190,
+            "y": 758.96
+          },
+          "size": {
+            "width": 8,
+            "height": 111.89
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3E3448",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 3,
+          "groupId": "lv-b4-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b4-btn-4",
+          "type": "shape",
+          "name": "Side button",
+          "position": {
+            "x": 1003,
+            "y": 703.02
+          },
+          "size": {
+            "width": 8,
+            "height": 167
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3E3448",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 3,
+          "groupId": "lv-b4-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b4-rim",
+          "type": "shape",
+          "name": "Phone rim",
+          "position": {
+            "x": 196,
+            "y": 192
+          },
+          "size": {
+            "width": 809,
+            "height": 1670
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#4B4155",
+          "strokeColor": "#2A2230",
+          "strokeWidth": 2,
+          "borderRadius": 128,
+          "fillGradient": {
+            "color1": "#6A5F72",
+            "color2": "#3A3142",
+            "angle": 135
+          },
+          "groupId": "lv-b4-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b4-device",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 208,
+            "y": 204
+          },
+          "size": {
+            "width": 785,
+            "height": 1646
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#000000",
+          "screenshotSrc": "/data/projects/lavish-screen-lookbook.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "lv-b4-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b4-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 13,
+            "y": 1953.9
+          },
+          "size": {
+            "width": 1180,
+            "height": 293.7
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Discover curated\ninspiration",
+          "fontSize": 35.58,
+          "color": "#141414",
+          "fontFamily": "Playfair Display",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.0581800000000001,
+          "letterSpacing": 0.44,
+          "groupId": "lv-b4-g-title",
+          "groupName": "Title"
+        },
+        {
+          "id": "lv-b4-heart",
+          "type": "shape",
+          "name": "Heart",
+          "position": {
+            "x": 190,
+            "y": 2330
+          },
+          "size": {
+            "width": 52,
+            "height": 52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M12 20.5s-8-4.6-8-10.4A4.6 4.6 0 0 1 12 7.3a4.6 4.6 0 0 1 8 2.8c0 5.8-8 10.4-8 10.4Z",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4.2
+          },
+          "groupId": "lv-b4-g-title",
+          "groupName": "Title"
+        },
+        {
+          "id": "lv-b4-subtitle",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 225.49,
+            "y": 2310.6
+          },
+          "size": {
+            "width": 803,
+            "height": 83.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Build a wishlist that is all-you",
+          "fontSize": 17.22,
+          "color": "#141414",
+          "fontFamily": "Playfair Display",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "lv-b4-g-title",
+          "groupName": "Title"
+        }
+      ]
+    },
+    {
+      "id": "lv-board-5",
+      "name": "About To Get Spoiled",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#F4EDDC",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#F5ECDC",
+        "color2": "#F3F0D6",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "lv-b5-glow-1",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": -267.95,
+            "y": 1382.05
+          },
+          "size": {
+            "width": 835.9,
+            "height": 835.9
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.73,
+          "blur": 161,
+          "shapeType": "circle",
+          "fillColor": "#F3DEAA",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "lv-b5-glow-2",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 873,
+            "y": 1773
+          },
+          "size": {
+            "width": 754,
+            "height": 754
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.74,
+          "blur": 145,
+          "shapeType": "circle",
+          "fillColor": "#EEF4E4",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "lv-b5-glow-3",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 783.5,
+            "y": 833.5
+          },
+          "size": {
+            "width": 533,
+            "height": 533
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.57,
+          "blur": 103,
+          "shapeType": "circle",
+          "fillColor": "#F4E8C4",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "lv-b5-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 13,
+            "y": 165.65
+          },
+          "size": {
+            "width": 1180,
+            "height": 294.69
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "You’re about\nto get spoiled",
+          "fontSize": 35.58,
+          "color": "#141414",
+          "fontFamily": "Playfair Display",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.0623900000000002,
+          "letterSpacing": 0.44,
+          "groupId": "lv-b5-g-title",
+          "groupName": "Title"
+        },
+        {
+          "id": "lv-b5-link",
+          "type": "shape",
+          "name": "Link",
+          "position": {
+            "x": 316,
+            "y": 546
+          },
+          "size": {
+            "width": 50,
+            "height": 50
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M10 14a4 4 0 0 0 6 .4l3-3a4 4 0 0 0-5.7-5.7l-1.2 1.2 M14 10a4 4 0 0 0-6-.4l-3 3a4 4 0 0 0 5.7 5.7l1.2-1.2",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4.2
+          },
+          "groupId": "lv-b5-g-title",
+          "groupName": "Title"
+        },
+        {
+          "id": "lv-b5-subtitle",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 356.62,
+            "y": 525.16
+          },
+          "size": {
+            "width": 548,
+            "height": 84.68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "lavish.to/yourname",
+          "fontSize": 17.4,
+          "color": "#141414",
+          "fontFamily": "Playfair Display",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "lv-b5-g-title",
+          "groupName": "Title"
+        },
+        {
+          "id": "lv-b5-btn-1",
+          "type": "shape",
+          "name": "Side button",
+          "position": {
+            "x": 190,
+            "y": 1046.12
+          },
+          "size": {
+            "width": 8,
+            "height": 48.43
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3E3448",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 3,
+          "groupId": "lv-b5-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b5-btn-2",
+          "type": "shape",
+          "name": "Side button",
+          "position": {
+            "x": 190,
+            "y": 1159.68
+          },
+          "size": {
+            "width": 8,
+            "height": 111.89
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3E3448",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 3,
+          "groupId": "lv-b5-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b5-btn-3",
+          "type": "shape",
+          "name": "Side button",
+          "position": {
+            "x": 190,
+            "y": 1304.96
+          },
+          "size": {
+            "width": 8,
+            "height": 111.89
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3E3448",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 3,
+          "groupId": "lv-b5-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b5-btn-4",
+          "type": "shape",
+          "name": "Side button",
+          "position": {
+            "x": 1003,
+            "y": 1249.02
+          },
+          "size": {
+            "width": 8,
+            "height": 167
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3E3448",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 3,
+          "groupId": "lv-b5-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b5-rim",
+          "type": "shape",
+          "name": "Phone rim",
+          "position": {
+            "x": 196,
+            "y": 738
+          },
+          "size": {
+            "width": 809,
+            "height": 1670
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#4B4155",
+          "strokeColor": "#2A2230",
+          "strokeWidth": 2,
+          "borderRadius": 128,
+          "fillGradient": {
+            "color1": "#6A5F72",
+            "color2": "#3A3142",
+            "angle": 135
+          },
+          "groupId": "lv-b5-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lv-b5-device",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 208,
+            "y": 750
+          },
+          "size": {
+            "width": 785,
+            "height": 1646
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#000000",
+          "screenshotSrc": "/data/projects/lavish-screen-lock.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "lv-b5-g-phone",
+          "groupName": "Phone"
+        }
+      ]
+    }
+  ]
+}
