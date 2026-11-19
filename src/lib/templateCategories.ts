@@ -45,6 +45,8 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     previewFit: 'contain',
     gridClassName: 'grid-cols-1 lg:grid-cols-2',
     files: [
+      'signsy-asl.json',
+      'traceberry-drawing.json',
       'wishmint-wishlist.json',
       'lavish-creator-wishlist.json',
       'postie-cards.json',

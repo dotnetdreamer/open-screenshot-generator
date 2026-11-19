@@ -79,7 +79,7 @@ Three localStorage keys carry the `open-screenshot-generator.` prefix (`.account
 
 ## Template system
 
-Templates are plain JSON project files under [public/data/projects/](../public/data/projects/) (111 of them), fetched at runtime by the start dialog. There is **no glob and no manifest file**: a template is discovered only if its filename appears in the `files` array of a category in [templateCategories.ts](../src/lib/templateCategories.ts).
+Templates are plain JSON project files under [public/data/projects/](../public/data/projects/) (113 of them), fetched at runtime by the start dialog. There is **no glob and no manifest file**: a template is discovered only if its filename appears in the `files` array of a category in [templateCategories.ts](../src/lib/templateCategories.ts).
 
 ### Where things live
 
@@ -138,7 +138,7 @@ Each `TemplateCategory` is one tab. `defaultSize` is what "Start blank" produces
 
 | id | Tab label | Filename prefix | defaultSize | Files |
 |---|---|---|---|---|
-| `screenshots` | App Screenshots | none (`tunio-music.json`) | 1206 x 2622 | 72 |
+| `screenshots` | App Screenshots | none (`tunio-music.json`) | 1206 x 2622 | 74 |
 | `apple-watch` | Apple Watch | `watch-*` | 422 x 514 | 6 |
 | `mac` | Mac | `mac-*` | 2560 x 1600 | 12 |
 | `app-preview` | App Preview Videos | `pv-*` | 886 x 1920 | 6 |

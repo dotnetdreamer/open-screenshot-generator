@@ -8,6 +8,8 @@ const path = require('path');
 const { launch, startBlankProject, sleep, exportArtboards, clickTab, dismissTipsDialog, waitForProjectFonts, APP_URL } = require('./lib');
 
 const TEMPLATES = [
+  { slug: 'signsy-asl', card: 'Signsy ASL', boards: 6 },
+  { slug: 'traceberry-drawing', card: 'Traceberry AR Drawing', boards: 6 },
   { slug: 'wishmint-wishlist', card: 'Wishmint Wishlist', boards: 5 },
   { slug: 'lavish-creator-wishlist', card: 'Lavish Creator Wishlist', boards: 5 },
   { slug: 'postie-cards', card: 'Postie Cards', boards: 5 },

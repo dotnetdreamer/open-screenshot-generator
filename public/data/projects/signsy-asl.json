@@ -1,0 +1,3547 @@
+{
+  "id": "template_signsy_asl",
+  "name": "Signsy ASL",
+  "description": "App Store & Play Store screenshots for a sign language, language learning or kids education app. Sky blue, green and orange boards with heavy Poppins headlines, a cartoon signer who points, holds a clipboard and signs, glossy 3D objects (lightbulb, brain, puzzle, trophy, flame), a learning path map, a video quiz, streak and stat cards, all grouped into editable layers.",
+  "previewImage": "/data/projects/previews/signsy-asl.png",
+  "timestamp": "2026-11-19T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "sg-board-1",
+      "name": "Learn ASL The Easy Way",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#7CA3FD",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#80A8FF",
+        "color2": "#7298F4",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "sg-b1-cloud-1",
+          "type": "image",
+          "name": "Cloud",
+          "position": {
+            "x": 950,
+            "y": 450
+          },
+          "size": {
+            "width": 380,
+            "height": 257
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.9,
+          "imageSrc": "/elements/images/objects/object-cloud-puff.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "sg-b1-cloud-2",
+          "type": "image",
+          "name": "Cloud",
+          "position": {
+            "x": -150,
+            "y": 1900
+          },
+          "size": {
+            "width": 340,
+            "height": 230
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.6,
+          "imageSrc": "/elements/images/objects/object-cloud-puff.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "sg-b1-h-learn",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 386.81,
+            "y": 54.56
+          },
+          "size": {
+            "width": 416,
+            "height": 205.64
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 8,
+            "blur": 0,
+            "color": "rgba(36,70,170,0.42)"
+          },
+          "content": "Learn",
+          "fontSize": 42.26,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -2.01,
+          "groupId": "sg-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sg-b1-h-asl",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 261.4,
+            "y": 159.93
+          },
+          "size": {
+            "width": 695,
+            "height": 476.57
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 0,
+            "color": "rgba(36,70,170,0.42)"
+          },
+          "content": "ASL",
+          "fontSize": 97.93,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 4.16,
+          "groupId": "sg-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sg-b1-h-the",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 143.49,
+            "y": 593.54
+          },
+          "size": {
+            "width": 245,
+            "height": 152.25
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 8,
+            "blur": 0,
+            "color": "rgba(36,70,170,0.42)"
+          },
+          "content": "The",
+          "fontSize": 31.28,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.47,
+          "groupId": "sg-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sg-b1-h-way",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 777.97,
+            "y": 588.58
+          },
+          "size": {
+            "width": 260,
+            "height": 152.5
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 8,
+            "blur": 0,
+            "color": "rgba(36,70,170,0.42)"
+          },
+          "content": "Way",
+          "fontSize": 31.34,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -3.13,
+          "groupId": "sg-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sg-b1-easy-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 406,
+            "y": 600
+          },
+          "size": {
+            "width": 360,
+            "height": 138
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 7,
+            "blur": 0,
+            "color": "rgba(36,70,170,0.42)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 69,
+          "groupId": "sg-b1-g-easy",
+          "groupName": "Label"
+        },
+        {
+          "id": "sg-b1-easy-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": 462.86,
+            "y": 627
+          },
+          "size": {
+            "width": 84,
+            "height": 84
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/signsy-emoji-stopwatch.png",
+          "objectFit": "contain",
+          "groupId": "sg-b1-g-easy",
+          "groupName": "Label"
+        },
+        {
+          "id": "sg-b1-easy-text",
+          "type": "text",
+          "name": "Label text",
+          "position": {
+            "x": 532.52,
+            "y": 622.25
+          },
+          "size": {
+            "width": 199,
+            "height": 93.44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Easy",
+          "fontSize": 19.2,
+          "color": "#1B2340",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b1-g-easy",
+          "groupName": "Label"
+        },
+        {
+          "id": "sg-b1-card-left-bg",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": -690,
+            "y": 1001
+          },
+          "size": {
+            "width": 816,
+            "height": 1199
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 40,
+            "color": "rgba(30,50,120,0.22)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 56,
+          "groupId": "sg-b1-g-card-left",
+          "groupName": "Video card"
+        },
+        {
+          "id": "sg-b1-card-left-video",
+          "type": "image",
+          "name": "Video",
+          "position": {
+            "x": -670,
+            "y": 1024
+          },
+          "size": {
+            "width": 780,
+            "height": 1010
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/signsy-video-chest.png",
+          "objectFit": "contain",
+          "groupId": "sg-b1-g-card-left",
+          "groupName": "Video card"
+        },
+        {
+          "id": "sg-b1-card-right-bg",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 1066,
+            "y": 1001
+          },
+          "size": {
+            "width": 816,
+            "height": 1199
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 40,
+            "color": "rgba(30,50,120,0.22)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 56,
+          "groupId": "sg-b1-g-card-right",
+          "groupName": "Video card"
+        },
+        {
+          "id": "sg-b1-card-right-video",
+          "type": "image",
+          "name": "Video",
+          "position": {
+            "x": 1086,
+            "y": 1024
+          },
+          "size": {
+            "width": 780,
+            "height": 1010
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/signsy-video-point.png",
+          "objectFit": "contain",
+          "groupId": "sg-b1-g-card-right",
+          "groupName": "Video card"
+        },
+        {
+          "id": "sg-b1-card-bg",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 188,
+            "y": 961
+          },
+          "size": {
+            "width": 816,
+            "height": 1199
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 46,
+            "color": "rgba(30,50,120,0.28)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 56,
+          "groupId": "sg-b1-g-card",
+          "groupName": "Video card"
+        },
+        {
+          "id": "sg-b1-card-video",
+          "type": "shape",
+          "name": "Video",
+          "position": {
+            "x": 208,
+            "y": 984
+          },
+          "size": {
+            "width": 780,
+            "height": 1010
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#D9DCE3",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 44,
+          "fillGradient": {
+            "color1": "#EEF0F4",
+            "color2": "#A9AEB9",
+            "angle": 180
+          },
+          "groupId": "sg-b1-g-card",
+          "groupName": "Video card"
+        },
+        {
+          "id": "sg-b1-signer",
+          "type": "image",
+          "name": "Signer",
+          "position": {
+            "x": 84.73,
+            "y": 784.64
+          },
+          "size": {
+            "width": 866.27,
+            "height": 1224.36
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/mascots/mascot-signer-ily.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "sg-b1-play-bg",
+          "type": "shape",
+          "name": "Play button",
+          "position": {
+            "x": 252,
+            "y": 1869
+          },
+          "size": {
+            "width": 76,
+            "height": 76
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.95,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "sg-b1-g-controls",
+          "groupName": "Video controls"
+        },
+        {
+          "id": "sg-b1-play-icon",
+          "type": "shape",
+          "name": "Play",
+          "position": {
+            "x": 278,
+            "y": 1889
+          },
+          "size": {
+            "width": 30,
+            "height": 36
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#1E2A44",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M2 2 L28 18 L2 34 Z",
+          "specialProps": {
+            "viewBox": "0 0 30 36"
+          },
+          "groupId": "sg-b1-g-controls",
+          "groupName": "Video controls"
+        },
+        {
+          "id": "sg-b1-track",
+          "type": "shape",
+          "name": "Progress",
+          "position": {
+            "x": 372,
+            "y": 1901
+          },
+          "size": {
+            "width": 560,
+            "height": 12
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.55,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 6,
+          "groupId": "sg-b1-g-controls",
+          "groupName": "Video controls"
+        },
+        {
+          "id": "sg-b1-track-done",
+          "type": "shape",
+          "name": "Progress",
+          "position": {
+            "x": 372,
+            "y": 1901
+          },
+          "size": {
+            "width": 330,
+            "height": 12
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 6,
+          "groupId": "sg-b1-g-controls",
+          "groupName": "Video controls"
+        },
+        {
+          "id": "sg-b1-card-caption",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 188,
+            "y": 1994
+          },
+          "size": {
+            "width": 816,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 0
+        },
+        {
+          "id": "sg-b1-card-foot",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 188,
+            "y": 2070
+          },
+          "size": {
+            "width": 816,
+            "height": 90
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 56
+        },
+        {
+          "id": "sg-b1-caption",
+          "type": "text",
+          "name": "Caption",
+          "position": {
+            "x": 262.48,
+            "y": 2045.24
+          },
+          "size": {
+            "width": 669,
+            "height": 63.79
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "What does this sign mean?",
+          "fontSize": 12.49,
+          "color": "#1B2340",
+          "fontFamily": "Poppins",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.62
+        },
+        {
+          "id": "sg-b1-laurel-l",
+          "type": "shape",
+          "name": "Laurel left",
+          "position": {
+            "x": 214,
+            "y": 2244
+          },
+          "size": {
+            "width": 120,
+            "height": 240
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#5A84E8",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M51.68 8.87 A40 20 78 0 1 68.32 87.13 A40 20 78 0 1 51.68 8.87 Z M3.41 71.36 A40 20 41 0 1 63.79 123.84 A40 20 41 0 1 3.41 71.36 Z M36.07 136.09 A38 20 39 0 1 95.13 183.91 A38 20 39 0 1 36.07 136.09 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 200"
+          },
+          "groupId": "sg-b1-g-badge",
+          "groupName": "Rating"
+        },
+        {
+          "id": "sg-b1-laurel-r",
+          "type": "shape",
+          "name": "Laurel right",
+          "position": {
+            "x": 872,
+            "y": 2244
+          },
+          "size": {
+            "width": 120,
+            "height": 240
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#5A84E8",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M48.32 8.87 A40 20 102 0 1 31.68 87.13 A40 20 102 0 1 48.32 8.87 Z M96.59 71.36 A40 20 139 0 1 36.21 123.84 A40 20 139 0 1 96.59 71.36 Z M63.93 136.09 A38 20 141 0 1 4.87 183.91 A38 20 141 0 1 63.93 136.09 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 200"
+          },
+          "groupId": "sg-b1-g-badge",
+          "groupName": "Rating"
+        },
+        {
+          "id": "sg-b1-count",
+          "type": "text",
+          "name": "Count",
+          "position": {
+            "x": 410.31,
+            "y": 2255.99
+          },
+          "size": {
+            "width": 376,
+            "height": 135.93
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 8,
+            "blur": 0,
+            "color": "rgba(36,70,170,0.42)"
+          },
+          "content": "1,500+",
+          "fontSize": 27.93,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 1.4,
+          "groupId": "sg-b1-g-badge",
+          "groupName": "Rating"
+        },
+        {
+          "id": "sg-b1-count-label",
+          "type": "text",
+          "name": "Count label",
+          "position": {
+            "x": 328.77,
+            "y": 2374.09
+          },
+          "size": {
+            "width": 541,
+            "height": 85.88
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 5,
+            "blur": 0,
+            "color": "rgba(36,70,170,0.42)"
+          },
+          "content": "ASL Flashcards",
+          "fontSize": 17.65,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.88,
+          "groupId": "sg-b1-g-badge",
+          "groupName": "Rating"
+        },
+        {
+          "id": "sg-b1-stars",
+          "type": "shape",
+          "name": "Stars",
+          "position": {
+            "x": 468,
+            "y": 2484
+          },
+          "size": {
+            "width": 256,
+            "height": 44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#F7C536",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M22 0 L27.82 13.99 L42.92 15.2 L31.42 25.06 L34.93 39.8 L22 31.9 L9.07 39.8 L12.58 25.06 L1.08 15.2 L16.18 13.99 Z M75 0 L80.82 13.99 L95.92 15.2 L84.42 25.06 L87.93 39.8 L75 31.9 L62.07 39.8 L65.58 25.06 L54.08 15.2 L69.18 13.99 Z M128 0 L133.82 13.99 L148.92 15.2 L137.42 25.06 L140.93 39.8 L128 31.9 L115.07 39.8 L118.58 25.06 L107.08 15.2 L122.18 13.99 Z M181 0 L186.82 13.99 L201.92 15.2 L190.42 25.06 L193.93 39.8 L181 31.9 L168.07 39.8 L171.58 25.06 L160.08 15.2 L175.18 13.99 Z M234 0 L239.82 13.99 L254.92 15.2 L243.42 25.06 L246.93 39.8 L234 31.9 L221.07 39.8 L224.58 25.06 L213.08 15.2 L228.18 13.99 Z",
+          "specialProps": {
+            "viewBox": "0 0 256 44"
+          },
+          "fillGradient": {
+            "color1": "#FFE07A",
+            "color2": "#F2B52A",
+            "angle": 180
+          },
+          "groupId": "sg-b1-g-badge",
+          "groupName": "Rating"
+        }
+      ]
+    },
+    {
+      "id": "sg-board-2",
+      "name": "Progress Step by Step",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#6894F6",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#6391F6",
+        "color2": "#9FC5F6",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "sg-b2-cloud-1",
+          "type": "image",
+          "name": "Cloud",
+          "position": {
+            "x": -130,
+            "y": 520
+          },
+          "size": {
+            "width": 400,
+            "height": 270
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.95,
+          "imageSrc": "/elements/images/objects/object-cloud-puff.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "sg-b2-cloud-2",
+          "type": "image",
+          "name": "Cloud",
+          "position": {
+            "x": 1050,
+            "y": 150
+          },
+          "size": {
+            "width": 300,
+            "height": 203
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.85,
+          "imageSrc": "/elements/images/objects/object-cloud-puff.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "sg-b2-h-1",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 97.83,
+            "y": 49.61
+          },
+          "size": {
+            "width": 1023,
+            "height": 285.75
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 11,
+            "blur": 0,
+            "color": "rgba(36,70,170,0.42)"
+          },
+          "content": "Progress",
+          "fontSize": 58.72,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 2.94,
+          "groupId": "sg-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sg-b2-h-2",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 240.18,
+            "y": 320.5
+          },
+          "size": {
+            "width": 722,
+            "height": 145.12
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 8,
+            "blur": 0,
+            "color": "rgba(36,70,170,0.42)"
+          },
+          "content": "Step by Step",
+          "fontSize": 29.82,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 1.12,
+          "groupId": "sg-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sg-b2-units-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 158,
+            "y": 525
+          },
+          "size": {
+            "width": 830,
+            "height": 150
+          },
+          "rotation": -3.4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 7,
+            "blur": 0,
+            "color": "rgba(36,70,170,0.42)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 75,
+          "groupId": "sg-b2-g-units",
+          "groupName": "Label"
+        },
+        {
+          "id": "sg-b2-units-text",
+          "type": "text",
+          "name": "Label text",
+          "position": {
+            "x": 231.03,
+            "y": 551.98
+          },
+          "size": {
+            "width": 685,
+            "height": 96.36
+          },
+          "rotation": -3.4,
+          "scale": 1,
+          "content": "12 units · 72 lessons",
+          "fontSize": 19.8,
+          "color": "#1B2340",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b2-g-units",
+          "groupName": "Label"
+        },
+        {
+          "id": "sg-b2-peek",
+          "type": "image",
+          "name": "Signer",
+          "position": {
+            "x": -458.36,
+            "y": 988.18
+          },
+          "size": {
+            "width": 666.36,
+            "height": 941.82
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/mascots/mascot-signer-ily.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "sg-b2-phone-rim",
+          "type": "shape",
+          "name": "Phone outline",
+          "position": {
+            "x": 100,
+            "y": 788
+          },
+          "size": {
+            "width": 1004,
+            "height": 2079.65
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 24,
+            "blur": 50,
+            "color": "rgba(20,40,110,0.28)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#E6E9EE",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 149.2
+        },
+        {
+          "id": "sg-b2-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 112,
+            "y": 800
+          },
+          "size": {
+            "width": 980,
+            "height": 2055.65
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#1A1A1A",
+          "screenshotSrc": "/data/projects/signsy-screen-path.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "sg-b2-signer",
+          "type": "image",
+          "name": "Signer",
+          "position": {
+            "x": 893.82,
+            "y": 947.09
+          },
+          "size": {
+            "width": 1338.18,
+            "height": 1506.91
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/mascots/mascot-signer-point.png",
+          "objectFit": "contain"
+        }
+      ]
+    },
+    {
+      "id": "sg-board-3",
+      "name": "Practice Your Skills Every Day",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#6D9BF0",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#6A99F3",
+        "color2": "#12AE60",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "sg-b3-h-1",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 125.56,
+            "y": 56.35
+          },
+          "size": {
+            "width": 953,
+            "height": 289.52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 11,
+            "blur": 0,
+            "color": "rgba(36,70,170,0.42)"
+          },
+          "content": "Practice",
+          "fontSize": 59.49,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 1.93,
+          "groupId": "sg-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sg-b3-h-3",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 313.58,
+            "y": 518.63
+          },
+          "size": {
+            "width": 571,
+            "height": 149.47
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 8,
+            "blur": 0,
+            "color": "rgba(36,70,170,0.42)"
+          },
+          "content": "Every Day",
+          "fontSize": 30.71,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.15,
+          "groupId": "sg-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sg-b3-skills-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 325,
+            "y": 337
+          },
+          "size": {
+            "width": 556,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 7,
+            "blur": 0,
+            "color": "rgba(36,70,170,0.42)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 75,
+          "groupId": "sg-b3-g-skills",
+          "groupName": "Label"
+        },
+        {
+          "id": "sg-b3-skills-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": 391.31,
+            "y": 372
+          },
+          "size": {
+            "width": 80,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/signsy-emoji-brain.png",
+          "objectFit": "contain",
+          "groupId": "sg-b3-g-skills",
+          "groupName": "Label"
+        },
+        {
+          "id": "sg-b3-skills-text",
+          "type": "text",
+          "name": "Label text",
+          "position": {
+            "x": 466.62,
+            "y": 367
+          },
+          "size": {
+            "width": 373,
+            "height": 90.52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Your Skills",
+          "fontSize": 18.6,
+          "color": "#1B2340",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b3-g-skills",
+          "groupName": "Label"
+        },
+        {
+          "id": "sg-b3-card-fix-bg",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 58,
+            "y": 765
+          },
+          "size": {
+            "width": 1067,
+            "height": 330
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 0,
+            "color": "#E2A15E"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#F8C48D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 48,
+          "fillGradient": {
+            "color1": "#FFE6C9",
+            "color2": "#F8C48D",
+            "angle": 90
+          },
+          "groupId": "sg-b3-g-card-fix",
+          "groupName": "Practice card"
+        },
+        {
+          "id": "sg-b3-card-fix-title",
+          "type": "text",
+          "name": "Card title",
+          "position": {
+            "x": 133.87,
+            "y": 829.52
+          },
+          "size": {
+            "width": 655,
+            "height": 144.38
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "content": "Fix Mistakes",
+          "fontSize": 29.67,
+          "color": "#1B2340",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.3,
+          "groupId": "sg-b3-g-card-fix",
+          "groupName": "Practice card"
+        },
+        {
+          "id": "sg-b3-card-fix-sub",
+          "type": "text",
+          "name": "Card text",
+          "position": {
+            "x": 137.08,
+            "y": 947.06
+          },
+          "size": {
+            "width": 525,
+            "height": 60.76
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "content": "Review what you missed",
+          "fontSize": 11.66,
+          "color": "#5D6684",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "sg-b3-g-card-fix",
+          "groupName": "Practice card"
+        },
+        {
+          "id": "sg-b3-card-fix-icon",
+          "type": "image",
+          "name": "Icon",
+          "position": {
+            "x": 760,
+            "y": 644
+          },
+          "size": {
+            "width": 400,
+            "height": 436
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-lightbulb.png",
+          "objectFit": "contain",
+          "groupId": "sg-b3-g-card-fix",
+          "groupName": "Practice card"
+        },
+        {
+          "id": "sg-b3-card-quiz-bg",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 46,
+            "y": 1138
+          },
+          "size": {
+            "width": 1067,
+            "height": 330
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 0,
+            "color": "#A6B0E6"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#CBD2FA",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 48,
+          "fillGradient": {
+            "color1": "#ECEEFF",
+            "color2": "#CBD2FA",
+            "angle": 90
+          },
+          "groupId": "sg-b3-g-card-quiz",
+          "groupName": "Practice card"
+        },
+        {
+          "id": "sg-b3-card-quiz-title",
+          "type": "text",
+          "name": "Card title",
+          "position": {
+            "x": 125.13,
+            "y": 1205.67
+          },
+          "size": {
+            "width": 509,
+            "height": 126.82
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "content": "Quick Quiz",
+          "fontSize": 26.06,
+          "color": "#1B2340",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.26,
+          "groupId": "sg-b3-g-card-quiz",
+          "groupName": "Practice card"
+        },
+        {
+          "id": "sg-b3-card-quiz-sub",
+          "type": "text",
+          "name": "Card text",
+          "position": {
+            "x": 125.09,
+            "y": 1320.02
+          },
+          "size": {
+            "width": 555,
+            "height": 60.64
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "content": "Mixed questions, all topics",
+          "fontSize": 11.63,
+          "color": "#5D6684",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "sg-b3-g-card-quiz",
+          "groupName": "Practice card"
+        },
+        {
+          "id": "sg-b3-card-quiz-icon",
+          "type": "image",
+          "name": "Icon",
+          "position": {
+            "x": 810.57,
+            "y": 1173.39
+          },
+          "size": {
+            "width": 292.57,
+            "height": 267.61
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-brain.png",
+          "objectFit": "contain",
+          "groupId": "sg-b3-g-card-quiz",
+          "groupName": "Practice card"
+        },
+        {
+          "id": "sg-b3-card-pairs-bg",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 81,
+            "y": 1486
+          },
+          "size": {
+            "width": 1067,
+            "height": 330
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 0,
+            "color": "#E096B4"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#F9BFD6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 48,
+          "fillGradient": {
+            "color1": "#FFE4EF",
+            "color2": "#F9BFD6",
+            "angle": 90
+          },
+          "groupId": "sg-b3-g-card-pairs",
+          "groupName": "Practice card"
+        },
+        {
+          "id": "sg-b3-card-pairs-title",
+          "type": "text",
+          "name": "Card title",
+          "position": {
+            "x": 156.87,
+            "y": 1550.52
+          },
+          "size": {
+            "width": 635,
+            "height": 144.38
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "content": "Match Pairs",
+          "fontSize": 29.67,
+          "color": "#1B2340",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.3,
+          "groupId": "sg-b3-g-card-pairs",
+          "groupName": "Practice card"
+        },
+        {
+          "id": "sg-b3-card-pairs-sub",
+          "type": "text",
+          "name": "Card text",
+          "position": {
+            "x": 160.77,
+            "y": 1667.95
+          },
+          "size": {
+            "width": 404,
+            "height": 60.23
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "content": "Signs to meanings",
+          "fontSize": 11.52,
+          "color": "#5D6684",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "sg-b3-g-card-pairs",
+          "groupName": "Practice card"
+        },
+        {
+          "id": "sg-b3-card-pairs-icon",
+          "type": "image",
+          "name": "Icon",
+          "position": {
+            "x": 770.91,
+            "y": 1514.81
+          },
+          "size": {
+            "width": 355.76,
+            "height": 282.19
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-puzzle.png",
+          "objectFit": "contain",
+          "groupId": "sg-b3-g-card-pairs",
+          "groupName": "Practice card"
+        },
+        {
+          "id": "sg-b3-signer",
+          "type": "image",
+          "name": "Signer",
+          "position": {
+            "x": -681,
+            "y": 1276
+          },
+          "size": {
+            "width": 1560,
+            "height": 1560
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/signsy-signer-clipboard-tall.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "sg-b3-seal-ring",
+          "type": "image",
+          "name": "Badge ring",
+          "position": {
+            "x": 700,
+            "y": 2010
+          },
+          "size": {
+            "width": 660,
+            "height": 660
+          },
+          "rotation": -10,
+          "scale": 1,
+          "imageSrc": "/data/projects/signsy-seal.png",
+          "objectFit": "contain",
+          "groupId": "sg-b3-g-seal",
+          "groupName": "Badge"
+        },
+        {
+          "id": "sg-b3-seal-value",
+          "type": "text",
+          "name": "Badge value",
+          "position": {
+            "x": 861.01,
+            "y": 2203.67
+          },
+          "size": {
+            "width": 324,
+            "height": 192.72
+          },
+          "rotation": -10,
+          "scale": 1,
+          "content": "99%",
+          "fontSize": 39.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b3-g-seal",
+          "groupName": "Badge"
+        },
+        {
+          "id": "sg-b3-seal-label-1",
+          "type": "text",
+          "name": "Badge text",
+          "position": {
+            "x": 936.01,
+            "y": 2377.02
+          },
+          "size": {
+            "width": 192,
+            "height": 70.8
+          },
+          "rotation": -10,
+          "scale": 1,
+          "content": "SIGNS",
+          "fontSize": 14.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b3-g-seal",
+          "groupName": "Badge"
+        },
+        {
+          "id": "sg-b3-seal-label-2",
+          "type": "text",
+          "name": "Badge text",
+          "position": {
+            "x": 888.43,
+            "y": 2433.02
+          },
+          "size": {
+            "width": 304,
+            "height": 70.8
+          },
+          "rotation": -10,
+          "scale": 1,
+          "content": "MASTERED",
+          "fontSize": 14.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b3-g-seal",
+          "groupName": "Badge"
+        }
+      ]
+    },
+    {
+      "id": "sg-board-4",
+      "name": "Watch The Sign And Answer",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#80ADE6",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#89B3E3",
+        "color2": "#4DDF96",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "sg-b4-phone-rim",
+          "type": "shape",
+          "name": "Phone outline",
+          "position": {
+            "x": 91,
+            "y": 93
+          },
+          "size": {
+            "width": 1024,
+            "height": 2121.61
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 24,
+            "blur": 50,
+            "color": "rgba(20,40,110,0.28)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#E9ECF1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 152
+        },
+        {
+          "id": "sg-b4-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 103,
+            "y": 105
+          },
+          "size": {
+            "width": 1000,
+            "height": 2097.61
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#1A1A1A",
+          "screenshotSrc": "/data/projects/signsy-screen-quiz.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "sg-b4-wave",
+          "type": "shape",
+          "name": "Top panel",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1206,
+            "height": 700
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 30,
+            "color": "rgba(30,60,150,0.25)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#7EA3FE",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 0 H1206 V585 C1010 660 840 545 610 590 C380 636 200 700 0 610 Z",
+          "specialProps": {
+            "viewBox": "0 0 1206 700"
+          }
+        },
+        {
+          "id": "sg-b4-h-1",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 109.62,
+            "y": 103.54
+          },
+          "size": {
+            "width": 581,
+            "height": 152.25
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 8,
+            "blur": 0,
+            "color": "rgba(36,70,170,0.42)"
+          },
+          "content": "Watch the",
+          "fontSize": 31.28,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.63,
+          "groupId": "sg-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sg-b4-h-2",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 88.1,
+            "y": 233.34
+          },
+          "size": {
+            "width": 1020,
+            "height": 286
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 0,
+            "color": "rgba(36,70,170,0.42)"
+          },
+          "content": "& Answer",
+          "fontSize": 58.77,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.15,
+          "groupId": "sg-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sg-b4-sign-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 710,
+            "y": 103
+          },
+          "size": {
+            "width": 350,
+            "height": 150
+          },
+          "rotation": 4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 7,
+            "blur": 0,
+            "color": "rgba(36,70,170,0.42)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 75,
+          "groupId": "sg-b4-g-sign",
+          "groupName": "Label"
+        },
+        {
+          "id": "sg-b4-sign-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": 772.09,
+            "y": 132.9
+          },
+          "size": {
+            "width": 80,
+            "height": 80
+          },
+          "rotation": 4,
+          "scale": 1,
+          "imageSrc": "/data/projects/signsy-emoji-eyes.png",
+          "objectFit": "contain",
+          "groupId": "sg-b4-g-sign",
+          "groupName": "Label"
+        },
+        {
+          "id": "sg-b4-sign-text",
+          "type": "text",
+          "name": "Label text",
+          "position": {
+            "x": 838.86,
+            "y": 136.21
+          },
+          "size": {
+            "width": 185,
+            "height": 90.52
+          },
+          "rotation": 4,
+          "scale": 1,
+          "content": "Sign",
+          "fontSize": 18.6,
+          "color": "#1B2340",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b4-g-sign",
+          "groupName": "Label"
+        },
+        {
+          "id": "sg-b4-signer",
+          "type": "image",
+          "name": "Signer",
+          "position": {
+            "x": 403.57,
+            "y": 480.01
+          },
+          "size": {
+            "width": 434.89,
+            "height": 841.99
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/mascots/mascot-signer-chest.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "sg-b4-play-bg",
+          "type": "shape",
+          "name": "Play button",
+          "position": {
+            "x": 233,
+            "y": 1173
+          },
+          "size": {
+            "width": 76,
+            "height": 76
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.95,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "sg-b4-g-controls",
+          "groupName": "Video controls"
+        },
+        {
+          "id": "sg-b4-play-icon",
+          "type": "shape",
+          "name": "Play",
+          "position": {
+            "x": 259,
+            "y": 1193
+          },
+          "size": {
+            "width": 30,
+            "height": 36
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#1E2A44",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M2 2 L28 18 L2 34 Z",
+          "specialProps": {
+            "viewBox": "0 0 30 36"
+          },
+          "groupId": "sg-b4-g-controls",
+          "groupName": "Video controls"
+        },
+        {
+          "id": "sg-b4-track",
+          "type": "shape",
+          "name": "Progress",
+          "position": {
+            "x": 352,
+            "y": 1205
+          },
+          "size": {
+            "width": 640,
+            "height": 12
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.55,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 6,
+          "groupId": "sg-b4-g-controls",
+          "groupName": "Video controls"
+        },
+        {
+          "id": "sg-b4-track-done",
+          "type": "shape",
+          "name": "Progress",
+          "position": {
+            "x": 352,
+            "y": 1205
+          },
+          "size": {
+            "width": 370,
+            "height": 12
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 6,
+          "groupId": "sg-b4-g-controls",
+          "groupName": "Video controls"
+        },
+        {
+          "id": "sg-b4-burst",
+          "type": "shape",
+          "name": "Burst",
+          "position": {
+            "x": -110,
+            "y": 2160
+          },
+          "size": {
+            "width": 230,
+            "height": 230
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#2FB874",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M102.44 50 L101.53 52.25 L99.03 54.29 L95.61 56 L92.13 57.43 L89.46 58.75 L88.21 60.24 L88.55 62.16 L90.2 64.63 L92.5 67.6 L94.61 70.8 L95.75 73.82 L95.41 76.22 L93.5 77.71 L90.32 78.23 L86.49 78 L82.77 77.5 L79.8 77.31 L77.97 77.97 L77.31 79.8 L77.5 82.77 L78 86.49 L78.23 90.32 L77.71 93.5 L76.22 95.41 L73.82 95.75 L70.8 94.61 L67.6 92.5 L64.63 90.2 L62.16 88.55 L60.24 88.21 L58.75 89.46 L57.43 92.13 L56 95.61 L54.29 99.03 L52.25 101.53 L50 102.44 L47.75 101.53 L45.71 99.03 L44 95.61 L42.57 92.13 L41.25 89.46 L39.76 88.21 L37.84 88.55 L35.37 90.2 L32.4 92.5 L29.2 94.61 L26.18 95.75 L23.78 95.41 L22.29 93.5 L21.77 90.32 L22 86.49 L22.5 82.77 L22.69 79.8 L22.03 77.97 L20.2 77.31 L17.23 77.5 L13.51 78 L9.68 78.23 L6.5 77.71 L4.59 76.22 L4.25 73.82 L5.39 70.8 L7.5 67.6 L9.8 64.63 L11.45 62.16 L11.79 60.24 L10.54 58.75 L7.87 57.43 L4.39 56 L0.97 54.29 L-1.53 52.25 L-2.44 50 L-1.53 47.75 L0.97 45.71 L4.39 44 L7.87 42.57 L10.54 41.25 L11.79 39.76 L11.45 37.84 L9.8 35.37 L7.5 32.4 L5.39 29.2 L4.25 26.18 L4.59 23.78 L6.5 22.29 L9.68 21.77 L13.51 22 L17.23 22.5 L20.2 22.69 L22.03 22.03 L22.69 20.2 L22.5 17.23 L22 13.51 L21.77 9.68 L22.29 6.5 L23.78 4.59 L26.18 4.25 L29.2 5.39 L32.4 7.5 L35.37 9.8 L37.84 11.45 L39.76 11.79 L41.25 10.54 L42.57 7.87 L44 4.39 L45.71 0.97 L47.75 -1.53 L50 -2.44 L52.25 -1.53 L54.29 0.97 L56 4.39 L57.43 7.87 L58.75 10.54 L60.24 11.79 L62.16 11.45 L64.63 9.8 L67.6 7.5 L70.8 5.39 L73.82 4.25 L76.22 4.59 L77.71 6.5 L78.23 9.68 L78 13.51 L77.5 17.23 L77.31 20.2 L77.97 22.03 L79.8 22.69 L82.77 22.5 L86.49 22 L90.32 21.77 L93.5 22.29 L95.41 23.78 L95.75 26.18 L94.61 29.2 L92.5 32.4 L90.2 35.37 L88.55 37.84 L88.21 39.76 L89.46 41.25 L92.13 42.57 L95.61 44 L99.03 45.71 L101.53 47.75 L102.44 50 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "sg-b4-correct-bg",
+          "type": "shape",
+          "name": "Button",
+          "position": {
+            "x": 232,
+            "y": 2318
+          },
+          "size": {
+            "width": 742,
+            "height": 196
+          },
+          "rotation": -2,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 0,
+            "color": "#1E8C45"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#3CC66A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 98,
+          "fillGradient": {
+            "color1": "#62DD86",
+            "color2": "#2EB55B",
+            "angle": 180
+          },
+          "groupId": "sg-b4-g-correct",
+          "groupName": "Correct button"
+        },
+        {
+          "id": "sg-b4-correct-check",
+          "type": "shape",
+          "name": "Check",
+          "position": {
+            "x": 300,
+            "y": 2384
+          },
+          "size": {
+            "width": 64,
+            "height": 56
+          },
+          "rotation": -2,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4 30 L22 48 L60 8",
+          "specialProps": {
+            "viewBox": "0 0 64 56",
+            "strokeOnly": true,
+            "baseStrokeWidth": 11
+          },
+          "groupId": "sg-b4-g-correct",
+          "groupName": "Correct button"
+        },
+        {
+          "id": "sg-b4-correct-text",
+          "type": "text",
+          "name": "Button text",
+          "position": {
+            "x": 374.93,
+            "y": 2346.53
+          },
+          "size": {
+            "width": 436,
+            "height": 131.4
+          },
+          "rotation": -2,
+          "scale": 1,
+          "content": "Correct!",
+          "fontSize": 27,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b4-g-correct",
+          "groupName": "Correct button"
+        },
+        {
+          "id": "sg-b4-correct-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": 812,
+            "y": 2356
+          },
+          "size": {
+            "width": 100,
+            "height": 100
+          },
+          "rotation": -2,
+          "scale": 1,
+          "imageSrc": "/data/projects/signsy-emoji-party.png",
+          "objectFit": "contain",
+          "groupId": "sg-b4-g-correct",
+          "groupName": "Correct button"
+        }
+      ]
+    },
+    {
+      "id": "sg-board-5",
+      "name": "Learn 10 Signs Every Lesson",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#2CC35A",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#2AC25A",
+        "color2": "#34C45E",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "sg-b5-glow-1",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 197,
+            "y": 857
+          },
+          "size": {
+            "width": 806,
+            "height": 806
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.7,
+          "blur": 155,
+          "shapeType": "circle",
+          "fillColor": "#9BE7AE",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "sg-b5-confetti",
+          "type": "image",
+          "name": "Confetti",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1206,
+            "height": 1300
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.85,
+          "imageSrc": "/elements/images/stickers/sticker-confetti.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "sg-b5-h-1",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 431.5,
+            "y": 70.2
+          },
+          "size": {
+            "width": 344,
+            "height": 146
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 8,
+            "blur": 0,
+            "color": "rgba(20,120,50,0.42)"
+          },
+          "content": "Learn",
+          "fontSize": 30,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.75,
+          "groupId": "sg-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sg-b5-h-2",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 139.77,
+            "y": 203.81
+          },
+          "size": {
+            "width": 939,
+            "height": 254.26
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 11,
+            "blur": 0,
+            "color": "rgba(20,120,50,0.42)"
+          },
+          "content": "10+ Signs",
+          "fontSize": 52.25,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 2.61,
+          "groupId": "sg-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sg-b5-lesson-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 316,
+            "y": 500
+          },
+          "size": {
+            "width": 576,
+            "height": 160
+          },
+          "rotation": -3,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 7,
+            "blur": 0,
+            "color": "rgba(20,120,50,0.42)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 80,
+          "groupId": "sg-b5-g-lesson",
+          "groupName": "Label"
+        },
+        {
+          "id": "sg-b5-lesson-text",
+          "type": "text",
+          "name": "Label text",
+          "position": {
+            "x": 377.85,
+            "y": 535
+          },
+          "size": {
+            "width": 452,
+            "height": 90.52
+          },
+          "rotation": -3,
+          "scale": 1,
+          "content": "Every Lesson",
+          "fontSize": 18.6,
+          "color": "#1B2340",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b5-g-lesson",
+          "groupName": "Label"
+        },
+        {
+          "id": "sg-b5-trophy",
+          "type": "image",
+          "name": "Trophy",
+          "position": {
+            "x": 302.28,
+            "y": 951.32
+          },
+          "size": {
+            "width": 615.43,
+            "height": 788.68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-trophy.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "sg-b5-done",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 75.78,
+            "y": 1676.77
+          },
+          "size": {
+            "width": 1044,
+            "height": 167.86
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 8,
+            "blur": 0,
+            "color": "rgba(20,120,50,0.45)"
+          },
+          "content": "Lesson complete!",
+          "fontSize": 34.49,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.95
+        },
+        {
+          "id": "sg-b5-phrases-bg",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 63,
+            "y": 2122
+          },
+          "size": {
+            "width": 343,
+            "height": 359
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 36,
+            "color": "rgba(20,40,20,0.22)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 52,
+          "groupId": "sg-b5-g-phrases",
+          "groupName": "Stat card"
+        },
+        {
+          "id": "sg-b5-phrases-icon",
+          "type": "image",
+          "name": "Icon",
+          "position": {
+            "x": 143.48,
+            "y": 2165.97
+          },
+          "size": {
+            "width": 173.85,
+            "height": 144.85
+          },
+          "rotation": -5,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-chat-bubble.png",
+          "objectFit": "contain",
+          "groupId": "sg-b5-g-phrases",
+          "groupName": "Stat card"
+        },
+        {
+          "id": "sg-b5-phrases-value",
+          "type": "text",
+          "name": "Value",
+          "position": {
+            "x": 162.47,
+            "y": 2281.89
+          },
+          "size": {
+            "width": 152,
+            "height": 125.79
+          },
+          "rotation": -5,
+          "scale": 1,
+          "content": "+5",
+          "fontSize": 25.85,
+          "color": "#1B2340",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b5-g-phrases",
+          "groupName": "Stat card"
+        },
+        {
+          "id": "sg-b5-phrases-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 124.11,
+            "y": 2390.26
+          },
+          "size": {
+            "width": 240,
+            "height": 51.57
+          },
+          "rotation": -5,
+          "scale": 1,
+          "content": "New Phrases",
+          "fontSize": 9.15,
+          "color": "#6B7280",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b5-g-phrases",
+          "groupName": "Stat card"
+        },
+        {
+          "id": "sg-b5-signs-bg",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 406,
+            "y": 2029
+          },
+          "size": {
+            "width": 394,
+            "height": 394
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 36,
+            "color": "rgba(20,40,20,0.22)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 52,
+          "groupId": "sg-b5-g-signs",
+          "groupName": "Stat card"
+        },
+        {
+          "id": "sg-b5-signs-icon",
+          "type": "image",
+          "name": "Icon",
+          "position": {
+            "x": 531,
+            "y": 2051.2
+          },
+          "size": {
+            "width": 131,
+            "height": 206
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-hand-peace.png",
+          "objectFit": "contain",
+          "groupId": "sg-b5-g-signs",
+          "groupName": "Stat card"
+        },
+        {
+          "id": "sg-b5-signs-value",
+          "type": "text",
+          "name": "Value",
+          "position": {
+            "x": 503.41,
+            "y": 2204.59
+          },
+          "size": {
+            "width": 199,
+            "height": 138.06
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "+10",
+          "fontSize": 28.37,
+          "color": "#1B2340",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b5-g-signs",
+          "groupName": "Stat card"
+        },
+        {
+          "id": "sg-b5-signs-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 495.05,
+            "y": 2324.8
+          },
+          "size": {
+            "width": 215,
+            "height": 54.84
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "New signs",
+          "fontSize": 10.05,
+          "color": "#6B7280",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b5-g-signs",
+          "groupName": "Stat card"
+        },
+        {
+          "id": "sg-b5-accuracy-bg",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 800,
+            "y": 2122
+          },
+          "size": {
+            "width": 325,
+            "height": 348
+          },
+          "rotation": 5,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 36,
+            "color": "rgba(20,40,20,0.22)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 52,
+          "groupId": "sg-b5-g-accuracy",
+          "groupName": "Stat card"
+        },
+        {
+          "id": "sg-b5-accuracy-icon",
+          "type": "image",
+          "name": "Icon",
+          "position": {
+            "x": 895.39,
+            "y": 2147.07
+          },
+          "size": {
+            "width": 145.44,
+            "height": 169.58
+          },
+          "rotation": 5,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-check.png",
+          "objectFit": "contain",
+          "groupId": "sg-b5-g-accuracy",
+          "groupName": "Stat card"
+        },
+        {
+          "id": "sg-b5-accuracy-value",
+          "type": "text",
+          "name": "Value",
+          "position": {
+            "x": 845.74,
+            "y": 2276.57
+          },
+          "size": {
+            "width": 225,
+            "height": 121.94
+          },
+          "rotation": 5,
+          "scale": 1,
+          "content": "90%",
+          "fontSize": 25.06,
+          "color": "#1B2340",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b5-g-accuracy",
+          "groupName": "Stat card"
+        },
+        {
+          "id": "sg-b5-accuracy-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 859.46,
+            "y": 2381.45
+          },
+          "size": {
+            "width": 186,
+            "height": 50.54
+          },
+          "rotation": 5,
+          "scale": 1,
+          "content": "Accuracy",
+          "fontSize": 8.87,
+          "color": "#6B7280",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b5-g-accuracy",
+          "groupName": "Stat card"
+        }
+      ]
+    },
+    {
+      "id": "sg-board-6",
+      "name": "Learn Every Day Grow Your Streak",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FA9418",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#FEA620",
+        "color2": "#F27206",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "sg-b6-glow-1",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 244,
+            "y": 796
+          },
+          "size": {
+            "width": 728,
+            "height": 728
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.74,
+          "blur": 140,
+          "shapeType": "circle",
+          "fillColor": "#FFD37A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0
+        },
+        {
+          "id": "sg-b6-h-1",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 157.69,
+            "y": 69.28
+          },
+          "size": {
+            "width": 891,
+            "height": 141.93
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 8,
+            "blur": 0,
+            "color": "rgba(190,90,0,0.42)"
+          },
+          "content": "Learn Every Day",
+          "fontSize": 29.16,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 1.02,
+          "groupId": "sg-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sg-b6-h-3",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 253.49,
+            "y": 465.37
+          },
+          "size": {
+            "width": 702,
+            "height": 273.63
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 11,
+            "blur": 0,
+            "color": "rgba(190,90,0,0.45)"
+          },
+          "content": "Streak",
+          "fontSize": 56.23,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.7,
+          "groupId": "sg-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "sg-b6-grow-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 336,
+            "y": 277
+          },
+          "size": {
+            "width": 540,
+            "height": 150
+          },
+          "rotation": -6,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 7,
+            "blur": 0,
+            "color": "rgba(190,90,0,0.42)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 75,
+          "groupId": "sg-b6-g-grow",
+          "groupName": "Label"
+        },
+        {
+          "id": "sg-b6-grow-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": 402.05,
+            "y": 331.44
+          },
+          "size": {
+            "width": 76,
+            "height": 76
+          },
+          "rotation": -6,
+          "scale": 1,
+          "imageSrc": "/data/projects/signsy-emoji-rocket.png",
+          "objectFit": "contain",
+          "groupId": "sg-b6-g-grow",
+          "groupName": "Label"
+        },
+        {
+          "id": "sg-b6-grow-text",
+          "type": "text",
+          "name": "Label text",
+          "position": {
+            "x": 470.86,
+            "y": 303.35
+          },
+          "size": {
+            "width": 363,
+            "height": 87.6
+          },
+          "rotation": -6,
+          "scale": 1,
+          "content": "Grow Your",
+          "fontSize": 18,
+          "color": "#1B2340",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b6-g-grow",
+          "groupName": "Label"
+        },
+        {
+          "id": "sg-b6-flame",
+          "type": "image",
+          "name": "Flame",
+          "position": {
+            "x": 408.25,
+            "y": 821
+          },
+          "size": {
+            "width": 424.38,
+            "height": 679
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-flame.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "sg-b6-streak",
+          "type": "text",
+          "name": "Streak count",
+          "position": {
+            "x": 428.62,
+            "y": 1141.32
+          },
+          "size": {
+            "width": 365,
+            "height": 463.36
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 0,
+            "color": "rgba(190,70,0,0.5)"
+          },
+          "content": "17",
+          "fontSize": 95.21,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 4.76
+        },
+        {
+          "id": "sg-b6-week-bg",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 70,
+            "y": 1751
+          },
+          "size": {
+            "width": 1066,
+            "height": 325
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 36,
+            "color": "rgba(150,70,0,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 56,
+          "groupId": "sg-b6-g-week",
+          "groupName": "Week"
+        },
+        {
+          "id": "sg-b6-day-0",
+          "type": "text",
+          "name": "Day",
+          "position": {
+            "x": 124.45,
+            "y": 1820.42
+          },
+          "size": {
+            "width": 90,
+            "height": 51
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Mo",
+          "fontSize": 9,
+          "color": "#9CA3AF",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b6-g-week",
+          "groupName": "Week"
+        },
+        {
+          "id": "sg-b6-dot-0",
+          "type": "shape",
+          "name": "Done",
+          "position": {
+            "x": 130,
+            "y": 1898
+          },
+          "size": {
+            "width": 80,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FF8A1F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#FFA347",
+            "color2": "#F57210",
+            "angle": 160
+          },
+          "groupId": "sg-b6-g-week",
+          "groupName": "Week"
+        },
+        {
+          "id": "sg-b6-tick-0",
+          "type": "shape",
+          "name": "Tick",
+          "position": {
+            "x": 152,
+            "y": 1922
+          },
+          "size": {
+            "width": 36,
+            "height": 32
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M3 17 L13 27 L33 5",
+          "specialProps": {
+            "viewBox": "0 0 36 32",
+            "strokeOnly": true,
+            "baseStrokeWidth": 7
+          },
+          "groupId": "sg-b6-g-week",
+          "groupName": "Week"
+        },
+        {
+          "id": "sg-b6-day-1",
+          "type": "text",
+          "name": "Day",
+          "position": {
+            "x": 274.04,
+            "y": 1820.42
+          },
+          "size": {
+            "width": 81,
+            "height": 51
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Tu",
+          "fontSize": 9,
+          "color": "#9CA3AF",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b6-g-week",
+          "groupName": "Week"
+        },
+        {
+          "id": "sg-b6-dot-1",
+          "type": "shape",
+          "name": "Done",
+          "position": {
+            "x": 274,
+            "y": 1898
+          },
+          "size": {
+            "width": 80,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FF8A1F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#FFA347",
+            "color2": "#F57210",
+            "angle": 160
+          },
+          "groupId": "sg-b6-g-week",
+          "groupName": "Week"
+        },
+        {
+          "id": "sg-b6-tick-1",
+          "type": "shape",
+          "name": "Tick",
+          "position": {
+            "x": 296,
+            "y": 1922
+          },
+          "size": {
+            "width": 36,
+            "height": 32
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M3 17 L13 27 L33 5",
+          "specialProps": {
+            "viewBox": "0 0 36 32",
+            "strokeOnly": true,
+            "baseStrokeWidth": 7
+          },
+          "groupId": "sg-b6-g-week",
+          "groupName": "Week"
+        },
+        {
+          "id": "sg-b6-day-2",
+          "type": "text",
+          "name": "Day",
+          "position": {
+            "x": 411.77,
+            "y": 1820.42
+          },
+          "size": {
+            "width": 93,
+            "height": 51
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "We",
+          "fontSize": 9,
+          "color": "#9CA3AF",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b6-g-week",
+          "groupName": "Week"
+        },
+        {
+          "id": "sg-b6-dot-2",
+          "type": "shape",
+          "name": "Done",
+          "position": {
+            "x": 418,
+            "y": 1898
+          },
+          "size": {
+            "width": 80,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FF8A1F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#FFA347",
+            "color2": "#F57210",
+            "angle": 160
+          },
+          "groupId": "sg-b6-g-week",
+          "groupName": "Week"
+        },
+        {
+          "id": "sg-b6-tick-2",
+          "type": "shape",
+          "name": "Tick",
+          "position": {
+            "x": 440,
+            "y": 1922
+          },
+          "size": {
+            "width": 36,
+            "height": 32
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M3 17 L13 27 L33 5",
+          "specialProps": {
+            "viewBox": "0 0 36 32",
+            "strokeOnly": true,
+            "baseStrokeWidth": 7
+          },
+          "groupId": "sg-b6-g-week",
+          "groupName": "Week"
+        },
+        {
+          "id": "sg-b6-day-3",
+          "type": "text",
+          "name": "Day",
+          "position": {
+            "x": 561.97,
+            "y": 1820.42
+          },
+          "size": {
+            "width": 81,
+            "height": 51
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Th",
+          "fontSize": 9,
+          "color": "#9CA3AF",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b6-g-week",
+          "groupName": "Week"
+        },
+        {
+          "id": "sg-b6-dot-3",
+          "type": "shape",
+          "name": "Today",
+          "position": {
+            "x": 562,
+            "y": 1898
+          },
+          "size": {
+            "width": 80,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#FF8A1F",
+          "strokeWidth": 7,
+          "groupId": "sg-b6-g-week",
+          "groupName": "Week"
+        },
+        {
+          "id": "sg-b6-day-4",
+          "type": "text",
+          "name": "Day",
+          "position": {
+            "x": 709.83,
+            "y": 1820.42
+          },
+          "size": {
+            "width": 71,
+            "height": 51
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Fr",
+          "fontSize": 9,
+          "color": "#9CA3AF",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b6-g-week",
+          "groupName": "Week"
+        },
+        {
+          "id": "sg-b6-dot-4",
+          "type": "shape",
+          "name": "Day",
+          "position": {
+            "x": 706,
+            "y": 1898
+          },
+          "size": {
+            "width": 80,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#E9ECF5",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "sg-b6-g-week",
+          "groupName": "Week"
+        },
+        {
+          "id": "sg-b6-day-5",
+          "type": "text",
+          "name": "Day",
+          "position": {
+            "x": 848.76,
+            "y": 1820.42
+          },
+          "size": {
+            "width": 83,
+            "height": 51
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Sa",
+          "fontSize": 9,
+          "color": "#9CA3AF",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b6-g-week",
+          "groupName": "Week"
+        },
+        {
+          "id": "sg-b6-dot-5",
+          "type": "shape",
+          "name": "Day",
+          "position": {
+            "x": 850,
+            "y": 1898
+          },
+          "size": {
+            "width": 80,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#E9ECF5",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "sg-b6-g-week",
+          "groupName": "Week"
+        },
+        {
+          "id": "sg-b6-day-6",
+          "type": "text",
+          "name": "Day",
+          "position": {
+            "x": 993.26,
+            "y": 1820.42
+          },
+          "size": {
+            "width": 82,
+            "height": 51
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Su",
+          "fontSize": 9,
+          "color": "#9CA3AF",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b6-g-week",
+          "groupName": "Week"
+        },
+        {
+          "id": "sg-b6-dot-6",
+          "type": "shape",
+          "name": "Day",
+          "position": {
+            "x": 994,
+            "y": 1898
+          },
+          "size": {
+            "width": 80,
+            "height": 80
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#E9ECF5",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "sg-b6-g-week",
+          "groupName": "Week"
+        },
+        {
+          "id": "sg-b6-best-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 720,
+            "y": 1674
+          },
+          "size": {
+            "width": 420,
+            "height": 104
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 7,
+            "blur": 0,
+            "color": "rgba(190,90,0,0.42)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 52,
+          "groupId": "sg-b6-g-best",
+          "groupName": "Label"
+        },
+        {
+          "id": "sg-b6-best-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": 773.3,
+            "y": 1709.14
+          },
+          "size": {
+            "width": 52,
+            "height": 52
+          },
+          "rotation": -4,
+          "scale": 1,
+          "imageSrc": "/data/projects/signsy-emoji-trophy.png",
+          "objectFit": "contain",
+          "groupId": "sg-b6-g-best",
+          "groupName": "Label"
+        },
+        {
+          "id": "sg-b6-best-text",
+          "type": "text",
+          "name": "Label text",
+          "position": {
+            "x": 810.05,
+            "y": 1692.88
+          },
+          "size": {
+            "width": 301,
+            "height": 62
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Best: 17 days",
+          "fontSize": 12,
+          "color": "#1B2340",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b6-g-best",
+          "groupName": "Label"
+        },
+        {
+          "id": "sg-b6-learned-bg",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 77,
+            "y": 2180
+          },
+          "size": {
+            "width": 317,
+            "height": 336
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 36,
+            "color": "rgba(20,40,20,0.22)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 52,
+          "groupId": "sg-b6-g-learned",
+          "groupName": "Stat card"
+        },
+        {
+          "id": "sg-b6-learned-icon",
+          "type": "image",
+          "name": "Icon",
+          "position": {
+            "x": 175.5,
+            "y": 2200.95
+          },
+          "size": {
+            "width": 109.17,
+            "height": 171.35
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-hand-peace.png",
+          "objectFit": "contain",
+          "groupId": "sg-b6-g-learned",
+          "groupName": "Stat card"
+        },
+        {
+          "id": "sg-b6-learned-value",
+          "type": "text",
+          "name": "Value",
+          "position": {
+            "x": 158.72,
+            "y": 2329.37
+          },
+          "size": {
+            "width": 153,
+            "height": 117.73
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "45",
+          "fontSize": 24.19,
+          "color": "#1B2340",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b6-g-learned",
+          "groupName": "Stat card"
+        },
+        {
+          "id": "sg-b6-learned-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 115.25,
+            "y": 2430.74
+          },
+          "size": {
+            "width": 241,
+            "height": 49.42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Signs learned",
+          "fontSize": 8.57,
+          "color": "#6B7280",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b6-g-learned",
+          "groupName": "Stat card"
+        },
+        {
+          "id": "sg-b6-lessons-bg",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 445,
+            "y": 2180
+          },
+          "size": {
+            "width": 316,
+            "height": 336
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 36,
+            "color": "rgba(20,40,20,0.22)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 52,
+          "groupId": "sg-b6-g-lessons",
+          "groupName": "Stat card"
+        },
+        {
+          "id": "sg-b6-lessons-icon",
+          "type": "image",
+          "name": "Icon",
+          "position": {
+            "x": 536.33,
+            "y": 2207.86
+          },
+          "size": {
+            "width": 133.33,
+            "height": 157.44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-calendar.png",
+          "objectFit": "contain",
+          "groupId": "sg-b6-g-lessons",
+          "groupName": "Stat card"
+        },
+        {
+          "id": "sg-b6-lessons-value",
+          "type": "text",
+          "name": "Value",
+          "position": {
+            "x": 556.34,
+            "y": 2329.37
+          },
+          "size": {
+            "width": 93,
+            "height": 117.73
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "9",
+          "fontSize": 24.19,
+          "color": "#1B2340",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b6-g-lessons",
+          "groupName": "Stat card"
+        },
+        {
+          "id": "sg-b6-lessons-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 524.11,
+            "y": 2430.74
+          },
+          "size": {
+            "width": 157,
+            "height": 49.42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Lessons",
+          "fontSize": 8.57,
+          "color": "#6B7280",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b6-g-lessons",
+          "groupName": "Stat card"
+        },
+        {
+          "id": "sg-b6-minutes-bg",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 812,
+            "y": 2180
+          },
+          "size": {
+            "width": 320,
+            "height": 336
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 36,
+            "color": "rgba(20,40,20,0.22)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 52,
+          "groupId": "sg-b6-g-minutes",
+          "groupName": "Stat card"
+        },
+        {
+          "id": "sg-b6-minutes-icon",
+          "type": "image",
+          "name": "Icon",
+          "position": {
+            "x": 903.56,
+            "y": 2199.86
+          },
+          "size": {
+            "width": 136.89,
+            "height": 165.44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-clock.png",
+          "objectFit": "contain",
+          "groupId": "sg-b6-g-minutes",
+          "groupName": "Stat card"
+        },
+        {
+          "id": "sg-b6-minutes-value",
+          "type": "text",
+          "name": "Value",
+          "position": {
+            "x": 901.73,
+            "y": 2329.37
+          },
+          "size": {
+            "width": 142,
+            "height": 117.73
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "74",
+          "fontSize": 24.19,
+          "color": "#1B2340",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b6-g-minutes",
+          "groupName": "Stat card"
+        },
+        {
+          "id": "sg-b6-minutes-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 892.62,
+            "y": 2430.74
+          },
+          "size": {
+            "width": 158,
+            "height": 49.42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Minutes",
+          "fontSize": 8.57,
+          "color": "#6B7280",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "sg-b6-g-minutes",
+          "groupName": "Stat card"
+        }
+      ]
+    }
+  ]
+}
