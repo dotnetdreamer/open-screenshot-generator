@@ -37,9 +37,12 @@ import {
   type AccountSession,
   type CloudProvider,
   type CloudProjectSummary,
+  type LibraryRemote,
   type ProgressFn,
   type ProjectBundle,
   type ProjectManifest,
+  type RemoteLibraryManifest,
+  type RemoteLibraryState,
   type SignInOptions,
 } from '../types';
 import { bridgeFetch, formEncode, randomState, requestJson, throwIfSignInCancelled } from '../transport';
@@ -784,5 +787,130 @@ export const githubProvider: CloudProvider = {
 
   async deleteProject(session: AccountSession, remoteId: string): Promise<void> {
     await githubJson(session, `/gists/${remoteId}`, { method: 'DELETE' });
+  },
+};
+
+// --- the user's pictures ------------------------------------------------------
+//
+// One secret gist for every picture, apart from the projects' gists. Its tag
+// is not DESCRIPTION_TAG and does not contain it, so no build lists it as a
+// project. Only the finished pictures travel: a gist holds 300 files of at most
+// 7.5 MB each once base64 is paid for, and the photos and masks would take two
+// more files a picture. A cut restored from a gist can still be erased with the
+// brush, from its own transparency.
+
+const LIBRARY_TAG = '[open-screenshot-generator-images]';
+const LIBRARY_DESCRIPTION = `Open Screenshot Generator images ${LIBRARY_TAG}`;
+const LIBRARY_MANIFEST = 'library.json';
+/** Base64 sent per request, kept well under what GitHub takes in one body. */
+const LIBRARY_BATCH_BYTES = 6 * 1024 * 1024;
+
+async function libraryGist(session: AccountSession): Promise<Gist | null> {
+  const found = (await listOwnGists(session)).find((gist) => gist.description?.includes(LIBRARY_TAG));
+  return found ? githubJson<Gist>(session, `/gists/${found.id}`) : null;
+}
+
+function stateOf(gist: Gist, manifest: RemoteLibraryManifest | null): RemoteLibraryState {
+  const files = new Map<string, unknown>();
+  const mediaIds = new Set<string>();
+  for (const [name, file] of Object.entries(gist.files ?? {})) {
+    const id = mediaIdFromFileName(name);
+    if (id) {
+      mediaIds.add(id);
+      files.set(id, file);
+    }
+  }
+  return { manifest, mediaIds, handle: gist.id, files };
+}
+
+export const githubLibrary: LibraryRemote = {
+  keepsSources: false,
+
+  async read(session) {
+    const gist = await libraryGist(session);
+    if (!gist) return { manifest: null, mediaIds: new Set(), handle: null, files: new Map() };
+    const manifestFile = gist.files?.[LIBRARY_MANIFEST];
+    const manifest = manifestFile ? (JSON.parse(await readGistFile(manifestFile)) as RemoteLibraryManifest) : null;
+    return stateOf(gist, manifest);
+  },
+
+  async upload(session, state, files, onProgress) {
+    const todo = files.filter((file) => !state.mediaIds.has(file.mediaId));
+    const tooBig = todo.find((file) => file.blob.size > MAX_GIST_RAW_BYTES);
+    if (tooBig) {
+      throw new AccountBlockedError(
+        `One picture is ${formatBytes(tooBig.blob.size)}, over the ${formatBytes(MAX_GIST_RAW_BYTES)} a gist holds in one file. Back up to Google Drive instead`
+      );
+    }
+    if (state.mediaIds.size + todo.length > MAX_GIST_MEDIA_FILES) {
+      throw new AccountBlockedError(`A gist holds ${MAX_GIST_MEDIA_FILES} pictures. Back up to Google Drive to keep more`);
+    }
+    let handle = state.handle;
+    if (!handle) {
+      const created = await githubJson<Gist>(session, '/gists', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          description: LIBRARY_DESCRIPTION,
+          public: false,
+          files: { [LIBRARY_MANIFEST]: { content: JSON.stringify({ formatVersion: 1, updatedAt: Date.now(), images: [], deleted: [] }) } },
+        }),
+      });
+      handle = created.id;
+    }
+    const mediaIds = new Set(state.mediaIds);
+    let batch: Record<string, { content: string }> = {};
+    let batchBytes = 0;
+    let sent = 0;
+    const flush = async () => {
+      if (!Object.keys(batch).length) return;
+      await githubJson<Gist>(session, `/gists/${handle}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ files: batch }),
+      });
+      batch = {};
+      batchBytes = 0;
+    };
+    for (const file of todo) {
+      const content = await blobToBase64(file.blob);
+      if (batchBytes + content.length > LIBRARY_BATCH_BYTES) await flush();
+      batch[mediaFileName(file.mediaId)] = { content };
+      batchBytes += content.length;
+      mediaIds.add(file.mediaId);
+      sent += 1;
+      onProgress?.(`Sending picture ${sent} of ${todo.length}`, sent / (todo.length + 1));
+    }
+    await flush();
+    // The file list again, so a download right after finds the new files.
+    const gist = await githubJson<Gist>(session, `/gists/${handle}`);
+    return { ...stateOf(gist, state.manifest), mediaIds: new Set([...mediaIds, ...stateOf(gist, null).mediaIds]) };
+  },
+
+  async writeManifest(session, state, manifest) {
+    if (!state.handle) throw new Error('The pictures gist is missing');
+    await githubJson<Gist>(session, `/gists/${state.handle}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ files: { [LIBRARY_MANIFEST]: { content: JSON.stringify(manifest) } } }),
+    });
+    return { ...state, manifest };
+  },
+
+  async download(_session, state, mediaId, mimeType) {
+    const file = state.files.get(mediaId) as GistFile | undefined;
+    if (!file) throw new Error('A picture is missing from the gist');
+    return base64ToBlob(await readGistFile(file), mimeType || 'image/png');
+  },
+
+  async remove(session, state, mediaIds) {
+    if (!state.handle || mediaIds.length === 0) return;
+    const files: Record<string, null> = {};
+    for (const id of mediaIds) files[mediaFileName(id)] = null;
+    await githubJson(session, `/gists/${state.handle}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ files }),
+    });
   },
 };

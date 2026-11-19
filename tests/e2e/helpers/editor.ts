@@ -213,7 +213,7 @@ export class Editor {
   // ----------------------------------------------------------------- palette
 
   /** Elements / Devices / Images / Previews / Header. */
-  paletteTab(name: 'Elements' | 'Devices' | 'Images' | 'Previews' | 'Header'): Locator {
+  paletteTab(name: 'Elements' | 'Devices' | 'Images' | 'Previews' | 'Header' | 'Custom'): Locator {
     return this.page.getByRole('tab', { name, exact: true });
   }
 

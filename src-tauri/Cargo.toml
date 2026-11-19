@@ -1,6 +1,6 @@
 [package]
 name = "open-screenshot-generator"
-version = "1.0.9"
+version = "1.0.10"
 description = "Open Screenshot Generator, a device mockup and app screenshot design studio"
 authors = ["dotnetdreamer <dotnetdreamer@users.noreply.github.com>"]
 license = "MIT"
@@ -48,12 +48,20 @@ tiny_http = "0.12"
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 time = { version = "0.3", features = ["formatting"] }
 
-# icon_export.rs: the folder macOS keeps on a file's own drive for replacing
-# that file (NSItemReplacementDirectory), which the App Store sandbox lets the
-# app use after the save dialog, so a zip there is swapped in in one step.
-# Already in the dependency tree via tao and wry, at this version.
+# Apple's subject lifting for the background remover (cutout.rs): Vision's
+# foreground instance mask, macOS 14 and later, checked at run time. The same
+# 0.3 line as the objc2 crates tauri already resolves, with only the headers
+# the request needs. icon_export.rs asks Foundation (NSFileManager,
+# NSPathUtilities, NSURL) for the folder macOS keeps on a file's own drive for
+# replacing that file (NSItemReplacementDirectory), which the App Store sandbox
+# lets the app use after the save dialog, so a zip there is swapped in in one step.
 [target.'cfg(target_os = "macos")'.dependencies]
-objc2-foundation = { version = "0.3.2", default-features = false, features = ["std", "NSError", "NSFileManager", "NSPathUtilities", "NSString", "NSURL"] }
+objc2 = "0.6"
+objc2-core-foundation = { version = "0.3", default-features = false, features = ["std", "CFData"] }
+objc2-core-graphics = { version = "0.3", default-features = false, features = ["std", "CGColorSpace", "CGDataProvider", "CGImage"] }
+objc2-core-video = { version = "0.3", default-features = false, features = ["std", "CVBase", "CVBuffer", "CVImageBuffer", "CVPixelBuffer", "CVReturn"] }
+objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSArray", "NSDictionary", "NSError", "NSFileManager", "NSIndexSet", "NSPathUtilities", "NSString", "NSURL"] }
+objc2-vision = { version = "0.3", default-features = false, features = ["std", "objc2-core-graphics", "objc2-core-video", "VNGenerateForegroundInstanceMaskRequest", "VNObservation", "VNRequest", "VNRequestHandler"] }
 
 # Screenshot capture of the assistant windows for the operation timeline.
 # Windows only: WebView2's CapturePreview renders even while the window is

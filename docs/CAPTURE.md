@@ -8,7 +8,7 @@ Capture takes screenshots of your app and puts them straight into the phone fram
 
 Capture can also open your app in every language of your project and take each screen in each language for you.
 
-Capture is in the desktop app. Click the camera on the bar at the left.
+Capture is in the desktop app. Click **Capture screenshots** on the bar at the left.
 
 ## What you need
 
@@ -18,7 +18,7 @@ Capture is in the desktop app. Click the camera on the bar at the left.
 
 ## Take one screenshot
 
-1. Click **Capture** on the bar at the left.
+1. Click **Capture screenshots** on the bar at the left.
 2. Choose the device. If the device is off, click **Start**. Capture chooses a virtual device that is on by itself, but a phone only when you choose it.
 3. The grid shows every phone frame of your project, with a row for each language. Click the frame and the language the screenshot is for.
 4. On the device, go to the screen you want. The screen of the device shows live in Capture.

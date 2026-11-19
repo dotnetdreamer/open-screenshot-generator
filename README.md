@@ -5,7 +5,17 @@
 
 Make screenshots and preview videos for the App Store and Google Play. Start with a template, add screenshots of your app, change the text and colors, then export the finished files at store sizes.
 
-Open the [web editor](https://editor.openscrgen.app), download the [desktop app](https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest), or [watch the walkthrough](https://youtu.be/gfABjk1Q_Z0?si=uWIIoq1cgQIQSgud).
+Open the [web editor](https://editor.openscrgen.app) or [watch the walkthrough](https://youtu.be/gfABjk1Q_Z0?si=uWIIoq1cgQIQSgud). The desktop app is free for Mac, Windows and Linux:
+
+<p align="center">
+  <a href="https://apps.apple.com/app/id6822657542"><img src="docs/badges/mac-app-store.svg" alt="Download on the Mac App Store" height="48"></a>
+  &nbsp;&nbsp;
+  <a href="https://apps.microsoft.com/detail/9nt28z42qkcd"><img src="docs/badges/microsoft-store.svg" alt="Download from the Microsoft Store" height="50"></a>
+  &nbsp;&nbsp;
+  <a href="https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest"><img src="docs/badges/github.svg" alt="Download from GitHub" height="48"></a>
+</p>
+
+<p align="center"><sub>The Mac App Store version can't run Claude Code or Codex. For Claude Code or Codex on a Mac, get the app from GitHub.</sub></p>
 
 <div align="center">
 
@@ -15,9 +25,13 @@ https://github.com/user-attachments/assets/1b1d7ff4-5f89-4fc5-8e48-efbe89782562
 
 ## What's new
 
-### 18 November 2026: App icon
+### 19 November 2026: App icon
 
 Design your app's icon on the canvas, starting from your app's name and colours or from your logo. See how the icon looks on an iPhone, an Android phone and a Mac, in light, dark and tinted mode and at actual size. The app tells you if anything will be hard to see or cut off. Then save every size for iPhone, Android, Google Play and the Mac in one go. In the desktop app, you can put the new icon straight into your app's folder. Read [how the app icon works](docs/APP-ICON.md).
+
+### 19 November 2026: Remove background
+
+Cut people, products and logos out of photos for your screenshots, right on your computer, even offline once the model is downloaded. On a Mac it starts with your Mac's own cut-out, and you can fix any edge with a brush. Everything you cut out waits in the new **Custom** tab, ready for any project, and backs up to your Google Drive or GitHub. Read [how Remove background works](docs/REMOVE-BACKGROUND.md).
 
 ### 17 November 2026: Every device
 
@@ -87,11 +101,12 @@ Both versions use the same editor. The desktop app adds features that need acces
 | AI agent with your own API key | Yes | Yes |
 | AI agent with an existing assistant account | Copy and paste, or use the [companion extension](extension/README.md) | Built in assistant window |
 | Built in or local AI providers | No | Yes |
-| AI agent in Claude Code or Codex, on your Claude or ChatGPT plan | No | Yes |
+| AI agent in Claude Code or Codex, on your Claude or ChatGPT plan | No | Yes, except the Mac App Store version |
 | Coding agent design tools | With the [web relay](infra/vps/mcp-relay/README.md) or CLI | Built in MCP server |
 | Save to your own Google Drive or GitHub account | Yes | Yes |
 | Upload screenshots directly to App Store Connect or Google Play | No | Yes |
 | Capture: screenshots and recordings from the iPhone Simulator, Android emulators and phones | No | Yes |
+| Remove background: people and products cut out of photos on your computer, a Custom tab of your own pictures, backed up to Google Drive or GitHub | Yes | Yes, plus your Mac's own cut-out on macOS 14 and later |
 | Growth: App Store and Google Play numbers, reviews, store page checks, results of new screenshots | Empty screens only | Yes |
 | Growth: competitors' screenshots, ratings, versions and prices in each country, with alerts for new screenshots | App Store apps | App Store and Google Play apps |
 | Growth: your rank in App Store search for each keyword, every day, with ideas for more keywords | Yes | Yes |

@@ -39,6 +39,7 @@ const SLOW_TOOLS = new Set([
   'translate_locales',
   'add_locales',
   'capture_screenshot',
+  'remove_background',
 ]);
 
 const HANDLER_TIMEOUT_MS = 30_000;

@@ -27,6 +27,7 @@ const MAX_SCREENS = 6;
 
 // The App Screenshots category, in gallery order.
 const SLUGS = [
+  'signsy-asl', 'traceberry-drawing',
   'wishmint-wishlist', 'lavish-creator-wishlist', 'postie-cards', 'hummi-cash-gifts',
   'hoppi-screen-time', 'roamo-esim', 'expertly-ai', 'formpal-forms',
   'sunup-missions', 'sunup-alarm',
@@ -89,8 +90,8 @@ async function openTemplate(page, cardTitle, tab) {
   await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
   // First-run Tips dialog blocks the start dialog on every fresh profile.
   await dismissTipsDialog(page);
-  // The dialog opens on the Community feed tab now, so always click the
-  // template's own tab (default: App Screenshots).
+  // Always click the template's own tab (default: App Screenshots, the tab
+  // the dialog opens on), so templates in the other tabs are found too.
   const targetTab = tab || 'App Screenshots';
   await page.waitForFunction(
     `[...document.querySelectorAll('[role="tab"]')].some((b) => (b.textContent || '').includes(${JSON.stringify(targetTab)}))`,

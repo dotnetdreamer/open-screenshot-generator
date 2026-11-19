@@ -287,6 +287,68 @@ export interface CloudProvider {
   deleteProject(session: AccountSession, remoteId: string): Promise<void>;
 }
 
+/**
+ * The user's own pictures (the background remover's library) as kept in their
+ * storage: one manifest and a file per picture, apart from any project.
+ * See src/lib/cutout/backup.ts, which merges it with this device's copy.
+ */
+export interface RemoteLibraryManifest {
+  formatVersion: 1;
+  savedBy?: string;
+  updatedAt: number;
+  images: RemoteLibraryImage[];
+  /** Pictures deleted somewhere, so a sync elsewhere deletes them too. */
+  deleted: Array<{ id: string; at: number }>;
+}
+
+export interface RemoteLibraryImage {
+  id: string;
+  name: string;
+  /** The finished picture's media id, which is also its file's name. */
+  mediaId: string;
+  mimeType: string;
+  width: number;
+  height: number;
+  engine?: string;
+  /** The photo and mask it was cut from, where the storage keeps them. */
+  sourceMediaId?: string;
+  sourceMimeType?: string;
+  sourceWidth?: number;
+  sourceHeight?: number;
+  maskMediaId?: string;
+  settings?: { edge: number; softness: number; cleanColors: boolean; trim: boolean };
+  rect?: { x: number; y: number; width: number; height: number };
+  createdAt: number;
+  updatedAt: number;
+}
+
+/** What one read of the remote library found. `handle` and `files` are the provider's own. */
+export interface RemoteLibraryState {
+  manifest: RemoteLibraryManifest | null;
+  /** Media ids already stored there. */
+  mediaIds: Set<string>;
+  handle: string | null;
+  files: Map<string, unknown>;
+}
+
+/** The library's side of a storage backend. */
+export interface LibraryRemote {
+  /** Whether the photos and masks travel too, so a cut can still be changed after a restore. */
+  keepsSources: boolean;
+  read(session: AccountSession): Promise<RemoteLibraryState>;
+  /** Sends files not already there, making the folder on the first call. */
+  upload(
+    session: AccountSession,
+    state: RemoteLibraryState,
+    files: Array<{ mediaId: string; blob: Blob; mimeType: string }>,
+    onProgress?: ProgressFn
+  ): Promise<RemoteLibraryState>;
+  writeManifest(session: AccountSession, state: RemoteLibraryState, manifest: RemoteLibraryManifest): Promise<RemoteLibraryState>;
+  download(session: AccountSession, state: RemoteLibraryState, mediaId: string, mimeType: string): Promise<Blob>;
+  /** Deletes files the manifest no longer names. */
+  remove(session: AccountSession, state: RemoteLibraryState, mediaIds: string[]): Promise<void>;
+}
+
 /** Sign-in is gone or was revoked: the UI should drop the session and re-prompt. */
 export class AccountAuthError extends Error {
   constructor(message: string) {

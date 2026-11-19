@@ -1,6 +1,7 @@
 mod claude_code;
 mod code_folders;
 mod codex;
+mod cutout;
 mod device_capture;
 mod devtools;
 mod growth_browser;
@@ -132,6 +133,8 @@ pub fn run() {
             updater::abs_update_install,
             updater::abs_update_flushed,
             device_capture::abs_capture_devices,
+            cutout::abs_cutout_vision_available,
+            cutout::abs_cutout_vision,
             device_capture::abs_capture_start_device,
             device_capture::abs_capture_create_simulator,
             device_capture::abs_capture_apps,

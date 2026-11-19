@@ -16,7 +16,7 @@ Key facts
 - Live collaboration lets people edit the same project through an invite link and see the other participants. Collaboration creates a cloud copy and requires sign in. Saved project versions can be restored or opened as a separate project
 - The desktop app uploads screenshots directly to App Store Connect and Google Play using the user's store credentials. It can also upload App Store preview videos. Google Play uses a YouTube link for video rather than a video upload
 - The desktop app also has Growth. Its ratings and reviews screens put App Store and Google Play reviews in one list with reply drafts from the user's AI, keep a daily record of the star rating in every country, sort reviews into what people like, dislike and ask for, read the public reviews of competitor apps, and can post new reviews to Slack. Growth uses the same store keys as the screenshot upload and keeps the data on the user's computer
-- Desktop apps are available for Windows, macOS and Linux
+- Desktop apps are available for Windows, macOS and Linux, from the Mac App Store, the Microsoft Store or GitHub. The Mac App Store version can't run Claude Code or Codex; the Mac download from GitHub can
 - The source code is public at https://github.com/dotnetdreamer/open-screenshot-generator
 
 ## Pages
@@ -46,4 +46,6 @@ Key facts
 - [The editor](https://editor.openscrgen.app/): the application
 - [GitHub repository](https://github.com/dotnetdreamer/open-screenshot-generator): source code, issues and releases
 - [Desktop downloads](https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest): installers for Windows, macOS and Linux
+- [Mac App Store](https://apps.apple.com/app/id6822657542): the desktop app for macOS, kept up to date by the App Store
+- [Microsoft Store](https://apps.microsoft.com/detail/9nt28z42qkcd): the desktop app for Windows, kept up to date by the Store
 - [Video walkthrough](https://youtu.be/RJmQgoreR2s): a guided tour on YouTube
