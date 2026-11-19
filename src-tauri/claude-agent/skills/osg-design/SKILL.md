@@ -256,6 +256,14 @@ on a proof board.
   an image from an http(s) link the user gives you and returns its ref. When the user's app
   folder is attached, import_project_image does the same for a picture in it, by its absolute
   path, and web links are refused.
+- The user's own pictures: list_my_images lists what they cut out or kept (people, products,
+  logos), with a ref for imageSrc and the size; look there before asking for a picture.
+  remove_background cuts the subject out of a picture (source, an asset ref or a link) and
+  returns a transparent PNG ref to place with add_element, or, given the elementId of an image
+  element, swaps its picture for the cut-out in place. It takes seconds a picture; when it says
+  the model is downloading, wait a minute and call it again. save_to_my_images keeps a picture
+  as it is for later. Cut out a person or a product when it should stand on the artboard's own
+  background, not a photo's.
 - Arrangements: group_elements tags layers as one group. transform_elements moves (dx and dy, or
   x and y for the top left corner) or scales (about the centre) a group or a list of elementIds.
   align_elements lines two or more up on one edge (left, center-h, right, top, middle-v, bottom).

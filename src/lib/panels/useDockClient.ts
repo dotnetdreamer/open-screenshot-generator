@@ -234,6 +234,7 @@ export function useDockClient(panels: DetachablePanel[]): DockClient {
       onStudioLive: (elementId, state, reason) => send({ name: 'studioLive', elementId, state, reason }),
       onTranslateElement: (elementId) => send({ name: 'translateElement', elementId }),
       onCaptureScreenshot: (elementId) => send({ name: 'captureScreenshot', elementId }),
+      onRemoveImageBackground: (elementId) => send({ name: 'removeImageBackground', elementId }),
       onUpdateArtboardDetails: (updates, scope) => send({ name: 'updateArtboardDetails', updates, scope }),
       onResetLocaleField: (field) => send({ name: 'resetLocaleField', field }),
       onToggleLocaleDetach: (keys, detach) => send({ name: 'toggleLocaleDetach', keys, detach }),

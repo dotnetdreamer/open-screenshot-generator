@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { Switch } from '@/components/ui/switch';
 import { CaptureFromDeviceButton } from './capture/CaptureFromDeviceButton';
-import { UploadCloudIcon, PaintbrushIcon, Palette, Blend, Plus, Minus, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, ClapperboardIcon, Trash2Icon, Languages, CheckIcon, CopyIcon, RotateCcw, LinkIcon, UnlinkIcon, MoreHorizontalIcon, BringToFront, SendToBack } from 'lucide-react';
+import { UploadCloudIcon, ScissorsIcon, PaintbrushIcon, Palette, Blend, Plus, Minus, Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight, ClapperboardIcon, Trash2Icon, Languages, CheckIcon, CopyIcon, RotateCcw, LinkIcon, UnlinkIcon, MoreHorizontalIcon, BringToFront, SendToBack } from 'lucide-react';
 import type { SpanChange } from '@/lib/spanArtboards';
 import {
   AlertDialog,
@@ -770,6 +770,11 @@ interface PropertiesPanelProps {
    * Omitted when the host has no Capture to offer.
    */
   onCaptureScreenshot?: (elementId: string) => void;
+  /**
+   * Cut an image element's subject out in place, keeping its frame
+   * (src/lib/cutout). Omitted when the host has no background remover.
+   */
+  onRemoveImageBackground?: (elementId: string) => void;
   activeArtboardDetails?: ArtboardState | null;
   /**
    * Board-level form edits. `scope: 'all'` writes every board in one commit,
@@ -1092,6 +1097,7 @@ export function PropertiesPanel({
   onTranslateElement,
   translationAvailable = false,
   onCaptureScreenshot,
+  onRemoveImageBackground,
   activeArtboardDetails,
   onUpdateArtboardDetails,
   activeLocale,
@@ -3487,6 +3493,18 @@ export function PropertiesPanel({
             <UploadCloudIcon className="w-3 h-3 mr-1.5" />
             {element.imageSrc ? 'Change Image' : 'Upload Image'}
           </Button>
+          {onRemoveImageBackground && element.imageSrc && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onRemoveImageBackground(element.id)}
+              className="mt-1.5 h-8 w-full text-xs"
+              title="Keeps the person or product and drops the background, which undo brings back"
+            >
+              <ScissorsIcon className="mr-1.5 h-3 w-3" />
+              Remove background
+            </Button>
+          )}
 
           {/* Scale. Multiplies the element box, same as the corner handles and
               the device panel's slider, so it carries into exports too. */}

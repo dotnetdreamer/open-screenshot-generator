@@ -100,3 +100,6 @@ AuthKey_*.p8
 # Play service account key, the updater signing key). The folder is its own git
 # repository and must never be committed from this one.
 /private/
+
+# background remover worker and runtime (npm run build:cutout)
+/public/cutout/

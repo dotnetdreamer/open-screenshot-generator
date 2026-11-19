@@ -34,9 +34,12 @@ import {
   type AccountSession,
   type CloudProvider,
   type CloudProjectSummary,
+  type LibraryRemote,
   type ProgressFn,
   type ProjectBundle,
   type ProjectManifest,
+  type RemoteLibraryManifest,
+  type RemoteLibraryState,
   type SignInOptions,
 } from '../types';
 import { bridgeFetch, createPkcePair, formEncode, randomState, requestJson, runLoopbackFlow, throwIfSignInCancelled } from '../transport';
@@ -807,5 +810,108 @@ export const googleDriveProvider: CloudProvider = {
 
   async deleteProject(session: AccountSession, remoteId: string): Promise<void> {
     await driveJson(session, `${DRIVE_API}/files/${remoteId}`, { method: 'DELETE' });
+  },
+};
+
+// --- the user's pictures ------------------------------------------------------
+//
+// One folder at the top of the user's Drive, beside the projects' folder rather
+// than inside it: every folder in that one is listed as a project, by this
+// build and by every build already installed. The pictures are real PNG files,
+// so the user can open them in Drive, named by media id (a changed cut is a new
+// id, so a file never has to be overwritten). The photos and masks travel too,
+// so a cut can be changed after a restore on another computer.
+
+const LIBRARY_FOLDER_NAME = 'Open Screenshot Generator images';
+const LIBRARY_MANIFEST = 'library.json';
+const LIBRARY_FILE_PREFIX = 'image__';
+
+async function libraryFolder(session: AccountSession): Promise<string | null> {
+  const query = encodeURIComponent(
+    `mimeType = '${FOLDER_MIME}' and trashed = false and 'root' in parents and appProperties has { key='absLibrary' and value='1' }`
+  );
+  const found = await driveJson<{ files: { id: string }[] }>(session, `${DRIVE_API}/files?q=${query}&fields=files(id)&pageSize=1`);
+  return found.files?.[0]?.id ?? null;
+}
+
+async function libraryState(session: AccountSession, folderId: string): Promise<RemoteLibraryState> {
+  const children = await listChildren(session, folderId);
+  const files = new Map<string, unknown>();
+  const mediaIds = new Set<string>();
+  let manifest: RemoteLibraryManifest | null = null;
+  for (const child of children) {
+    if (child.name === LIBRARY_MANIFEST) {
+      manifest = JSON.parse(await (await downloadBlob(session, child.id)).text()) as RemoteLibraryManifest;
+      files.set(LIBRARY_MANIFEST, child.id);
+    } else if (child.name.startsWith(LIBRARY_FILE_PREFIX)) {
+      const id = child.name.slice(LIBRARY_FILE_PREFIX.length);
+      mediaIds.add(id);
+      files.set(id, child.id);
+    }
+  }
+  return { manifest, mediaIds, handle: folderId, files };
+}
+
+export const googleDriveLibrary: LibraryRemote = {
+  keepsSources: true,
+
+  async read(session) {
+    const folderId = await libraryFolder(session);
+    if (!folderId) return { manifest: null, mediaIds: new Set(), handle: null, files: new Map() };
+    return libraryState(session, folderId);
+  },
+
+  async upload(session, state, files, onProgress) {
+    let folderId = state.handle;
+    if (!folderId) {
+      const created = await driveJson<{ id: string }>(session, `${DRIVE_API}/files?fields=id`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: LIBRARY_FOLDER_NAME, mimeType: FOLDER_MIME, appProperties: { absLibrary: '1' } }),
+      });
+      folderId = created.id;
+    }
+    const next: RemoteLibraryState = { ...state, handle: folderId, mediaIds: new Set(state.mediaIds), files: new Map(state.files) };
+    const todo = files.filter((file) => !next.mediaIds.has(file.mediaId));
+    for (const [index, file] of todo.entries()) {
+      onProgress?.(`Sending picture ${index + 1} of ${todo.length}`, (index + 1) / (todo.length + 1));
+      const uploaded = await uploadFile(session, {
+        name: `${LIBRARY_FILE_PREFIX}${file.mediaId}`,
+        parentId: folderId,
+        blob: file.blob,
+        mimeType: file.mimeType,
+      });
+      next.mediaIds.add(file.mediaId);
+      next.files.set(file.mediaId, uploaded.id);
+    }
+    return next;
+  },
+
+  async writeManifest(session, state, manifest) {
+    if (!state.handle) throw new Error('The pictures folder is missing from Drive');
+    const written = await uploadFile(session, {
+      name: LIBRARY_MANIFEST,
+      parentId: state.handle,
+      blob: new Blob([JSON.stringify(manifest)], { type: 'application/json' }),
+      mimeType: 'application/json',
+      existingId: state.files.get(LIBRARY_MANIFEST) as string | undefined,
+    });
+    const files = new Map(state.files);
+    files.set(LIBRARY_MANIFEST, written.id);
+    return { ...state, manifest, files };
+  },
+
+  async download(session, state, mediaId) {
+    const fileId = state.files.get(mediaId) as string | undefined;
+    if (!fileId) throw new Error('A picture is missing from Drive');
+    return downloadBlob(session, fileId);
+  },
+
+  async remove(session, state, mediaIds) {
+    for (const mediaId of mediaIds) {
+      const fileId = state.files.get(mediaId) as string | undefined;
+      // Drive moves what an app made with drive.file to the user's trash.
+      if (fileId) await driveJson(session, `${DRIVE_API}/files/${fileId}`, { method: 'DELETE' }).catch(() => undefined);
+    }
   },
 };

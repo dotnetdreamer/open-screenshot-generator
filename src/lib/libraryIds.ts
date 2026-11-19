@@ -24,6 +24,7 @@ export const DEVICE_COLOR_PREFIX = 'devicecolor:';
 export const BASIC_PREFIX = 'basic:';
 export const PREVIEW_PREFIX = 'preview:';
 export const SCENE_PREFIX = 'scene:';
+export const CUSTOM_PREFIX = 'custom:';
 
 /** A vector element from ELEMENT_CATEGORIES. */
 export const elementLibraryId = (itemId: string): string => `${ELEMENT_PREFIX}${itemId}`;
@@ -53,6 +54,14 @@ export const basicLibraryId = (tileId: string): string => `${BASIC_PREFIX}${tile
 
 /** A recording frame or gesture hint in the Elements tab's App Preview group. */
 export const previewLibraryId = (tileId: string): string => `${PREVIEW_PREFIX}${tileId}`;
+
+/**
+ * One of the user's own pictures from the Custom tab (lib/cutout/library.ts).
+ * Unlike the others it names something on this device, not in the app, so
+ * list_library does not list it; the agents reach these pictures through
+ * list_my_images and place them by their asset reference.
+ */
+export const customLibraryId = (imageId: string): string => `${CUSTOM_PREFIX}${imageId}`;
 
 /**
  * A whole App Preview scene from the Previews tab (see lib/previewScenes.ts).

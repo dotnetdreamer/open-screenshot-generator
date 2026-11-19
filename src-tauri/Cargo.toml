@@ -48,6 +48,18 @@ tiny_http = "0.12"
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 time = { version = "0.3", features = ["formatting"] }
 
+# Apple's subject lifting for the background remover (cutout.rs): Vision's
+# foreground instance mask, macOS 14 and later, checked at run time. The same
+# 0.3 line as the objc2 crates tauri already resolves, with only the headers
+# the request needs.
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-core-foundation = { version = "0.3", default-features = false, features = ["std", "CFData"] }
+objc2-core-graphics = { version = "0.3", default-features = false, features = ["std", "CGColorSpace", "CGDataProvider", "CGImage"] }
+objc2-core-video = { version = "0.3", default-features = false, features = ["std", "CVBase", "CVBuffer", "CVImageBuffer", "CVPixelBuffer", "CVReturn"] }
+objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSArray", "NSDictionary", "NSError", "NSIndexSet", "NSString"] }
+objc2-vision = { version = "0.3", default-features = false, features = ["std", "objc2-core-graphics", "objc2-core-video", "VNGenerateForegroundInstanceMaskRequest", "VNObservation", "VNRequest", "VNRequestHandler"] }
+
 # Screenshot capture of the assistant windows for the operation timeline.
 # Windows only: WebView2's CapturePreview renders even while the window is
 # hidden, so a background run is still traceable. Versions must match the ones

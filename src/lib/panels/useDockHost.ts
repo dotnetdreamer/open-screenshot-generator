@@ -174,6 +174,9 @@ export function useDockHost(options: DockHostOptions): DockHost {
       case 'captureScreenshot':
         h.onCaptureScreenshot(intent.elementId);
         break;
+      case 'removeImageBackground':
+        h.onRemoveImageBackground(intent.elementId);
+        break;
       case 'updateArtboardDetails': {
         // The board travels without its elements or its override map (see
         // slimArtboard), so neither key may ever come back: writing the elided

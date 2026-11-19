@@ -82,6 +82,8 @@ const SLOW_TOOLS: &[&str] = &[
     // Opens the user's app on a simulator or emulator, waits up to 15s for the
     // screen to settle, then takes a full size screenshot (device_capture.rs).
     "capture_screenshot",
+    // Runs the background remover's model on a picture (src/lib/cutout).
+    "remove_background",
 ];
 
 /// Max request body we will buffer (generous for base64 image arguments).

@@ -67,6 +67,8 @@ Stay in this project. create_project_from_template and open_project leave it, so
 when the user asks for another project. rename_project changes its name and nothing else. Pictures the user attaches later arrive the same way,
 with asset refs. A picture without a ref is only for looking at: list_assets shows the images
 uploaded in the editor, and if one is missing, ask the user to drop the file onto the canvas.
+list_my_images shows the pictures the user keeps (cut-outs of people, products and logos from
+Remove background), each with a ref. remove_background cuts the subject out of a picture.
 
 # Screenshots from the running app
 

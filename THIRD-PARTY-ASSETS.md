@@ -148,7 +148,29 @@ Practically:
 - **Keep the record.** If you add assets, add rows. A fork with no provenance
   record is a fork that cannot answer a takedown.
 
-## 5. Scope and disclaimer
+## 5. The background remover's model and runtime
+
+Remove background ([docs/REMOVE-BACKGROUND.md](https://github.com/dotnetdreamer/open-screenshot-generator/blob/main/docs/REMOVE-BACKGROUND.md))
+runs a machine learning model on the user's computer. Nothing of it is in this
+repository or in the npm package; the app downloads it the first time it is
+needed, from the addresses in
+[src/lib/cutout/models.ts](https://github.com/dotnetdreamer/open-screenshot-generator/blob/main/src/lib/cutout/models.ts),
+and checks each file against its SHA-256 before keeping it.
+
+| What | Licence | Where it comes from |
+| --- | --- | --- |
+| BiRefNet lite weights (Zheng Peng and others, "Bilateral Reference for High-Resolution Dichotomous Image Segmentation", CAAI AIR 2024) | MIT, copyright 2024 ZhengPeng | [ZhengPeng7/BiRefNet_lite](https://huggingface.co/ZhengPeng7/BiRefNet_lite) |
+| Its 1024 pixel fp16 ONNX export, rewritten for WebGPU | MIT | [runes/birefnet-lite-webgpu](https://huggingface.co/runes/birefnet-lite-webgpu), commit d553b221 |
+| Its 512 pixel fp16 ONNX export | MIT, copyright 2024 ZhengPeng and 2026 Studio Ludens V.O.F. | [studioludens/birefnet-lite-512](https://huggingface.co/studioludens/birefnet-lite-512), commit 962e6796 |
+| onnxruntime-web 1.31.1, whose WebAssembly file the build copies into `public/cutout/ort/` | MIT, copyright Microsoft Corporation | the `onnxruntime-web` npm package |
+
+The BiRefNet authors note that the weights were trained on datasets with
+licences of their own (DIS5K among them); see their model card. Models with a
+non-commercial licence (BRIA's RMBG 1.4, 2.0 and 3.0) were looked at and not
+used for that reason. On a Mac with macOS 14 or later the app also uses Apple's
+Vision framework, part of macOS, which ships nothing with the app.
+
+## 6. Scope and disclaimer
 
 This file records what the project knows about the provenance of the files it
 ships and the rule the published package follows. It is written by the
