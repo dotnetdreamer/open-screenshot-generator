@@ -1293,6 +1293,12 @@ h1 {
   font-size: 13px;
   padding: 0 32px 23px 0;
 }
+.faq-list details > p a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: #477873;
+  text-underline-offset: 3px;
+}
 .cta {
   padding-block: 100px;
   text-align: center;
@@ -1306,6 +1312,45 @@ h1 {
 }
 .cta .hero-note {
   margin-top: 20px;
+}
+/* The store badges under a call to action. Each badge is the store's own
+   artwork and is shown unchanged, so it gets no hover effect. The gap keeps
+   the clear space Apple asks for, a quarter of the badge's height */
+.store-intro {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 26px 0 14px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.store-intro::before,
+.store-intro::after {
+  content: "";
+  width: 36px;
+  height: 1px;
+  background: var(--line);
+}
+.store-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+.store-badges a {
+  display: block;
+  border-radius: 8px;
+}
+.store-badges img {
+  width: auto;
+  height: 44px;
+}
+/* Microsoft's badge has a 1px margin inside its artwork, so it is drawn 2px
+   taller to line up with the other two badges */
+.store-badges .badge-microsoft {
+  height: 46px;
 }
 .site-footer {
   border-top: 1px solid var(--line);
@@ -1703,6 +1748,24 @@ h1 {
   }
   .hero-note span {
     gap: 5px;
+  }
+  .store-intro {
+    margin: 22px 0 12px;
+    font-size: 11px;
+    text-wrap: balance;
+  }
+  .store-intro::before,
+  .store-intro::after {
+    display: none;
+  }
+  .store-badges {
+    gap: 10px;
+  }
+  .store-badges img {
+    height: 40px;
+  }
+  .store-badges .badge-microsoft {
+    height: 42px;
   }
   .showcase-toolbar {
     flex-wrap: wrap;

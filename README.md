@@ -5,7 +5,17 @@
 
 Make screenshots and preview videos for the App Store and Google Play. Start with a template, add screenshots of your app, change the text and colors, then export the finished files at store sizes.
 
-Open the [web editor](https://editor.openscrgen.app), download the [desktop app](https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest), or [watch the walkthrough](https://youtu.be/gfABjk1Q_Z0?si=uWIIoq1cgQIQSgud).
+Open the [web editor](https://editor.openscrgen.app) or [watch the walkthrough](https://youtu.be/gfABjk1Q_Z0?si=uWIIoq1cgQIQSgud). The desktop app is free for Mac, Windows and Linux:
+
+<p align="center">
+  <a href="https://apps.apple.com/app/id6822657542"><img src="docs/badges/mac-app-store.svg" alt="Download on the Mac App Store" height="48"></a>
+  &nbsp;&nbsp;
+  <a href="https://apps.microsoft.com/detail/9nt28z42qkcd"><img src="docs/badges/microsoft-store.svg" alt="Download from the Microsoft Store" height="50"></a>
+  &nbsp;&nbsp;
+  <a href="https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest"><img src="docs/badges/github.svg" alt="Download from GitHub" height="48"></a>
+</p>
+
+<p align="center"><sub>The Mac App Store version can't run Claude Code or Codex. For Claude Code or Codex on a Mac, get the app from GitHub.</sub></p>
 
 <div align="center">
 
@@ -82,7 +92,7 @@ Both versions use the same editor. The desktop app adds features that need acces
 | AI agent with your own API key | Yes | Yes |
 | AI agent with an existing assistant account | Copy and paste, or use the [companion extension](extension/README.md) | Built in assistant window |
 | Built in or local AI providers | No | Yes |
-| AI agent in Claude Code or Codex, on your Claude or ChatGPT plan | No | Yes |
+| AI agent in Claude Code or Codex, on your Claude or ChatGPT plan | No | Yes, except the Mac App Store version |
 | Coding agent design tools | With the [web relay](infra/vps/mcp-relay/README.md) or CLI | Built in MCP server |
 | Save to your own Google Drive or GitHub account | Yes | Yes |
 | Upload screenshots directly to App Store Connect or Google Play | No | Yes |

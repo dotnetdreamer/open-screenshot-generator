@@ -119,6 +119,11 @@ e2e Tauri mock) showing the made up Juniper app from
 written for the capture. The page labels every one of them as an example. Each
 full window image comes in a 1x and a 2x width for `srcset`
 
+The download badges in `assets/img/badges/` are copies of the ones in
+[docs/badges/](../docs/badges/README.md), where their sources and rules are.
+The homepage shows them under the hero's button and the closing call to action,
+styled by `.store-intro` and `.store-badges` in `css/home.css`
+
 To refresh imagery, export from the app or capture new shots with the
 `app-screenshots` skill, then update the matching files in `assets/img/`.
 Existing WebP exports also come from `promo/public/`; the ffmpeg conversion
