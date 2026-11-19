@@ -221,11 +221,18 @@ import { GrowthWorkspace, type GrowthRequest } from './growth/GrowthWorkspace';
 import { CaptureWorkspace, type CaptureRequest, type ClipOutcome } from './capture/CaptureWorkspace';
 import { WebsiteWorkspace, type CaptureRequest as WebsiteCaptureRequest, type CapturedBoard } from './website/WebsiteWorkspace';
 import { StoreComplianceWorkspace } from './storeCompliance/StoreComplianceWorkspace';
+import { CutoutWorkspace, type CutoutRequest } from './cutout/CutoutWorkspace';
+import { placementProps } from './cutout/CustomPaletteTab';
+import { markLibraryImagePlaced, refOf, type LibraryImageRow } from '@/lib/cutout/library';
+import { deleteMyImageForMcp, listMyImagesForMcp, removeBackgroundForMcp, saveToMyImagesForMcp } from '@/lib/cutout/mcp';
+import { detectCutout, getCutoutStatus } from '@/lib/cutout/engine';
+import { megabytes } from '@/lib/cutout/models';
+import { CUSTOM_PREFIX, customLibraryId } from '@/lib/libraryIds';
 import { flushWebsiteSaves } from '@/lib/website/store';
 import { captureTargets } from '@/lib/capture/frames';
 import { placeClip, placeShots, type ClipPlacement, type ShotPlacement } from '@/lib/capture/place';
 import { deviceForQuickCapture, shootDevice } from '@/lib/capture/shoot';
-import { ActivityBar, type ActivityId } from './ActivityBar';
+import { ActivityBar, BAR_INSET, type ActivityId } from './ActivityBar';
 import { getGrowthSettings, setGrowthSettings } from '@/lib/growth/settings';
 import { useGrowthMonitor } from '@/lib/growth/useGrowthMonitor';
 import { storeOf } from '@/lib/growth/stores';
@@ -1672,6 +1679,17 @@ export function OpenScreenshotGeneratorLayout() {
   // view's first visit (src/lib/storeCompliance). Mounted on that visit and kept,
   // like Growth, so an answer on its way and the screen's place stay.
   const [complianceMounted, setComplianceMounted] = useState(false);
+  // Remove background: cutting people and products out of photos, and the
+  // user's own pictures the palette's Custom tab places (src/lib/cutout).
+  // Mounted on its first visit and kept, so a picture being cut carries on
+  // while the editor is in front. A request picks the picture to show.
+  const [cutoutMounted, setCutoutMounted] = useState(false);
+  const [cutoutRequest, setCutoutRequest] = useState<CutoutRequest | null>(null);
+  const showCutout = useCallback((imageId?: string) => {
+    setCutoutMounted(true);
+    setCutoutRequest((current) => ({ imageId, nonce: (current?.nonce ?? 0) + 1 }));
+    setActivity('cutout');
+  }, []);
   // While the desktop app runs, Growth keeps the apps synced there fresh and
   // says when something new turns up (src/lib/growth/monitor.ts). The main
   // window only: a tab window would sync the same apps a second time.
@@ -1786,6 +1804,7 @@ export function OpenScreenshotGeneratorLayout() {
         if (next === 'capture') setCaptureMounted(true);
         if (next === 'website') setWebsiteMounted(true);
         if (next === 'compliance') setComplianceMounted(true);
+        if (next === 'cutout') setCutoutMounted(true);
         setActivity(next);
         return;
       }
@@ -2591,6 +2610,7 @@ export function OpenScreenshotGeneratorLayout() {
   // Assigned in the tab block: the tab session, with the active tab's view,
   // and the agent chat.
   const beforeWindowCloseRef = useRef<() => Promise<unknown>>(() => Promise.resolve());
+  const cutoutFlushRef = useRef<(() => Promise<boolean>) | null>(null);
   // Installing an update ends the process without the close hook below ever
   // running, so Rust asks every editor window to write its edits first, and
   // calls the install off when one cannot (src-tauri/src/updater.rs).
@@ -4215,6 +4235,9 @@ export function OpenScreenshotGeneratorLayout() {
     if (artboardComponent && typeof artboardComponent.addElement === 'function') {
       const newElementId = artboardComponent.addElement(type, subType, dropPosition, styleProps);
       if (newElementId) {
+        if (type === 'image' && typeof styleProps?.libraryId === 'string' && styleProps.libraryId.startsWith(CUSTOM_PREFIX)) {
+          void markLibraryImagePlaced(styleProps.libraryId.slice(CUSTOM_PREFIX.length));
+        }
         setSelectedElementIdOnActiveArtboard(newElementId);
         setActiveArtboardId(artboardId);
       }
@@ -7088,7 +7111,13 @@ export function OpenScreenshotGeneratorLayout() {
     projectTabs.flushSession();
     // And the agent chat and the Website view's site, whose own pagehide
     // flushes never run when a desktop window closes.
-    return Promise.all([claudeAgent.flush(), flushWebsiteSaves()]);
+    return Promise.all([
+      claudeAgent.flush(),
+      flushWebsiteSaves(),
+      cutoutFlushRef.current?.().then((saved) => {
+        if (!saved) throw new Error("Your change wasn't saved");
+      }),
+    ]);
   };
 
   // The session keeps the active tab's view, read as it is written
@@ -9368,12 +9397,46 @@ export function OpenScreenshotGeneratorLayout() {
   // Not memoized on purpose: nearly every one of these is recreated per render
   // anyway, so a dependency list here would only be a lie. useDockHost keeps it
   // in a ref, so its identity does not cost anything.
+  // The Properties panel's Remove background: the picture is cut out in place,
+  // keeping its frame, through the same path as the agents' remove_background.
+  const handleRemoveImageBackground = async (elementId: string) => {
+    const api = mcpApiRef.current;
+    if (!api) return;
+    const locale = activeLocaleRef.current;
+    await detectCutout();
+    const status = getCutoutStatus();
+    const working = toast({
+      title: 'Removing the background',
+      description:
+        status.phase === 'ready' || !status.model
+          ? 'This takes a few seconds.'
+          : `The first time takes a little longer: a one-time download (${megabytes(status.model.bytes)}) comes first.`,
+    });
+    try {
+      const result = await api.removeBackground({ elementId, download: true, locale });
+      working.dismiss();
+      toast({
+        title: 'Background removed',
+        description: 'Undo brings the background back. To fix the edges, open Remove background.',
+        action: result.myImageId ? (
+          <ToastAction altText="Fix the edges in Remove background" onClick={() => showCutout(result.myImageId)}>
+            Fix edges
+          </ToastAction>
+        ) : undefined,
+      });
+    } catch (error) {
+      working.dismiss();
+      toast({ title: "The background wasn't removed", description: error instanceof Error ? error.message : 'Try again.' });
+    }
+  };
+
   const dockHandlers: DockHandlers = {
     onUpdateElement: handleUpdateSelectedElement,
     onUpdateElementById: handleUpdateElementById,
     onStudioLive: updateStudioLive,
     onTranslateElement: handleTranslateTextElement,
     onCaptureScreenshot: (elementId) => void handleCaptureScreenshot(elementId),
+    onRemoveImageBackground: (elementId) => void handleRemoveImageBackground(elementId),
     onUpdateArtboardDetails: handleUpdateArtboardDetails,
     onResetLocaleField: handleResetLocaleField,
     onToggleLocaleDetach: handleToggleLocaleDetach,
@@ -12014,6 +12077,59 @@ const generateRandomProjectName = (): string => {
       return { artboardId: board.id, elementId: element.id, locale };
     },
 
+    // remove_background, list_my_images, save_to_my_images, delete_my_image
+    // (src/lib/cutout/mcp.ts). A cut into an element lands seconds after the
+    // call began, so, like placeCapturedScreenshot, it reads the newest
+    // document, commits through the newest handleArtboardsUpdate, and leaves an
+    // element whose picture changed meanwhile alone.
+    removeBackground: (input) => {
+      const projectAtStart = activeProjectIdRef.current;
+      const locale = input.locale && input.locale !== getBaseLocale(artboardsRef.current) ? input.locale : null;
+      const imageDocument = () => {
+        const base = artboardsRef.current;
+        if (locale && !getProjectLocales(base).some((entry) => entry.code === locale)) {
+          throw new Error('The picture\'s language is no longer in this project.');
+        }
+        return { base, view: projectArtboards(base, locale) };
+      };
+      return removeBackgroundForMcp(input, {
+        findImage: (elementId, artboardId) => {
+          const { view: newest } = imageDocument();
+          const board = artboardId
+            ? newest.find((candidate) => candidate.id === artboardId)
+            : newest.find((candidate) => candidate.elements.some((element) => element.id === elementId));
+          if (!board) throw new Error(artboardId ? `No artboard "${artboardId}" in this project.` : `No element "${elementId}" in this project.`);
+          const element = board.elements.find((candidate) => candidate.id === elementId);
+          if (!element) throw new Error(`No element "${elementId}" on artboard "${board.name}".`);
+          if (element.type !== 'image') throw new Error(`"${elementId}" is a ${element.type}. remove_background cuts out an image element's picture.`);
+          const src = (element as ImageElementProps).imageSrc;
+          if (!src) throw new Error(`"${elementId}" has no picture yet.`);
+          return { boardId: board.id, elementId, src, name: element.name };
+        },
+        replaceImage: (target, ref, detail) => {
+          if (activeProjectIdRef.current !== projectAtStart) {
+            throw new Error(`Another project was opened while the picture was cut, so it went into no element. The cut-out is stored as ${ref}.`);
+          }
+          const { base, view: newest } = imageDocument();
+          const board = newest.find((candidate) => candidate.id === target.boardId);
+          const element = board?.elements.find((candidate) => candidate.id === target.elementId);
+          if (!board || !element || element.type !== 'image' || (element as ImageElementProps).imageSrc !== target.src) {
+            throw new Error(`"${target.elementId}" changed while its picture was cut, so it was left alone. The cut-out is stored as ${ref}.`);
+          }
+          const next = newest.map((candidate) =>
+            candidate.id === board.id
+              ? { ...candidate, elements: candidate.elements.map((el) => (el.id === element.id ? ({ ...el, imageSrc: ref } as ArtboardElement) : el)) }
+              : candidate
+          );
+          commitForTool(unprojectArtboards(base, locale, next), namedChange('Remove Background', 'image', detail), handleArtboardsUpdateRef.current);
+          return { artboardId: board.id, elementId: element.id };
+        },
+      });
+    },
+    listMyImages: () => listMyImagesForMcp(),
+    saveToMyImages: (input) => saveToMyImagesForMcp(input),
+    deleteMyImage: (id) => deleteMyImageForMcp(id),
+
     // The Claude Code agent's code folders. Rust reads the picture and checks
     // the path; the store knows whether the process can read a folder now, and
     // whether the chat's agent ever could.
@@ -12060,6 +12176,47 @@ const generateRandomProjectName = (): string => {
     },
   };
 
+  // A picture from Remove background onto the active artboard, the way the
+  // Custom tab's tiles put one there.
+  const handlePlaceLibraryImage = (row: LibraryImageRow) => {
+    const props = placementProps(row);
+    if (!props) return;
+    if (!activeArtboardId) {
+      toast({ title: 'Open a project first', description: 'The picture goes onto the artboard you have selected.' });
+      return;
+    }
+    setActivity('editor');
+    void markLibraryImagePlaced(row.id);
+    handleAddElementToArtboard(activeArtboardId, 'image', undefined, undefined, { ...props, libraryId: customLibraryId(row.id) });
+  };
+
+  // Remove background's "Design with the agent": the picture goes to the
+  // Claude Code or Codex chat, the same way Growth hands it a question.
+  const handleAskAgentAboutPicture = (row: LibraryImageRow) => {
+    const ref = refOf(row);
+    if (!ref) return;
+    setActivity('editor');
+    const { session } = claudeAgentState;
+    claudeAgent.setPanelEnabled(true);
+    revealDockTab('agent');
+    if (isMobileViewport) setIsMobileDockOpen(true);
+    if (session.status === 'working' || session.status === 'starting') {
+      toast({ title: 'The agent is busy', description: 'Wait for it to finish, or stop it in the Agent tab, then ask again.' });
+      return;
+    }
+    track('cutout_ask_agent');
+    void markLibraryImagePlaced(row.id)
+      .then(() => claudeAgent.send({
+        text: `Use my picture "${row.name}" in this design. It is ${ref}, ${row.width} by ${row.height} pixels, with its background already removed. Put it on the artboard where it fits best, as an image element with that imageSrc, then check the result with export_png before you reply.`,
+      }))
+      .catch((error) =>
+        toast({
+          title: "The agent couldn't take the picture",
+          description: error instanceof Error ? error.message : 'Try again in the Agent tab.',
+        })
+      );
+  };
+
   return (
     <>
       {templateSelectorDialog}
@@ -12088,6 +12245,7 @@ const generateRandomProjectName = (): string => {
           {
             id: 'account',
             label: accountSession ? `Account, ${accountSession.account.name}` : 'Account',
+            name: 'Account',
             icon: accountSession ? (
               <Avatar className="h-6 w-6">
                 {accountSession.account.avatarUrl && <AvatarImage src={accountSession.account.avatarUrl} alt="" />}
@@ -12109,9 +12267,9 @@ const generateRandomProjectName = (): string => {
           inside shrinks to the window's height as it did as the page's own
           flex item; as a block it grew to its content, and the canvas lost
           its scroll area to the page. */}
-      <div ref={editorViewRef} className={cn('flex min-w-0 flex-1 flex-col md:pl-12', activity !== 'editor' && 'invisible')}>
+      <div ref={editorViewRef} className={cn('flex min-w-0 flex-1 flex-col', BAR_INSET.paddingLeft, activity !== 'editor' && 'invisible')}>
       <SidebarProvider defaultOpen>
-        <Sidebar side="left" collapsible="icon" variant="sidebar" className="border-r md:left-12">
+        <Sidebar side="left" collapsible="icon" variant="sidebar" className={cn('border-r', BAR_INSET.left)}>
           <SidebarHeader className="border-b">
             <div className="flex items-center gap-3 px-2 py-2.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
               <Logo withBackground className="h-10 w-10 shrink-0 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8" />
@@ -12151,6 +12309,7 @@ const generateRandomProjectName = (): string => {
                 onDropElement={handlePaletteDropElement}
                 onAddPreviewScene={handlePaletteAddPreviewScene}
                 onAddCreativeLook={handlePaletteAddCreativeLook}
+                onOpenCutout={showCutout}
               />
             </StoreArtSourceContext.Provider>
           </SidebarContent>
@@ -13285,7 +13444,7 @@ const generateRandomProjectName = (): string => {
       </SidebarProvider>
       </div>
       {growthMounted && (
-        <div className={cn('fixed inset-0 z-30 md:left-12', activity !== 'growth' && 'hidden')}>
+        <div className={cn('fixed inset-0 z-30', BAR_INSET.left, activity !== 'growth' && 'hidden')}>
           <GrowthWorkspace
             active={activity === 'growth'}
             request={growthRequest}
@@ -13362,7 +13521,7 @@ const generateRandomProjectName = (): string => {
         </div>
       )}
       {captureMounted && (
-        <div className={cn('fixed inset-0 z-30 md:left-12', activity !== 'capture' && 'hidden')}>
+        <div className={cn('fixed inset-0 z-30', BAR_INSET.left, activity !== 'capture' && 'hidden')}>
           <CaptureWorkspace
             active={activity === 'capture'}
             artboards={artboards}
@@ -13380,13 +13539,27 @@ const generateRandomProjectName = (): string => {
           />
         </div>
       )}
+      {cutoutMounted && (
+        <div className={cn('fixed inset-0 z-30', BAR_INSET.left, activity !== 'cutout' && 'hidden')}>
+          <CutoutWorkspace
+            flushRef={cutoutFlushRef}
+            active={activity === 'cutout'}
+            request={cutoutRequest}
+            onPlace={handlePlaceLibraryImage}
+            onOpenAccount={() => openAccountDialog('Sign in to back up your pictures to your Google Drive or GitHub.', 'storage')}
+            onBackToEditor={() => setActivity('editor')}
+            agentUnavailable={isSecondaryWindow ? 'The agent only works in the main window' : undefined}
+            onAskAgent={claudeAgentState.available && !isSecondaryWindow ? handleAskAgentAboutPicture : undefined}
+          />
+        </div>
+      )}
       {complianceMounted && (
-        <div className={cn('fixed inset-0 z-30 md:left-12', activity !== 'compliance' && 'hidden')}>
+        <div className={cn('fixed inset-0 z-30', BAR_INSET.left, activity !== 'compliance' && 'hidden')}>
           <StoreComplianceWorkspace active={activity === 'compliance'} readProject={readProjectForCompliance} />
         </div>
       )}
       {websiteMounted && (
-        <div className={cn('fixed inset-0 z-30 md:left-12', activity !== 'website' && 'hidden')}>
+        <div className={cn('fixed inset-0 z-30', BAR_INSET.left, activity !== 'website' && 'hidden')}>
           <WebsiteWorkspace
             active={activity === 'website'}
             project={websiteProject}

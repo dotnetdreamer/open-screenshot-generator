@@ -18,7 +18,7 @@ import { put, waitForProject, type StoredProject } from '../fixtures/db';
 test.use({ actionTimeout: 30_000 });
 test.describe.configure({ timeout: 180_000 });
 
-const CAPTURE_BUTTON = 'Capture: screenshots of your app';
+const CAPTURE_BUTTON = 'Capture screenshots of your app';
 const GERMAN = 'de-DE';
 
 const SIMULATOR = {

@@ -107,6 +107,30 @@ const DEFAULT_PROTOCOL_VERSION = '2025-06-18';
 // The surface the app layout must implement so the tools can do their work.
 // ---------------------------------------------------------------------------
 
+/** One of the user's own pictures, as list_my_images reports it. */
+export interface McpMyImageSummary {
+  id: string;
+  name: string;
+  /** Pass this as imageSrc. Null while the picture is still being cut. */
+  ref: string | null;
+  width?: number;
+  height?: number;
+  state: string;
+  engine?: string;
+  createdAt: string;
+}
+
+/** What remove_background made. */
+export interface McpCutoutResult {
+  ref: string;
+  width: number;
+  height: number;
+  engine: string;
+  myImageId?: string;
+  replaced?: { artboardId: string; elementId: string };
+  note?: string;
+}
+
 export interface McpArtboardSummary {
   id: string;
   name: string;
@@ -606,6 +630,31 @@ export interface McpDesignApi {
     /** Shown in History beside "Capture Screenshot": the device's name. */
     detail: string;
   }): { artboardId: string; elementId: string; locale: string | null };
+
+  // -- Remove background: the user's own pictures (src/lib/cutout) -------------
+
+  /**
+   * Cut the subject out of a picture on this device. With elementId the image
+   * element's picture is replaced by its cut-out, on the newest document, once
+   * the cut is done (it takes seconds); one changed meanwhile is left alone.
+   */
+  removeBackground(input: {
+    source?: string;
+    elementId?: string;
+    artboardId?: string;
+    name?: string;
+    trim?: boolean;
+    saveToMyImages?: boolean;
+    /** The Properties panel's language. Tools omit this to edit the base image. */
+    locale?: string | null;
+    /** Fetch the model first when it is not here (the Properties panel's button). The tool never does. */
+    download?: boolean;
+  }): Promise<McpCutoutResult>;
+  /** The user's own pictures, the palette's Custom tab, newest first. */
+  listMyImages(): Promise<McpMyImageSummary[]>;
+  /** Add a picture to the user's own pictures as it is. */
+  saveToMyImages(input: { source: string; name?: string }): Promise<McpMyImageSummary>;
+  deleteMyImage(id: string): Promise<boolean>;
 
   // -- The Claude Code agent's code folders (desktop) --------------------------
 
@@ -2949,6 +2998,84 @@ const TOOLS: ToolDef[] = [
     },
   },
   {
+    name: 'remove_background',
+    description:
+      "Cut the subject (a person, a product, a logo, a pet) out of a picture on this device and get it back as a transparent PNG asset ref. Give source (an asset:<id> ref, a data: URL or an http(s) image link), or elementId for an image element on an artboard: its picture is then replaced in place by the cut-out, the same size and position with the background gone. trim crops the PNG to the subject (default true for source; an element keeps its frame). The cut also goes into the user's own pictures (the palette's Custom tab) unless saveToMyImages is false. A picture takes a few seconds; the first call on a computer without the model may answer that it is downloading, then call again in a minute.",
+    inputSchema: {
+      type: 'object',
+      properties: {
+        source: { type: 'string', description: 'The picture: an asset ref, a data: URL or an http(s) link.' },
+        elementId: { type: 'string', description: 'An image element whose picture is cut out in place.' },
+        artboardId: { type: 'string', description: 'The artboard holding elementId. Found from elementId when left out.' },
+        name: { type: 'string', description: "The cut-out's name in the user's pictures." },
+        trim: { type: 'boolean', description: 'Crop to the subject. Default true for source, false for elementId.' },
+        saveToMyImages: { type: 'boolean', description: "Also keep it in the user's pictures. Default true." },
+      },
+    },
+    run: async (args, api) => {
+      if (!args.source && !args.elementId) return { ...textResult('Pass source (a picture) or elementId (an image element).'), isError: true };
+      try {
+        const result = await api.removeBackground({
+          source: typeof args.source === 'string' ? args.source : undefined,
+          elementId: typeof args.elementId === 'string' ? args.elementId : undefined,
+          artboardId: typeof args.artboardId === 'string' ? args.artboardId : undefined,
+          name: typeof args.name === 'string' ? args.name : undefined,
+          trim: typeof args.trim === 'boolean' ? args.trim : undefined,
+          saveToMyImages: typeof args.saveToMyImages === 'boolean' ? args.saveToMyImages : undefined,
+        });
+        return textResult({
+          ...result,
+          ...(result.replaced ? {} : { next: `Place it with add_element { type: "image", imageSrc: "${result.ref}", width: ${result.width}, height: ${result.height} }, scaled to fit.` }),
+        });
+      } catch (error) {
+        return { ...textResult(error instanceof Error ? error.message : String(error)), isError: true };
+      }
+    },
+  },
+  {
+    name: 'list_my_images',
+    description:
+      "The user's own pictures, newest first: what they cut out in Remove background or added to the palette's Custom tab (people, products, logos). Each has a ref to pass as imageSrc, its size, and whether it is still being cut. Look here before asking the user for a picture they may already have.",
+    inputSchema: { type: 'object', properties: {} },
+    run: async (_args, api) => {
+      const images = await api.listMyImages();
+      return textResult({ images, count: images.length });
+    },
+  },
+  {
+    name: 'save_to_my_images',
+    description:
+      "Keep a picture in the user's own pictures (the palette's Custom tab) as it is, background and all, so they can place it again later. source is an asset ref, a data: URL or an http(s) link. remove_background keeps its cut-outs there already.",
+    inputSchema: {
+      type: 'object',
+      properties: {
+        source: { type: 'string', description: 'The picture: an asset ref, a data: URL or an http(s) link.' },
+        name: { type: 'string', description: 'Its name in the Custom tab.' },
+      },
+      required: ['source'],
+    },
+    run: async (args, api) => {
+      try {
+        return textResult(await api.saveToMyImages({ source: String(args.source), name: typeof args.name === 'string' ? args.name : undefined }));
+      } catch (error) {
+        return { ...textResult(error instanceof Error ? error.message : String(error)), isError: true };
+      }
+    },
+  },
+  {
+    name: 'delete_my_image',
+    description: "Take a picture out of the user's own pictures. Artboards that use it keep their copy. Only when the user asks for it.",
+    inputSchema: {
+      type: 'object',
+      properties: { id: { type: 'string', description: 'The id from list_my_images.' } },
+      required: ['id'],
+    },
+    run: async (args, api) => {
+      const ok = await api.deleteMyImage(String(args.id));
+      return ok ? textResult({ ok }) : { ...textResult('No such picture. Call list_my_images.'), isError: true };
+    },
+  },
+  {
     name: 'import_project_image',
     description:
       'Desktop app only, for the built-in Claude Code agent with a code folder attached to its chat. Store a picture from that folder (the app icon, a logo, a screenshot already in the repo) and get back an "asset:<id>" reference for imageSrc or screenshotSrc, the same as upload_asset gives. Pass the absolute path of a PNG, JPEG, WebP, GIF or SVG file of up to 20 MB. The app reads the file itself, so there is no need to Read a picture just to import it.',
@@ -3417,6 +3544,8 @@ const SLOW_TOOLS = new Set([
   // Opens the user's app, waits up to 15s for its screen to settle, then takes
   // a full size screenshot from the Simulator or adb.
   'capture_screenshot',
+  // Runs the cut-out model, seconds a picture, longer while it first loads.
+  'remove_background',
 ]);
 
 function toolNameOf(message: JsonRpcMessage): string | undefined {
@@ -3506,6 +3635,10 @@ const READ_ONLY_TOOLS = new Set([
   'get_store_listing',
   'list_store_events',
   'list_store_keywords',
+  // The user's own pictures live in their own table, which no render reads.
+  'list_my_images',
+  'save_to_my_images',
+  'delete_my_image',
 ]);
 
 /**
@@ -3545,6 +3678,8 @@ function changesEditor(message: JsonRpcMessage, response: unknown): boolean {
   // The switch back to the user's language is still rendering when an export
   // that was given a locale answers.
   if (name === 'export_png' || name === 'export_all') return args.locale !== undefined;
+  // Only a cut put into an element changes the design; one returned as a ref does not.
+  if (name === 'remove_background') return args.elementId !== undefined;
   return !READ_ONLY_TOOLS.has(name);
 }
 
