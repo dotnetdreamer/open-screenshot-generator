@@ -15,6 +15,10 @@ https://github.com/user-attachments/assets/1b1d7ff4-5f89-4fc5-8e48-efbe89782562
 
 ## What's new
 
+### 18 November 2026: App icon
+
+Design your app's icon on the canvas, starting from your app's name and colours or from your logo. See how the icon looks on an iPhone, an Android phone and a Mac, in light, dark and tinted mode and at actual size. The app tells you if anything will be hard to see or cut off. Then save every size for iPhone, Android, Google Play and the Mac in one go. In the desktop app, you can put the new icon straight into your app's folder. Read [how the app icon works](docs/APP-ICON.md).
+
 ### 17 November 2026: Every device
 
 Make your screenshots once and see them laid out again for the iPad, Android phones and tablets, and the Mac. Pick another layout for any screenshot, add an iPad or Mac screenshot where a device needs its own, and export every set with your project. Read [how Every device works](docs/DEVICES.md).
@@ -78,6 +82,7 @@ Both versions use the same editor. The desktop app adds features that need acces
 | --- | --- | --- |
 | Templates, design tools, languages, store size PNG export | Yes | Yes |
 | Every device: your design laid out for iPad, Android and Mac sizes | Yes | Yes |
+| App icon: one design, every size for iPhone, Android, Mac and the stores | Yes, as a zip | Yes, as a zip, a folder or straight into your app's folder |
 | Preview video export | In Chrome or Edge | Yes |
 | AI agent with your own API key | Yes | Yes |
 | AI agent with an existing assistant account | Copy and paste, or use the [companion extension](extension/README.md) | Built in assistant window |

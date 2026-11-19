@@ -210,6 +210,7 @@ export function SettingsDialog({ open, onOpenChange, onOpenTips }: SettingsDialo
   const [autoSaveToCloud, setAutoSaveToCloud] = useEditorPreference('cloudAutoSave');
   const [wheelZoom, setWheelZoom] = useEditorPreference('wheelZoom');
   const [creativeSafeArea, setCreativeSafeArea] = useEditorPreference('creativeSafeArea');
+  const [appIconGuides, setAppIconGuides] = useEditorPreference('appIconGuides');
   const [confirmTabClose, setConfirmTabClose] = useEditorPreference('confirmTabClose');
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -282,6 +283,12 @@ export function SettingsDialog({ open, onOpenChange, onOpenTips }: SettingsDialo
                   onCheckedChange={setCreativeSafeArea}
                 />
               }
+            />
+            <SettingsRow
+              label="Show the guides on the app icon"
+              description="Outlines Apple's icon shape and the circle no Android phone cuts into on the app icon artboard. Never exported"
+              htmlFor="settings-app-icon-guides"
+              control={<Switch id="settings-app-icon-guides" checked={appIconGuides} onCheckedChange={setAppIconGuides} />}
             />
           </SettingsSection>
 

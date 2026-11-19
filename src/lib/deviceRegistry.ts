@@ -1,5 +1,5 @@
 import type { ArtboardElement, ArtboardState, DeviceFrameElementProps, DeviceType } from '@/types/artboard';
-import { isCreativeBoard } from './creative/specs';
+import { isScreenshotBoard } from './creative/specs';
 import { isStudioStyle, studioModelFor, withStudioRehug } from './device3dStudio';
 import { displayInsetsOf, displayRadiiOf, flatFaceOf, measuredModelFor } from './device3dModels';
 
@@ -191,7 +191,7 @@ export function detectArtboardsFormat(
 ): DeviceFormat | 'mixed' | null {
   let found: DeviceFormat | null = null;
   for (const ab of artboards) {
-    if (isCreativeBoard(ab)) continue;
+    if (!isScreenshotBoard(ab)) continue;
     for (const el of ab.elements) {
       if (el.type !== 'device') continue;
       const desc = getDeviceDescriptor(el.deviceType);
@@ -468,7 +468,7 @@ export function convertArtboardsToFormat(
   const isMac = preset.id === 'mac';
   const phonePlatform = preset.id === 'ios-large' ? 'ios' : preset.id as SwapPlatform;
   const next = artboards.map((ab) => {
-    if (isCreativeBoard(ab)) return ab;
+    if (!isScreenshotBoard(ab)) return ab;
     const { width: newW, height: newH } = preset.artboard;
     const sameSize = ab.size.width === newW && ab.size.height === newH;
     let elements = scaleElementsToCanvas(ab.elements, ab.size, preset.artboard);

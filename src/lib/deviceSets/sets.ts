@@ -30,7 +30,7 @@ import {
   swapTargetFor,
   type DeviceFormat,
 } from '@/lib/deviceRegistry';
-import { isCreativeBoard } from '@/lib/creative/specs';
+import { isScreenshotBoard } from '@/lib/creative/specs';
 import { deviceSetTarget, type DeviceSetTarget } from './targets';
 import { applyPlan, isSwappableDevice, planBoard, type BoardPlan, type DeviceLayout, type TextMeasure } from './layout';
 
@@ -47,7 +47,7 @@ export function isUserScreenshot(src: string | undefined): boolean {
  * artboard is a different picture with sizes of its own.
  */
 export function takesPart(board: ArtboardState): boolean {
-  if (isCreativeBoard(board)) return false;
+  if (!isScreenshotBoard(board)) return false;
   const aspect = board.size.width / board.size.height;
   if (aspect > 1.9 || aspect < 0.3) return false;
   const devices = board.elements.filter((el) => el.type === 'device' || el.type === 'video-device');
@@ -243,7 +243,7 @@ export function boardsOnDevice(
   if (!preset) return shown;
   const byId = new Map(bases.map((board) => [board.id, board]));
   return shown.map((board) => {
-    if (isCreativeBoard(board)) return board;
+    if (!isScreenshotBoard(board)) return board;
     const base = byId.get(board.id) ?? board;
     if (!takesPart(base)) return convertArtboardsToFormat([board], preset).artboards[0];
     const key = `${format}:${base.id}`;

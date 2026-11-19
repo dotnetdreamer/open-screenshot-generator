@@ -48,6 +48,13 @@ tiny_http = "0.12"
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 time = { version = "0.3", features = ["formatting"] }
 
+# icon_export.rs: the folder macOS keeps on a file's own drive for replacing
+# that file (NSItemReplacementDirectory), which the App Store sandbox lets the
+# app use after the save dialog, so a zip there is swapped in in one step.
+# Already in the dependency tree via tao and wry, at this version.
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2-foundation = { version = "0.3.2", default-features = false, features = ["std", "NSError", "NSFileManager", "NSPathUtilities", "NSString", "NSURL"] }
+
 # Screenshot capture of the assistant windows for the operation timeline.
 # Windows only: WebView2's CapturePreview renders even while the window is
 # hidden, so a background run is still traceable. Versions must match the ones
@@ -68,6 +75,13 @@ windows = { version = "0.62", features = [
   # it, since WebView2 exposes no way to close or query it.
   "Win32_System_Diagnostics_ToolHelp",
   "Win32_UI_WindowsAndMessaging",
+  # folder_lock.rs: a named mutex per folder an icon write changes, named after
+  # the folder's file index, so the Store build and the installers take turns,
+  # with a DACL (from SDDL) that lets every signed-in user wait on it.
+  "Win32_Security",
+  "Win32_Security_Authorization",
+  "Win32_Storage_FileSystem",
+  "Win32_System_Threading",
 ] }
 
 # `devtools` keeps open_devtools() available outside debug builds, for Settings >

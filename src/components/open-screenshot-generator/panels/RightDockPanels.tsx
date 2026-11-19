@@ -240,6 +240,7 @@ export function RightDockPanels({
               translationAvailable={data.translationAvailable}
               onCaptureScreenshot={handlers.onCaptureScreenshot}
               activeArtboardDetails={data.activeArtboardDetails}
+              onIconBoard={data.onIconBoard}
               onUpdateArtboardDetails={handlers.onUpdateArtboardDetails}
               activeLocale={data.activeLocale}
               baseLocale={data.baseLocale}

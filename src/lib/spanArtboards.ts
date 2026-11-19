@@ -19,7 +19,7 @@
 // in the strip (stripBoards).
 
 import type { ArtboardElement, ArtboardState, ElementAnimation, Point, Size } from '@/types/artboard';
-import { isCreativeBoard, screenshotBoards } from '@/lib/creative/specs';
+import { isScreenshotBoard, screenshotBoards } from '@/lib/creative/specs';
 import { textOutlineReach } from '@/lib/textOutline';
 import { POP_PEAK_SCALE, slideDistanceFor } from '@/lib/video/animation';
 import { devicePerspectiveTransform, isDevice3dStyle } from '@/lib/devicePerspective';
@@ -437,7 +437,7 @@ export function reachedArtboardIds(boards: ArtboardState[], elementId: string, b
 export function stripBoards<T extends Pick<ArtboardState, 'id' | 'creativeAsset'>>(boards: T[], boardId: string): T[] {
   const own = boards.find((board) => board.id === boardId);
   if (!own) return [];
-  return isCreativeBoard(own) ? [own] : screenshotBoards(boards);
+  return !isScreenshotBoard(own) ? [own] : screenshotBoards(boards);
 }
 
 /**

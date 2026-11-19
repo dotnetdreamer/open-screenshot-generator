@@ -15,7 +15,7 @@ import type {
   DeviceType,
   VideoDeviceElementProps,
 } from '@/types/artboard';
-import { isCreativeBoard } from '@/lib/creative/specs';
+import { isScreenshotBoard } from '@/lib/creative/specs';
 import { getDeviceDescriptor, getDeviceScreenRect, type DevicePlatform } from '@/lib/deviceRegistry';
 import { projectArtboards } from '@/lib/i18n/project';
 
@@ -76,7 +76,7 @@ export function captureTargets(base: ArtboardState[]): CaptureTarget[] {
   const targets: CaptureTarget[] = [];
   let boardIndex = 0;
   for (const board of base) {
-    if (isCreativeBoard(board)) continue;
+    if (!isScreenshotBoard(board)) continue;
     const frames = board.elements.filter(
       (element): element is DeviceFrameElementProps | VideoDeviceElementProps =>
         element.type === 'device' || element.type === 'video-device'

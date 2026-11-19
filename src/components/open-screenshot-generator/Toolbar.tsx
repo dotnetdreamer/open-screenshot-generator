@@ -29,7 +29,8 @@ import {
   StoreIcon,
   UsersIcon,
   LanguagesIcon,
-  PanelTopIcon
+  PanelTopIcon,
+  SquircleIcon
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -62,6 +63,8 @@ interface ToolbarProps {
   onMakeGraphics?: () => void;
   /** Open the App Store header and search dialog for the open project. */
   onMakeStoreArt?: () => void;
+  /** Opens the app icon window: its starters, or the icon the project has. */
+  onMakeAppIcon?: () => void;
   onPreview: () => void;
   /** Preview, opened straight into the store listing mockup. */
   onPreviewStore?: () => void;
@@ -151,6 +154,7 @@ export function Toolbar({
   onDropInScreenshots,
   onMakeGraphics,
   onMakeStoreArt,
+  onMakeAppIcon,
   onPreview,
   onPreviewStore,
   onPreviewCompare,
@@ -267,18 +271,33 @@ export function Toolbar({
                 : []),
             ],
           },
-          ...(onMakeStoreArt
+          ...(onMakeStoreArt || onMakeAppIcon
             ? [
                 {
                   label: 'Add to this project',
                   items: [
-                    {
-                      id: 'store-art',
-                      label: 'App Store header and search art',
-                      description: 'New in iOS 27, built from this project',
-                      icon: PanelTopIcon,
-                      onSelect: onMakeStoreArt,
-                    },
+                    ...(onMakeAppIcon
+                      ? [
+                          {
+                            id: 'app-icon',
+                            label: 'App icon',
+                            description: 'One design, every size for iPhone, Android and Mac',
+                            icon: SquircleIcon,
+                            onSelect: onMakeAppIcon,
+                          },
+                        ]
+                      : []),
+                    ...(onMakeStoreArt
+                      ? [
+                          {
+                            id: 'store-art',
+                            label: 'App Store header and search art',
+                            description: 'New in iOS 27, built from this project',
+                            icon: PanelTopIcon,
+                            onSelect: onMakeStoreArt,
+                          },
+                        ]
+                      : []),
                   ],
                 },
               ]

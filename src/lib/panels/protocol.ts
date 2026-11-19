@@ -70,6 +70,12 @@ export interface DockData {
    * the background off it, and the elements are already in layerElements.
    */
   activeArtboardDetails: ArtboardState | null;
+  /**
+   * The active artboard is the app icon (src/lib/appIcon/), so an element's
+   * form offers which of the icon's two layers it is in. Separate from
+   * activeArtboardDetails, which is null while an element is selected.
+   */
+  onIconBoard?: boolean;
   activeLocale: string | null;
   baseLocale: string;
   localeOverride?: ElementLocaleOverride;

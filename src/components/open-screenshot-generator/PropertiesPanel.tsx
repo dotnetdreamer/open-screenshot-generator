@@ -771,6 +771,8 @@ interface PropertiesPanelProps {
    */
   onCaptureScreenshot?: (elementId: string) => void;
   activeArtboardDetails?: ArtboardState | null;
+  /** The selected element is on the app icon artboard, so its form offers the icon's two layers. */
+  onIconBoard?: boolean;
   /**
    * Board-level form edits. `scope: 'all'` writes every board in one commit,
    * which is what a background picture shared across the strip needs.
@@ -1093,6 +1095,7 @@ export function PropertiesPanel({
   translationAvailable = false,
   onCaptureScreenshot,
   activeArtboardDetails,
+  onIconBoard = false,
   onUpdateArtboardDetails,
   activeLocale,
   baseLocale,
@@ -1278,8 +1281,54 @@ export function PropertiesPanel({
    * elements it lands on (BaseElement.spanArtboards and spanBehind). Takes the
    * whole selection, so one control serves a single layer and several.
    */
+  /**
+   * On the app icon artboard: which of the icon's two layers a layer is in
+   * (src/lib/appIcon/specs.ts). The canvas keeps the background ones under
+   * the front ones, so the board looks the way its layers export.
+   */
+  const renderIconLayerControl = (element: ArtboardElement) => {
+    if (!onIconBoard || element.type === 'audio') return null;
+    const back = element.iconLayer === 'back';
+    return (
+      <div className="space-y-2 border-t pt-3" data-testid="icon-layer-control">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-xs font-medium">Icon layer</span>
+          <div className="inline-flex rounded-md bg-muted p-0.5" role="radiogroup" aria-label="Icon layer">
+            {(
+              [
+                { value: 'front', label: 'Front' },
+                { value: 'back', label: 'Back' },
+              ] as const
+            ).map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={(option.value === 'back') === back}
+                onClick={() => onUpdateElement({ iconLayer: option.value === 'back' ? 'back' : undefined } as Partial<ArtboardElement>)}
+                className={cn(
+                  'rounded px-2.5 py-1 text-[11px] font-medium transition-colors',
+                  (option.value === 'back') === back ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <p className="text-[10px] text-muted-foreground">
+          {back
+            ? 'Behind your logo. In dark mode, iPhone hides the back'
+            : 'Your logo or letter. In dark mode, iPhone shows only the front'}
+        </p>
+      </div>
+    );
+  };
+
   const renderSpanControls = (elements: ArtboardElement[]) => {
     const boxed = elements.filter((el) => el.type !== 'audio');
+    // The app icon is one board; nothing on it continues onto another.
+    if (onIconBoard) return null;
     if (!onUpdateSpan || boxed.length === 0) return null;
     const on = boxed.every((el) => el.spanArtboards === true);
     const mixed = !on && boxed.some((el) => el.spanArtboards === true);
@@ -4543,6 +4592,7 @@ export function PropertiesPanel({
               is the one type with no box to give numbers for. */}
           {selectedElement.type !== 'audio' && renderGeometryProperties(selectedElement)}
           {renderSpanControls([selectedElement])}
+          {renderIconLayerControl(selectedElement)}
           {selectedElement.type === 'text' && renderTextProperties(selectedElement as TextElementProps)}
           {selectedElement.type === 'shape' && renderShapeProperties(selectedElement as ShapeElementProps)}
           {selectedElement.type === 'device' && renderDeviceProperties(selectedElement as DeviceFrameElementProps)}
