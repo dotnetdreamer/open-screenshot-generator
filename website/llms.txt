@@ -34,6 +34,7 @@ Key facts
 - [iPad mockup generator](https://openscrgen.app/ipad-mockup-generator): iPad frames for App Store screenshots
 - [MacBook mockup generator](https://openscrgen.app/macbook-mockup-generator): MacBook and iMac frames, including 3D poses, at Mac App Store sizes
 - [Apple Watch mockup generator](https://openscrgen.app/apple-watch-mockup-generator): Apple Watch screenshot templates and 3D poses
+- [Compare screenshot tools](https://openscrgen.app/compare): Open Screenshot Generator next to AppScreens, AppLaunchpad, Previewed, Screenshots.pro, AppMockUp, Rotato, Hotpot, ButterKit and Figma, with each tool's prices, free plan and features as its own website showed them on 19 November 2026, and the pages they came from
 - [AppScreens alternative](https://openscrgen.app/appscreens-alternative): a comparison with AppScreens
 - [AppMockUp alternative](https://openscrgen.app/appmockup-alternative): a comparison with AppMockUp Studio
 - [Smartmockups alternative](https://openscrgen.app/smartmockups-alternative): a comparison with Smartmockups

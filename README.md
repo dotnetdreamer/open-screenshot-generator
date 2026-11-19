@@ -86,7 +86,7 @@ The canvas holds all your designs together. Choose an item to change it in the r
 
 ## How it compares
 
-Open Screenshot Generator is free and open source, with no watermark or export cap. You can use it without an account and save projects locally. The site has longer comparisons with [AppScreens](https://openscrgen.app/appscreens-alternative), [Previewed](https://openscrgen.app/previewed-alternative), [AppMockUp](https://openscrgen.app/appmockup-alternative), and [Smartmockups](https://openscrgen.app/smartmockups-alternative).
+Open Screenshot Generator is free and open source, with no watermark or export cap. You can use it without an account and save projects locally. [Compare it with other screenshot tools](https://openscrgen.app/compare) on one page, with their prices and what each one does best. The site also has longer comparisons with [AppScreens](https://openscrgen.app/appscreens-alternative), [Previewed](https://openscrgen.app/previewed-alternative), [AppMockUp](https://openscrgen.app/appmockup-alternative), and [Smartmockups](https://openscrgen.app/smartmockups-alternative).
 
 ## Feature checklist: web vs desktop
 
