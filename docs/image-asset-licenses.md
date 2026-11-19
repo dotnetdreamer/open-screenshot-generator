@@ -199,17 +199,19 @@ in editable templates, not standalone downloads.
 | traceberry-screen-camera.png | 568605361 | girls-as568605361.png, painted at the top and a pencil sketch lower down (section 1) | traceberry-drawing.json |
 | traceberry-screen-upload.png | 479330034, 211660510, 299117684 | Painted head crops of those library photos, the same pictures as sketches/sketch-painted-1 to -3 (section 1) | traceberry-drawing.json |
 | traceberry-screen-share.png | 616151886, 176708273, 262780760, 622285813, 488088494 | Round head crops of those library photos as contact pictures (section 1) | traceberry-drawing.json |
+| paylark-screen-wellbeing.png | 616151886, 176708273, 622285813 | Those library photos on soft colour cards under "Need help?" (section 1) | paylark-benefits.json |
 
 The `fg-screens/*.png` skeleton screens in that folder are original in-house
 artwork (generated placeholders), not licensed stock.
 
-## 5. Original illustrations (`mascots/`, `objects/`, `stickers/`, `products/`, `cards/`, `drawings/`, `sketches/`)
+## 5. Original illustrations (`mascots/`, `objects/`, `stickers/`, `products/`, `cards/`, `drawings/`, `sketches/`, `line-art/`)
 
-The Mascots, 3D objects, Stickers, Products, Cards and Drawings groups are
-original artwork drawn for this project (SVG and HTML written for the Hoppi,
-Expertly, Roamo, Formpal, Sunup, Wishmint, Lavish, Postie, Hummi, Signsy and
-Traceberry templates, rendered to PNG and trimmed). The Signsy signer is an
-invented cartoon person, not a likeness of anyone. None of it is stock or traced. The app icons in 3D objects
+The Mascots, 3D objects, Stickers, Products, Cards, Drawings and Line art
+groups are original artwork drawn for this project (SVG and HTML written for
+the Hoppi, Expertly, Roamo, Formpal, Sunup, Wishmint, Lavish, Postie, Hummi,
+Signsy, Traceberry and Paylark templates, rendered to PNG and trimmed). The
+Signsy signer and the people in Line art are invented cartoon people, not
+likenesses of anyone. None of it is stock or traced. The app icons in 3D objects
 are invented designs, not the icons of real apps. Three cards build on library
 photos from section 1: card-person.png is girls-as622285813 in black and white,
 and card-dance.png and card-yourself.png use guys-as211660510 and

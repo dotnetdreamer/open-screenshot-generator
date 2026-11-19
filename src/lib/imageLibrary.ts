@@ -5,11 +5,11 @@
  * project owner's Adobe account and background-removed; filenames embed the
  * Stock asset ID (<group>-as<ID>.png). Badges: official vendor marketing
  * badges from each store's badge program. Mascots, 3D objects, stickers,
- * products, cards and drawings: illustrations drawn for this project's
- * templates, which also use them, so a template and the palette share one
- * file. Three cards build on library photos, and every sketch is a pencil or
- * painted version of one (see the license record). Full license record:
- * docs/image-asset-licenses.md.
+ * products, cards, drawings and line art: illustrations drawn for this
+ * project's templates, which also use them, so a template and the palette
+ * share one file. Three cards build on library photos, and every sketch is a
+ * pencil or painted version of one (see the license record). Full license
+ * record: docs/image-asset-licenses.md.
  *
  * Each item becomes an image element with imageSrc pointing at the asset;
  * defaultSize preserves the asset's aspect ratio.
@@ -221,6 +221,7 @@ export const IMAGE_CATEGORIES: ImageCategory[] = [
       { id: 'sticker-handbag', label: 'Handbag', src: '/elements/images/stickers/sticker-handbag.png', defaultSize: { width: 430, height: 401 } },
       { id: 'sticker-confetti', label: 'Confetti', src: '/elements/images/stickers/sticker-confetti.png', defaultSize: { width: 399, height: 430 } },
       { id: 'sticker-hand-pencil', label: 'Hand with pencil', src: '/elements/images/stickers/sticker-hand-pencil.png', defaultSize: { width: 430, height: 426 } },
+      { id: 'sticker-confetti-strips', label: 'Confetti strips', src: '/elements/images/stickers/sticker-confetti-strips.png', defaultSize: { width: 261, height: 430 } },
     ],
   },
   {
@@ -303,6 +304,18 @@ export const IMAGE_CATEGORIES: ImageCategory[] = [
       { id: 'sketch-painted-1', label: 'Painted portrait 1', src: '/elements/images/sketches/sketch-painted-1.png', defaultSize: { width: 363, height: 430 } },
       { id: 'sketch-painted-2', label: 'Painted portrait 2', src: '/elements/images/sketches/sketch-painted-2.png', defaultSize: { width: 363, height: 430 } },
       { id: 'sketch-painted-3', label: 'Painted portrait 3', src: '/elements/images/sketches/sketch-painted-3.png', defaultSize: { width: 363, height: 430 } },
+    ],
+  },
+  {
+    id: 'line-art',
+    label: 'Line art',
+    items: [
+      { id: 'line-art-bedtime', label: 'Asleep in bed', src: '/elements/images/line-art/line-art-bedtime.png', defaultSize: { width: 430, height: 336 } },
+      { id: 'line-art-coin', label: 'Coin', src: '/elements/images/line-art/line-art-coin.png', defaultSize: { width: 415, height: 430 } },
+      { id: 'line-art-coin-phone', label: 'Coin going into a phone', src: '/elements/images/line-art/line-art-coin-phone.png', defaultSize: { width: 430, height: 231 } },
+      { id: 'line-art-scarf', label: 'Wrapped in a scarf', src: '/elements/images/line-art/line-art-scarf.png', defaultSize: { width: 430, height: 362 } },
+      { id: 'line-art-grater', label: 'Grating cash', src: '/elements/images/line-art/line-art-grater.png', defaultSize: { width: 430, height: 329 } },
+      { id: 'line-art-meditate', label: 'Meditating', src: '/elements/images/line-art/line-art-meditate.png', defaultSize: { width: 430, height: 351 } },
     ],
   },
 ];
