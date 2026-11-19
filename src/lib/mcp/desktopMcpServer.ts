@@ -2892,7 +2892,7 @@ const TOOLS: ToolDef[] = [
   {
     name: 'export_all',
     description:
-      'Render every artboard in the project, in canvas order. Made for final delivery: with save:true each board is written to one folder, named "01_<artboard name>.png" and so on, and you get the paths back instead of a wall of base64. App Store header and search art takes no number: it is named for its placement, as in "AppStore_Header_3840x1646.png", with "_2" on a second design of the same kind. Pass locale to render one language, which names the files "<locale>_01_<name>.png"; for the fastlane-style folder per language, call it once per language with a directory of its own. With no locale it renders whatever the canvas is showing.',
+      'Render every artboard in the project, in canvas order. Made for final delivery: with save:true each board is written to one folder, named "01_<artboard name>.png" and so on, and you get the paths back instead of a wall of base64. App Store header and search art takes no number: it is named for its placement, as in "AppStore_Header_3840x1646.png", with "_2" on a second design of the same kind. The app icon artboard is left out, since a 1024 square among the screenshots reads as a wrong-sized screenshot; export it with export_png and its artboardId. Pass locale to render one language, which names the files "<locale>_01_<name>.png"; for the fastlane-style folder per language, call it once per language with a directory of its own. With no locale it renders whatever the canvas is showing.',
     inputSchema: {
       type: 'object',
       properties: {

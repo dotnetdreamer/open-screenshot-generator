@@ -80,6 +80,8 @@ export interface ActiveArtboardSummary {
   format: DeviceFormat | null;
   /** App Store header or search art, which has one size and no extra ones. */
   creative?: boolean;
+  /** The app icon, which has one size here; its own window makes the rest. */
+  icon?: boolean;
 }
 
 interface ExportDialogProps {
@@ -102,6 +104,10 @@ interface ExportDialogProps {
   // App Store header and search artboards, counted in artboardCount. They go
   // out once, at their own size, and never in the extra App Store sizes.
   creativeBoardCount?: number;
+  // App icon artboards, counted in artboardCount. A project-wide export leaves
+  // them out (the icon window exports every size); one exported on its own
+  // goes out once, at 1024 x 1024.
+  iconBoardCount?: number;
   // Set when the dialog is opened from an artboard's own toolbar, where
   // "export this board" is the whole intent.
   defaultCurrentArtboardOnly?: boolean;
@@ -152,6 +158,7 @@ export function ExportDialog({
   artboardCount = 0,
   appPreviewBoardCount = 0,
   creativeBoardCount = 0,
+  iconBoardCount = 0,
   defaultCurrentArtboardOnly = false,
   artboards = NO_ARTBOARDS,
   activeLocale = null,
@@ -261,8 +268,8 @@ export function ExportDialog({
   };
 
   const noLocaleSelected = showLocales && selectedLocales.length === 0;
-  // Header and search art on its own has nothing to resize to.
-  const formatsAvailable = !(scopedToArtboard && activeArtboard?.creative);
+  // Header and search art or the icon on its own has nothing to resize to.
+  const formatsAvailable = !(scopedToArtboard && (activeArtboard?.creative || activeArtboard?.icon));
   // What the run makes: the ticked sizes the current size does not already cover.
   const chosenFormats = formatsAvailable ? generateFormats.filter((id) => !coveredByAsIs(id)) : [];
   const nothingSelected =
@@ -271,10 +278,11 @@ export function ExportDialog({
   // Every pass (the as-is capture plus each generated format) produces one file
   // per board in scope, and every language repeats the lot. Languages are the
   // multiplier people underestimate, so the count is spelled out below.
-  const boardsInScope = scopedToArtboard ? 1 : Math.max(1, artboardCount);
-  // Header and search art takes the as-is pass only.
+  const boardsInScope = scopedToArtboard ? 1 : Math.max(1, artboardCount - iconBoardCount);
+  // Header and search art and the app icon take the as-is pass only.
   const creativeInScope = scopedToArtboard ? (activeArtboard?.creative ? 1 : 0) : creativeBoardCount;
-  const sizedBoardsInScope = Math.max(0, boardsInScope - creativeInScope);
+  const iconInScope = scopedToArtboard && activeArtboard?.icon ? 1 : 0;
+  const sizedBoardsInScope = Math.max(0, boardsInScope - creativeInScope - iconInScope);
   const passCount = (asIs ? 1 : 0) + chosenFormats.length;
   const localeCount = showLocales ? selectedLocales.length : 1;
   const fileCount =
@@ -351,6 +359,13 @@ export function ExportDialog({
                   {creativeInScope === 1 && scopedToArtboard
                     ? 'App Store header and search art, at its own App Store Connect size'
                     : `Includes ${creativeInScope} App Store header and search ${creativeInScope === 1 ? 'artboard' : 'artboards'}, each at its own App Store Connect size`}
+                </p>
+              )}
+              {(iconInScope > 0 || (!scopedToArtboard && iconBoardCount > 0)) && (
+                <p className="text-xs text-muted-foreground">
+                  {iconInScope > 0
+                    ? 'Your app icon, as one 1024 x 1024 picture. For every size, use App icon in the + menu'
+                    : 'Your app icon isn\'t in this export. To save every size of the app icon, use App icon in the + menu'}
                 </p>
               )}
             </div>

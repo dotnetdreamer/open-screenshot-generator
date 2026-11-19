@@ -5,6 +5,8 @@ mod cutout;
 mod device_capture;
 mod devtools;
 mod growth_browser;
+mod folder_lock;
+mod icon_export;
 mod mcp_server;
 mod migrate;
 mod oauth;
@@ -96,6 +98,9 @@ pub fn run() {
             mcp_server::abs_mcp_respond,
             mcp_server::abs_mcp_write_png,
             mcp_server::abs_write_export_png,
+            icon_export::abs_write_export_files,
+            icon_export::abs_scan_icon_targets,
+            icon_export::abs_write_export_zip,
             mcp_server::abs_mcp_bridge_nonce,
             claude_code::abs_claude_detect,
             claude_code::abs_claude_start,

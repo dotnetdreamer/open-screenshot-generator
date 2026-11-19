@@ -243,6 +243,7 @@ export function RightDockPanels({
               onCaptureScreenshot={handlers.onCaptureScreenshot}
               onRemoveImageBackground={handlers.onRemoveImageBackground}
               activeArtboardDetails={data.activeArtboardDetails}
+              onIconBoard={data.onIconBoard}
               onUpdateArtboardDetails={handlers.onUpdateArtboardDetails}
               activeLocale={data.activeLocale}
               baseLocale={data.baseLocale}

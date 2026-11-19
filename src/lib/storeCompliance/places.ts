@@ -3,7 +3,8 @@
 // a place with a label, so a finding can say where its words are, and the
 // page can check that the words the AI quotes are really there (ai.ts).
 
-import { isCreativeBoard } from '@/lib/creative/specs';
+import { isCreativeBoard, isScreenshotBoard } from '@/lib/creative/specs';
+import { isIconBoard } from '@/lib/appIcon/specs';
 import { getBaseLocale, getProjectLocales, localizableTextElements } from '@/lib/i18n/localization';
 import { getLocaleDef } from '@/lib/i18n/locales';
 import { projectArtboards } from '@/lib/i18n/project';
@@ -44,6 +45,9 @@ export function artboardPlaces(artboards: ArtboardState[]): { places: CheckPlace
   const places: CheckPlace[] = [];
   const skipped: string[] = [];
   const baseText = new Map<string, string>();
+  // Screenshots are numbered among themselves, the way the export numbers
+  // them, so the app icon and header art at the front don't push them on.
+  const shotNumber = new Map(artboards.filter(isScreenshotBoard).map((board, at) => [board.id, at + 1]));
   let total = 0;
   for (const language of languages) {
     const boards = language === base ? artboards : projectArtboards(artboards, language);
@@ -52,8 +56,9 @@ export function artboardPlaces(artboards: ArtboardState[]): { places: CheckPlace
       if (!words) return;
       if (language !== base && baseText.get(board.id) === words) return;
       if (language === base) baseText.set(board.id, words);
-      const kind = isCreativeBoard(board) ? 'App Store header art' : `Artboard ${index + 1}`;
-      const name = board.name && !/^artboard\s*\d*$/i.test(board.name.trim()) ? ` "${board.name.trim()}"` : '';
+      const kind = isIconBoard(board) ? 'App icon' : isCreativeBoard(board) ? 'App Store header art' : `Artboard ${shotNumber.get(board.id) ?? index + 1}`;
+      const named = board.name?.trim() ?? '';
+      const name = named && !/^artboard\s*\d*$/i.test(named) && named.toLowerCase() !== kind.toLowerCase() ? ` "${named}"` : '';
       const label = `${kind}${name}${languages.length > 1 ? `, ${languageName(language)}` : ''}`;
       if (total + words.length > MAX_CHARACTERS) {
         skipped.push(label);

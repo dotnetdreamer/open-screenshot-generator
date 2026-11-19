@@ -3,6 +3,8 @@ import React, { createContext, useContext, useEffect, useMemo, useRef, useState 
 import { ChevronLeftIcon, PanelTopIcon, SearchIcon, ShareIcon, XIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StaticArtboard, getArtboardBackgroundStyle, count3dDevices } from './StaticArtboard';
+import { AppIconArt } from './appIcon/AppIconArt';
+import { projectIconBoard } from '@/lib/appIcon/specs';
 import { artboardBackground } from '@/lib/artboardBackground';
 import { detectArtboardsFormat } from '@/lib/deviceRegistry';
 import { computeSpill, spillFor, type BoardSpill } from '@/lib/spanArtboards';
@@ -305,13 +307,19 @@ function AppIcon({
   initials,
   background,
   foreground,
+  board,
+  play = false,
 }: {
   size: number;
   radius: number;
   initials: string;
   background: React.CSSProperties;
   foreground: string;
+  /** The project's own app icon, when it has one, drawn in the store's shape. */
+  board?: ArtboardState | null;
+  play?: boolean;
 }) {
+  if (board) return <AppIconArt board={board} size={size} shape={play ? 'play' : 'apple'} label="App icon" />;
   return (
     <div
       className="flex flex-shrink-0 items-center justify-center"
@@ -415,6 +423,7 @@ function AppStoreProduct({
             initials={icon.initials}
             background={icon.background}
             foreground={icon.foreground}
+            board={icon.board}
           />
           <div className="flex min-w-0 flex-1 flex-col">
             <span
@@ -565,6 +574,7 @@ function AppStoreSearch({
             initials={icon.initials}
             background={icon.background}
             foreground={icon.foreground}
+            board={icon.board}
           />
           <div className="flex min-w-0 flex-1 flex-col">
             <span
@@ -824,6 +834,7 @@ function AppStoreProduct27({
             initials={icon.initials}
             background={icon.background}
             foreground={icon.foreground}
+            board={icon.board}
           />
           <div className="flex min-w-0 flex-1 flex-col">
             <span
@@ -949,6 +960,7 @@ function AppStoreSearch27({
             initials={icon.initials}
             background={icon.background}
             foreground={icon.foreground}
+            board={icon.board}
           />
           <div className="flex min-w-0 flex-1 flex-col">
             <span className="truncate" style={{ fontSize: '17px', fontWeight: 600, color: theme.text }}>
@@ -1072,11 +1084,13 @@ function PlayProduct({
       <div style={{ padding: `0 ${PLAY_PAD}px` }}>
         <div className="flex gap-4">
           <AppIcon
+            play
             size={72}
             radius={16}
             initials={icon.initials}
             background={icon.background}
             foreground={icon.foreground}
+            board={icon.board}
           />
           <div className="flex min-w-0 flex-1 flex-col justify-center gap-1">
             <span
@@ -1170,11 +1184,13 @@ function PlaySearch({
 
         <div className="mt-5 flex items-center gap-3">
           <AppIcon
+            play
             size={56}
             radius={13}
             initials={icon.initials}
             background={icon.background}
             foreground={icon.foreground}
+            board={icon.board}
           />
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="truncate" style={{ fontSize: '16px', color: theme.text }}>
@@ -1219,7 +1235,7 @@ interface SurfaceProps {
   appName: string;
   developerName: string;
   theme: StoreTheme;
-  icon: { initials: string; background: React.CSSProperties; foreground: string };
+  icon: { initials: string; background: React.CSSProperties; foreground: string; board?: ArtboardState | null };
   liveIndexes: Set<number>;
   observer: IntersectionObserver | null;
   width: number;
@@ -1460,7 +1476,9 @@ export function StoreListingPreview({
     return live;
   }, [shots, visible, spill, showsHeader, showsSearchArt, headerBoard, searchBoard]);
 
-  const icon = useMemo(() => deriveIcon(shots[0], appName), [shots, appName]);
+  // The project's own icon when it has one (src/lib/appIcon/), else initials on the screenshots' colours.
+  const iconBoard = useMemo(() => projectIconBoard(artboards) ?? null, [artboards]);
+  const icon = useMemo(() => ({ ...deriveIcon(shots[0], appName), board: iconBoard }), [shots, appName, iconBoard]);
 
   const surfaceProps: SurfaceProps = {
     artboards: shots,

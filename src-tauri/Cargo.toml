@@ -51,13 +51,16 @@ time = { version = "0.3", features = ["formatting"] }
 # Apple's subject lifting for the background remover (cutout.rs): Vision's
 # foreground instance mask, macOS 14 and later, checked at run time. The same
 # 0.3 line as the objc2 crates tauri already resolves, with only the headers
-# the request needs.
+# the request needs. icon_export.rs asks Foundation (NSFileManager,
+# NSPathUtilities, NSURL) for the folder macOS keeps on a file's own drive for
+# replacing that file (NSItemReplacementDirectory), which the App Store sandbox
+# lets the app use after the save dialog, so a zip there is swapped in in one step.
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"
 objc2-core-foundation = { version = "0.3", default-features = false, features = ["std", "CFData"] }
 objc2-core-graphics = { version = "0.3", default-features = false, features = ["std", "CGColorSpace", "CGDataProvider", "CGImage"] }
 objc2-core-video = { version = "0.3", default-features = false, features = ["std", "CVBase", "CVBuffer", "CVImageBuffer", "CVPixelBuffer", "CVReturn"] }
-objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSArray", "NSDictionary", "NSError", "NSIndexSet", "NSString"] }
+objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSArray", "NSDictionary", "NSError", "NSFileManager", "NSIndexSet", "NSPathUtilities", "NSString", "NSURL"] }
 objc2-vision = { version = "0.3", default-features = false, features = ["std", "objc2-core-graphics", "objc2-core-video", "VNGenerateForegroundInstanceMaskRequest", "VNObservation", "VNRequest", "VNRequestHandler"] }
 
 # Screenshot capture of the assistant windows for the operation timeline.
@@ -80,6 +83,13 @@ windows = { version = "0.62", features = [
   # it, since WebView2 exposes no way to close or query it.
   "Win32_System_Diagnostics_ToolHelp",
   "Win32_UI_WindowsAndMessaging",
+  # folder_lock.rs: a named mutex per folder an icon write changes, named after
+  # the folder's file index, so the Store build and the installers take turns,
+  # with a DACL (from SDDL) that lets every signed-in user wait on it.
+  "Win32_Security",
+  "Win32_Security_Authorization",
+  "Win32_Storage_FileSystem",
+  "Win32_System_Threading",
 ] }
 
 # `devtools` keeps open_devtools() available outside debug builds, for Settings >

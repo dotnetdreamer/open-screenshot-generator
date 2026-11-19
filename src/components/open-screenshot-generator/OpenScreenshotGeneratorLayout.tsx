@@ -175,8 +175,14 @@ import {
   creativeSpecForPreset,
   creativeSummary,
   isCreativeBoard,
+  isScreenshotBoard,
   screenshotBoards,
 } from '@/lib/creative/specs';
+import { iconBoards, iconSettings, isIconBoard, projectIconBoard, withLayersInOrder } from '@/lib/appIcon/specs';
+import { saveIconFolder, saveIconZip, scanIconProject, writeIconProject } from '@/lib/appIcon/projectWrite';
+import { AppIconStudioDialog, type IconCaptureUrls } from './appIcon/AppIconStudioDialog';
+import { AppIconLiveCard } from './appIcon/AppIconLiveCard';
+import { AppIconActionsContext } from './appIcon/AppIconBoardBadge';
 import {
   boardFacesMissing,
   boardFacesPending,
@@ -683,8 +689,11 @@ function calculateArtboardPositions(artboards: ArtboardState[]): ArtboardState[]
     const newPosition = { x: currentX, y: ARTBOARD_MARGIN };
     // Calculate next position with reduced margin
     currentX += (ab.size.width * DISPLAY_SCALE_FACTOR) + ARTBOARD_MARGIN;
-    
-    return { ...ab, position: newPosition };
+    // The app icon draws its back layer under its front, as its exports do,
+    // whatever order a change left them in (src/lib/appIcon/specs.ts).
+    const elements = isIconBoard(ab) ? withLayersInOrder(ab.elements) : ab.elements;
+
+    return elements === ab.elements ? { ...ab, position: newPosition } : { ...ab, position: newPosition, elements };
   });
 }
 
@@ -1830,6 +1839,11 @@ export function OpenScreenshotGeneratorLayout() {
   // it back once the art is on the canvas.
   const [isCreativeDialogOpen, setIsCreativeDialogOpen] = useState(false);
   const creativeReturnsToStoreRef = useRef(false);
+  // The app icon window (appIcon/AppIconStudioDialog.tsx), the icon it is on,
+  // and whether the live preview over the canvas was closed this sitting.
+  const [isAppIconOpen, setIsAppIconOpen] = useState(false);
+  const [appIconBoardId, setAppIconBoardId] = useState<string | null>(null);
+  const [appIconLiveHidden, setAppIconLiveHidden] = useState(false);
   // Seeds the export dialog's "Selected artboard only" box. The toolbar's
   // Download opens the dialog project-wide; an artboard's own Download opens
   // it already scoped to that board.
@@ -4499,13 +4513,14 @@ export function OpenScreenshotGeneratorLayout() {
   }, [activeArtboardId, handleAddElementToArtboard, toast]);
 
   // Get the current size from the first artboard or any active artboard
-  // The canvas size is the screenshots' size. Header and search art has a
-  // fixed size of its own, so with one of those selected the toolbar still
-  // names the screenshots' size, which is what the Canvas Size dialog changes.
+  // The canvas size is the screenshots' size. Header and search art and the
+  // app icon have fixed sizes of their own, so with one of those selected the
+  // toolbar still names the screenshots' size, which is what the Canvas Size
+  // dialog changes.
   const getCurrentArtboardSize = () => {
     if (activeArtboardId) {
       const activeAb = artboards.find(ab => ab.id === activeArtboardId);
-      if (activeAb && !isCreativeBoard(activeAb)) {
+      if (activeAb && isScreenshotBoard(activeAb)) {
         return activeAb.size;
       }
     }
@@ -4531,7 +4546,10 @@ export function OpenScreenshotGeneratorLayout() {
   // already exists, and deleting the last artboard is refused.)
   const handleAddNewArtboardAfter = (currentArtboardId: string | null, options: NewArtboardOptions = {}) => {
     const currentArtboard = artboards.find(ab => ab.id === currentArtboardId);
-    const newSize = currentArtboard ? currentArtboard.size : { ...DEFAULT_CANVAS_SIZE };
+    // A new artboard is a screenshot: after the app icon or header art it
+    // takes the screenshots' size, not that board's own.
+    const sizeFrom = currentArtboard && isScreenshotBoard(currentArtboard) ? currentArtboard : artboards.find(isScreenshotBoard);
+    const newSize = sizeFrom ? { ...sizeFrom.size } : { ...DEFAULT_CANVAS_SIZE };
 
     const newArtboard: ArtboardState = {
       id: `artboard_${Date.now()}`,
@@ -4752,6 +4770,131 @@ export function OpenScreenshotGeneratorLayout() {
   // What the check chip under a header or search artboard can do to it.
   const creativeBoardActions = useMemo(
     () => ({ rebuild: (boardId: string) => rebuildCreativeBoardRef.current(boardId) }),
+    []
+  );
+
+  // --- the app icon (src/lib/appIcon/, appIcon/) -------------------------------
+
+  /** Open the icon window on an icon, the project's first, or its starters when it has none. */
+  const openAppIcon = (boardId: string | null = null) => {
+    setAppIconBoardId(boardId ?? projectIconBoard(artboards)?.id ?? null);
+    setIsAppIconOpen(true);
+  };
+  const openAppIconRef = useRef(openAppIcon);
+  openAppIconRef.current = openAppIcon;
+  // What the chip under the icon artboard can do.
+  const appIconActions = useMemo(() => ({ openStudio: (boardId: string) => openAppIconRef.current(boardId) }), []);
+
+  /** A new icon goes to the front of the canvas: one history entry and one save. The window stays open on it. */
+  const handleAddIconBoard = (board: ArtboardState) => {
+    const landed = handleArtboardsUpdate(
+      normalizeLocalization([board, ...artboards]),
+      namedChange('Add app icon', 'artboard', board.name)
+    );
+    if (!landed) return;
+    setAppIconBoardId(board.id);
+    setAppIconLiveHidden(false);
+    setActiveArtboardId(board.id);
+    setSelectedElementIdOnActiveArtboard(null);
+    revealArtboard(board.id);
+  };
+
+  /** A fix from the icon window to the icon artboard itself. */
+  const handleUpdateIconBoard = (boardId: string, patch: Partial<ArtboardState>, label = 'Change app icon') => {
+    const board = artboards.find((ab) => ab.id === boardId);
+    if (!board) return;
+    handleArtboardsUpdate(
+      artboards.map((ab) => (ab.id === boardId ? { ...ab, ...patch } : ab)),
+      namedChange(label, 'artboard', board.name)
+    );
+  };
+
+  /**
+   * The app's name, typed in the icon window, kept on the icon. A burst of
+   * typing is one history entry, the way a text layer's typing is.
+   */
+  const handleRenameIconApp = (boardId: string, name: string) => {
+    const board = artboards.find((ab) => ab.id === boardId);
+    if (!board) return;
+    const { appName: _previous, ...settings } = iconSettings(board);
+    handleArtboardsUpdate(
+      artboards.map((ab) => (ab.id === boardId ? { ...ab, appIcon: name ? { ...settings, appName: name } : settings } : ab)),
+      { label: 'Rename app', icon: 'edit', detail: board.name, mergeKey: `Rename app:${boardId}` }
+    );
+  };
+
+
+  const handleEditIconOnCanvas = (boardId: string, elementId?: string) => {
+    setIsAppIconOpen(false);
+    setAppIconLiveHidden(false);
+    setActiveArtboardId(boardId);
+    setSelectedElementIdOnActiveArtboard(elementId ?? null);
+    revealArtboard(boardId);
+  };
+
+  /**
+   * The icon's three captures off the live canvas, which every icon picture
+   * is drawn from (src/lib/appIcon/raster.ts): the whole icon with nothing
+   * painted behind it, so a see-through part shows; the front layer alone on
+   * transparent; the back layer with the board's ground. The Export dialog's
+   * recipe otherwise (the clone unscaled, editor chrome dropped), in the base
+   * language when the icon has words in the language on screen.
+   */
+  const captureIconLayers = async (boardId: string, scale: number): Promise<IconCaptureUrls | null> => {
+    const board = artboardsRef.current.find((ab) => ab.id === boardId);
+    if (!board || !isIconBoard(board)) return null;
+    const locale = activeLocaleRef.current;
+    const translated = !!locale && Object.keys(board.localized?.[locale] ?? {}).length > 0;
+    return withLocaleOnCanvas(translated ? null : undefined, async () => {
+      const node = document.querySelector(`[data-artboard-dom-id="${boardId}"]`) as HTMLElement | null;
+      if (!node) return null;
+      if (typeof document !== 'undefined' && document.fonts?.ready) {
+        try {
+          await document.fonts.ready;
+        } catch {
+          // A browser that cannot report font loading captures what it has.
+        }
+      }
+      const backIds = new Set(board.elements.filter((el) => el.iconLayer === 'back').map((el) => el.id));
+      const chrome = (el: HTMLElement) => !!(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));
+      const layerOf = (el: HTMLElement): 'back' | 'front' | null => {
+        const id = el?.getAttribute?.('data-element-id');
+        return id ? (backIds.has(id) ? 'back' : 'front') : null;
+      };
+      const { backgroundImage } = artboardBackground(board);
+      const common = { width: board.size.width, height: board.size.height, pixelRatio: scale, cacheBust: false };
+      const unscale = { transform: 'scale(1)', transformOrigin: 'top left', width: `${board.size.width}px`, height: `${board.size.height}px` };
+      const visibility = node.style.visibility;
+      node.style.visibility = 'visible';
+      try {
+        const full = await captureNodeToPng(node, { ...common, filter: (n) => !chrome(n as HTMLElement), style: { ...unscale, backgroundImage } });
+        const front = await captureNodeToPng(node, {
+          ...common,
+          filter: (n) => {
+            const el = n as HTMLElement;
+            return !chrome(el) && !el?.hasAttribute?.('data-board-background') && layerOf(el) !== 'back';
+          },
+          style: { ...unscale, backgroundColor: 'transparent', backgroundImage: 'none' },
+        });
+        const back = await captureNodeToPng(node, {
+          ...common,
+          filter: (n) => {
+            const el = n as HTMLElement;
+            return !chrome(el) && layerOf(el) !== 'front';
+          },
+          style: { ...unscale, backgroundImage },
+        });
+        return { full, front, back };
+      } finally {
+        node.style.visibility = visibility;
+      }
+    });
+  };
+  const captureIconLayersRef = useRef(captureIconLayers);
+  captureIconLayersRef.current = captureIconLayers;
+  // Stable, so the icon window measures again only when the icon changes.
+  const captureIconLayersStable = useCallback(
+    (boardId: string, scale: number) => captureIconLayersRef.current(boardId, scale),
     []
   );
 
@@ -6109,17 +6252,25 @@ export function OpenScreenshotGeneratorLayout() {
         ? original.filter((ab) => projectHasVideoContent([ab]) && !isCreativeBoard(ab)).map((ab) => ab.id)
         : []
     );
+    // The app icon is no store screenshot: it has an export of its own (the
+    // icon window, every size for every store), and a 1024 x 1024 PNG in a
+    // screenshot set is a size \`osg verify\` fails. Exported on its own, from
+    // its own artboard, it is the PNG asked for.
+    const iconLeftOut = scopedId ? [] : original.filter(isIconBoard).map((ab) => ab.id);
+    for (const id of iconLeftOut) skippedIds.add(id);
     const scope = (list: ArtboardState[]) =>
       list.filter((ab) => !skippedIds.has(ab.id) && (!scopedId || ab.id === scopedId));
-    // The extra App Store sizes are screenshot sizes. Header and search art has
-    // one size and goes out with the as-is pass only.
-    const scopeForFormat = (list: ArtboardState[]) => scope(list).filter((ab) => !isCreativeBoard(ab));
+    // The extra App Store sizes are screenshot sizes. Header and search art and
+    // the app icon have one size each and go out with the as-is pass only.
+    const scopeForFormat = (list: ArtboardState[]) => scope(list).filter(isScreenshotBoard);
 
     const targets = scope(original);
     if (targets.length === 0) {
       toast({
         title: "Nothing to export",
-        description: skippedIds.size > 0 && (!scopedId || skippedIds.has(scopedId))
+        description: iconLeftOut.length > 0 && iconLeftOut.length === skippedIds.size
+          ? "The app icon is saved on its own. Use App icon in the + menu."
+          : skippedIds.size > 0 && (!scopedId || skippedIds.has(scopedId))
           ? "App Preview artboards export as a video. Select one, then export again."
           : currentArtboardOnly
             ? "Select an artboard on the canvas first."
@@ -6140,7 +6291,7 @@ export function OpenScreenshotGeneratorLayout() {
     // opening a native save dialog per file; cancelling the picker aborts
     // the whole export. Single-file exports keep the per-file save dialog.
     let exportDir: string | null | undefined;
-    const formatTargetCount = targets.filter((ab) => !isCreativeBoard(ab)).length;
+    const formatTargetCount = targets.filter(isScreenshotBoard).length;
     const filesPerLocale = (asIs ? targets.length : 0) + generateFormats.length * formatTargetCount;
     const totalFiles = filesPerLocale * localesToExport.length;
     if (isTauri() && totalFiles > 1) {
@@ -6231,9 +6382,9 @@ export function OpenScreenshotGeneratorLayout() {
         // Rebuilt per language, or the German set would be numbered 13..18
         // instead of 01..06 and every fastlane-style convention expects 1..N.
         // Skipped App Preview boards are left out of the count too, so the
-        // exported screenshots still run 1..N without gaps, and so is header
-        // and search art, which is named for its placement instead.
-        const numbered = projected.filter((ab) => !skippedIds.has(ab.id) && !isCreativeBoard(ab));
+        // exported screenshots still run 1..N without gaps, and so are header
+        // and search art, named for their placement, and the app icon.
+        const numbered = projected.filter((ab) => !skippedIds.has(ab.id) && isScreenshotBoard(ab));
         const order = {
           indexById: Object.fromEntries(numbered.map((ab, i) => [ab.id, i + 1])),
           total: numbered.length,
@@ -8616,19 +8767,19 @@ export function OpenScreenshotGeneratorLayout() {
       return;
     }
     
-    // Header and search art keeps Apple's size: it is the same whatever size
-    // the screenshots are.
-    const keptCreative = artboards.filter(isCreativeBoard).length;
-    if (keptCreative === artboards.length) {
+    // Header and search art keeps Apple's size, and the app icon its own: both
+    // are the same whatever size the screenshots are.
+    const keptAtSize = artboards.filter((artboard) => !isScreenshotBoard(artboard)).length;
+    if (keptAtSize === artboards.length) {
       toast({
-        title: "Header and search art keeps Apple's size",
+        title: artboards.some(isCreativeBoard) ? "Header and search art keeps Apple's size" : 'The app icon keeps its size',
         description: 'Select a screenshot artboard to change the canvas size.',
       });
       return;
     }
 
     // Update all artboards with the new size
-    const updatedArtboards = artboards.map(artboard => isCreativeBoard(artboard) ? artboard : ({
+    const updatedArtboards = artboards.map(artboard => !isScreenshotBoard(artboard) ? artboard : ({
       ...artboard,
       size: {
         width,
@@ -8648,7 +8799,8 @@ export function OpenScreenshotGeneratorLayout() {
       description: (scaleContent
         ? `All artboards resized to ${width} × ${height} pixels with content scaled to fit.`
         : `All artboards resized to ${width} × ${height} pixels`) +
-        (keptCreative > 0 ? ' Header and search art keeps its App Store size.' : '')
+        (artboards.some(isCreativeBoard) ? ' Header and search art keeps its App Store size.' : '') +
+        (artboards.some(isIconBoard) ? ' The app icon keeps its size.' : '')
     });
   };
 
@@ -9044,6 +9196,12 @@ export function OpenScreenshotGeneratorLayout() {
   // The layers list and the board-level properties form both show what the
   // active language shows, so they read the projection.
   const activeArtboard = viewArtboards.find(ab => ab.id === activeArtboardId);
+  // The icon in the base document, for the live preview over the canvas: an
+  // icon is the same in every language, so it shows the one that exports.
+  const activeIconBoard = useMemo(() => {
+    const board = artboards.find((ab) => ab.id === activeArtboardId);
+    return board && isIconBoard(board) ? board : null;
+  }, [artboards, activeArtboardId]);
   const activeArtboardElements = activeArtboard ? activeArtboard.elements : [];
   const activeArtboardName = activeArtboard ? activeArtboard.name : undefined;
   // A project can hold App Preview boards next to plain screenshot boards, so
@@ -9221,6 +9379,7 @@ export function OpenScreenshotGeneratorLayout() {
       // for an empty one.
       activeArtboardDetails:
         activeArtboardId && selectedElementIds.length === 0 ? (activeArtboard ?? null) : null,
+      onIconBoard: !!activeArtboard && isIconBoard(activeArtboard),
       activeLocale,
       baseLocale: baseLocaleCode,
       localeOverride: selectedLocaleOverride,
@@ -9596,6 +9755,7 @@ export function OpenScreenshotGeneratorLayout() {
       size: activeArtboard.size,
       format: format === 'mixed' ? null : format,
       creative: isCreativeBoard(activeArtboard),
+      icon: isIconBoard(activeArtboard),
     };
   }, [activeArtboard]);
 
@@ -11657,7 +11817,10 @@ const generateRandomProjectName = (): string => {
       const token = locale ? `${locale}_` : '';
       return withLocaleOnCanvas(locale, async () => {
         const results: McpExportResult[] = [];
-        for (const board of artboards) {
+        // The app icon is left out, as in the export dialog: a 1024 square
+        // beside the screenshots reads as a wrong-sized screenshot to an
+        // upload script and to `osg verify`. export_png takes it on its own.
+        for (const board of artboards.filter((ab) => !isIconBoard(ab))) {
           results.push(
             await captureArtboardForMcp(board, {
               scale,
@@ -12426,6 +12589,7 @@ const generateRandomProjectName = (): string => {
             onDropInScreenshots={() => openStartDialog('quickstart')}
             onMakeGraphics={() => openStartDialog('graphics')}
             onMakeStoreArt={() => openCreativeDialog(false)}
+            onMakeAppIcon={() => openAppIcon(null)}
             onPreview={() => openPreview('single')}
             onPreviewStore={() => openPreview('store')}
             onPreviewCompare={() => openPreview('compare')}
@@ -12536,6 +12700,7 @@ const generateRandomProjectName = (): string => {
             {/* Canvas area - takes remaining space */}
             <div ref={canvasContainerRef} className="flex-1 relative overflow-hidden">
               <CreativeBoardActionsContext.Provider value={creativeBoardActions}>
+              <AppIconActionsContext.Provider value={appIconActions}>
               <CanvasArea
                 artboards={viewArtboards}
                 onUpdateArtboards={commitView}
@@ -12567,6 +12732,7 @@ const generateRandomProjectName = (): string => {
                 activeTool={activeTool}
                 isLoading={loadPhase === 'project' || (!!activeProjectId && artboards.length === 0)}
               />
+              </AppIconActionsContext.Provider>
               </CreativeBoardActionsContext.Provider>
 
               {/* Says what the open is doing, over the canvas rather than in the
@@ -12692,6 +12858,19 @@ const generateRandomProjectName = (): string => {
                   <RedoIcon className="h-[1.1rem] w-[1.1rem]" />
                 </Button>
               </div>
+
+              {/* The app icon at Home Screen size while it is selected, above
+                  the zoom pill. Hidden below md, where that corner holds the
+                  properties button. */}
+              {activeIconBoard && !appIconLiveHidden && !isAppIconOpen && activity === 'editor' && (
+                <div className="absolute bottom-16 right-4 z-40 hidden md:block">
+                  <AppIconLiveCard
+                    board={activeIconBoard}
+                    onOpenStudio={() => openAppIcon(activeIconBoard.id)}
+                    onClose={() => setAppIconLiveHidden(true)}
+                  />
+                </div>
+              )}
 
               {/* MCP server status (desktop only; renders nothing on the web) */}
               {/* Floating bar (bottom-RIGHT of canvas): the zoom control, with
@@ -13119,6 +13298,24 @@ const generateRandomProjectName = (): string => {
             />
           )}
 
+          <AppIconStudioDialog
+            isOpen={isAppIconOpen}
+            onOpenChange={setIsAppIconOpen}
+            artboards={artboards}
+            projectName={currentProjectName}
+            projectKey={activeProjectId}
+            boardId={appIconBoardId}
+            onAddIcon={handleAddIconBoard}
+            onUpdateIcon={handleUpdateIconBoard}
+            onRenameApp={handleRenameIconApp}
+            onEditOnCanvas={handleEditIconOnCanvas}
+            captureLayers={captureIconLayersStable}
+            onSaveToFolder={isDesktopApp ? saveIconFolder : undefined}
+            onSaveZip={isDesktopApp ? saveIconZip : undefined}
+            onPickProject={isDesktopApp ? scanIconProject : undefined}
+            onWriteProject={isDesktopApp ? writeIconProject : undefined}
+          />
+
           <CreativeAssetsDialog
             isOpen={isCreativeDialogOpen}
             onOpenChange={(open) => {
@@ -13173,6 +13370,7 @@ const generateRandomProjectName = (): string => {
               artboardCount={artboards.length - appPreviewBoardCount}
               appPreviewBoardCount={appPreviewBoardCount}
               creativeBoardCount={creativeBoards(artboards).length}
+              iconBoardCount={iconBoards(artboards).length}
               defaultCurrentArtboardOnly={exportScopedToArtboard}
               artboards={artboards}
               activeLocale={activeLocale}
