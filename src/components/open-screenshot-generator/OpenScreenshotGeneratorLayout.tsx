@@ -210,7 +210,7 @@ import {
 import { McpServerStatus } from './McpServerStatus';
 import { agentUsableTemplates } from '@/lib/ai/templateCatalog';
 import { loadProjectTemplates } from '@/services/projectService';
-import { TEMPLATE_CATEGORIES } from '@/lib/templateCategories';
+import { TEMPLATE_CATEGORIES, type TemplateCategory } from '@/lib/templateCategories';
 import { detectArtboardsFormat, swapDeviceInElements, scaleElementsToCanvas, DEVICE_FORMAT_PRESETS, type DeviceFormat, type DeviceFormatPreset } from '@/lib/deviceRegistry';
 import { boardsOnDevice, mirrorSetFormats, ownFormatOf, projectForDevice, projectSetFormats, type PlanCache } from '@/lib/deviceSets/sets';
 import { facesReady, measureText } from '@/lib/deviceSets/measure';
@@ -798,8 +798,9 @@ function getInitialProjectIdFromUrl(): string | null {
   return new URLSearchParams(window.location.search).get('projectId');
 }
 
-// The start dialog's first tab. It holds community posts rather than
-// templates, so it is not a TEMPLATE_CATEGORIES entry and carries its own id.
+// The start dialog's Community tab, second after App Screenshots. It holds
+// community posts rather than templates, so it is not a TEMPLATE_CATEGORIES
+// entry and carries its own id.
 const COMMUNITY_TAB_ID = 'community';
 
 /**
@@ -808,7 +809,7 @@ const COMMUNITY_TAB_ID = 'community';
  * A build-time constant, so a fork of this repo with no VPS gets an editor with
  * no Discover in it rather than one whose compass button opens a dialog that
  * can only say "unavailable". Every entry point below reads this: the rail
- * button, the start dialog's first tab, the toolbar's Share, and the action on
+ * button, the start dialog's Community tab, the toolbar's Share, and the action on
  * the export toast.
  */
 const HAS_DISCOVER = isDiscoverConfigured();
@@ -1258,7 +1259,7 @@ export function OpenScreenshotGeneratorLayout() {
   // tips wizard now that it is a section in here rather than its own button.
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   // Discover, the community feed. Reachable from the palette rail, from the
-  // start dialog's first tab, from the toolbar, and by a ?post= link, which is
+  // start dialog's Community tab, from the toolbar, and by a ?post= link, which is
   // what Copy link on a post hands out.
   const [isDiscoverOpen, setIsDiscoverOpen] = useState(() => getInitialPostIdFromUrl() !== null);
   const [discoverPostId, setDiscoverPostId] = useState<string | null>(() =>
@@ -1267,11 +1268,10 @@ export function OpenScreenshotGeneratorLayout() {
   // Which screen the feed opens on. 'share' is how the toolbar button and the
   // "share these" action on the export toast skip straight to the share form.
   const [discoverIntent, setDiscoverIntent] = useState<'feed' | 'share'>('feed');
-  // The start dialog opens on the community tab: a finished listing somebody
-  // shipped is a better answer to "what should mine look like" than a grid of
-  // empty templates, and the templates are one tab away.
+  // The start dialog opens on its first tab, App Screenshots. Community is the
+  // next tab along.
   const [templateTab, setTemplateTab] = useState<string>(
-    HAS_DISCOVER ? COMMUNITY_TAB_ID : (TEMPLATE_CATEGORIES[0]?.id ?? COMMUNITY_TAB_ID)
+    TEMPLATE_CATEGORIES[0]?.id ?? COMMUNITY_TAB_ID
   );
   const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
@@ -10181,6 +10181,15 @@ const generateRandomProjectName = (): string => {
     }
     return counts;
   }, [availableProjects]);
+  // A template category's tab in the start dialog, with its template count.
+  const categoryTabTrigger = (cat: TemplateCategory) => (
+    <TabsTrigger key={cat.id} value={cat.id} className="gap-1.5">
+      {cat.label}
+      <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full border px-1 text-[11px] tabular-nums text-muted-foreground">
+        {isLoadingProjects ? '…' : (templateCounts[cat.id] ?? 0)}
+      </span>
+    </TabsTrigger>
+  );
 
   /**
    * Which project ids exist on this device.
@@ -10383,23 +10392,16 @@ const generateRandomProjectName = (): string => {
             {dialogView === 'templates' && (
             <Tabs value={templateTab} onValueChange={setTemplateTab} className="flex min-h-0 flex-1 flex-col">
               <TabsList className="mx-1 self-start">
-                {/* Community leads the row, and the dialog opens on it: what
-                    somebody else shipped answers "what should mine look like"
-                    better than a grid of empty templates does. */}
+                {/* App Screenshots leads the row and the dialog opens on it.
+                    Community comes second, then the other categories. */}
+                {TEMPLATE_CATEGORIES.slice(0, 1).map(categoryTabTrigger)}
                 {HAS_DISCOVER && (
                   <TabsTrigger value={COMMUNITY_TAB_ID} className="gap-1.5">
                     <CompassIcon className="h-4 w-4 text-primary" />
                     Community
                   </TabsTrigger>
                 )}
-                {TEMPLATE_CATEGORIES.map((cat) => (
-                  <TabsTrigger key={cat.id} value={cat.id} className="gap-1.5">
-                    {cat.label}
-                    <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full border px-1 text-[11px] tabular-nums text-muted-foreground">
-                      {isLoadingProjects ? '…' : (templateCounts[cat.id] ?? 0)}
-                    </span>
-                  </TabsTrigger>
-                ))}
+                {TEMPLATE_CATEGORIES.slice(1).map(categoryTabTrigger)}
               </TabsList>
 
               {HAS_DISCOVER && (
