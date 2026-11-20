@@ -9,7 +9,12 @@
 // cut-out the size of the photo. The backdrop is the element's CSS.
 //
 // Pointer events throughout (rule 20 in .agents/AGENTS.md): one finger paints,
-// two pan and zoom. A trackpad or wheel pans, with Ctrl or Cmd it zooms.
+// two pan and zoom. A trackpad or wheel pans, with Ctrl or Cmd it zooms. Where
+// a finger is not to paint (`fingerPaints` false: a phone or tablet, until the
+// user picks a brush), a finger swiped up or down scrolls the page, as over any
+// picture, and one swiped sideways moves the picture. A pen goes with the
+// finger there, since the browser scrolls for a pen the same way. A mouse
+// always paints.
 
 import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -37,6 +42,8 @@ interface CutoutCanvasProps {
   showOriginal: boolean;
   /** Null while painting is not possible (a cut is under way). */
   brush: { mode: BrushMode; size: number } | null;
+  /** Whether one finger, or a pen, paints with the brush. True when left out. */
+  fingerPaints?: boolean;
   onStroke: (patch: MaskPatch) => void;
   onZoomChange?: (scale: number) => void;
   className?: string;
@@ -53,7 +60,7 @@ function backgroundOf(backdrop: Backdrop, color: string): string {
 }
 
 export const CutoutCanvas = React.forwardRef<CutoutCanvasHandle, CutoutCanvasProps>(function CutoutCanvas(
-  { picture, mask, shown, backdrop, backdropColor, showOriginal, brush, onStroke, onZoomChange, className },
+  { picture, mask, shown, backdrop, backdropColor, showOriginal, brush, fingerPaints = true, onStroke, onZoomChange, className },
   ref
 ) {
   const boxRef = useRef<HTMLDivElement>(null);
@@ -281,7 +288,7 @@ export const CutoutCanvas = React.forwardRef<CutoutCanvasHandle, CutoutCanvasPro
       pinchRef.current = { distance: Math.hypot(a.x - b.x, a.y - b.y), scale: view.scale, cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, vx: view.x, vy: view.y };
       return;
     }
-    const pans = event.button === 1 || (event.button === 0 && (event.altKey || !brush));
+    const pans = event.button === 1 || (event.button === 0 && (event.altKey || !brush || (event.pointerType !== 'mouse' && !fingerPaints)));
     if (pans) {
       pinchRef.current = { distance: 0, scale: viewRef.current.scale, cx: event.clientX - rect.left, cy: event.clientY - rect.top, vx: viewRef.current.x, vy: viewRef.current.y };
       return;
@@ -350,7 +357,9 @@ export const CutoutCanvas = React.forwardRef<CutoutCanvasHandle, CutoutCanvasPro
         data-testid="cutout-canvas"
         aria-label="The picture with its background removed"
         className={cn('absolute inset-0 h-full w-full', brush ? 'cursor-none' : 'cursor-grab')}
-        style={{ touchAction: 'none' }}
+        // The browser scrolls the page for a finger swiped up or down, and
+        // tells this canvas with pointercancel.
+        style={{ touchAction: fingerPaints ? 'none' : 'pan-y' }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={finishPointer}

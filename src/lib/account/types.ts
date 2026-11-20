@@ -304,7 +304,7 @@ export interface RemoteLibraryManifest {
 export interface RemoteLibraryImage {
   id: string;
   name: string;
-  /** The finished picture's media id, which is also its file's name. */
+  /** The finished picture's media id, which the storage finds its file by. */
   mediaId: string;
   mimeType: string;
   width: number;
@@ -336,17 +336,36 @@ export interface LibraryRemote {
   /** Whether the photos and masks travel too, so a cut can still be changed after a restore. */
   keepsSources: boolean;
   read(session: AccountSession): Promise<RemoteLibraryState>;
-  /** Sends files not already there, making the folder on the first call. */
+  /**
+   * Sends files not already there, making the folder on the first call. `name`
+   * is what the file is called where the storage shows a name to the user.
+   */
   upload(
     session: AccountSession,
     state: RemoteLibraryState,
-    files: Array<{ mediaId: string; blob: Blob; mimeType: string }>,
+    files: Array<{ mediaId: string; blob: Blob; mimeType: string; name?: string }>,
     onProgress?: ProgressFn
   ): Promise<RemoteLibraryState>;
   writeManifest(session: AccountSession, state: RemoteLibraryState, manifest: RemoteLibraryManifest): Promise<RemoteLibraryState>;
   download(session: AccountSession, state: RemoteLibraryState, mediaId: string, mimeType: string): Promise<Blob>;
-  /** Deletes files the manifest no longer names. */
-  remove(session: AccountSession, state: RemoteLibraryState, mediaIds: string[]): Promise<void>;
+  /**
+   * Takes out the files the manifest no longer names (Drive puts them in its
+   * trash). Returns the media ids of the ones still there because the storage
+   * refused or failed; the next sync finds them unnamed and tries again.
+   */
+  remove(session: AccountSession, state: RemoteLibraryState, mediaIds: string[]): Promise<string[]>;
+  /**
+   * Gives files already there the name `upload` would give them now, for a
+   * storage that shows the user names (a renamed picture, a file from before
+   * names were used). Only where a name differs. `left` holds the media ids of
+   * the files it could not rename, which keep their old names until a sync
+   * renames them.
+   */
+  rename?(
+    session: AccountSession,
+    state: RemoteLibraryState,
+    files: Array<{ mediaId: string; mimeType: string; name: string }>
+  ): Promise<{ state: RemoteLibraryState; left: string[] }>;
 }
 
 /** Sign-in is gone or was revoked: the UI should drop the session and re-prompt. */

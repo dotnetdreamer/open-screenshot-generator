@@ -161,13 +161,25 @@ test('Stop prevents later photos from restarting the download until Download is 
   assert.equal(fixture.requests.filter((request) => request === 'download').length, 2);
 });
 
-test('the library queue keeps paused photos waiting and resumes them together', async () => {
-  const state = {
-    paused: true,
-    scans: 0,
-    attempts: 0,
-    rows: ['first', 'second'].map((id) => ({ id, state: 'waiting', sourceMediaId: id })),
-  };
+interface QueueState {
+  paused: boolean;
+  scans: number;
+  attempts: number;
+  rows: Array<{
+    id: string;
+    state: string;
+    sourceMediaId?: string;
+    error?: string;
+    photoFails?: Error;
+    /** The state write the database refuses for this picture. */
+    refuseState?: string;
+    /** The first save finds the picture changed under the cut. */
+    changesOnce?: boolean;
+  }>;
+}
+
+/** The real queue, with the engine, the library and the canvas run by `state`. */
+async function libraryQueue(state: QueueState) {
   const stubs: Record<string, string> = {
     './engine': `
       export class CutoutWorkerError extends Error { constructor() { super('Download paused'); this.stopped = true; } }
@@ -187,10 +199,29 @@ test('the library queue keeps paused photos waiting and resumes them together', 
         if (++globalThis.testState.scans > 10) throw Error('The queue kept retrying after Stop');
         return globalThis.testState.rows.filter(row => row.state === 'waiting' || row.state === 'cutting');
       }
-      export async function setLibraryImageState(id, state) { (await getLibraryImage(id)).state = state; }
-      export async function saveLibraryCut(id) { (await getLibraryImage(id)).state = 'ready'; }
+      export class PictureChangedError extends Error {}
+      export async function setLibraryImageState(id, state, error) {
+        const row = await getLibraryImage(id);
+        if (row.refuseState === state) throw new Error('The database refused the write');
+        Object.assign(row, { state, error });
+      }
+      export async function saveLibraryCut(id, cut) {
+        const row = await getLibraryImage(id);
+        if (!cut.photo) throw new Error('A save has to say which photo its mask is over');
+        if (row.changesOnce) {
+          row.changesOnce = false;
+          throw new PictureChangedError();
+        }
+        row.state = 'ready';
+      }
+      export async function photoOf(id) {
+        const row = await getLibraryImage(id);
+        if (row?.photoFails) throw row.photoFails;
+        return row?.sourceMediaId ? { row, photo: { id: row.sourceMediaId, blob: new Blob() } } : null;
+      }
+      export function isOutOfRoom(error) { return error?.name === 'QuotaExceededError'; }
+      export const OUT_OF_ROOM = 'Out of room';
     `,
-    '@/lib/mediaStore': 'export async function getMediaAsset() { return { blob: new Blob() }; }',
     './picture': `
       export async function decodePicture() { return { rgba: new Uint8ClampedArray(4), width: 1, height: 1, hasAlpha: false }; }
       export async function encodeRgba() { return new Blob(); }
@@ -215,9 +246,19 @@ test('the library queue keeps paused photos waiting and resumes them together', 
   });
   const module = { exports: {} };
   runInNewContext(result.outputFiles![0].text, {
-    module, exports: module.exports, testState: state, console, navigator: {}, Blob,
+    module, exports: module.exports, testState: state, console: { ...console, error: () => {} }, navigator: {}, Blob,
   });
-  const queue = module.exports as typeof import('@/lib/cutout/queue');
+  return module.exports as typeof import('@/lib/cutout/queue');
+}
+
+test('the library queue keeps paused photos waiting and resumes them together', async () => {
+  const state: QueueState = {
+    paused: true,
+    scans: 0,
+    attempts: 0,
+    rows: ['first', 'second'].map((id) => ({ id, state: 'waiting', sourceMediaId: id })),
+  };
+  const queue = await libraryQueue(state);
   await queue.drainLibraryQueue();
   assert.deepEqual(state.rows.map((row) => row.state), ['waiting', 'waiting']);
   assert.equal(state.attempts, 1);
@@ -227,4 +268,63 @@ test('the library queue keeps paused photos waiting and resumes them together', 
   await queue.drainLibraryQueue();
   assert.deepEqual(state.rows.map((row) => row.state), ['ready', 'ready']);
   assert.equal(state.attempts, 3);
+});
+
+test('a picture whose photo cannot be had fails on its own, and the next one is still cut', async () => {
+  const full = Object.assign(new Error('The quota has been exceeded.'), { name: 'QuotaExceededError' });
+  const state: QueueState = {
+    paused: false,
+    scans: 0,
+    attempts: 0,
+    rows: [
+      { id: 'first', state: 'waiting', photoFails: full },
+      { id: 'second', state: 'waiting' },
+      { id: 'third', state: 'waiting', sourceMediaId: 'third' },
+    ],
+  };
+  const queue = await libraryQueue(state);
+  await queue.drainLibraryQueue();
+  assert.deepEqual(state.rows.map((row) => [row.state, row.error]), [
+    ['failed', 'Out of room'],
+    ['failed', 'The photo is no longer on this device'],
+    ['ready', undefined],
+  ]);
+});
+
+test('a picture whose row will not take a write waits for the next run, and the pictures after it are still cut', async () => {
+  const state: QueueState = {
+    paused: false,
+    scans: 0,
+    attempts: 0,
+    rows: [
+      // Marking it as being cut fails.
+      { id: 'first', state: 'waiting', sourceMediaId: 'first', refuseState: 'cutting' },
+      // Its cut fails, and so does marking it failed.
+      { id: 'second', state: 'waiting', photoFails: new Error('No photo'), refuseState: 'failed' },
+      { id: 'third', state: 'waiting', sourceMediaId: 'third' },
+    ],
+  };
+  const queue = await libraryQueue(state);
+  await queue.drainLibraryQueue();
+  assert.deepEqual(state.rows.map((row) => row.state), ['waiting', 'cutting', 'ready']);
+  assert.equal(state.attempts, 1, 'only the third was cut, once');
+  assert.ok(state.scans <= 3, `the run ended instead of trying them again and again (${state.scans} scans)`);
+
+  // The next run tries them again.
+  delete state.rows[0].refuseState;
+  await queue.drainLibraryQueue();
+  assert.equal(state.rows[0].state, 'ready');
+});
+
+test('a picture whose photo changes while it is cut is cut once more, from the new photo', async () => {
+  const state: QueueState = {
+    paused: false,
+    scans: 0,
+    attempts: 0,
+    rows: [{ id: 'first', state: 'waiting', sourceMediaId: 'first', changesOnce: true }],
+  };
+  const queue = await libraryQueue(state);
+  await queue.drainLibraryQueue();
+  assert.equal(state.rows[0].state, 'ready');
+  assert.equal(state.attempts, 2);
 });

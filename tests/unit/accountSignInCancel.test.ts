@@ -1,7 +1,7 @@
 import { afterEach, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { getEventListeners } from 'node:events';
-import { requestJson, runLoopbackFlow } from '@/lib/account/transport';
+import { ConnectionError, requestJson, runLoopbackFlow } from '@/lib/account/transport';
 import { AccountCancelledError } from '@/lib/account/types';
 
 const windowDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'window');
@@ -137,6 +137,69 @@ test('a completed loopback flow still checks state and releases the listener', a
   } } });
   await assert.rejects(runLoopbackFlow(() => 'https://example.com', { expectedState: 'expected' }), /did not match/);
   assert.equal(commands.at(-1), 'abs_oauth_cancel');
+});
+
+/** A desktop whose loopback commands fail the way Rust's do: with a plain string. */
+function failingLoopback(command: string, text: string) {
+  useWindow({ __TAURI_INTERNALS__: { invoke: async (name: string) => {
+    if (name === command) throw text;
+    if (name === 'abs_oauth_start') return { port: 47126, redirect_uri: 'http://127.0.0.1:47126' };
+    return undefined;
+  } } });
+}
+
+test('a sign-in left too long in the browser says so, not that something went wrong', async () => {
+  failingLoopback('abs_oauth_await', 'sign-in timed out');
+  await assert.rejects(runLoopbackFlow(() => 'https://example.com'), (error: unknown) => {
+    assert.ok(error instanceof Error && !(error instanceof AccountCancelledError));
+    assert.match(error.message, /took longer than 5 minutes/);
+    return true;
+  });
+  failingLoopback('abs_oauth_await', 'sign-in timed out');
+  await assert.rejects(runLoopbackFlow(() => 'https://example.com', { timeoutSecs: 60 }), /longer than 1 minute,/);
+});
+
+test('a listener that fails in Rust reaches the dialog as a sentence', async () => {
+  failingLoopback('abs_oauth_await', 'the sign-in listener failed: broken pipe');
+  await assert.rejects(runLoopbackFlow(() => 'https://example.com'), /didn't finish/);
+  failingLoopback('abs_oauth_start', 'could not open a local port for sign-in: denied');
+  await assert.rejects(runLoopbackFlow(() => 'https://example.com'), /didn't finish/);
+});
+
+test('Rust saying the sign-in was cancelled is a cancellation', async () => {
+  failingLoopback('abs_oauth_await', 'sign-in cancelled');
+  await assert.rejects(runLoopbackFlow(() => 'https://example.com'), AccountCancelledError);
+});
+
+test('a request that fails with a plain string asks to check the connection', async () => {
+  await assert.rejects(
+    requestJson('https://example.com', { fetchImpl: async () => { throw 'error sending request for url'; } }),
+    /couldn't connect/
+  );
+});
+
+test('an answer that stops halfway with a plain string asks to check the connection too', async () => {
+  // The desktop's HTTP plugin reads the body as a stream, which fails with a string.
+  const halfway = { ok: true, status: 200, text: () => Promise.reject('error decoding response body') } as unknown as Response;
+  await assert.rejects(requestJson('https://example.com', { fetchImpl: async () => halfway }), /couldn't connect/);
+});
+
+test("a browser's own words for no connection become the same sentence, and other errors keep theirs", async () => {
+  // Chrome says "Failed to fetch", Safari "Load failed", Firefox "NetworkError...": all TypeErrors.
+  const offline = async () => { throw new TypeError('Failed to fetch'); };
+  await assert.rejects(requestJson('https://example.com', { fetchImpl: offline }), (error: unknown) => {
+    assert.ok(error instanceof ConnectionError);
+    assert.equal(error.message, "The app couldn't connect. Check your internet connection, then try again.");
+    return true;
+  });
+  const dropped = { ok: true, status: 200, text: () => Promise.reject(new TypeError('network error')) } as unknown as Response;
+  await assert.rejects(requestJson('https://example.com', { fetchImpl: async () => dropped }), ConnectionError);
+  const controller = new AbortController();
+  controller.abort();
+  await assert.rejects(
+    requestJson('https://example.com', { fetchImpl: async () => { throw new Error('should not be called'); }, signal: controller.signal }),
+    AccountCancelledError
+  );
 });
 
 process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID = 'test-google-client.apps.googleusercontent.com';

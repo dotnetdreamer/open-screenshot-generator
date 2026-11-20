@@ -217,9 +217,10 @@ export function AccountDialog({
       if (hint) onOpenChange(false);
     } catch (error) {
       if (signInAttempt.current === attempt && !attempt.signal.aborted && !(error instanceof AccountCancelledError)) {
+        if (!(error instanceof Error)) console.error('Sign-in failed', error);
         toast({
           title: `Could not connect to ${provider.label}`,
-          description: error instanceof Error ? error.message : 'Something went wrong.',
+          description: error instanceof Error ? error.message : 'Try again in a moment.',
           variant: 'destructive',
         });
       }

@@ -54,6 +54,30 @@ export async function bridgeFetch(): Promise<typeof fetch> {
   return window.fetch.bind(window);
 }
 
+/** A request that got no answer, or lost it halfway: no connection, or one that dropped. */
+export class ConnectionError extends Error {
+  constructor() {
+    super("The app couldn't connect. Check your internet connection, then try again.");
+    this.name = 'ConnectionError';
+  }
+}
+
+/**
+ * Turns a failed request into a ConnectionError. The desktop's HTTP plugin
+ * fails with a plain string, which a toast shows as nothing at all, and a
+ * browser's fetch with a TypeError whose words ("Failed to fetch", "Load
+ * failed") differ by browser; both mean no answer came, for the request or
+ * for reading the answer. Any other Error (a cancelled sign-in) goes through
+ * as it is. Use as `.catch(throwConnectionFailure(url))` on both steps.
+ */
+export function throwConnectionFailure(url: string): (error: unknown) => never {
+  return (error) => {
+    if (error instanceof Error && !(error instanceof TypeError)) throw error;
+    console.error('A request failed', url, error);
+    throw new ConnectionError();
+  };
+}
+
 /**
  * JSON request with the error body surfaced, since these APIs explain failures
  * well.
@@ -98,8 +122,8 @@ export async function requestJson<T>(
     throwIfSignInCancelled(rest.signal);
     const response = await abortableSignIn(doFetch(url, {
       cache: 'no-store', ...rest, signal: requestController?.signal ?? rest.signal,
-    }), rest.signal);
-    const text = await abortableSignIn(response.text(), rest.signal);
+    }), rest.signal).catch(throwConnectionFailure(url));
+    const text = await abortableSignIn(response.text(), rest.signal).catch(throwConnectionFailure(url));
     if (!response.ok) {
       throw new Error(describeHttpError(response.status, text));
     }
@@ -156,6 +180,23 @@ export interface LoopbackResult {
 }
 
 /**
+ * The loopback commands in src-tauri/src/oauth.rs fail with a plain string,
+ * which a toast cannot show. This puts their meaning in words the person can
+ * act on; Rust's own text goes to the console.
+ */
+function signInFailure(error: unknown, timeoutSecs: number): Error {
+  if (error instanceof Error) return error;
+  const text = String(error ?? '');
+  console.error('The sign-in stopped', text);
+  if (/cancelled/i.test(text)) return new AccountCancelledError();
+  if (/timed out/i.test(text)) {
+    const minutes = Math.max(1, Math.round(timeoutSecs / 60));
+    return new Error(`Signing in took longer than ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}, so it stopped. Try again, and finish in your browser.`);
+  }
+  return new Error("The sign-in didn't finish. Try again.");
+}
+
+/**
  * Open `buildUrl(redirectUri)` in the system browser and wait for the provider
  * to redirect back to a one-shot local listener.
  *
@@ -170,6 +211,7 @@ export async function runLoopbackFlow(
   throwIfSignInCancelled(options.signal);
   const { invoke } = await import('@tauri-apps/api/core');
   throwIfSignInCancelled(options.signal);
+  const timeoutSecs = options.timeoutSecs ?? 300;
 
   // Rust binds first and reports the port, so the redirect URI is known before
   // the browser opens and there is no race with the provider's redirect.
@@ -181,7 +223,9 @@ export async function runLoopbackFlow(
   void start.then((result) => {
     if (options.signal?.aborted) void cancel(result.port);
   }, () => {});
-  const { port, redirect_uri: redirectUri } = await abortableSignIn(start, options.signal);
+  const { port, redirect_uri: redirectUri } = await abortableSignIn(start, options.signal).catch((error: unknown) => {
+    throw signInFailure(error, timeoutSecs);
+  });
   const onAbort = () => { void cancel(port); };
   options.signal?.addEventListener('abort', onAbort, { once: true });
 
@@ -192,7 +236,7 @@ export async function runLoopbackFlow(
     const result = await abortableSignIn(
       invoke<{ code?: string; state?: string; error?: string }>(
         'abs_oauth_await',
-        { port, timeoutSecs: options.timeoutSecs ?? 300 }
+        { port, timeoutSecs }
       ),
       options.signal
     );
@@ -206,6 +250,8 @@ export async function runLoopbackFlow(
       throw new Error('The sign-in response did not match this request. Please try again.');
     }
     return { code: result.code, state: result.state, redirectUri };
+  } catch (error) {
+    throw signInFailure(error, timeoutSecs);
   } finally {
     options.signal?.removeEventListener('abort', onAbort);
     await cancel(port);

@@ -42,7 +42,7 @@ import {
   type RemoteLibraryState,
   type SignInOptions,
 } from '../types';
-import { bridgeFetch, createPkcePair, formEncode, randomState, requestJson, runLoopbackFlow, throwIfSignInCancelled } from '../transport';
+import { bridgeFetch, createPkcePair, formEncode, randomState, requestJson, runLoopbackFlow, throwConnectionFailure, throwIfSignInCancelled } from '../transport';
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '';
 // No fallback to CLIENT_ID: Google rejects a 127.0.0.1 redirect on a Web
@@ -436,6 +436,15 @@ async function readVersion(session: AccountSession, fileId: string): Promise<str
   return file.version;
 }
 
+/** One file in a folder, as listChildren reads it. */
+interface DriveChild {
+  id: string;
+  name: string;
+  size?: string;
+  /** Keys this app set on the file, which only this app's sign-ins can read. */
+  appProperties?: Record<string, string>;
+}
+
 /**
  * Every file in a project folder, following Drive's paging to the end.
  *
@@ -452,18 +461,18 @@ async function readVersion(session: AccountSession, fileId: string): Promise<str
 async function listChildren(
   session: AccountSession,
   parentId: string
-): Promise<{ id: string; name: string; size?: string }[]> {
+): Promise<DriveChild[]> {
   const query = encodeURIComponent(`'${parentId}' in parents and trashed = false`);
-  const files: { id: string; name: string; size?: string }[] = [];
+  const files: DriveChild[] = [];
   let pageToken: string | undefined;
   do {
     const page: string = pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '';
     const result = await driveJson<{
-      files?: { id: string; name: string; size?: string }[];
+      files?: DriveChild[];
       nextPageToken?: string;
     }>(
       session,
-      `${DRIVE_API}/files?q=${query}&fields=files(id,name,size),nextPageToken&pageSize=200${page}`
+      `${DRIVE_API}/files?q=${query}&fields=files(id,name,size,appProperties),nextPageToken&pageSize=200${page}`
     );
     files.push(...(result.files ?? []));
     pageToken = result.nextPageToken;
@@ -473,15 +482,16 @@ async function listChildren(
 
 async function downloadBlob(session: AccountSession, fileId: string): Promise<Blob> {
   const doFetch = await bridgeFetch();
-  const response = await doFetch(`${DRIVE_API}/files/${fileId}?alt=media`, {
+  const url = `${DRIVE_API}/files/${fileId}?alt=media`;
+  const response = await doFetch(url, {
     cache: 'no-store',
     headers: authHeaders(session),
-  });
+  }).catch(throwConnectionFailure(url));
   if (!response.ok) {
     if (response.status === 401) throw new AccountAuthError('Your Google sign-in expired.');
     throw new Error(`Could not download from Drive (HTTP ${response.status}).`);
   }
-  return response.blob();
+  return response.blob().catch(throwConnectionFailure(url));
 }
 
 // --- provider ---------------------------------------------------------------
@@ -817,14 +827,59 @@ export const googleDriveProvider: CloudProvider = {
 //
 // One folder at the top of the user's Drive, beside the projects' folder rather
 // than inside it: every folder in that one is listed as a project, by this
-// build and by every build already installed. The pictures are real PNG files,
-// so the user can open them in Drive, named by media id (a changed cut is a new
-// id, so a file never has to be overwritten). The photos and masks travel too,
-// so a cut can be changed after a restore on another computer.
+// build and by every build already installed. The pictures are real image
+// files named after the picture ("Logo.png", "Logo (photo).jpg", "Logo
+// (mask).png"), so the user can find and open them in Drive. Each file's media
+// id is in its appProperties, and a changed cut is a new id, so a file never
+// has to be overwritten. A file named `image__<media id>` with no appProperties
+// is found by its name. A sync renames a file whose picture was renamed, and
+// gives an `image__` file its picture's name and the appProperties. The photos
+// and masks travel, so a cut can be changed after a restore on another
+// computer.
 
 const LIBRARY_FOLDER_NAME = 'Open Screenshot Generator images';
 const LIBRARY_MANIFEST = 'library.json';
+/** The start of a picture file's name when the name is its media id. */
 const LIBRARY_FILE_PREFIX = 'image__';
+/** The appProperties key holding a picture file's media id. */
+const LIBRARY_MEDIA_KEY = 'absMedia';
+
+const EXTENSIONS: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+  'image/avif': 'avif',
+};
+
+/** A file name a person reads in Drive: the picture's name and its kind of file. */
+function libraryFileName(name: string | undefined, mediaId: string, mimeType: string): string {
+  // The characters Windows refuses, in case the folder is downloaded.
+  const stem = (name ?? '').replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim() || mediaId;
+  return `${stem}.${EXTENSIONS[mimeType] ?? 'png'}`;
+}
+
+/** The media id a file in the pictures folder holds, or null for any other file. */
+function libraryMediaId(child: DriveChild): string | null {
+  const named = child.appProperties?.[LIBRARY_MEDIA_KEY];
+  if (named) return named;
+  return child.name.startsWith(LIBRARY_FILE_PREFIX) ? child.name.slice(LIBRARY_FILE_PREFIX.length) : null;
+}
+
+/** A file in the pictures folder, as the state's `files` keeps it (keyed by media id, or `library.json`). */
+interface LibraryFile {
+  fileId: string;
+  name: string;
+  /** Whether its appProperties hold its media id. A file named `image__<id>` may not. */
+  tagged: boolean;
+}
+
+function libraryFile(state: RemoteLibraryState, key: string): LibraryFile | undefined {
+  return state.files.get(key) as LibraryFile | undefined;
+}
+
+/** Drive's answer was 404: the file is gone already. */
+const isGone = (error: unknown) => error instanceof Error && /\(HTTP 404\)$/.test(error.message);
 
 async function libraryFolder(session: AccountSession): Promise<string | null> {
   const query = encodeURIComponent(
@@ -840,13 +895,13 @@ async function libraryState(session: AccountSession, folderId: string): Promise<
   const mediaIds = new Set<string>();
   let manifest: RemoteLibraryManifest | null = null;
   for (const child of children) {
-    if (child.name === LIBRARY_MANIFEST) {
-      manifest = JSON.parse(await (await downloadBlob(session, child.id)).text()) as RemoteLibraryManifest;
-      files.set(LIBRARY_MANIFEST, child.id);
-    } else if (child.name.startsWith(LIBRARY_FILE_PREFIX)) {
-      const id = child.name.slice(LIBRARY_FILE_PREFIX.length);
+    const id = libraryMediaId(child);
+    if (id) {
       mediaIds.add(id);
-      files.set(id, child.id);
+      files.set(id, { fileId: child.id, name: child.name, tagged: !!child.appProperties?.[LIBRARY_MEDIA_KEY] } satisfies LibraryFile);
+    } else if (child.name === LIBRARY_MANIFEST) {
+      manifest = JSON.parse(await (await downloadBlob(session, child.id)).text()) as RemoteLibraryManifest;
+      files.set(LIBRARY_MANIFEST, { fileId: child.id, name: child.name, tagged: false } satisfies LibraryFile);
     }
   }
   return { manifest, mediaIds, handle: folderId, files };
@@ -875,14 +930,16 @@ export const googleDriveLibrary: LibraryRemote = {
     const todo = files.filter((file) => !next.mediaIds.has(file.mediaId));
     for (const [index, file] of todo.entries()) {
       onProgress?.(`Sending picture ${index + 1} of ${todo.length}`, (index + 1) / (todo.length + 1));
+      const name = libraryFileName(file.name, file.mediaId, file.mimeType);
       const uploaded = await uploadFile(session, {
-        name: `${LIBRARY_FILE_PREFIX}${file.mediaId}`,
+        name,
         parentId: folderId,
         blob: file.blob,
         mimeType: file.mimeType,
+        appProperties: { [LIBRARY_MEDIA_KEY]: file.mediaId },
       });
       next.mediaIds.add(file.mediaId);
-      next.files.set(file.mediaId, uploaded.id);
+      next.files.set(file.mediaId, { fileId: uploaded.id, name, tagged: true } satisfies LibraryFile);
     }
     return next;
   },
@@ -894,24 +951,65 @@ export const googleDriveLibrary: LibraryRemote = {
       parentId: state.handle,
       blob: new Blob([JSON.stringify(manifest)], { type: 'application/json' }),
       mimeType: 'application/json',
-      existingId: state.files.get(LIBRARY_MANIFEST) as string | undefined,
+      existingId: libraryFile(state, LIBRARY_MANIFEST)?.fileId,
     });
     const files = new Map(state.files);
-    files.set(LIBRARY_MANIFEST, written.id);
+    files.set(LIBRARY_MANIFEST, { fileId: written.id, name: LIBRARY_MANIFEST, tagged: false } satisfies LibraryFile);
     return { ...state, manifest, files };
   },
 
   async download(session, state, mediaId) {
-    const fileId = state.files.get(mediaId) as string | undefined;
-    if (!fileId) throw new Error('A picture is missing from Drive');
-    return downloadBlob(session, fileId);
+    const file = libraryFile(state, mediaId);
+    if (!file) throw new Error('A picture is missing from Drive');
+    return downloadBlob(session, file.fileId);
+  },
+
+  async rename(session, state, files) {
+    const next = new Map(state.files);
+    const left: string[] = [];
+    for (const { mediaId, mimeType, name } of files) {
+      const file = libraryFile(state, mediaId);
+      const wanted = libraryFileName(name, mediaId, mimeType);
+      if (!file || (file.name === wanted && file.tagged)) continue;
+      try {
+        // The media id goes into appProperties in the same call, since a file
+        // named `image__<id>` is found by its name until then.
+        await driveJson(session, `${DRIVE_API}/files/${file.fileId}?fields=id`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: wanted, appProperties: { [LIBRARY_MEDIA_KEY]: mediaId } }),
+        });
+        next.set(mediaId, { ...file, name: wanted, tagged: true } satisfies LibraryFile);
+      } catch (error) {
+        if (error instanceof AccountAuthError) throw error;
+        console.error('Renaming a picture file in Drive failed', mediaId, error);
+        left.push(mediaId);
+      }
+    }
+    return { state: { ...state, files: next }, left };
   },
 
   async remove(session, state, mediaIds) {
+    const left: string[] = [];
     for (const mediaId of mediaIds) {
-      const fileId = state.files.get(mediaId) as string | undefined;
-      // Drive moves what an app made with drive.file to the user's trash.
-      if (fileId) await driveJson(session, `${DRIVE_API}/files/${fileId}`, { method: 'DELETE' }).catch(() => undefined);
+      const file = libraryFile(state, mediaId);
+      if (!file) continue;
+      try {
+        // Into the trash rather than deleted: Drive keeps it there for 30
+        // days, so a picture deleted by mistake on any computer can still be
+        // got back. A DELETE would remove it for good.
+        await driveJson(session, `${DRIVE_API}/files/${file.fileId}?fields=id`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ trashed: true }),
+        });
+      } catch (error) {
+        if (error instanceof AccountAuthError) throw error;
+        if (isGone(error)) continue;
+        console.error('Moving a picture file to the Drive trash failed', mediaId, error);
+        left.push(mediaId);
+      }
     }
+    return left;
   },
 };

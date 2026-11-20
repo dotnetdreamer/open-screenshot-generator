@@ -209,9 +209,10 @@ artwork (generated placeholders), not licensed stock.
 The Mascots, 3D objects, Stickers, Products, Cards, Drawings and Line art
 groups are original artwork drawn for this project (SVG and HTML written for
 the Hoppi, Expertly, Roamo, Formpal, Sunup, Wishmint, Lavish, Postie, Hummi,
-Signsy, Traceberry and Paylark templates, rendered to PNG and trimmed). The
-Signsy signer and the people in Line art are invented cartoon people, not
-likenesses of anyone. None of it is stock or traced. The app icons in 3D objects
+Signsy, Traceberry, Paylark and Umdo templates, rendered to PNG and trimmed).
+The Signsy signer and the people in Line art are invented cartoon people, not
+likenesses of anyone, and the Umdo box robot is an invented character. None of
+it is stock or traced. The app icons in 3D objects
 are invented designs, not the icons of real apps. Three cards build on library
 photos from section 1: card-person.png is girls-as622285813 in black and white,
 and card-dance.png and card-yourself.png use guys-as211660510 and

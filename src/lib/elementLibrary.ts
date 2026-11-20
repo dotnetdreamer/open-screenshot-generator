@@ -105,6 +105,10 @@ const sparkleStretchSub = (cx: number, cy: number, rx: number, ry: number, waist
 const circleSub = (cx: number, cy: number, r: number): string =>
   `M${fmt(cx - r)} ${fmt(cy)} A${fmt(r)} ${fmt(r)} 0 1 0 ${fmt(cx + r)} ${fmt(cy)} A${fmt(r)} ${fmt(r)} 0 1 0 ${fmt(cx - r)} ${fmt(cy)} Z`;
 
+/** circleSub drawn clockwise, so under nonzero fill a circleSub inside it cuts a hole and a clockwise shape inside that hole fills again. */
+const circleCwSub = (cx: number, cy: number, r: number): string =>
+  `M${fmt(cx - r)} ${fmt(cy)} A${fmt(r)} ${fmt(r)} 0 1 1 ${fmt(cx + r)} ${fmt(cy)} A${fmt(r)} ${fmt(r)} 0 1 1 ${fmt(cx - r)} ${fmt(cy)} Z`;
+
 const rectSub = (x: number, y: number, w: number, h: number): string =>
   `M${fmt(x)} ${fmt(y)} H${fmt(x + w)} V${fmt(y + h)} H${fmt(x)} Z`;
 
@@ -930,6 +934,32 @@ const swirlSub = (blades: number, r: number): string => {
   return d.trim();
 };
 
+/** A strip of tape or a ticket tag: straight top and bottom edges, zigzag ends. */
+const tapeTagSub = (teeth: number, depth: number): string => {
+  const top = 6;
+  const bottom = 94;
+  const step = (bottom - top) / (teeth * 2);
+  const pts: Pt[] = [[depth, top], [100 - depth, top]];
+  for (let i = 1; i <= teeth * 2; i++) pts.push([i % 2 === 1 ? 100 : 100 - depth, top + i * step]);
+  pts.push([depth, bottom]);
+  for (let i = 1; i < teeth * 2; i++) pts.push([i % 2 === 1 ? 0 : depth, bottom - i * step]);
+  return polyPath(pts);
+};
+
+/** The thin bars of a voice recording, loudest in the middle. Drawn as strokes, so the bars keep their width at any size. */
+const voiceWaveSub = (bars: number): string => {
+  let d = '';
+  for (let i = 0; i < bars; i++) {
+    const t = i / (bars - 1);
+    const loud = 0.35 + 0.65 * Math.sin(Math.PI * t);
+    const wobble = Math.abs(0.6 * Math.sin(i * 1.7 + 1.3) + 0.4 * Math.sin(i * 0.53 + 2.6));
+    const h = 8 + 84 * loud * (0.25 + 0.75 * wobble);
+    const x = 2 + (96 * i) / (bars - 1);
+    d += `M${fmt(x)} ${fmt(50 - h / 2)} V${fmt(50 + h / 2)} `;
+  }
+  return d.trim();
+};
+
 /** Vertically centered rounded bars of varying heights (sound wave). */
 const soundBarsSub = (heights: number[]): string => {
   const w = 8;
@@ -965,6 +995,8 @@ interface ItemOpts {
   evenodd?: boolean;
   /** Default size on the canvas (defaults to 300x300). */
   size?: { width: number; height: number };
+  /** The path's own coordinate box (defaults to 0 0 100 100). A thin line drawn in a thin box keeps its shape in the palette preview instead of being squashed into a square. */
+  viewBox?: string;
 }
 
 const el = (id: string, label: string, path: string, opts: ItemOpts = {}): LibraryElementDef => ({
@@ -974,7 +1006,7 @@ const el = (id: string, label: string, path: string, opts: ItemOpts = {}): Libra
     name: label,
     customPath: path,
     specialProps: {
-      viewBox: '0 0 100 100',
+      viewBox: opts.viewBox ?? '0 0 100 100',
       ...(opts.stroke ? { strokeOnly: true, baseStrokeWidth: opts.stroke } : {}),
       ...(opts.evenodd ? { fillRule: 'evenodd' as const } : {}),
     },
@@ -1061,6 +1093,7 @@ const shapes: LibraryElementDef[] = [
   el('shape-bloom', 'Bloom', flowerSub(6, 48, 28)),
   el('shape-puff', 'Puff', flowerSub(7, 48, 36)),
   el('shape-blossom', 'Blossom', flowerSub(8, 48, 25)),
+  el('shape-tape-tag', 'Tape Tag', tapeTagSub(4, 4), { size: { width: 440, height: 130 } }),
 ];
 
 const arrows: LibraryElementDef[] = [
@@ -1087,6 +1120,8 @@ const arrows: LibraryElementDef[] = [
   el('arrow-loop-line', 'Loop-de-Loop', 'M6 84 C22 70 34 64 46 66 C60 68 62 82 52 86 C42 90 34 78 44 66 C54 52 70 40 86 30 M70 20 L90 27 L80 46', { stroke: 7 }),
   el('arrow-curly', 'Curly Arrow', 'M8 44 C18 26 34 26 36 40 C38 54 22 58 20 46 C18 34 34 24 48 32 C60 40 58 54 70 60 M58 48 L76 62 L54 72', { stroke: 7 }),
   el('arrow-branch', 'Branch Arrow', 'M44 94 C44 72 44 46 44 22 M32 36 L44 18 L56 36 M44 62 C56 56 66 46 72 36 M58 28 L76 30 L70 50', { stroke: 7 }),
+  el('arrow-loop-down', 'Loop Down Arrow', 'M10 8 C40 0 80 4 90 26 C98 44 78 58 62 50 C48 43 54 24 72 28 C90 33 88 62 68 78 C55 88 36 92 16 92 M31 79 L15 92 L32 102', { stroke: 8, size: { width: 300, height: 380 } }),
+  el('arrow-curl-left', 'Curl Arrow Left', 'M16 18 C50 2 82 16 80 46 C78 66 62 78 40 76 M52 62 L32 76 L50 90', { stroke: 8 }),
 ];
 
 const icons: LibraryElementDef[] = [
@@ -1227,6 +1262,15 @@ const icons: LibraryElementDef[] = [
   el('icon-cloud-download', 'Cloud Download', 'M28 78 C15 78 6 69 6 57 C6 46 14 38 24 37 C27 24 38 14 52 14 C68 14 80 26 81 41 C89 43 94 50 94 59 C94 70 85 78 74 78 Z M44 28 H56 V48 H64 L50 66 L36 48 H44 Z', { evenodd: true }),
   el('icon-upload', 'Upload', 'M46 30 V72 H54 V30 H66 L50 8 L34 30 Z M14 58 H26 V84 H74 V58 H86 V92 H14 Z'),
   el('icon-download', 'Download', 'M46 8 V50 H34 L50 72 L66 50 H54 V8 Z M14 58 H26 V84 H74 V58 H86 V92 H14 Z'),
+  /* to-do states: an empty ring, struck through, half full, ticked */
+  el('icon-task-open', 'Task To Do', circleCwSub(50, 50, 44) + ' ' + circleSub(50, 50, 35)),
+  el('icon-task-started', 'Task Started', circleCwSub(50, 50, 44) + ' ' + circleSub(50, 50, 35) + ' ' + rectSub(1, 45.5, 98, 9)),
+  el('icon-task-half', 'Task Half Done', circleCwSub(50, 50, 44) + ' ' + circleSub(50, 50, 35) + ' M15 50 A35 35 0 0 1 85 50 Z'),
+  el('icon-task-done', 'Task Done',
+    circleSub(50, 50, 46) + ' ' + roundedPolySub([[24.1, 53.9], [43, 72.8], [76.9, 38.9], [69.1, 31.1], [43, 57.2], [31.9, 46.1]], 1.5),
+    { evenodd: true }),
+  el('icon-transcript', 'Transcript', 'M16 24 Q16 14 26 14 H74 Q84 14 84 24 V58 Q84 68 74 68 H46 L28 84 V68 H26 Q16 68 16 58 Z M32 34 H68 M32 48 H54', { stroke: 6 }),
+  el('icon-checklist', 'Checklist', 'M12 22 Q12 12 22 12 H60 Q70 12 70 22 V56 Q70 66 60 66 H22 Q12 66 12 56 Z M24 30 H58 M24 46 H44 M54 72 A18 18 0 1 1 90 72 A18 18 0 1 1 54 72 M63 72 L70 79 L82 66', { stroke: 6 }),
 ];
 
 const decor: LibraryElementDef[] = [
@@ -1281,6 +1325,7 @@ const decor: LibraryElementDef[] = [
   el('decor-sketch-circle', 'Sketch Circle', 'M50 12 C26 12 12 28 13 50 C14 73 31 88 53 87 C76 86 89 68 88 47 C87 27 70 13 50 14 C36 15 24 24 19 36', { stroke: 4 }),
   el('decor-check', 'Sketch Check', 'M50 10 C28 10 12 27 12 50 C12 73 29 90 52 90 C74 90 89 74 89 52 C89 34 78 18 60 12 M32 50 L46 64 L78 30', { stroke: 6 }),
   el('decor-wind', 'Wind', 'M6 36 H50 Q64 36 64 25 Q64 15 54 15 M6 52 H82 Q94 52 94 41 M6 68 H44 Q58 68 58 79 Q58 88 48 88', { stroke: 7 }),
+  el('decor-voice-wave', 'Voice Wave', voiceWaveSub(36), { stroke: 3, size: { width: 440, height: 140 } }),
 ];
 
 const blobs: LibraryElementDef[] = [
@@ -1425,6 +1470,7 @@ const waves: LibraryElementDef[] = [
   el('wave-cornice', 'Cornice', 'M2 20 H98 V38 C82 38 76 60 56 58 C40 56 34 42 18 46 C8 48 2 56 2 58 Z', { size: { width: 420, height: 220 } }),
   el('wave-audio', 'Waveform Fill', polyPath([[0, 100], [0, 66], [5, 50], [10, 62], [15, 34], [20, 56], [25, 22], [30, 52], [35, 30], [40, 58], [45, 14], [50, 48], [55, 28], [60, 56], [65, 38], [70, 60], [75, 46], [82, 62], [100, 64], [100, 100]]), { size: { width: 420, height: 260 } }),
   el('wave-pulse', 'Sound Pulse', polyPath([...pulseTop, ...[...pulseTop].reverse().map(([x, y]): Pt => [x, 100 - y])]), { size: { width: 440, height: 240 } }),
+  el('wave-spike-block', 'Spike Fill', roundedPolySub([[0, 100], [0, 30], [10, 14], [19, 24], [29, 4], [39, 17], [50, 0], [61, 17], [71, 4], [81, 24], [90, 14], [100, 30], [100, 100]], 2.5), { size: { width: 420, height: 280 } }),
 
   /* calligraphic brush strokes */
   el('wave-brush', 'Brush Wave', brushStrokeSub([[4, 34], [28, 22], [52, 62], [76, 28], [96, 40]], t => 1.5 + 7 * Math.sin(Math.PI * t)), { size: { width: 420, height: 180 } }),
@@ -1567,6 +1613,7 @@ const lines: LibraryElementDef[] = [
   el('line-ribbon-scribble', 'Ribbon Scribble', smoothOpenSub([[6, 66], [18, 44], [32, 42], [38, 56], [28, 68], [16, 60], [24, 42], [44, 30], [58, 40], [54, 58], [40, 58], [42, 42], [62, 30], [80, 34], [94, 26]]), { stroke: 2.5, size: { width: 420, height: 160 } }),
   el('line-underline', 'Underline Swoosh', 'M4 58 C30 44 68 42 96 48 C70 50 34 56 10 68 Z', { size: { width: 420, height: 80 } }),
   el('line-flourish', 'Flourish', 'M8 52 C34 38 66 36 92 42 C66 44 36 50 14 60 Z M22 68 C42 60 62 58 82 62 C62 64 44 68 28 74 Z', { size: { width: 420, height: 90 } }),
+  el('line-wavy-underline', 'Wavy Underline', sineStrokeSub(27, 1, 2.5), { stroke: 4, viewBox: '0 0 100 5', size: { width: 600, height: 30 } }),
 ];
 
 const patterns: LibraryElementDef[] = [

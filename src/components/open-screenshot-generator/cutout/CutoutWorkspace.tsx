@@ -51,7 +51,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { saveBlobToDisk } from '@/lib/desktop';
-import { getMediaAsset } from '@/lib/mediaStore';
+import { getMediaAsset, type MediaAsset } from '@/lib/mediaStore';
 import { useAccount } from '@/lib/account/store';
 import {
   DEFAULT_RENDER,
@@ -71,17 +71,21 @@ import { megabytes } from '@/lib/cutout/models';
 import {
   deleteLibraryImage,
   getLibraryImage,
+  isOutOfRoom,
+  OUT_OF_ROOM,
+  photoOf,
+  PictureChangedError,
   renameLibraryImage,
   saveLibraryCut,
   setLibraryImageState,
   useLibraryImages,
   type LibraryImageRow,
 } from '@/lib/cutout/library';
-import { addPictureFiles, PICTURE_ACCEPT } from '@/lib/cutout/add';
+import { addPictureFiles, mayBePicture, PICTURE_ACCEPT } from '@/lib/cutout/add';
 import { drainLibraryQueue, onLibraryCutStep } from '@/lib/cutout/queue';
 import { decodeMask, decodePicture, encodeMask, encodeRgba, thumbnailOf, type WorkingPicture } from '@/lib/cutout/picture';
 import { swapPatch, type BrushMode, type MaskPatch } from '@/lib/cutout/refine';
-import { libraryBackupLabel, syncLibrary } from '@/lib/cutout/backup';
+import { describeSync, libraryBackupLabel, syncLibrary } from '@/lib/cutout/backup';
 import { useThumbUrl } from './thumbs';
 import { CutoutCanvas, type Backdrop, type CutoutCanvasHandle } from './CutoutCanvas';
 
@@ -134,6 +138,19 @@ function Hint({ text }: { text: string }) {
       </TooltipContent>
     </Tooltip>
   );
+}
+
+/** True on a screen worked with fingers: no mouse to hover, a finger to point. */
+function useTouchFirst(): boolean {
+  const [touchFirst, setTouchFirst] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia('(hover: none) and (pointer: coarse)');
+    const update = () => setTouchFirst(query.matches);
+    update();
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
+  return touchFirst;
 }
 
 function stateWords(row: LibraryImageRow): string | null {
@@ -230,6 +247,20 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
   const [shown, setShown] = useState<Uint8Array | null>(null);
   const [loading, setLoading] = useState(false);
   const [brushMode, setBrushMode] = useState<BrushMode>('erase');
+  // On a phone or tablet a finger swiped over the picture would erase it, so
+  // there the brush is off until Erase or Bring back is tapped, and tapping
+  // the lit one turns it off again.
+  const touchFirst = useTouchFirst();
+  const [fingerBrush, setFingerBrush] = useState(false);
+  const fingerPaints = !touchFirst || fingerBrush;
+  const pickBrush = (mode: BrushMode) => {
+    if (touchFirst && fingerBrush && brushMode === mode) {
+      setFingerBrush(false);
+      return;
+    }
+    setBrushMode(mode);
+    setFingerBrush(true);
+  };
   const [brushSize, setBrushSize] = useState(40);
   const [backdrop, setBackdrop] = useState<Backdrop>('checker');
   const [backdropColor, setBackdropColor] = useState('#3b82f6');
@@ -249,6 +280,12 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
   const shapeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const openRef = useRef(open);
   openRef.current = open;
+  // The photo each picture's mask is over, by picture: what photoOf gave when
+  // it opened, and the photo a save kept for it since. A save sends it, and
+  // saves of a picture already left run after this one changed it.
+  const photosRef = useRef(new Map<string, MediaAsset>());
+  // Opens the picture again when a save found it changed under the edit.
+  const [reopened, setReopened] = useState(0);
   // The settings an edge slider started its drag from, which undo goes back to.
   const dragFrom = useRef<RenderSettings | null>(null);
 
@@ -282,7 +319,7 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
   // finishes, but not when this view saved an edit: the canvas has it already,
   // and opening again would lose the zoom and the undo history.
   const cutting = selected?.state === 'waiting' || selected?.state === 'cutting';
-  const loadedKey = selected ? `${selected.id}|${cutting ? 'cutting' : 'settled'}` : '';
+  const loadedKey = selected ? `${selected.id}|${cutting ? 'cutting' : 'settled'}|${reopened}` : '';
   useEffect(() => {
     if (!selected) {
       setOpen(null);
@@ -291,22 +328,24 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
     let cancelled = false;
     setLoading(true);
     (async () => {
-      const source = selected.sourceMediaId ? await getMediaAsset(selected.sourceMediaId) : undefined;
-      const fallback = !source && selected.mediaId ? await getMediaAsset(selected.mediaId) : undefined;
-      const blob = source?.blob ?? fallback?.blob;
-      if (!blob) throw new Error('This picture is no longer on this device');
-      const picture = await decodePicture(blob);
+      // A picture restored without its photo gets a copy of itself as one, so
+      // a hand edit saved here fits the same photo the next time it opens.
+      // The mask and settings come with it, from the row as photoOf left it.
+      const source = await photoOf(selected.id);
+      if (!source) throw new Error('This picture is no longer on this device');
+      const picture = await decodePicture(source.photo.blob);
       let mask: Uint8Array;
-      const maskRow = selected.maskMediaId ? await getMediaAsset(selected.maskMediaId) : undefined;
-      if (maskRow) mask = await decodeMask(maskRow.blob, picture.width, picture.height);
-      else if (fallback || selected.state === 'plain') {
+      if (source.mask) mask = await decodeMask(source.mask.blob, picture.width, picture.height);
+      else {
+        // No cut yet: the photo's own transparency is the mask.
         mask = new Uint8Array(picture.width * picture.height);
         if (picture.hasAlpha) for (let i = 0; i < mask.length; i++) mask[i] = picture.rgba[i * 4 + 3];
         else mask.fill(255);
-      } else mask = new Uint8Array(picture.width * picture.height).fill(255);
+      }
       await openPicture(selected.id, picture);
       if (cancelled) return;
-      setOpen({ id: selected.id, picture, mask, settings: { ...DEFAULT_RENDER, ...selected.settings }, engine: selected.engine });
+      photosRef.current.set(selected.id, source.photo);
+      setOpen({ id: selected.id, picture, mask, settings: { ...DEFAULT_RENDER, ...source.row.settings }, engine: source.row.engine });
       setShown(null);
       clearHistory();
     })()
@@ -378,7 +417,9 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
           encodeMask(mask, current.picture.width, current.picture.height),
           thumbnailOf(rgba, rendered.width, rendered.height),
         ]);
-        await saveLibraryCut(current.id, {
+        const photo = photosRef.current.get(current.id);
+        if (!photo) throw new PictureChangedError();
+        const row = await saveLibraryCut(current.id, {
           picture,
           mask: maskFile,
           width: rendered.width,
@@ -386,11 +427,26 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
           thumb: await thumb.arrayBuffer(),
           settings: current.settings,
           rect: rendered.rect,
+          photo,
         });
+        // A picture that had no room for its photo when it opened has it kept now.
+        if (row?.sourceMediaId && row.sourceMediaId !== photo.id) photosRef.current.set(current.id, { ...photo, id: row.sourceMediaId });
         return true;
       } catch (error) {
         console.error('Saving a cut-out failed', error);
-        toast({ title: "Your change wasn't saved", description: error instanceof Error ? error.message : 'Try again.' });
+        const changed = error instanceof PictureChangedError;
+        const onScreen = openRef.current?.id === current.id;
+        if (changed && onScreen) setReopened((count) => count + 1);
+        toast({
+          title: "Your change wasn't saved",
+          description: changed
+            ? `The picture changed while you were editing it${onScreen ? ', so it was opened again as it is now' : ''}.`
+            : isOutOfRoom(error)
+              ? OUT_OF_ROOM
+              : error instanceof Error
+                ? error.message
+                : 'Try again.',
+        });
         return false;
       }
     });
@@ -509,16 +565,21 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
   }, [active]);
 
   const addFiles = async (files: File[]) => {
-    const pictures = files.filter((file) => file.type.startsWith('image/') || /\.(png|jpe?g|webp|heic|heif|gif|avif)$/i.test(file.name));
-    if (pictures.length === 0) {
+    if (files.length === 0) return;
+    if (!files.some(mayBePicture)) {
       toast({ title: 'Only photos can be added', description: 'Use PNG, JPG, WebP or HEIC files.' });
       return;
     }
-    const added = await addPictureFiles(pictures, { cut: true }).catch((error) => {
+    // Every file goes in, so the count and the names in the message cover the
+    // ones that are not photos too.
+    const result = await addPictureFiles(files, { cut: true }).catch((error) => {
       toast({ title: "The photos couldn't be added", description: error instanceof Error ? error.message : 'Try again.' });
-      return [];
+      return null;
     });
-    if (added.length) setSelectedId(added[0].id);
+    if (result?.reason) {
+      toast({ title: `${result.notAdded} of the ${files.length} files ${result.notAdded === 1 ? "wasn't" : "weren't"} added`, description: result.reason });
+    }
+    if (result?.added.length) setSelectedId(result.added[0].id);
     void drainLibraryQueue();
   };
 
@@ -563,12 +624,7 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
     try {
       if (!(await flushSave())) return;
       const result = await syncLibrary();
-      toast({
-        title: 'Your pictures are backed up',
-        description: result.uploaded || result.downloaded
-          ? `${result.uploaded} saved to ${libraryBackupLabel(account.session.provider)}, ${result.downloaded} brought back to this computer.`
-          : `${libraryBackupLabel(account.session.provider)} already had all your pictures.`,
-      });
+      toast(describeSync(result, libraryBackupLabel(account.session.provider)));
     } catch (error) {
       toast({ title: "Your pictures weren't backed up", description: error instanceof Error ? error.message : 'Try again.' });
     } finally {
@@ -649,8 +705,15 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
           </div>
         </header>
 
-        <div className="flex min-h-0 flex-1">
-          <aside className="flex w-56 shrink-0 flex-col gap-3 overflow-y-auto border-r p-3" aria-label="Your pictures">
+        {/* Three columns from tablet width up. A phone has no room for them side
+            by side, so there they stack and the whole view scrolls: the
+            pictures as a strip, the picture, then its settings. The picture
+            stays at the top while the settings scroll under it, so a slider's
+            change shows as it is dragged. A screen too short for both (a
+            small phone on its side) would have the picture cover them all,
+            so there it scrolls away with the rest. */}
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto md:flex-row md:overflow-visible">
+          <aside className="flex shrink-0 flex-col gap-3 border-b p-3 md:w-56 md:overflow-y-auto md:border-b-0 md:border-r" aria-label="Your pictures">
             <ModelCard />
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-semibold">Your pictures</h2>
@@ -661,15 +724,21 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
                 Photos you add show up here. You'll find them in the Custom tab of the editor too.
               </p>
             ) : (
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex gap-2 overflow-x-auto pb-1 md:grid md:grid-cols-2 md:overflow-visible md:pb-0">
                 {rows!.map((row) => (
-                  <LibraryTile key={row.id} row={row} selected={row.id === selectedId} onSelect={() => select(row.id)} />
+                  <div key={row.id} className="w-20 shrink-0 md:w-auto">
+                    <LibraryTile row={row} selected={row.id === selectedId} onSelect={() => select(row.id)} />
+                  </div>
                 ))}
               </div>
             )}
           </aside>
 
-          <main className="relative flex min-w-0 flex-1 flex-col bg-muted/30" aria-label="The picture">
+          <main
+            className="relative flex h-[45svh] shrink-0 flex-col bg-background max-md:[@media(min-height:32rem)]:sticky max-md:[@media(min-height:32rem)]:top-0 max-md:[@media(min-height:32rem)]:z-10 max-md:[@media(min-height:32rem)]:min-h-[14rem] md:h-auto md:min-h-0 md:min-w-0 md:flex-1 md:bg-muted/30"
+            aria-label="The picture"
+            data-testid="cutout-picture"
+          >
             {open && selected ? (
               <>
                 <CutoutCanvas
@@ -681,6 +750,7 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
                   backdropColor={backdropColor}
                   showOriginal={showOriginal}
                   brush={cutting ? null : { mode: brushMode, size: brushSize }}
+                  fingerPaints={fingerPaints}
                   onStroke={onStroke}
                   onZoomChange={setZoom}
                   className="flex-1"
@@ -750,7 +820,7 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
             )}
           </main>
 
-          <aside className="flex w-64 shrink-0 flex-col gap-4 overflow-y-auto border-l p-3" aria-label="Edit the cut-out">
+          <aside className="flex shrink-0 flex-col gap-4 border-t p-3 md:w-64 md:overflow-y-auto md:border-l md:border-t-0" aria-label="Edit the cut-out">
             {selected && open ? (
               <>
                 <div className="space-y-1">
@@ -778,29 +848,36 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
                   <div className="grid grid-cols-2 gap-1.5">
                     <Button
                       type="button"
-                      variant={brushMode === 'erase' ? 'default' : 'outline'}
+                      variant={fingerPaints && brushMode === 'erase' ? 'default' : 'outline'}
                       size="sm"
                       className="h-8 gap-1.5 text-xs"
-                      aria-pressed={brushMode === 'erase'}
+                      aria-pressed={fingerPaints && brushMode === 'erase'}
                       title="Paint over the parts you want gone, or press X to switch"
-                      onClick={() => setBrushMode('erase')}
+                      onClick={() => pickBrush('erase')}
                     >
                       <EraserIcon className="h-3.5 w-3.5" />
                       Erase
                     </Button>
                     <Button
                       type="button"
-                      variant={brushMode === 'keep' ? 'default' : 'outline'}
+                      variant={fingerPaints && brushMode === 'keep' ? 'default' : 'outline'}
                       size="sm"
                       className="h-8 gap-1.5 text-xs"
-                      aria-pressed={brushMode === 'keep'}
+                      aria-pressed={fingerPaints && brushMode === 'keep'}
                       title="Paint over the parts you want back, or press X to switch"
-                      onClick={() => setBrushMode('keep')}
+                      onClick={() => pickBrush('keep')}
                     >
                       <PaintbrushIcon className="h-3.5 w-3.5" />
                       Bring back
                     </Button>
                   </div>
+                  {touchFirst && (
+                    <p className="text-[11px] leading-snug text-muted-foreground" data-testid="cutout-finger-hint">
+                      {fingerBrush
+                        ? `Tap ${brushMode === 'erase' ? 'Erase' : 'Bring back'} again to stop painting`
+                        : 'Tap Erase or Bring back, then paint with your finger'}
+                    </p>
+                  )}
                   <div className="flex items-center gap-2">
                     <Label className="w-16 shrink-0 text-[11px] text-muted-foreground">Brush size</Label>
                     <Slider value={[brushSize]} min={4} max={400} step={1} onValueChange={([value]) => setBrushSize(value)} aria-label="Brush size" />

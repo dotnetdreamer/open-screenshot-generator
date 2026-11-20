@@ -1,0 +1,1975 @@
+{
+  "id": "template_umdo_voice_todo",
+  "name": "Umdo Voice To-Do",
+  "description": "App Store & Play Store screenshots for a voice to-do list, task manager or productivity app. Bold rounded headlines on white, black and lime artboards, with red tape stickers, cyan wavy underlines and a lime loop arrow. A cardboard box robot waves from the first screenshot, a voice recorder card runs across the first two, and a speech bubble shows a spoken ramble with the tasks in bold. A hand holds the phone among 3D stickers, a task moves from to do to done above a lime burst, and three phones show sky, night and coral themes. Every part sits in named, editable layer groups.",
+  "previewImage": "/data/projects/previews/umdo-voice-todo.png",
+  "timestamp": "2026-11-20T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "um-board-1",
+      "name": "The Laziest Simplest To Do App",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "um-b1-glow",
+          "type": "shape",
+          "name": "Bottom glow",
+          "position": {
+            "x": 0,
+            "y": 1880
+          },
+          "size": {
+            "width": 1206,
+            "height": 742
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3FD6F8",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "rgba(63,214,248,0)",
+            "color2": "#3FD6F8",
+            "angle": 180
+          }
+        },
+        {
+          "id": "um-b1-phone-case",
+          "type": "shape",
+          "name": "Phone case",
+          "position": {
+            "x": 76,
+            "y": 842
+          },
+          "size": {
+            "width": 1054,
+            "height": 2400
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#E3E5EA",
+          "strokeWidth": 4,
+          "borderRadius": 176,
+          "shadow": {
+            "x": 0,
+            "y": 36,
+            "blur": 90,
+            "color": "rgba(16,42,67,0.18)"
+          },
+          "groupId": "um-b1-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "um-b1-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 114,
+            "y": 880
+          },
+          "size": {
+            "width": 978,
+            "height": 2047.64
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#F3F4F7",
+          "screenshotSrc": "/data/projects/umdo-screen-home.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "um-b1-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "um-b1-the",
+          "type": "text",
+          "name": "The",
+          "position": {
+            "x": 315.26,
+            "y": 84
+          },
+          "size": {
+            "width": 228,
+            "height": 117
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "The",
+          "fontSize": 29,
+          "color": "#121212",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "um-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "um-b1-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 168.5,
+            "y": 196
+          },
+          "size": {
+            "width": 869,
+            "height": 511
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Laziest,\nSimplest\nTo Do App!",
+          "fontSize": 50,
+          "color": "#121212",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 0.96,
+          "groupId": "um-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "um-b1-sticker-tag",
+          "type": "shape",
+          "name": "Sticker",
+          "position": {
+            "x": 574.74,
+            "y": 153.5
+          },
+          "size": {
+            "width": 404,
+            "height": 124
+          },
+          "rotation": 7,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF3B5C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4 6 L96 6 L100 17 L96 28 L100 39 L96 50 L100 61 L96 72 L100 83 L96 94 L4 94 L0 83 L4 72 L0 61 L4 50 L0 39 L4 28 L0 17 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 24,
+            "color": "rgba(160,20,50,0.28)"
+          },
+          "groupId": "um-b1-g-sticker",
+          "groupName": "Smartest sticker"
+        },
+        {
+          "id": "um-b1-sticker-text",
+          "type": "text",
+          "name": "Sticker text",
+          "position": {
+            "x": 596.74,
+            "y": 159.5
+          },
+          "size": {
+            "width": 360,
+            "height": 112
+          },
+          "rotation": 7,
+          "scale": 1,
+          "content": "Smartest",
+          "fontSize": 25,
+          "color": "#FFFFFF",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "um-b1-g-sticker",
+          "groupName": "Smartest sticker"
+        },
+        {
+          "id": "um-b1-mascot",
+          "type": "image",
+          "name": "Box robot",
+          "position": {
+            "x": 120,
+            "y": 1872
+          },
+          "size": {
+            "width": 660,
+            "height": 679
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/mascots/mascot-box-robot.png",
+          "objectFit": "contain"
+        }
+      ]
+    },
+    {
+      "id": "um-board-2",
+      "name": "Just Rant About All The Stuff",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0A0A0B",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "um-b2-glow",
+          "type": "shape",
+          "name": "Bottom glow",
+          "position": {
+            "x": -220,
+            "y": 1980
+          },
+          "size": {
+            "width": 1646,
+            "height": 900
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#86E07A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "#2ED3C9",
+            "color2": "#D6F24A",
+            "angle": 90
+          },
+          "blur": 150
+        },
+        {
+          "id": "um-b2-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 90,
+            "y": 104
+          },
+          "size": {
+            "width": 1054,
+            "height": 601
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Just rant about\nall the stuff\nyou have to\nget done",
+          "fontSize": 43,
+          "color": "#FFFFFF",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1
+        },
+        {
+          "id": "um-b2-rec-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": -300,
+            "y": 872
+          },
+          "size": {
+            "width": 1124,
+            "height": 604
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 74,
+          "shadow": {
+            "x": 0,
+            "y": 30,
+            "blur": 70,
+            "color": "rgba(0,0,0,0.5)"
+          },
+          "spanArtboards": true,
+          "groupId": "um-b2-g-recorder",
+          "groupName": "Recorder"
+        },
+        {
+          "id": "um-b2-rec-panel",
+          "type": "shape",
+          "name": "Wave panel",
+          "position": {
+            "x": -261.72,
+            "y": 904.16
+          },
+          "size": {
+            "width": 1060,
+            "height": 300
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0F0F11",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 54,
+          "spanArtboards": true,
+          "groupId": "um-b2-g-recorder",
+          "groupName": "Recorder"
+        },
+        {
+          "id": "um-b2-rec-wave",
+          "type": "shape",
+          "name": "Voice wave",
+          "position": {
+            "x": -223.72,
+            "y": 934.16
+          },
+          "size": {
+            "width": 984,
+            "height": 240
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF3B5C",
+          "strokeColor": "transparent",
+          "strokeWidth": 9,
+          "customPath": "M2 33.68 V66.32 M4.74 40.56 V59.44 M7.49 29.39 V70.61 M10.23 35.95 V64.05 M12.97 36.61 V63.39 M15.71 28.15 V71.85 M18.46 23.36 V76.64 M21.2 29.87 V70.13 M23.94 22.03 V77.97 M26.69 34.48 V65.52 M29.43 34.66 V65.34 M32.17 11.8 V88.2 M34.91 26.1 V73.9 M37.66 17.59 V82.41 M40.4 28.4 V71.6 M43.14 28.35 V71.65 M45.89 18.88 V81.12 M48.63 7.51 V92.49 M51.37 31.92 V68.08 M54.11 18.9 V81.1 M56.86 30.44 V69.56 M59.6 35.26 V64.74 M62.34 9.12 V90.88 M65.09 19.65 V80.35 M67.83 24.83 V75.17 M70.57 32.52 V67.48 M73.31 28.35 V71.65 M76.06 27.58 V72.42 M78.8 15.66 V84.34 M81.54 36.43 V63.57 M84.29 31.41 V68.59 M87.03 35.13 V64.87 M89.77 37.39 V62.61 M92.51 28.93 V71.07 M95.26 32.38 V67.62 M98 39.69 V60.31",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 3
+          },
+          "spanArtboards": true,
+          "groupId": "um-b2-g-recorder",
+          "groupName": "Recorder"
+        },
+        {
+          "id": "um-b2-rec-ring",
+          "type": "shape",
+          "name": "Button ring",
+          "position": {
+            "x": 176.16,
+            "y": 1228.76
+          },
+          "size": {
+            "width": 230,
+            "height": 230
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "rgba(255,59,92,0.16)",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "spanArtboards": true,
+          "groupId": "um-b2-g-recorder",
+          "groupName": "Recorder"
+        },
+        {
+          "id": "um-b2-rec-button",
+          "type": "shape",
+          "name": "Record button",
+          "position": {
+            "x": 199.16,
+            "y": 1251.76
+          },
+          "size": {
+            "width": 184,
+            "height": 184
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FF3B5C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "spanArtboards": true,
+          "groupId": "um-b2-g-recorder",
+          "groupName": "Recorder"
+        },
+        {
+          "id": "um-b2-rec-transcript",
+          "type": "shape",
+          "name": "Transcript icon",
+          "position": {
+            "x": -16.49,
+            "y": 1282.15
+          },
+          "size": {
+            "width": 96,
+            "height": 96
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#B4B4BC",
+          "strokeColor": "transparent",
+          "strokeWidth": 7,
+          "customPath": "M16 24 Q16 14 26 14 H74 Q84 14 84 24 V58 Q84 68 74 68 H46 L28 84 V68 H26 Q16 68 16 58 Z M32 34 H68 M32 48 H54",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 6
+          },
+          "spanArtboards": true,
+          "groupId": "um-b2-g-recorder",
+          "groupName": "Recorder"
+        },
+        {
+          "id": "um-b2-rec-list",
+          "type": "shape",
+          "name": "Checklist icon",
+          "position": {
+            "x": 462.85,
+            "y": 1307.27
+          },
+          "size": {
+            "width": 96,
+            "height": 96
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#B4B4BC",
+          "strokeColor": "transparent",
+          "strokeWidth": 7,
+          "customPath": "M12 22 Q12 12 22 12 H60 Q70 12 70 22 V56 Q70 66 60 66 H22 Q12 66 12 56 Z M24 30 H58 M24 46 H44 M54 72 A18 18 0 1 1 90 72 A18 18 0 1 1 54 72 M63 72 L70 79 L82 66",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 6
+          },
+          "spanArtboards": true,
+          "groupId": "um-b2-g-recorder",
+          "groupName": "Recorder"
+        },
+        {
+          "id": "um-b2-arrow",
+          "type": "shape",
+          "name": "Loop arrow",
+          "position": {
+            "x": 707.48,
+            "y": 557.83
+          },
+          "size": {
+            "width": 330,
+            "height": 380
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#D5F53A",
+          "strokeColor": "transparent",
+          "strokeWidth": 30,
+          "customPath": "M10 8 C40 0 80 4 90 26 C98 44 78 58 62 50 C48 43 54 24 72 28 C90 33 88 62 68 78 C55 88 36 92 16 92 M31 79 L15 92 L32 102",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 8
+          }
+        },
+        {
+          "id": "um-b2-bubble-tail",
+          "type": "shape",
+          "name": "Bubble tail",
+          "position": {
+            "x": 90,
+            "y": 1622
+          },
+          "size": {
+            "width": 170,
+            "height": 190
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M34 100 C36 60 22 24 0 0 C36 14 70 48 100 100 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "um-b2-g-bubble",
+          "groupName": "Speech bubble"
+        },
+        {
+          "id": "um-b2-bubble",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 66,
+            "y": 1772
+          },
+          "size": {
+            "width": 1074,
+            "height": 790
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 86,
+          "shadow": {
+            "x": 0,
+            "y": 24,
+            "blur": 60,
+            "color": "rgba(0,0,0,0.3)"
+          },
+          "groupId": "um-b2-g-bubble",
+          "groupName": "Speech bubble"
+        },
+        {
+          "id": "um-b2-said-1-1",
+          "type": "text",
+          "name": "Said: Okay so I really need to",
+          "position": {
+            "x": 227.26,
+            "y": 1948
+          },
+          "size": {
+            "width": 768,
+            "height": 102
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Okay so I really need to",
+          "fontSize": 22,
+          "color": "#A3A3AB",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.17,
+          "groupId": "um-b2-g-bubble",
+          "groupName": "Speech bubble"
+        },
+        {
+          "id": "um-b2-said-2-1",
+          "type": "text",
+          "name": "Task: finish my essay",
+          "position": {
+            "x": 225.77,
+            "y": 2033.8
+          },
+          "size": {
+            "width": 538,
+            "height": 102
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "finish my essay",
+          "fontSize": 22,
+          "color": "#121212",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.17,
+          "groupId": "um-b2-g-bubble",
+          "groupName": "Speech bubble"
+        },
+        {
+          "id": "um-b2-said-2-2",
+          "type": "text",
+          "name": "Said: before",
+          "position": {
+            "x": 758.16,
+            "y": 2033.8
+          },
+          "size": {
+            "width": 239,
+            "height": 102
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "before",
+          "fontSize": 22,
+          "color": "#A3A3AB",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.17,
+          "groupId": "um-b2-g-bubble",
+          "groupName": "Speech bubble"
+        },
+        {
+          "id": "um-b2-said-3-1",
+          "type": "text",
+          "name": "Said: Monday, and uhh",
+          "position": {
+            "x": 168.45,
+            "y": 2119.6
+          },
+          "size": {
+            "width": 564,
+            "height": 102
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Monday, and uhh",
+          "fontSize": 22,
+          "color": "#A3A3AB",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.17,
+          "groupId": "um-b2-g-bubble",
+          "groupName": "Speech bubble"
+        },
+        {
+          "id": "um-b2-said-3-2",
+          "type": "text",
+          "name": "Task: clean the",
+          "position": {
+            "x": 727.02,
+            "y": 2119.6
+          },
+          "size": {
+            "width": 327,
+            "height": 102
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "clean the",
+          "fontSize": 22,
+          "color": "#121212",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.17,
+          "groupId": "um-b2-g-bubble",
+          "groupName": "Speech bubble"
+        },
+        {
+          "id": "um-b2-said-4-1",
+          "type": "text",
+          "name": "Task: kitchen,",
+          "position": {
+            "x": 289.56,
+            "y": 2205.4
+          },
+          "size": {
+            "width": 290,
+            "height": 102
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "kitchen,",
+          "fontSize": 22,
+          "color": "#121212",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.17,
+          "groupId": "um-b2-g-bubble",
+          "groupName": "Speech bubble"
+        },
+        {
+          "id": "um-b2-said-4-2",
+          "type": "text",
+          "name": "Said: umm...",
+          "position": {
+            "x": 574.02,
+            "y": 2205.4
+          },
+          "size": {
+            "width": 227,
+            "height": 102
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "umm...",
+          "fontSize": 22,
+          "color": "#A3A3AB",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.17,
+          "groupId": "um-b2-g-bubble",
+          "groupName": "Speech bubble"
+        },
+        {
+          "id": "um-b2-said-4-3",
+          "type": "text",
+          "name": "Task: call",
+          "position": {
+            "x": 795.03,
+            "y": 2205.4
+          },
+          "size": {
+            "width": 138,
+            "height": 102
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "call",
+          "fontSize": 22,
+          "color": "#121212",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.17,
+          "groupId": "um-b2-g-bubble",
+          "groupName": "Speech bubble"
+        },
+        {
+          "id": "um-b2-said-5-1",
+          "type": "text",
+          "name": "Task: Grandma back,",
+          "position": {
+            "x": 168.02,
+            "y": 2291.2
+          },
+          "size": {
+            "width": 519,
+            "height": 102
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Grandma back,",
+          "fontSize": 22,
+          "color": "#121212",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.17,
+          "groupId": "um-b2-g-bubble",
+          "groupName": "Speech bubble"
+        },
+        {
+          "id": "um-b2-said-5-2",
+          "type": "text",
+          "name": "Said: and maybe",
+          "position": {
+            "x": 680.97,
+            "y": 2291.2
+          },
+          "size": {
+            "width": 374,
+            "height": 102
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "and maybe",
+          "fontSize": 22,
+          "color": "#A3A3AB",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.17,
+          "groupId": "um-b2-g-bubble",
+          "groupName": "Speech bubble"
+        },
+        {
+          "id": "um-b2-said-6-1",
+          "type": "text",
+          "name": "Task: grab some lunch",
+          "position": {
+            "x": 248.3,
+            "y": 2377
+          },
+          "size": {
+            "width": 570,
+            "height": 102
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "grab some lunch",
+          "fontSize": 22,
+          "color": "#121212",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.17,
+          "groupId": "um-b2-g-bubble",
+          "groupName": "Speech bubble"
+        },
+        {
+          "id": "um-b2-said-6-2",
+          "type": "text",
+          "name": "Said: first",
+          "position": {
+            "x": 812.74,
+            "y": 2377
+          },
+          "size": {
+            "width": 161,
+            "height": 102
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "first",
+          "fontSize": 22,
+          "color": "#A3A3AB",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.17,
+          "groupId": "um-b2-g-bubble",
+          "groupName": "Speech bubble"
+        },
+        {
+          "id": "um-b2-tag",
+          "type": "shape",
+          "name": "Tag",
+          "position": {
+            "x": 153,
+            "y": 1646
+          },
+          "size": {
+            "width": 900,
+            "height": 236
+          },
+          "rotation": -3,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF3B5C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4 6 L96 6 L100 17 L96 28 L100 39 L96 50 L100 61 L96 72 L100 83 L96 94 L4 94 L0 83 L4 72 L0 61 L4 50 L0 39 L4 28 L0 17 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 30,
+            "color": "rgba(0,0,0,0.35)"
+          },
+          "groupId": "um-b2-g-tag",
+          "groupName": "Talk tag"
+        },
+        {
+          "id": "um-b2-tag-text",
+          "type": "text",
+          "name": "Tag text",
+          "position": {
+            "x": 212,
+            "y": 1659
+          },
+          "size": {
+            "width": 782,
+            "height": 210
+          },
+          "rotation": -3,
+          "scale": 1,
+          "content": "Talk like you talk.\nUms, ahs and all!",
+          "fontSize": 28,
+          "color": "#FFFFFF",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.02,
+          "groupId": "um-b2-g-tag",
+          "groupName": "Talk tag"
+        }
+      ]
+    },
+    {
+      "id": "um-board-3",
+      "name": "Rambling Into Sorted To Dos",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "um-b3-glow",
+          "type": "shape",
+          "name": "Bottom glow",
+          "position": {
+            "x": 0,
+            "y": 1300
+          },
+          "size": {
+            "width": 1206,
+            "height": 1322
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#DDFA3B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "rgba(221,250,59,0)",
+            "color2": "#DDFA3B",
+            "angle": 180
+          }
+        },
+        {
+          "id": "um-b3-intro",
+          "type": "text",
+          "name": "Intro",
+          "position": {
+            "x": 341,
+            "y": 92
+          },
+          "size": {
+            "width": 524,
+            "height": 74
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Umdo turns your",
+          "fontSize": 18,
+          "color": "#121212",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1
+        },
+        {
+          "id": "um-b3-underline-1",
+          "type": "shape",
+          "name": "Wavy underline",
+          "position": {
+            "x": 102.45,
+            "y": 334.9
+          },
+          "size": {
+            "width": 1001.11,
+            "height": 30
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#2EC6EA",
+          "strokeColor": "transparent",
+          "strokeWidth": 6,
+          "customPath": "M0 50 Q0.83 26 1.67 50 Q2.5 74 3.33 50 Q4.17 26 5 50 Q5.83 74 6.67 50 Q7.5 26 8.33 50 Q9.17 74 10 50 Q10.83 26 11.67 50 Q12.5 74 13.33 50 Q14.17 26 15 50 Q15.83 74 16.67 50 Q17.5 26 18.33 50 Q19.17 74 20 50 Q20.83 26 21.67 50 Q22.5 74 23.33 50 Q24.17 26 25 50 Q25.83 74 26.67 50 Q27.5 26 28.33 50 Q29.17 74 30 50 Q30.83 26 31.67 50 Q32.5 74 33.33 50 Q34.17 26 35 50 Q35.83 74 36.67 50 Q37.5 26 38.33 50 Q39.17 74 40 50 Q40.83 26 41.67 50 Q42.5 74 43.33 50 Q44.17 26 45 50 Q45.83 74 46.67 50 Q47.5 26 48.33 50 Q49.17 74 50 50 Q50.83 26 51.67 50 Q52.5 74 53.33 50 Q54.17 26 55 50 Q55.83 74 56.67 50 Q57.5 26 58.33 50 Q59.17 74 60 50 Q60.83 26 61.67 50 Q62.5 74 63.33 50 Q64.17 26 65 50 Q65.83 74 66.67 50 Q67.5 26 68.33 50 Q69.17 74 70 50 Q70.83 26 71.67 50 Q72.5 74 73.33 50 Q74.17 26 75 50 Q75.83 74 76.67 50 Q77.5 26 78.33 50 Q79.17 74 80 50 Q80.83 26 81.67 50 Q82.5 74 83.33 50 Q84.17 26 85 50 Q85.83 74 86.67 50 Q87.5 26 88.33 50 Q89.17 74 90 50 Q90.83 26 91.67 50 Q92.5 74 93.33 50 Q94.17 26 95 50 Q95.83 74 96.67 50 Q97.5 26 98.33 50 Q99.17 74 100 50",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4
+          },
+          "groupId": "um-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "um-b3-underline-2",
+          "type": "shape",
+          "name": "Wavy underline",
+          "position": {
+            "x": 72.28,
+            "y": 504.1
+          },
+          "size": {
+            "width": 1061.44,
+            "height": 30
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#2EC6EA",
+          "strokeColor": "transparent",
+          "strokeWidth": 6,
+          "customPath": "M0 50 Q0.83 26 1.67 50 Q2.5 74 3.33 50 Q4.17 26 5 50 Q5.83 74 6.67 50 Q7.5 26 8.33 50 Q9.17 74 10 50 Q10.83 26 11.67 50 Q12.5 74 13.33 50 Q14.17 26 15 50 Q15.83 74 16.67 50 Q17.5 26 18.33 50 Q19.17 74 20 50 Q20.83 26 21.67 50 Q22.5 74 23.33 50 Q24.17 26 25 50 Q25.83 74 26.67 50 Q27.5 26 28.33 50 Q29.17 74 30 50 Q30.83 26 31.67 50 Q32.5 74 33.33 50 Q34.17 26 35 50 Q35.83 74 36.67 50 Q37.5 26 38.33 50 Q39.17 74 40 50 Q40.83 26 41.67 50 Q42.5 74 43.33 50 Q44.17 26 45 50 Q45.83 74 46.67 50 Q47.5 26 48.33 50 Q49.17 74 50 50 Q50.83 26 51.67 50 Q52.5 74 53.33 50 Q54.17 26 55 50 Q55.83 74 56.67 50 Q57.5 26 58.33 50 Q59.17 74 60 50 Q60.83 26 61.67 50 Q62.5 74 63.33 50 Q64.17 26 65 50 Q65.83 74 66.67 50 Q67.5 26 68.33 50 Q69.17 74 70 50 Q70.83 26 71.67 50 Q72.5 74 73.33 50 Q74.17 26 75 50 Q75.83 74 76.67 50 Q77.5 26 78.33 50 Q79.17 74 80 50 Q80.83 26 81.67 50 Q82.5 74 83.33 50 Q84.17 26 85 50 Q85.83 74 86.67 50 Q87.5 26 88.33 50 Q89.17 74 90 50 Q90.83 26 91.67 50 Q92.5 74 93.33 50 Q94.17 26 95 50 Q95.83 74 96.67 50 Q97.5 26 98.33 50 Q99.17 74 100 50",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4
+          },
+          "groupId": "um-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "um-b3-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 60,
+            "y": 178
+          },
+          "size": {
+            "width": 1086,
+            "height": 368
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "rambling into\nsorted to-dos!",
+          "fontSize": 47,
+          "color": "#121212",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.08,
+          "groupId": "um-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "um-b3-hand",
+          "type": "image",
+          "name": "Hand",
+          "position": {
+            "x": 155.14,
+            "y": 785.73
+          },
+          "size": {
+            "width": 1704.04,
+            "height": 1688.7
+          },
+          "rotation": -8,
+          "scale": 1,
+          "imageSrc": "/elements/images/touch/touch-as451105828.png",
+          "objectFit": "contain",
+          "groupId": "um-b3-g-hand",
+          "groupName": "Phone in hand"
+        },
+        {
+          "id": "um-b3-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 230,
+            "y": 690
+          },
+          "size": {
+            "width": 760,
+            "height": 1591.21
+          },
+          "rotation": -8,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#2457D6",
+          "screenshotSrc": "/data/projects/umdo-screen-list.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "shadow": {
+            "x": 0,
+            "y": 24,
+            "blur": 50,
+            "color": "rgba(20,40,90,0.25)"
+          },
+          "groupId": "um-b3-g-hand",
+          "groupName": "Phone in hand"
+        },
+        {
+          "id": "um-b3-burger",
+          "type": "image",
+          "name": "Burger",
+          "position": {
+            "x": 806,
+            "y": 868
+          },
+          "size": {
+            "width": 330,
+            "height": 321
+          },
+          "rotation": 8,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-burger.png",
+          "objectFit": "contain",
+          "groupId": "um-b3-g-stickers",
+          "groupName": "Stickers"
+        },
+        {
+          "id": "um-b3-notepad",
+          "type": "image",
+          "name": "Notepad",
+          "position": {
+            "x": 96,
+            "y": 1452
+          },
+          "size": {
+            "width": 290,
+            "height": 358
+          },
+          "rotation": -10,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-notepad.png",
+          "objectFit": "contain",
+          "groupId": "um-b3-g-stickers",
+          "groupName": "Stickers"
+        },
+        {
+          "id": "um-b3-sponge",
+          "type": "image",
+          "name": "Sponge",
+          "position": {
+            "x": 806,
+            "y": 1650
+          },
+          "size": {
+            "width": 380,
+            "height": 370
+          },
+          "rotation": 6,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-sponge.png",
+          "objectFit": "contain",
+          "groupId": "um-b3-g-stickers",
+          "groupName": "Stickers"
+        }
+      ]
+    },
+    {
+      "id": "um-board-4",
+      "name": "Watch Your Tasks Move",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "um-b4-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 46.5,
+            "y": 96
+          },
+          "size": {
+            "width": 1113,
+            "height": 426
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Watch your tasks\ngo from started\nto done",
+          "fontSize": 40,
+          "color": "#121212",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1
+        },
+        {
+          "id": "um-b4-tag",
+          "type": "shape",
+          "name": "Tag",
+          "position": {
+            "x": 213,
+            "y": 500
+          },
+          "size": {
+            "width": 780,
+            "height": 196
+          },
+          "rotation": -6,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF3B5C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4 6 L96 6 L100 17 L96 28 L100 39 L96 50 L100 61 L96 72 L100 83 L96 94 L4 94 L0 83 L4 72 L0 61 L4 50 L0 39 L4 28 L0 17 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 24,
+            "color": "rgba(160,20,50,0.25)"
+          },
+          "groupId": "um-b4-g-tag",
+          "groupName": "Cheer tag"
+        },
+        {
+          "id": "um-b4-tag-text",
+          "type": "text",
+          "name": "Tag text",
+          "position": {
+            "x": 250.5,
+            "y": 522.5
+          },
+          "size": {
+            "width": 705,
+            "height": 151
+          },
+          "rotation": -6,
+          "scale": 1,
+          "content": "Cheer every small step,\nnot just the last one",
+          "fontSize": 19,
+          "color": "#FFFFFF",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.08,
+          "groupId": "um-b4-g-tag",
+          "groupName": "Cheer tag"
+        },
+        {
+          "id": "um-b4-arrow-1",
+          "type": "shape",
+          "name": "Arrow",
+          "position": {
+            "x": 44,
+            "y": 958
+          },
+          "size": {
+            "width": 190,
+            "height": 330
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#C5C8D0",
+          "strokeColor": "transparent",
+          "strokeWidth": 11,
+          "customPath": "M84 18 C50 2 18 16 20 46 C22 66 38 78 60 76 M48 62 L68 76 L50 90",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 8
+          },
+          "groupId": "um-b4-g-arrows",
+          "groupName": "Step arrows"
+        },
+        {
+          "id": "um-b4-arrow-2",
+          "type": "shape",
+          "name": "Arrow",
+          "position": {
+            "x": 972,
+            "y": 1268
+          },
+          "size": {
+            "width": 190,
+            "height": 330
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#C5C8D0",
+          "strokeColor": "transparent",
+          "strokeWidth": 11,
+          "customPath": "M16 18 C50 2 82 16 80 46 C78 66 62 78 40 76 M52 62 L32 76 L50 90",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 8
+          },
+          "groupId": "um-b4-g-arrows",
+          "groupName": "Step arrows"
+        },
+        {
+          "id": "um-b4-todo-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 503,
+            "y": 798
+          },
+          "size": {
+            "width": 200,
+            "height": 78
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "To do",
+          "fontSize": 19,
+          "color": "#121212",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "um-b4-todo-g",
+          "groupName": "To do step"
+        },
+        {
+          "id": "um-b4-todo-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 196,
+            "y": 888
+          },
+          "size": {
+            "width": 814,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#E4E5EA",
+          "strokeWidth": 3,
+          "borderRadius": 75,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 30,
+            "color": "rgba(20,30,50,0.07)"
+          },
+          "groupId": "um-b4-todo-g",
+          "groupName": "To do step"
+        },
+        {
+          "id": "um-b4-todo-icon",
+          "type": "shape",
+          "name": "Status",
+          "position": {
+            "x": 248,
+            "y": 931
+          },
+          "size": {
+            "width": 64,
+            "height": 64
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#121212",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M6 50 A44 44 0 1 1 94 50 A44 44 0 1 1 6 50 Z M15 50 A35 35 0 1 0 85 50 A35 35 0 1 0 15 50 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "um-b4-todo-g",
+          "groupName": "To do step"
+        },
+        {
+          "id": "um-b4-todo-text",
+          "type": "text",
+          "name": "Task",
+          "position": {
+            "x": 326,
+            "y": 926
+          },
+          "size": {
+            "width": 545,
+            "height": 74
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Clean the kitchen",
+          "fontSize": 18,
+          "color": "#121212",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "um-b4-todo-g",
+          "groupName": "To do step"
+        },
+        {
+          "id": "um-b4-started-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 472,
+            "y": 1108
+          },
+          "size": {
+            "width": 262,
+            "height": 78
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Started",
+          "fontSize": 19,
+          "color": "#121212",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "um-b4-started-g",
+          "groupName": "Started step"
+        },
+        {
+          "id": "um-b4-started-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 196,
+            "y": 1198
+          },
+          "size": {
+            "width": 814,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#E4E5EA",
+          "strokeWidth": 3,
+          "borderRadius": 75,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 30,
+            "color": "rgba(20,30,50,0.07)"
+          },
+          "groupId": "um-b4-started-g",
+          "groupName": "Started step"
+        },
+        {
+          "id": "um-b4-started-icon",
+          "type": "shape",
+          "name": "Status",
+          "position": {
+            "x": 248,
+            "y": 1241
+          },
+          "size": {
+            "width": 64,
+            "height": 64
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#121212",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M6 50 A44 44 0 1 1 94 50 A44 44 0 1 1 6 50 Z M15 50 A35 35 0 1 0 85 50 A35 35 0 1 0 15 50 Z M1 45.5 H99 V54.5 H1 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "um-b4-started-g",
+          "groupName": "Started step"
+        },
+        {
+          "id": "um-b4-started-text",
+          "type": "text",
+          "name": "Task",
+          "position": {
+            "x": 326,
+            "y": 1236
+          },
+          "size": {
+            "width": 545,
+            "height": 74
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Clean the kitchen",
+          "fontSize": 18,
+          "color": "#121212",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "um-b4-started-g",
+          "groupName": "Started step"
+        },
+        {
+          "id": "um-b4-halfway-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 460,
+            "y": 1418
+          },
+          "size": {
+            "width": 286,
+            "height": 78
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Halfway",
+          "fontSize": 19,
+          "color": "#121212",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "um-b4-halfway-g",
+          "groupName": "Halfway step"
+        },
+        {
+          "id": "um-b4-halfway-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 196,
+            "y": 1508
+          },
+          "size": {
+            "width": 814,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#E4E5EA",
+          "strokeWidth": 3,
+          "borderRadius": 75,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 30,
+            "color": "rgba(20,30,50,0.07)"
+          },
+          "groupId": "um-b4-halfway-g",
+          "groupName": "Halfway step"
+        },
+        {
+          "id": "um-b4-halfway-icon",
+          "type": "shape",
+          "name": "Status",
+          "position": {
+            "x": 248,
+            "y": 1551
+          },
+          "size": {
+            "width": 64,
+            "height": 64
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#121212",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M6 50 A44 44 0 1 1 94 50 A44 44 0 1 1 6 50 Z M15 50 A35 35 0 1 0 85 50 A35 35 0 1 0 15 50 Z M15 50 A35 35 0 0 1 85 50 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "um-b4-halfway-g",
+          "groupName": "Halfway step"
+        },
+        {
+          "id": "um-b4-halfway-text",
+          "type": "text",
+          "name": "Task",
+          "position": {
+            "x": 326,
+            "y": 1546
+          },
+          "size": {
+            "width": 545,
+            "height": 74
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Clean the kitchen",
+          "fontSize": 18,
+          "color": "#121212",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "um-b4-halfway-g",
+          "groupName": "Halfway step"
+        },
+        {
+          "id": "um-b4-burst",
+          "type": "shape",
+          "name": "Burst",
+          "position": {
+            "x": -40,
+            "y": 1808
+          },
+          "size": {
+            "width": 1286,
+            "height": 854
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#8BDC4C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M2.5 100 Q0 100 0 97.5 L0 32.5 Q0 30 1.32 27.88 L8.68 16.12 Q10 14 11.67 15.86 L17.33 22.14 Q19 24 20.12 21.76 L27.88 6.24 Q29 4 30.52 5.98 L37.48 15.02 Q39 17 40.36 14.9 L48.64 2.1 Q50 0 51.36 2.1 L59.64 14.9 Q61 17 62.52 15.02 L69.48 5.98 Q71 4 72.12 6.24 L79.88 21.76 Q81 24 82.67 22.14 L88.33 15.86 Q90 14 91.32 16.12 L98.68 27.88 Q100 30 100 32.5 L100 97.5 Q100 100 97.5 100 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "fillGradient": {
+            "color1": "#D6F53A",
+            "color2": "#3DBE73",
+            "angle": 180
+          },
+          "groupId": "um-b4-g-done",
+          "groupName": "Done banner"
+        },
+        {
+          "id": "um-b4-fade",
+          "type": "shape",
+          "name": "Bottom fade",
+          "position": {
+            "x": -40,
+            "y": 2102
+          },
+          "size": {
+            "width": 1286,
+            "height": 560
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0FA3C8",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillGradient": {
+            "color1": "rgba(15,163,200,0)",
+            "color2": "#0FA3C8",
+            "angle": 180
+          },
+          "groupId": "um-b4-g-done",
+          "groupName": "Done banner"
+        },
+        {
+          "id": "um-b4-done",
+          "type": "text",
+          "name": "Done",
+          "position": {
+            "x": 329.5,
+            "y": 2058
+          },
+          "size": {
+            "width": 547,
+            "height": 198
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "DONE!",
+          "fontSize": 50,
+          "color": "#FFFFFF",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "um-b4-g-done",
+          "groupName": "Done banner"
+        },
+        {
+          "id": "um-b4-done-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 110,
+            "y": 2276
+          },
+          "size": {
+            "width": 986,
+            "height": 180
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 90,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 44,
+            "color": "rgba(0,60,80,0.28)"
+          },
+          "groupId": "um-b4-g-done",
+          "groupName": "Done banner"
+        },
+        {
+          "id": "um-b4-done-icon",
+          "type": "shape",
+          "name": "Status",
+          "position": {
+            "x": 160,
+            "y": 2328
+          },
+          "size": {
+            "width": 76,
+            "height": 76
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#121212",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M4 50 A46 46 0 1 0 96 50 A46 46 0 1 0 4 50 Z M25.16 52.84 Q24.1 53.9 25.16 54.96 L41.94 71.74 Q43 72.8 44.06 71.74 L75.84 39.96 Q76.9 38.9 75.84 37.84 L70.16 32.16 Q69.1 31.1 68.04 32.16 L44.06 56.14 Q43 57.2 41.94 56.14 L32.96 47.16 Q31.9 46.1 30.84 47.16 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "fillRule": "evenodd"
+          },
+          "groupId": "um-b4-g-done",
+          "groupName": "Done banner"
+        },
+        {
+          "id": "um-b4-done-text",
+          "type": "text",
+          "name": "Task",
+          "position": {
+            "x": 270,
+            "y": 2325
+          },
+          "size": {
+            "width": 601,
+            "height": 82
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Clean the kitchen",
+          "fontSize": 20,
+          "color": "#121212",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "textDecoration": "line-through",
+          "groupId": "um-b4-g-done",
+          "groupName": "Done banner"
+        }
+      ]
+    },
+    {
+      "id": "um-board-5",
+      "name": "A Look For Every Mood",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "um-b5-underline-1",
+          "type": "shape",
+          "name": "Wavy underline",
+          "position": {
+            "x": 197.95,
+            "y": 258.6
+          },
+          "size": {
+            "width": 810.11,
+            "height": 30
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#2EC6EA",
+          "strokeColor": "transparent",
+          "strokeWidth": 6,
+          "customPath": "M0 50 Q0.83 26 1.67 50 Q2.5 74 3.33 50 Q4.17 26 5 50 Q5.83 74 6.67 50 Q7.5 26 8.33 50 Q9.17 74 10 50 Q10.83 26 11.67 50 Q12.5 74 13.33 50 Q14.17 26 15 50 Q15.83 74 16.67 50 Q17.5 26 18.33 50 Q19.17 74 20 50 Q20.83 26 21.67 50 Q22.5 74 23.33 50 Q24.17 26 25 50 Q25.83 74 26.67 50 Q27.5 26 28.33 50 Q29.17 74 30 50 Q30.83 26 31.67 50 Q32.5 74 33.33 50 Q34.17 26 35 50 Q35.83 74 36.67 50 Q37.5 26 38.33 50 Q39.17 74 40 50 Q40.83 26 41.67 50 Q42.5 74 43.33 50 Q44.17 26 45 50 Q45.83 74 46.67 50 Q47.5 26 48.33 50 Q49.17 74 50 50 Q50.83 26 51.67 50 Q52.5 74 53.33 50 Q54.17 26 55 50 Q55.83 74 56.67 50 Q57.5 26 58.33 50 Q59.17 74 60 50 Q60.83 26 61.67 50 Q62.5 74 63.33 50 Q64.17 26 65 50 Q65.83 74 66.67 50 Q67.5 26 68.33 50 Q69.17 74 70 50 Q70.83 26 71.67 50 Q72.5 74 73.33 50 Q74.17 26 75 50 Q75.83 74 76.67 50 Q77.5 26 78.33 50 Q79.17 74 80 50 Q80.83 26 81.67 50 Q82.5 74 83.33 50 Q84.17 26 85 50 Q85.83 74 86.67 50 Q87.5 26 88.33 50 Q89.17 74 90 50 Q90.83 26 91.67 50 Q92.5 74 93.33 50 Q94.17 26 95 50 Q95.83 74 96.67 50 Q97.5 26 98.33 50 Q99.17 74 100 50",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4
+          },
+          "groupId": "um-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "um-b5-underline-2",
+          "type": "shape",
+          "name": "Wavy underline",
+          "position": {
+            "x": 87.7,
+            "y": 435.4
+          },
+          "size": {
+            "width": 1030.59,
+            "height": 30
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#2EC6EA",
+          "strokeColor": "transparent",
+          "strokeWidth": 6,
+          "customPath": "M0 50 Q0.83 26 1.67 50 Q2.5 74 3.33 50 Q4.17 26 5 50 Q5.83 74 6.67 50 Q7.5 26 8.33 50 Q9.17 74 10 50 Q10.83 26 11.67 50 Q12.5 74 13.33 50 Q14.17 26 15 50 Q15.83 74 16.67 50 Q17.5 26 18.33 50 Q19.17 74 20 50 Q20.83 26 21.67 50 Q22.5 74 23.33 50 Q24.17 26 25 50 Q25.83 74 26.67 50 Q27.5 26 28.33 50 Q29.17 74 30 50 Q30.83 26 31.67 50 Q32.5 74 33.33 50 Q34.17 26 35 50 Q35.83 74 36.67 50 Q37.5 26 38.33 50 Q39.17 74 40 50 Q40.83 26 41.67 50 Q42.5 74 43.33 50 Q44.17 26 45 50 Q45.83 74 46.67 50 Q47.5 26 48.33 50 Q49.17 74 50 50 Q50.83 26 51.67 50 Q52.5 74 53.33 50 Q54.17 26 55 50 Q55.83 74 56.67 50 Q57.5 26 58.33 50 Q59.17 74 60 50 Q60.83 26 61.67 50 Q62.5 74 63.33 50 Q64.17 26 65 50 Q65.83 74 66.67 50 Q67.5 26 68.33 50 Q69.17 74 70 50 Q70.83 26 71.67 50 Q72.5 74 73.33 50 Q74.17 26 75 50 Q75.83 74 76.67 50 Q77.5 26 78.33 50 Q79.17 74 80 50 Q80.83 26 81.67 50 Q82.5 74 83.33 50 Q84.17 26 85 50 Q85.83 74 86.67 50 Q87.5 26 88.33 50 Q89.17 74 90 50 Q90.83 26 91.67 50 Q92.5 74 93.33 50 Q94.17 26 95 50 Q95.83 74 96.67 50 Q97.5 26 98.33 50 Q99.17 74 100 50",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4
+          },
+          "groupId": "um-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "um-b5-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 75.5,
+            "y": 92
+          },
+          "size": {
+            "width": 1055,
+            "height": 386
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "A look for\nevery mood!",
+          "fontSize": 52,
+          "color": "#121212",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.02,
+          "groupId": "um-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "um-b5-subtitle",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 170,
+            "y": 518
+          },
+          "size": {
+            "width": 866,
+            "height": 78
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Pick from handmade themes",
+          "fontSize": 19,
+          "color": "#121212",
+          "fontFamily": "Baloo 2",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1
+        },
+        {
+          "id": "um-b5-sky",
+          "type": "device",
+          "name": "Sky phone",
+          "position": {
+            "x": -150,
+            "y": 860
+          },
+          "size": {
+            "width": 840,
+            "height": 1758.71
+          },
+          "rotation": -6,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#CFEAF8",
+          "screenshotSrc": "/data/projects/umdo-screen-sky.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "shadow": {
+            "x": 0,
+            "y": 30,
+            "blur": 70,
+            "color": "rgba(20,40,70,0.22)"
+          }
+        },
+        {
+          "id": "um-b5-night",
+          "type": "device",
+          "name": "Night phone",
+          "position": {
+            "x": 600,
+            "y": 1060
+          },
+          "size": {
+            "width": 760,
+            "height": 1591.21
+          },
+          "rotation": 7,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#0B0B0B",
+          "screenshotSrc": "/data/projects/umdo-screen-night.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "shadow": {
+            "x": 0,
+            "y": 30,
+            "blur": 70,
+            "color": "rgba(20,40,70,0.22)"
+          }
+        },
+        {
+          "id": "um-b5-coral",
+          "type": "device",
+          "name": "Coral phone",
+          "position": {
+            "x": 230,
+            "y": 1060
+          },
+          "size": {
+            "width": 740,
+            "height": 1549.34
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#F9C6C1",
+          "screenshotSrc": "/data/projects/umdo-screen-coral.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "shadow": {
+            "x": 0,
+            "y": 30,
+            "blur": 80,
+            "color": "rgba(120,30,30,0.3)"
+          }
+        }
+      ]
+    }
+  ]
+}
