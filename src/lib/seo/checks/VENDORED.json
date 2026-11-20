@@ -1,0 +1,24 @@
+{
+  "repository": "https://github.com/dotnetdreamer/claude-seo",
+  "commit": "da732e65be7fd09c5bee251099a7931a9e857ed4",
+  "files": {
+    "osg/checks/aiAccess.ts": "5212959750b83d221f35d53d0686eff2caea536d",
+    "osg/checks/codecs.ts": "3616f67c949cbfbcb4956266ed8c3b535339012a",
+    "osg/checks/contentQuality.ts": "2a878c38c2b0db949c12b16af1ff495f6832d942",
+    "osg/checks/decode.ts": "022f07b74efbe26165970edd8e1744e7383efea1",
+    "osg/checks/entities.ts": "d4cdbcdc04268d6333cf0a0796d340eb2477074d",
+    "osg/checks/gzip.ts": "2edf2aca070a833796c48924c60b00f3fa818572",
+    "osg/checks/html.ts": "2125e4f3e217d940d518751337c017672511d2fb",
+    "osg/checks/index.ts": "2643b57f57dc148f2b9b962379bb79705290fd11",
+    "osg/checks/libxml.ts": "e9620ac90fdc0fb986f4456e650768162adc5c12",
+    "osg/checks/llms.ts": "6aa9035f0e8c24cf50fd26bb2c7d58e517894c2f",
+    "osg/checks/metadataTemplate.ts": "8133b4c3a116f2b953fee4f6c4fac58c64fe96eb",
+    "osg/checks/pageChecks.ts": "cdba05fea539025f4e8a90b6723a3d3a3c6406e1",
+    "osg/checks/py.ts": "4bad2b7699952c981049c612f493ba13ed54bbc6",
+    "osg/checks/pyJson.ts": "6eecaac35b54289077cec6d99a91569c278577ce",
+    "osg/checks/pyUnicode.ts": "393cb8d371b646b675eb8622364e1884bcf0de6a",
+    "osg/checks/sitemap.ts": "14308b670a17fd9fc5ef1f85cddff5d72f196e16",
+    "osg/checks/url.ts": "0eb604cab959c4864072b6da398033a4e7e0d054",
+    "osg/checks/xml.ts": "8c64d43b9005f465279c173a3ed6942fa4c82e78"
+  }
+}

@@ -3,8 +3,8 @@
 // which it never makes, where it may type, and whether a value it wants to
 // save is one it really read.
 //
-// The pages are the user's own App Store Connect, Google Cloud and Play
-// Console, signed in. Page text is written by other people too (app names,
+// The pages are the user's own App Store Connect, Google Cloud, Play
+// Console, Search Console and Google Analytics, signed in. Page text is written by other people too (app names,
 // review text), so nothing a page says can widen any of this.
 
 import { bucketFromUri } from '../play';
@@ -18,6 +18,9 @@ export const OPEN_HOSTS = [
   'play.google.com',
   'support.google.com',
   'developers.google.com',
+  // For the SEO view's Google setup: adding the key's email as a user.
+  'search.google.com',
+  'analytics.google.com',
 ] as const;
 
 export function mayOpen(address: string): boolean {
@@ -37,12 +40,30 @@ const NEVER =
  * Words on a control that changes the account: the user says yes first. That
  * includes a control that only opens the form where the change is made, such
  * as "Generate API Key" before the dialog's "Generate": a label cannot say
- * which of the two it does, so both are asked about.
+ * which of the two it does, so both are asked about. "Add" grants access in
+ * Search Console ("Add user") and Analytics.
  */
-const ASK = /\b(generate|create|enable|invite|send|grant|save|apply|submit|confirm|agree|accept|request|allow|publish|upload)\b/i;
+const ASK = /\b(add|generate|create|enable|invite|send|grant|save|apply|submit|confirm|agree|accept|request|allow|publish|upload|verify|share|connect|turn on)\b/i;
+
+/**
+ * Controls that move around a page or fill in a form, which a strict job
+ * presses without asking: the form's own Add, Save or Create asks.
+ */
+const FREE_ROLES = new Set(['link', 'tab', 'treeitem', 'option', 'checkbox', 'radio', 'textbox', 'searchbox', 'combobox', 'slider', 'spinbutton']);
+
+/**
+ * Labels of buttons that only open a menu, a search box or help, which a
+ * strict job presses without asking. Next, Copy and Refresh are not here: a
+ * wizard's Next can save its step, and Copy changes what the user has copied.
+ */
+const MOVES_ONLY =
+  /^(more|more options|more actions|show more|show less|see more|expand|collapse|menu|main menu|navigation menu|open navigation menu|search|learn more|help|select a project|select project)$/i;
+
+/** Labels that finish a step, on a link as much as on a button: a strict job asks before them. */
+const FINISHES = /^(done|continue|finish|next|complete)\b/i;
 
 /** Labels that only close a box or go back. */
-const DISMISS = /^(cancel|close|no|no thanks|not now|back|dismiss|later|maybe later|got it)$/i;
+const DISMISS = /^(cancel|close|no|no thanks|not now|back|previous|dismiss|later|maybe later|got it)$/i;
 
 /**
  * Bare answers that say yes to whatever is asked around them. "Continue"
@@ -63,9 +84,18 @@ export type ClickVerdict =
   | { kind: 'ask'; reason: string }
   | { kind: 'never'; reason: string };
 
-/** Where a control is: the title of the dialog it sits in. */
+/** Where a control is: the title of the dialog it sits in, and what kind of control the page says it is. */
 export interface ControlPlace {
   dialog?: string | null;
+  role?: string | null;
+  /**
+   * The SEO view's Google setup: a button or a menu item asks whatever it
+   * says, unless it only closes, cancels, goes back, or opens a menu, a
+   * search box or help. A link, a tab or a form field asks when its label
+   * finishes a step (Done, Continue, Next). The label lists alone can't
+   * promise a yes before every change on pages this varied.
+   */
+  strict?: boolean;
 }
 
 /**
@@ -87,6 +117,8 @@ export function judgeClick(name: string, changes = false, place: ControlPlace = 
   }
   if (changes || ASK.test(label)) return { kind: 'ask', reason: label };
   if (CONFIRM.test(label) || (dialog && /^continue\b/i.test(label))) return { kind: 'ask', reason: label };
+  if (place.strict && FINISHES.test(label)) return { kind: 'ask', reason: label };
+  if (place.strict && !FREE_ROLES.has(place.role ?? '') && !DISMISS.test(label) && !MOVES_ONLY.test(label)) return { kind: 'ask', reason: label };
   return { kind: 'free' };
 }
 
@@ -128,6 +160,7 @@ export const valid = {
   vendorNumber: (value: string) => VENDOR.test(value.trim()),
   packageName: (value: string) => PACKAGE.test(value.trim()) && value.trim().length <= 150,
   reportsUri: (value: string) => /^gs:\/\/pubsite_prod_/i.test(value.trim()) && !!bucketFromUri(value),
+  googleApiKey: (value: string) => /^AIza[0-9A-Za-z_-]{35}$/.test(value.trim()),
 };
 
 const WORD = /[a-z0-9_]/i;

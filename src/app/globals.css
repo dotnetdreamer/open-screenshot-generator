@@ -103,6 +103,9 @@ body {
     --rules-high: 21 90% 34%;
     --rules-medium: 36 92% 28%;
     --rules-low: 215 16% 38%;
+    /* SEO: the view's indigo, a text colour on its own 12% tint (6.6:1 there,
+       8.1:1 on the card). Severity badges reuse the --rules-* levels above. */
+    --seo-accent: 248 62% 50%;
   }
 
   /* Dark editor chrome. Same roles as the light palette above, same slate blue
@@ -189,6 +192,8 @@ body {
     --rules-high: 24 92% 65%;
     --rules-medium: 43 90% 60%;
     --rules-low: 215 18% 68%;
+    /* The same, lighter for the dark card (6.4:1 there). */
+    --seo-accent: 248 90% 76%;
   }
 
   /* The tokens alone are not enough: an artboard also has to opt out of the

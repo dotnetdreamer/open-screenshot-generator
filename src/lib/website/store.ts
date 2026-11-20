@@ -121,6 +121,13 @@ export async function readSiteRow(projectId: string): Promise<SiteRowData | null
   return row ? { draft: row.draft, chat: row.chat ?? [] } : null;
 }
 
+/** Every project's site, the latest change first. Read only, for the SEO view's list of sites to check. */
+export async function listSiteDrafts(): Promise<SiteDraft[]> {
+  instance ??= new WebsiteDatabase();
+  const rows = await instance.sites.toArray();
+  return rows.map((row) => row.draft).sort((a, b) => b.updatedAt - a.updatedAt);
+}
+
 export async function writeSiteRow(draft: SiteDraft, chat: SiteChatItem[]): Promise<void> {
   await sites().transaction((tx) => tx.put(storedSite(draft, chat)));
 }
