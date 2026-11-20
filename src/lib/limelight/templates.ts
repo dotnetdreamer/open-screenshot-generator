@@ -9,9 +9,15 @@
  * scene the user edits like any other; `template` on it says where it came
  * from. Everything here is pure, so a template can be previewed and tested
  * without a stage.
+ *
+ * The small ones are built here. A bigger one (the App intro) keeps its
+ * builder in a file of its own that `load` brings in the first time it is
+ * needed, so the editor carries only the list below, and the builder comes
+ * with the Limelight view's gallery or an agent's request.
  */
 
 import type { DeviceType } from '@/types/artboard';
+import type { FoundCard } from './cards';
 import { cameraToFitAll, freeName } from './edit';
 import { defaultFormat, defaultLook, deviceHeight, deviceWidth, newDeviceActor, newId, newScene, newShot, newTextActor, normalizeScene, DEFAULT_LIFT } from './scene';
 import type {
@@ -36,9 +42,28 @@ export interface TemplateInput {
   /** The phone to use; unset is the default phone. */
   device?: DeviceType;
   name?: string;
+  /**
+   * The headline of each picture, in the same order, where its artboard has
+   * one (`artboardHeadline` in projectShots.ts), for templates with captions.
+   */
+  captions?: Array<string | undefined>;
+  /** The project's own colour, #rrggbb, for templates that take one. */
+  accent?: string;
+  /** The project's own font family, for templates that take one. */
+  font?: string;
+  /** A media id for the app's icon, square, for templates that close on it. */
+  icon?: string;
+  /**
+   * A card worth lifting off each picture (findCard in cards.ts), in the same
+   * order as `pictures`, for templates that lift one.
+   */
+  cards?: Array<FoundCard | null | undefined>;
 }
 
-export interface LimelightTemplate {
+/** A template's builder; one that measures words loads their faces first, so it may answer later. */
+export type TemplateBuilder = (input: TemplateInput) => LimelightScene | Promise<LimelightScene>;
+
+interface TemplateInfo {
   id: string;
   /** The name on the card. */
   name: string;
@@ -46,9 +71,19 @@ export interface LimelightTemplate {
   hint: string;
   /** How many screenshots it shows at once, at most. */
   devices: number;
+  /** How many of the pictures it is given it shows, when that is fewer than all of them. */
+  pictures?: number;
   environment: LimelightEnvironment;
-  build: (input: TemplateInput) => LimelightScene;
+  /** The share of the length the gallery's preview is drawn at. Unset is 0.32. */
+  poster?: number;
+  /** It closes on the app's icon, so it is given one when the project has it. */
+  icon?: boolean;
+  /** It lifts a card off each screen, so it is given the cards found in them. */
+  cards?: boolean;
 }
+
+/** Built here, or brought in from its own file the first time it is needed. */
+export type LimelightTemplate = TemplateInfo & ({ build: TemplateBuilder; load?: undefined } | { load: () => Promise<TemplateBuilder>; build?: undefined });
 
 interface ShotSpec {
   /** Share of the video's length, 0 to 1. */
@@ -109,6 +144,18 @@ function share(pictures: string[], k: number, n: number): string[] {
 }
 
 export const TEMPLATES: LimelightTemplate[] = [
+  {
+    id: 'app-intro',
+    name: 'App intro',
+    hint: "Your app's name, your screens with their headlines, and your icon",
+    devices: 3,
+    pictures: 4,
+    environment: 'night',
+    poster: 0.2,
+    icon: true,
+    cards: true,
+    load: () => import('./introTemplate').then((module) => module.buildAppIntro),
+  },
   {
     id: 'hero-orbit',
     name: 'Hero orbit',
@@ -314,11 +361,16 @@ export function templateById(id: string): LimelightTemplate | undefined {
   return TEMPLATES.find((template) => template.id === id);
 }
 
+/** The template's builder, brought in from its own file for one that has one. */
+export async function templateBuilder(template: LimelightTemplate): Promise<TemplateBuilder> {
+  return template.build ?? (await template.load());
+}
+
 /** A scene from a built-in template, or null for an id that isn't one. */
-export function buildTemplate(id: string, input: TemplateInput): LimelightScene | null {
+export async function buildTemplate(id: string, input: TemplateInput): Promise<LimelightScene | null> {
   const template = templateById(id);
   if (!template) return null;
-  const scene = template.build(input);
+  const scene = await (await templateBuilder(template))(input);
   return { ...scene, name: input.name?.trim() || template.name };
 }
 
@@ -330,7 +382,12 @@ export function buildTemplate(id: string, input: TemplateInput): LimelightScene 
 export function fromMyTemplate(saved: LimelightScene, pictures: string[], name?: string): LimelightScene {
   const now = Date.now();
   let next = 0;
-  const actors = saved.actors.map((actor): LimelightActor => {
+  // A card cut from one of the template's own screenshots (the App intro lifts
+  // them) would show that old screen's part over the new pictures, so it goes
+  // when new pictures come; a card of anything else, such as an icon, stays.
+  const screenPictures = new Set(saved.actors.flatMap((actor) => (actor.kind === 'device' ? actor.screens.map((screen) => screen.media) : [])));
+  const kept = pictures.length > 0 ? saved.actors.filter((actor) => actor.kind !== 'picture' || !actor.media || !screenPictures.has(actor.media)) : saved.actors;
+  const actors = kept.map((actor): LimelightActor => {
     const poses = actor.poses.map((pose) => ({ ...pose, id: newId('pose') }));
     if (actor.kind !== 'device') return { ...actor, id: newId('actor'), poses };
     return {

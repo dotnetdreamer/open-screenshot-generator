@@ -17,10 +17,13 @@ import { finishOf } from '@/lib/device3dModels';
 import { APERTURE_MAX, APERTURE_MIN, DISTANCE_MAX, DISTANCE_MIN, ELEVATION_LIMIT, LENS_MAX, LENS_MIN, clamp, distanceToFrame } from './camera';
 import { DEFAULT_FORMAT_PRESET, environmentPreset, formatPresetById } from './presets';
 import {
+  BACKDROP_STYLES,
   LIMELIGHT_EASES,
   LIMELIGHT_ENVIRONMENTS,
   LIMELIGHT_SCENE_VERSION,
+  MUSIC_TRACKS,
   SCREEN_TRANSITIONS,
+  TEXT_REVEAL_STYLES,
   type ActorMotion,
   type ActorPose,
   type CameraShot,
@@ -32,11 +35,17 @@ import {
   type LimelightEnvironment,
   type LimelightFormat,
   type LimelightLook,
+  type LimelightMusic,
   type LimelightScene,
+  type MusicTrack,
+  type PictureActor,
+  type PictureCrop,
   type ScreenChange,
   type ScreenOrigin,
   type ScreenTransition,
   type TextActor,
+  type TextHighlight,
+  type TextReveal,
   type Turn,
   type XYZ,
 } from './types';
@@ -150,6 +159,39 @@ export function newTextActor(text: string, position: XYZ): TextActor {
     poses: [newPose(0, position)],
     motion: defaultMotion(),
   };
+}
+
+export interface NewPictureOptions {
+  name?: string;
+  position?: XYZ;
+  /** Centimetres across; the height keeps the picture's shape when `aspect` is given. */
+  width?: number;
+  /** The picture's width over its height. */
+  aspect?: number;
+  corner?: number;
+  depth?: number;
+  from?: ScreenOrigin;
+}
+
+/** A picture card, five centimetres across, square unless told the picture's shape. */
+export function newPictureActor(media: string | null, options: NewPictureOptions = {}): PictureActor {
+  const width = options.width ?? 5;
+  const height = width / (options.aspect && options.aspect > 0 ? options.aspect : 1);
+  const actor: PictureActor = {
+    id: newId('actor'),
+    kind: 'picture',
+    name: options.name ?? 'Picture',
+    media,
+    width,
+    height,
+    corner: options.corner ?? 0.08,
+    depth: options.depth ?? 0,
+    glare: 0.2,
+    poses: [newPose(0, options.position ?? { x: 0, y: height / 2 + DEFAULT_LIFT, z: 0 })],
+    motion: defaultMotion(),
+  };
+  if (options.from) actor.from = options.from;
+  return actor;
 }
 
 export function defaultLook(environment: LimelightEnvironment = 'studio'): LimelightLook {
@@ -355,6 +397,39 @@ function normalizeScreens(value: unknown, ids: IdBook): ScreenChange[] {
   });
 }
 
+/** A scene's soundtrack, or undefined for silence (and for a track this build doesn't know). */
+export function normalizeMusic(value: unknown): LimelightMusic | undefined {
+  if (!isObject(value) || !(MUSIC_TRACKS as readonly unknown[]).includes(value.track)) return undefined;
+  return { track: value.track as MusicTrack, volume: num(value.volume, 0.8, 0, 1) };
+}
+
+/** A title's highlight, or undefined for one colour throughout. */
+export function normalizeHighlight(value: unknown): TextHighlight | undefined {
+  if (!isObject(value)) return undefined;
+  const words = Math.round(num(value.words, 0, 0, 200));
+  const highlight = color(value.color, '');
+  return words > 0 && highlight ? { color: highlight, words } : undefined;
+}
+
+function normalizeCrop(value: unknown): PictureCrop | undefined {
+  if (!isObject(value)) return undefined;
+  const x = num(value.x, 0, 0, 0.99);
+  const y = num(value.y, 0, 0, 0.99);
+  const crop = { x, y, width: num(value.width, 1 - x, 0.01, 1 - x), height: num(value.height, 1 - y, 0.01, 1 - y) };
+  return crop.x === 0 && crop.y === 0 && crop.width === 1 && crop.height === 1 ? undefined : crop;
+}
+
+/** A title's reveal, or undefined for words that are there from the start (and for a style this build doesn't know). */
+export function normalizeReveal(value: unknown): TextReveal | undefined {
+  if (!isObject(value) || !(TEXT_REVEAL_STYLES as readonly unknown[]).includes(value.style)) return undefined;
+  return {
+    style: value.style as TextReveal['style'],
+    by: oneOf(value.by, ['word', 'letter'] as const, 'word'),
+    time: num(value.time, 0, 0, 600),
+    duration: num(value.duration, 0.8, 0.1, 10),
+  };
+}
+
 function normalizeMotion(value: unknown): ActorMotion {
   const v = isObject(value) ? value : {};
   return { float: num(v.float, 0, 0, 20), spin: num(v.spin, 0, -720, 720) };
@@ -362,10 +437,34 @@ function normalizeMotion(value: unknown): ActorMotion {
 
 function normalizeActor(value: Loose, ids: IdBook, devices: { count: number }): LimelightActor | null {
   const kind = value.kind;
-  if (kind !== 'device' && kind !== 'text') return null;
+  if (kind !== 'device' && kind !== 'text' && kind !== 'picture') return null;
   const id = ids.take(value.id, 'actor');
   const motion = normalizeMotion(value.motion);
   const hidden = value.hidden === true ? true : undefined;
+  if (kind === 'picture') {
+    const width = num(value.width, 5, 0.2, 500);
+    const height = num(value.height, width, 0.2, 500);
+    const actor: PictureActor = {
+      id,
+      kind: 'picture',
+      name: str(value.name, 'Picture', 80) || 'Picture',
+      media: typeof value.media === 'string' && ID_PATTERN.test(value.media) ? value.media : null,
+      width,
+      height,
+      corner: num(value.corner, 0.08, 0, 0.5),
+      depth: num(value.depth, 0, 0, 20),
+      glare: num(value.glare, 0.2, 0, 1),
+      poses: normalizePoses(value.poses, ids, newPose(0, { x: 0, y: height / 2 + DEFAULT_LIFT, z: 0 })),
+      motion,
+    };
+    const crop = normalizeCrop(value.crop);
+    if (crop) actor.crop = crop;
+    if (typeof value.shine === 'number' && Number.isFinite(value.shine)) actor.shine = num(value.shine, 0, 0, 600);
+    const from = normalizeOrigin(value.from);
+    if (from) actor.from = from;
+    if (hidden) actor.hidden = true;
+    return actor;
+  }
   if (kind === 'device') {
     if (devices.count >= MAX_DEVICES) return null;
     devices.count++;
@@ -408,6 +507,10 @@ function normalizeActor(value: Loose, ids: IdBook, devices: { count: number }): 
     poses: normalizePoses(value.poses, ids, fallback),
     motion,
   };
+  const reveal = normalizeReveal(value.reveal);
+  if (reveal) actor.reveal = reveal;
+  const highlight = normalizeHighlight(value.highlight);
+  if (highlight) actor.highlight = highlight;
   if (hidden) actor.hidden = true;
   return actor;
 }
@@ -415,7 +518,7 @@ function normalizeActor(value: Loose, ids: IdBook, devices: { count: number }): 
 function normalizeBackdrop(value: unknown, fallback: LimelightBackdrop): LimelightBackdrop {
   const v = isObject(value) ? value : {};
   return {
-    style: oneOf(v.style, ['solid', 'linear', 'radial'] as const, fallback.style),
+    style: oneOf(v.style, BACKDROP_STYLES, fallback.style),
     top: color(v.top, fallback.top),
     bottom: color(v.bottom, fallback.bottom),
   };
@@ -487,13 +590,19 @@ export function normalizeScene(value: unknown): LimelightScene {
     actors,
   };
   if (typeof v.template === 'string' && ID_PATTERN.test(v.template)) scene.template = v.template;
+  const music = normalizeMusic(v.music);
+  if (music) scene.music = music;
   return scene;
 }
 
-/** The media ids a scene's screens show. */
+/** The media ids a scene shows: its screens' pictures and its picture cards'. */
 export function sceneMediaIds(scene: LimelightScene): Set<string> {
   const ids = new Set<string>();
   for (const actor of scene.actors) {
+    if (actor.kind === 'picture') {
+      if (actor.media) ids.add(actor.media);
+      continue;
+    }
     if (actor.kind !== 'device') continue;
     for (const screen of actor.screens) if (screen.media) ids.add(screen.media);
   }

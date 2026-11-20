@@ -159,6 +159,36 @@ export interface DeviceActor extends ActorBase {
   screens: ScreenChange[];
 }
 
+/**
+ * How a title's words come in one after another, instead of being there from
+ * the start.
+ *
+ *   rise  each word slides up into place from behind its own line
+ *   fade  each word fades in as it drifts up a little
+ *   pop   each word grows in from small, goes a little past its size and settles
+ */
+export type TextRevealStyle = 'rise' | 'fade' | 'pop';
+
+export const TEXT_REVEAL_STYLES: TextRevealStyle[] = ['rise', 'fade', 'pop'];
+
+export interface TextReveal {
+  style: TextRevealStyle;
+  /** One word at a time, or one letter at a time. */
+  by: 'word' | 'letter';
+  /** Seconds into the scene when the first word starts to come in. */
+  time: number;
+  /** Seconds from the first word starting to the last one being in place. */
+  duration: number;
+}
+
+/** The last words of a title in a colour of their own, the way a headline marks what matters. */
+export interface TextHighlight {
+  /** #rrggbb. */
+  color: string;
+  /** How many words, counted from the end, take the colour. */
+  words: number;
+}
+
 export interface TextActor extends ActorBase {
   kind: 'text';
   text: string;
@@ -170,17 +200,67 @@ export interface TextActor extends ActorBase {
   align: 'left' | 'center' | 'right';
   /** 'camera' keeps the words turned toward the camera, whatever the pose says. */
   facing: 'pose' | 'camera';
+  /** Unset: the words are there from the start. */
+  reveal?: TextReveal;
+  /** Unset: every word in `color`. */
+  highlight?: TextHighlight;
 }
 
-export type LimelightActor = DeviceActor | TextActor;
+/** The part of a picture a card shows, as shares of the picture's width and height from its top left. */
+export interface PictureCrop {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * A picture standing on the stage on its own, as a card or a tile: the app's
+ * icon, or a part of a screenshot lifted off its phone.
+ */
+export interface PictureActor extends ActorBase {
+  kind: 'picture';
+  /** A picture in the scene's media, or null for a blank card. */
+  media: string | null;
+  /** Centimetres across and down at scale 1. The picture covers the card, cropped to its shape. */
+  width: number;
+  height: number;
+  /** How round the corners are, as a share of the shorter side: 0 is square, 0.5 round. An app icon is 0.225. */
+  corner: number;
+  /** Centimetres thick: 0 is a sheet, more is a tile with a rounded edge. */
+  depth: number;
+  /** 0 to 1: the reflection on its face. */
+  glare: number;
+  /** Unset shows the whole picture. */
+  crop?: PictureCrop;
+  /** Seconds into the scene when a light sweeps across its face; unset, none does. */
+  shine?: number;
+  from?: ScreenOrigin;
+}
+
+export type LimelightActor = DeviceActor | TextActor | PictureActor;
 
 /** The light and the ground. */
 export type LimelightEnvironment = 'studio' | 'daylight' | 'sunset' | 'night' | 'noir';
 
 export const LIMELIGHT_ENVIRONMENTS: LimelightEnvironment[] = ['studio', 'daylight', 'sunset', 'night', 'noir'];
 
+/**
+ * What is behind everything.
+ *
+ *   solid   one colour
+ *   linear  `top` at the top to `bottom` at the bottom
+ *   radial  `top` in the middle to `bottom` at the edges
+ *   glow    soft lights of `top` (and a hue beside it) on `bottom`, which
+ *           drift a little and shift as the camera moves round, so the
+ *           backdrop has depth instead of being painted on the lens
+ */
+export type BackdropStyle = 'solid' | 'linear' | 'radial' | 'glow';
+
+export const BACKDROP_STYLES: BackdropStyle[] = ['solid', 'linear', 'radial', 'glow'];
+
 export interface LimelightBackdrop {
-  style: 'solid' | 'linear' | 'radial';
+  style: BackdropStyle;
   /** #rrggbb. A solid backdrop uses `top` only. */
   top: string;
   bottom: string;
@@ -235,6 +315,25 @@ export interface LimelightScene {
   actors: LimelightActor[];
   /** The template the scene started from. */
   template?: string;
+  /** Unset is a silent video. */
+  music?: LimelightMusic;
+}
+
+/**
+ * A soundtrack the app makes for the scene, at its length, so nothing is
+ * licensed and every cut can land on a beat.
+ *
+ *   pulse  upbeat and bright: four on the floor, a plucked arpeggio, big chords
+ *   calm   slow and wide: soft drums at half the pace, warm pads, a bell melody
+ */
+export type MusicTrack = 'pulse' | 'calm';
+
+export const MUSIC_TRACKS: MusicTrack[] = ['pulse', 'calm'];
+
+export interface LimelightMusic {
+  track: MusicTrack;
+  /** 0 to 1. */
+  volume: number;
 }
 
 /** A picture kept for a scene's screens, in the Limelight database. */
@@ -279,4 +378,6 @@ export interface SceneFrame {
   camera: CameraState;
   actors: Record<string, ActorFrame>;
   screens: Record<string, ScreenFrame>;
+  /** Each picture actor's picture. */
+  pictures: Record<string, string | null>;
 }

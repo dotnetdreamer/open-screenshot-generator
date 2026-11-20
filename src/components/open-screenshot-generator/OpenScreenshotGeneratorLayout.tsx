@@ -4908,6 +4908,39 @@ export function OpenScreenshotGeneratorLayout() {
     (boardId: string, scale: number) => captureIconLayersRef.current(boardId, scale),
     []
   );
+  // Limelight's App intro closes on the project's icon: the whole icon, as the
+  // icon window's first capture draws it, at 1024 or smaller. Null when the
+  // project has no icon artboard, or it isn't on the canvas.
+  const captureIconForLimelight = useCallback(async (): Promise<Blob | null> => {
+    const board = projectIconBoard(artboardsRef.current);
+    if (!board) return null;
+    const node = document.querySelector(`[data-artboard-dom-id="${board.id}"]`) as HTMLElement | null;
+    if (!node) return null;
+    // Its words in their own face, but never a wait without an end: a stalled font draws in the fallback after 3 s.
+    if (typeof document !== 'undefined' && document.fonts?.ready) {
+      await Promise.race([document.fonts.ready.catch(() => undefined), new Promise((resolve) => window.setTimeout(resolve, 3000))]);
+    }
+    const chrome = (el: HTMLElement) => !!(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));
+    const { backgroundImage } = artboardBackground(board);
+    const visibility = node.style.visibility;
+    node.style.visibility = 'visible';
+    try {
+      const dataUrl = await captureNodeToPng(node, {
+        width: board.size.width,
+        height: board.size.height,
+        pixelRatio: Math.min(1, 1024 / Math.max(1, board.size.width)),
+        cacheBust: false,
+        filter: (n) => !chrome(n as HTMLElement),
+        style: { transform: 'scale(1)', transformOrigin: 'top left', width: `${board.size.width}px`, height: `${board.size.height}px`, backgroundImage },
+      });
+      return await (await fetch(dataUrl)).blob();
+    } catch (error) {
+      console.warn('Limelight could not take the app icon', error);
+      return null;
+    } finally {
+      node.style.visibility = visibility;
+    }
+  }, []);
 
   // A face that was too slow has arrived. Art that went in without it is laid
   // out again, the way Rebuild design does it, now that its type can be
@@ -11136,8 +11169,12 @@ const generateRandomProjectName = (): string => {
   const websiteBackToEditor = useCallback(() => setActivity('editor'), []);
   // What Store compliance reads of the open project: its checklist is kept by the
   // project's id, and Ask AI's check reads the text of every language.
+  // Limelight also reads the templates' names: a project copied from one is
+  // called "<template> Copy", and only that copy's " Copy" isn't the app's name.
+  const templateNamesRef = useRef<string[]>([]);
+  templateNamesRef.current = useMemo(() => availableProjects.map((template) => template.name), [availableProjects]);
   const readProjectForCompliance = useCallback(
-    () => ({ id: activeProjectIdRef.current, name: projectNameRef.current, artboards: artboardsRef.current }),
+    () => ({ id: activeProjectIdRef.current, name: projectNameRef.current, artboards: artboardsRef.current, templateNames: templateNamesRef.current }),
     []
   );
   const websiteProject = useMemo(() => ({ id: activeProjectId, name: currentProjectName, artboards }), [activeProjectId, currentProjectName, artboards]);
@@ -12309,7 +12346,8 @@ const generateRandomProjectName = (): string => {
     saveToMyImages: (input) => saveToMyImagesForMcp(input),
     deleteMyImage: (id) => deleteMyImageForMcp(id),
     // Limelight's scenes, in their own database; the view, when mounted, takes changes to the scene it shows.
-    limelight: ({ tool, args }) => runLimelightTool(tool, args, readProjectForCompliance),
+    // The App intro closes on the project's icon, so the tools can take a picture of it too.
+    limelight: ({ tool, args }) => runLimelightTool(tool, args, () => ({ ...readProjectForCompliance(), captureIcon: captureIconForLimelight })),
 
     // The Claude Code agent's code folders. Rust reads the picture and checks
     // the path; the store knows whether the process can read a folder now, and
@@ -13803,6 +13841,7 @@ const generateRandomProjectName = (): string => {
           <LimelightWorkspace
             active={activity === 'limelight'}
             readProject={readProjectForCompliance}
+            captureIcon={captureIconForLimelight}
             flushRef={limelightFlushRef}
             onAskAgent={claudeAgentState.available && !isSecondaryWindow ? handleAskAgentAboutScene : undefined}
             agentUnavailable={isSecondaryWindow ? 'The agent only works in the main window' : 'Ask AI works in the desktop app, with Claude Code or Codex signed in'}

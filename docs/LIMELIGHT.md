@@ -12,6 +12,21 @@ Open it with **Limelight** on the left, under Editor.
 
 Every change is saved on this computer as you go. Your scenes are listed on the left.
 
+## App intro
+
+**App intro** is a whole 15 second launch film for your app, with its own music, ready to export:
+
+1. Your app's name comes in big, letter by letter, and the phone sweeps up in front of it.
+2. Three quick cuts follow, each with another screen and that screen's own headline from your design, its last words in your app's colour. On a screen with a chart or a panel, that part lifts off the phone toward the camera and settles back.
+3. The camera pulls back as two more phones slide in beside the first.
+4. On the last beat the phones are gone and your app icon pops in as a glossy tile, with your app's name and where to get it under it.
+
+It takes the words from your artboards, the colour of your backgrounds, the font of your headlines and the icon from your **App icon** artboard, so it looks like your app straight away. A screen without a headline just gets no caption, and a project without an icon ends on the phone. To change a caption, click it on the timeline and edit its words on the right. It works at every size: the words go over the phone in a tall video and beside it in a wide one. In an App Store preview size it leaves out "Available on the App Store", since the preview already plays in the store.
+
+## Music
+
+Click **Camera** on the timeline, then pick **Pulse** (upbeat) or **Calm** (slow and warm) under **Music** on the right. The app makes the music for your video at its length, so nothing needs a licence, and every camera cut gets a cymbal on the beat. The App intro starts with Pulse, and its cuts are on the beat. The speaker button next to the clock mutes the music while you work; the video keeps it.
+
 ## Move the camera
 
 The camera moves from one **shot** to the next. A shot is where the camera is at a moment in the video.
@@ -31,6 +46,10 @@ Click a shot (a diamond on the Camera row) to change it on the right: how it mov
 - On the right you can change the model, the colour, the pictures on its screen and how it floats or spins.
 - **Add** at the top adds another device, a title, or a shot at the playhead.
 - To make a phone move during the video, press **Animate from here**, move the playhead, and move the phone again.
+- A title's words can come in one after another. Pick the title, then under **Words come in** choose **Rise**, **Fade** or **Pop**, word by word or letter by letter. They start at the playhead; **Starts at** and **Takes** change when and how fast.
+- **Last words in another colour** sets a title's last words apart, the way a headline marks what matters.
+- A picture, like the App intro's icon tile, has its own width, corners, thickness and shine on the right.
+- Under **Backdrop**, **Lights** puts soft lights in one colour behind everything. They shift as the camera moves round, so the stage has depth.
 
 ## Ask AI
 
@@ -38,7 +57,7 @@ On the Mac and PC apps, with Claude Code or Codex signed in, press **Ask AI** an
 
 ## Save and share
 
-- **Export video** makes an MP4. The App Store size is 886 x 1920 at 30 frames a second, and App Store previews must be 15 to 30 seconds long. Every video has a silent sound track, which App Store Connect asks for.
+- **Export video** makes an MP4. The App Store size is 886 x 1920 at 30 frames a second, and App Store previews must be 15 to 30 seconds long. Every video has a sound track, which App Store Connect asks for: the scene's music, or silence when it has none.
 - **Save picture** saves the frame at the playhead as a PNG.
 - **Save to Drive** keeps the scene and its pictures in your Google Drive, in a folder called Open Screenshot Generator Limelight. **Open from Google Drive** brings a scene back, on this computer or another one. If the scene on this computer has changes the one in Drive doesn't, you get both. Sign in with Google Drive under Account first. Scenes don't save to GitHub, because videos are too big for it.
 - **Save as my template**, in a scene's menu on the left, keeps it as a starting point. It shows under Your templates when you start a scene.

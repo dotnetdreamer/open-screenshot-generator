@@ -8,7 +8,7 @@
 // again while the video plays.
 
 import React, { useRef } from 'react';
-import { MonitorSmartphoneIcon, PauseIcon, PlayIcon, RepeatIcon, TypeIcon, VideoIcon } from 'lucide-react';
+import { ImageIcon, MonitorSmartphoneIcon, PauseIcon, PlayIcon, RepeatIcon, TypeIcon, VideoIcon, Volume2Icon, VolumeXIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { updatePose, updateShot, setScreens } from '@/lib/limelight/edit';
 import type { LimelightScene } from '@/lib/limelight/types';
@@ -34,6 +34,9 @@ interface TimelineProps {
   selection: LimelightSelection;
   onPlay: () => void;
   onLoop: () => void;
+  /** Set when the scene has music: whether the preview plays it. */
+  muted?: boolean;
+  onMute?: () => void;
   onSeek: (time: number) => void;
   onSelect: (selection: LimelightSelection) => void;
   onCommit: (next: LimelightScene, merge?: string) => void;
@@ -64,7 +67,7 @@ function tickStep(duration: number, width: number): number {
   return steps.find((step) => (step / duration) * width >= 46) ?? 30;
 }
 
-export function LimelightTimeline({ scene, time, playing, loop, selection, onPlay, onLoop, onSeek, onSelect, onCommit, onDragEnd }: TimelineProps) {
+export function LimelightTimeline({ scene, time, playing, loop, muted, onMute, selection, onPlay, onLoop, onSeek, onSelect, onCommit, onDragEnd }: TimelineProps) {
   const areaRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = React.useState(600);
   const duration = scene.format.duration;
@@ -149,6 +152,19 @@ export function LimelightTimeline({ scene, time, playing, loop, selection, onPla
         >
           <RepeatIcon className="h-3.5 w-3.5" />
         </Button>
+        {scene.music && onMute && (
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            className={cn('h-7 w-7', muted ? 'text-muted-foreground' : 'text-primary')}
+            onClick={onMute}
+            aria-label={muted ? 'Play the music' : 'Mute the music'}
+            title={muted ? 'Play the music in the preview' : "Mute the music in the preview. The video keeps it"}
+          >
+            {muted ? <VolumeXIcon className="h-3.5 w-3.5" /> : <Volume2Icon className="h-3.5 w-3.5" />}
+          </Button>
+        )}
         <span className="ml-auto text-[11px] text-muted-foreground">Move the playhead, then drag the stage to add a shot there</span>
       </div>
       <div className="relative select-none pb-2">
@@ -274,7 +290,7 @@ export function LimelightTimeline({ scene, time, playing, loop, selection, onPla
                 style={{ height: ROW_HEIGHT }}
                 onClick={() => onSelect({ kind: 'actor', id: actor.id })}
               >
-                {actor.kind === 'device' ? <MonitorSmartphoneIcon className="h-3.5 w-3.5 shrink-0" /> : <TypeIcon className="h-3.5 w-3.5 shrink-0" />}
+                {actor.kind === 'device' ? <MonitorSmartphoneIcon className="h-3.5 w-3.5 shrink-0" /> : actor.kind === 'picture' ? <ImageIcon className="h-3.5 w-3.5 shrink-0" /> : <TypeIcon className="h-3.5 w-3.5 shrink-0" />}
                 <span className="truncate">{actor.name}</span>
               </button>
             ))}

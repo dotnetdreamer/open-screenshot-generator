@@ -34,6 +34,8 @@ import type {
   SceneFrame,
   ScreenChange,
   ScreenFrame,
+  TextReveal,
+  TextRevealStyle,
 } from './types';
 
 // ---------------------------------------------------------------------------
@@ -336,26 +338,95 @@ export function screenAt(screens: ScreenChange[], t: number): ScreenFrame {
 }
 
 // ---------------------------------------------------------------------------
+// Words that come in one after another
+// ---------------------------------------------------------------------------
+
+/**
+ * Seconds each word of a reveal takes to come in. The words overlap: the next
+ * one starts before the last is in place, the way a type designer staggers
+ * them, and the last one lands at `time + duration`.
+ */
+export function revealEach(reveal: TextReveal, count: number): number {
+  if (count <= 1) return reveal.duration;
+  return Math.min(reveal.duration, Math.max(0.25, reveal.duration * 0.45));
+}
+
+/**
+ * How far each of `count` words (or letters) of a title has come in at time
+ * t: 0 before it starts, 1 once it is in place. Written into `out`, so a stage
+ * drawing every frame makes no garbage.
+ */
+export function revealProgress(reveal: TextReveal | undefined, count: number, t: number, out: number[] = []): number[] {
+  out.length = count;
+  if (!reveal) {
+    out.fill(1);
+    return out;
+  }
+  const each = revealEach(reveal, count);
+  const gap = count > 1 ? (reveal.duration - each) / (count - 1) : 0;
+  for (let i = 0; i < count; i++) {
+    const u = (t - reveal.time - gap * i) / each;
+    // The last word lands exactly at the end, not a rounding error short of it.
+    out[i] = u <= 0 ? 0 : u >= 1 - 1e-9 ? 1 : u;
+  }
+  return out;
+}
+
+/** How one word looks at `progress` (0 to 1) of coming in. */
+export interface RevealLook {
+  /** 0 to 1. */
+  opacity: number;
+  /** Line heights below its place it still is. 0 is in place. */
+  drop: number;
+  /** True when the part below its line is cut away, so it seems to come up from behind the line. */
+  masked: boolean;
+  /** 1 is its own size. */
+  scale: number;
+}
+
+export function revealLook(style: TextRevealStyle, progress: number): RevealLook {
+  const u = Math.min(1, Math.max(0, progress));
+  switch (style) {
+    case 'rise':
+      // A quick start and a long settle, coming up from behind the line.
+      return { opacity: Math.min(1, u * 3), drop: 1 - snappyCurve(u), masked: true, scale: 1 };
+    case 'fade':
+      return { opacity: smoothCurve(u), drop: 0.3 * (1 - snappyCurve(u)), masked: false, scale: 1 };
+    case 'pop':
+      // From half size, about 5% past its size at a third of the way, then settled.
+      return { opacity: Math.min(1, u * 3), drop: 0, masked: false, scale: 0.5 + 0.5 * bounceCurve(u) };
+  }
+}
+
+// ---------------------------------------------------------------------------
 // The whole scene
 // ---------------------------------------------------------------------------
 
 export function sceneAt(scene: LimelightScene, t: number): SceneFrame {
   const actors: SceneFrame['actors'] = {};
   const screens: SceneFrame['screens'] = {};
+  const pictures: SceneFrame['pictures'] = {};
   for (const actor of scene.actors) {
     if (actor.hidden) continue;
     actors[actor.id] = actorAt(actor, t);
     if (actor.kind === 'device') screens[actor.id] = screenAt(actor.screens, t);
+    else if (actor.kind === 'picture') pictures[actor.id] = actor.media;
   }
-  return { time: t, camera: cameraAt(scene.camera.shots, scene.camera.shake, t), actors, screens };
+  return { time: t, camera: cameraAt(scene.camera.shots, scene.camera.shake, t), actors, screens, pictures };
 }
 
-/** The pictures a frame shows: each screen's own, and the one going out while a transition runs. */
+/**
+ * The pictures a frame shows: each screen's own, the one going out while a
+ * transition runs, and each picture card's that is showing.
+ */
 export function frameMediaIds(frame: SceneFrame): Set<string> {
   const ids = new Set<string>();
   for (const screen of Object.values(frame.screens)) {
     if (screen.media) ids.add(screen.media);
     if (screen.previous && screen.progress < 1) ids.add(screen.previous);
+  }
+  for (const [actorId, media] of Object.entries(frame.pictures)) {
+    if (media && (frame.actors[actorId]?.opacity ?? 0) > 0) ids.add(media);
   }
   return ids;
 }

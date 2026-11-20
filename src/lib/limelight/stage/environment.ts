@@ -191,29 +191,60 @@ void main() {
 const BACKDROP_FRAGMENT = /* glsl */ `
 uniform vec3 top;
 uniform vec3 bottom;
+uniform vec3 second;
 uniform float style;
 uniform float aspect;
 uniform float dither;
+uniform vec2 shift;
+uniform float time;
 varying vec2 vUv;
 
 float noise(vec2 p) {
   return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
+// A soft light: 1 at its centre, falling off like a lamp seen through haze.
+float light(vec2 p, vec2 centre, float radius) {
+  vec2 d = p - centre;
+  return exp(-dot(d, d) / (radius * radius));
+}
+
 void main() {
-  float t;
-  if (style < 0.5) {
-    t = 0.0;
-  } else if (style < 1.5) {
-    t = 1.0 - vUv.y;
+  vec3 color;
+  if (style < 2.5) {
+    float t;
+    if (style < 0.5) {
+      t = 0.0;
+    } else if (style < 1.5) {
+      t = 1.0 - vUv.y;
+    } else {
+      // Light in the middle, a little above centre, darker toward the corners.
+      vec2 p = vUv - vec2(0.5, 0.56);
+      p.x *= aspect;
+      t = clamp(length(p) / (0.55 * max(aspect, 1.0) + 0.35), 0.0, 1.0);
+      t = t * t * (3.0 - 2.0 * t);
+    }
+    color = mix(top, bottom, t);
   } else {
-    // Light in the middle, a little above centre, darker toward the corners.
-    vec2 p = vUv - vec2(0.5, 0.56);
-    p.x *= aspect;
-    t = clamp(length(p) / (0.55 * max(aspect, 1.0) + 0.35), 0.0, 1.0);
-    t = t * t * (3.0 - 2.0 * t);
+    // Three lights on the ground colour, measured in the frame's short side
+    // so they are the same size in a tall frame and a wide one, and placed
+    // by the frame's half sides so a wide frame spreads them across.
+    vec2 ext = 0.5 * vec2(aspect, 1.0) / min(aspect, 1.0);
+    vec2 p = (vUv - 0.5) * 2.0 * ext;
+    float t = time;
+    vec2 a = vec2(0.0, 0.02) * ext + 0.05 * vec2(sin(t * 0.31), cos(t * 0.23)) + shift;
+    vec2 b = vec2(-0.85, -0.7) * ext + 0.07 * vec2(cos(t * 0.27 + 1.3), sin(t * 0.19 + 0.4)) + shift * 1.6;
+    vec2 c = vec2(0.8, 0.75) * ext + 0.06 * vec2(sin(t * 0.21 + 2.1), cos(t * 0.33 + 0.9)) + shift * 0.6;
+    // One light behind the middle, a smaller one of the second hue low in a
+    // corner and a faint one high in the other: mostly the ground colour,
+    // so what stands in front reads, with colour where the eye goes.
+    color = bottom
+      + top * 0.7 * light(p, a, 0.38)
+      + second * 0.5 * light(p, b, 0.36)
+      + top * 0.22 * light(p, c, 0.3);
+    // A soft shoulder, so where two lights meet stays a colour rather than white.
+    color = color / (1.0 + 0.35 * max(color.r, max(color.g, color.b)));
   }
-  vec3 color = mix(top, bottom, t);
   gl_FragColor = vec4(color, 1.0);
   #include <colorspace_fragment>
   // A gradient drawn straight to the screen in 8 bits bands in dark colours;
@@ -222,8 +253,28 @@ void main() {
 }
 `;
 
+const STYLE_INDEX: Record<LimelightBackdrop['style'], number> = { solid: 0, linear: 1, radial: 2, glow: 3 };
+
+const hsl = { h: 0, s: 0, l: 0 };
+
+/**
+ * A glow's second light: the hue a sixth of the way round from its first,
+ * a little deeper, so two lights read as one palette rather than two colours.
+ */
+export function secondGlow(top: string, out = new THREE.Color()): THREE.Color {
+  out.set(top).getHSL(hsl);
+  return out.setHSL((hsl.h + (hsl.s < 0.08 ? 0 : 0.16)) % 1, Math.min(1, hsl.s * 1.1), hsl.l * 0.8);
+}
+
+export interface Backdrop {
+  mesh: THREE.Mesh;
+  set: (backdrop: LimelightBackdrop, aspect: number, dither: boolean) => void;
+  /** Where a glow's lights are at this moment: they drift with the time and shift with the camera. */
+  place: (camera: { azimuth: number; elevation: number }, time: number) => void;
+}
+
 /** The backdrop: a triangle that covers the screen, drawn first and never written to the depth buffer. */
-export function createBackdrop(): { mesh: THREE.Mesh; set: (backdrop: LimelightBackdrop, aspect: number, dither: boolean) => void } {
+export function createBackdrop(): Backdrop {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
   const material = new THREE.ShaderMaterial({
@@ -232,9 +283,12 @@ export function createBackdrop(): { mesh: THREE.Mesh; set: (backdrop: LimelightB
     uniforms: {
       top: { value: new THREE.Color() },
       bottom: { value: new THREE.Color() },
+      second: { value: new THREE.Color() },
       style: { value: 2 },
       aspect: { value: 1 },
       dither: { value: 1 },
+      shift: { value: new THREE.Vector2() },
+      time: { value: 0 },
     },
     depthTest: false,
     depthWrite: false,
@@ -249,9 +303,16 @@ export function createBackdrop(): { mesh: THREE.Mesh; set: (backdrop: LimelightB
       const u = material.uniforms;
       (u.top.value as THREE.Color).set(backdrop.top);
       (u.bottom.value as THREE.Color).set(backdrop.style === 'solid' ? backdrop.top : backdrop.bottom);
-      u.style.value = backdrop.style === 'solid' ? 0 : backdrop.style === 'linear' ? 1 : 2;
+      secondGlow(backdrop.top, u.second.value as THREE.Color);
+      u.style.value = STYLE_INDEX[backdrop.style] ?? 2;
       u.aspect.value = aspect;
       u.dither.value = dither ? 1 : 0;
+    },
+    place: (camera, time) => {
+      // A light far behind the stage slides the other way as the camera goes
+      // round, by about a third of the frame for a quarter turn.
+      (material.uniforms.shift.value as THREE.Vector2).set((-camera.azimuth / 90) * 0.35, (-camera.elevation / 90) * 0.3);
+      material.uniforms.time.value = time;
     },
   };
 }

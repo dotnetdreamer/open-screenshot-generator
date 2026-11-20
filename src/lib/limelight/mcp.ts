@@ -17,10 +17,10 @@
 import type { ArtboardState, DeviceType } from '@/types/artboard';
 import { assetIdFromRef, getMediaAsset, isAssetRef } from '@/lib/mediaStore';
 import { actorAt } from './animate';
-import { cameraOnActor, cameraToFitAll, cannotAdd, deviceCount, freeName, laterThan, setFormat, setLook } from './edit';
+import { cameraOnActor, cameraToFitAll, cannotAdd, deviceCount, freeName, laterThan, setFormat, setLook, setMusic } from './edit';
 import { stageDevices } from './devices';
 import { FORMAT_PRESETS, formatPresetById } from './presets';
-import { originOf, projectShots, shotBlob } from './projectShots';
+import { originOf, projectAppName, projectCopy, projectShots, shotBlob } from './projectShots';
 import {
   DEFAULT_LIFT,
   defaultFormat,
@@ -28,22 +28,30 @@ import {
   deviceWidth,
   isStageDevice,
   newDeviceActor,
+  newPictureActor,
   newId,
   newScene,
   newTextActor,
   normalizeCamera,
+  normalizeHighlight,
   normalizeLook,
+  normalizeMusic,
+  normalizeReveal,
   normalizeScene,
 } from './scene';
 import { addPicture, deleteScene, getScene, listMyTemplates, listScenes, putScene } from './store';
-import { TEMPLATES, buildTemplate, fromMyTemplate } from './templates';
+import { TEMPLATES, buildTemplate, fromMyTemplate, type TemplateInput } from './templates';
 import type { CameraShot, CameraState, DeviceActor, LimelightActor, LimelightScene, ScreenChange, ScreenOrigin, ScreenTransition } from './types';
-import { LIMELIGHT_EASES, SCREEN_TRANSITIONS } from './types';
+import { LIMELIGHT_EASES, MUSIC_TRACKS, SCREEN_TRANSITIONS, TEXT_REVEAL_STYLES } from './types';
 
 export interface LimelightProjectSource {
   id: string | null;
   name: string;
   artboards: ArtboardState[];
+  /** The start dialog's template names: a project copied from one is "<name> Copy". */
+  templateNames?: readonly string[];
+  /** A picture of the project's app icon, for templates that close on it; null when it has none. */
+  captureIcon?: () => Promise<Blob | null>;
 }
 
 /** What the mounted view lends the tools. */
@@ -157,19 +165,27 @@ async function blobFromSrc(src: string): Promise<Blob | null> {
   throw new ToolError('A picture src is an asset: reference (upload_asset, list_assets), a data: URL or a web address');
 }
 
+interface ImportedPicture {
+  id: string;
+  /** Its artboard's headline, for a template's captions. */
+  headline?: string;
+  /** The picture itself, for a template that looks for a card in it. */
+  blob: Blob;
+}
+
 /**
  * Copies pictures into Limelight and gives back their media ids: from the open
  * project's artboards (each one's device screenshot), from `src`, or, with
  * `fromProject`, the project's own screenshots in canvas order.
  */
-async function importPictures(requests: PictureRequest[], fromProject: boolean, project: LimelightProjectSource): Promise<string[]> {
-  const shots = projectShots(project.artboards);
-  const items: Array<{ blob: Blob; name: string; from?: ScreenOrigin }> = [];
+async function importPictures(requests: PictureRequest[], fromProject: boolean, project: LimelightProjectSource): Promise<ImportedPicture[]> {
+  const shots = projectShots(project.artboards, projectAppName(project));
+  const items: Array<{ blob: Blob; name: string; from?: ScreenOrigin; headline?: string }> = [];
   if (fromProject) {
     const own = shots.filter((shot) => !shot.sample);
     for (const shot of (own.length > 0 ? own : shots).slice(0, 12)) {
       const blob = await shotBlob(shot.src);
-      if (blob) items.push({ blob, name: shot.artboardName, from: originOf(project.id, shot) });
+      if (blob) items.push({ blob, name: shot.artboardName, from: originOf(project.id, shot), headline: shot.headline });
     }
   }
   for (const request of requests) {
@@ -178,17 +194,39 @@ async function importPictures(requests: PictureRequest[], fromProject: boolean, 
       if (!shot) throw new ToolError(`Artboard ${request.artboardId} of the open project has no device screenshot`);
       const blob = await shotBlob(shot.src);
       if (!blob) throw new ToolError(`The screenshot on artboard ${request.artboardId} could not be read`);
-      items.push({ blob, name: shot.artboardName, from: originOf(project.id, shot) });
+      items.push({ blob, name: shot.artboardName, from: originOf(project.id, shot), headline: shot.headline });
     } else if (request.src) {
       const blob = await blobFromSrc(request.src);
       if (!blob) throw new ToolError(`There is no picture at ${request.src.slice(0, 60)}`);
       items.push({ blob, name: 'Picture' });
     }
   }
-  const ids: string[] = [];
-  for (const item of items) ids.push((await addPicture(item.blob, item.name, item.from)).id);
-  return ids;
+  const pictures: ImportedPicture[] = [];
+  for (const item of items) pictures.push({ id: (await addPicture(item.blob, item.name, item.from)).id, headline: item.headline, blob: item.blob });
+  return pictures;
 }
+
+/**
+ * What a built-in template takes beyond the pictures: the project's icon,
+ * copied in, for one that closes on it, and the card in each picture for
+ * one that lifts them. The card finder comes in with import(): it reads
+ * pixels, and nothing of it loads with the editor.
+ */
+async function templateExtras(templateId: string, imported: ImportedPicture[], project: LimelightProjectSource): Promise<{ icon?: string; cards?: TemplateInput['cards'] }> {
+  const template = TEMPLATES.find((t) => t.id === templateId);
+  const extras: { icon?: string; cards?: TemplateInput['cards'] } = {};
+  if (template?.icon && project.captureIcon) {
+    const blob = await project.captureIcon().catch(() => null);
+    if (blob) extras.icon = (await addPicture(blob, 'App icon')).id;
+  }
+  if (template?.cards && imported.length > 0) {
+    const { findCardInPicture } = await import('./cards');
+    extras.cards = await Promise.all(imported.map((picture) => findCardInPicture(picture.blob)));
+  }
+  return extras;
+}
+
+const idsOf = (pictures: ImportedPicture[]) => pictures.map((picture) => picture.id);
 
 function pictureRequests(value: unknown): PictureRequest[] {
   return (list(value, 'pictures') ?? []).map((item, i) => {
@@ -233,12 +271,24 @@ async function createSceneTool(args: Args, project: LimelightProjectSource) {
   const format = preset ? { width: preset.width, height: preset.height, fps: preset.fps, duration: preset.rules ? preset.rules.minSeconds : 15, preset: preset.id } : defaultFormat();
   const duration = number(args.duration, 'duration');
   if (duration !== undefined) format.duration = duration;
-  const pictures = await importPictures(pictureRequests(args.pictures), args.fromProject === true, project);
+  const imported = await importPictures(pictureRequests(args.pictures), args.fromProject === true, project);
+  const pictures = idsOf(imported);
   const name = text(args.name, 'name') ?? (project.name ? `${project.name} promo` : undefined);
   let scene: LimelightScene | null = null;
   if (template) {
-    if (TEMPLATES.some((t) => t.id === template)) scene = buildTemplate(template, { format, pictures, title: project.name, name });
-    else {
+    if (TEMPLATES.some((t) => t.id === template)) {
+      const looks = projectCopy(project);
+      scene = await buildTemplate(template, {
+        format,
+        pictures,
+        title: looks.appName,
+        name,
+        captions: imported.map((picture) => picture.headline),
+        accent: looks.accent,
+        font: looks.font,
+        ...(await templateExtras(template, imported, project)),
+      });
+    } else {
       const mine = (await listMyTemplates()).find((t) => t.id === template);
       if (!mine) throw new ToolError(`There is no template ${template}. list_limelight_templates lists them`);
       scene = fromMyTemplate(mine.scene, pictures, name);
@@ -259,13 +309,29 @@ async function createSceneTool(args: Args, project: LimelightProjectSource) {
 async function addActorTool(args: Args, project: LimelightProjectSource) {
   const scene = await readScene(text(args.sceneId, 'sceneId', true)!);
   const kind = text(args.kind, 'kind') ?? 'device';
-  if (kind !== 'device' && kind !== 'title') throw new ToolError('kind is device or title');
-  const blocked = cannotAdd(scene, kind === 'title' ? 'text' : 'device');
+  if (kind !== 'device' && kind !== 'title' && kind !== 'picture') throw new ToolError('kind is device, title or picture');
+  const blocked = cannotAdd(scene, kind === 'title' ? 'text' : kind === 'picture' ? 'picture' : 'device');
   if (blocked) throw new ToolError(blocked);
   const position = object(args.position, 'position');
   const turn = object(args.turn, 'turn');
   let actor: LimelightActor;
-  if (kind === 'title') {
+  if (kind === 'picture') {
+    const [picture] = await importPictures(pictureRequests(args.pictures), false, project);
+    if (!picture) throw new ToolError('A picture card needs pictures: [{ artboardId }] or [{ src }]');
+    const width = number(args.width, 'width') ?? 6;
+    const height = number(args.height, 'height') ?? width;
+    const card = newPictureActor(picture.id, {
+      width,
+      aspect: width / height,
+      corner: number(args.corner, 'corner'),
+      depth: number(args.depth, 'depth'),
+      position: { x: number(position?.x, 'position.x') ?? 0, y: number(position?.y, 'position.y') ?? height / 2 + DEFAULT_LIFT, z: number(position?.z, 'position.z') ?? 0 },
+    });
+    const crop = object(args.crop, 'crop');
+    if (crop) card.crop = { x: number(crop.x, 'crop.x') ?? 0, y: number(crop.y, 'crop.y') ?? 0, width: number(crop.width, 'crop.width') ?? 1, height: number(crop.height, 'crop.height') ?? 1 };
+    card.poses = card.poses.map((pose) => ({ ...pose, turn: { yaw: number(turn?.yaw, 'turn.yaw') ?? 0, pitch: number(turn?.pitch, 'turn.pitch') ?? 0, roll: number(turn?.roll, 'turn.roll') ?? 0 } }));
+    actor = card;
+  } else if (kind === 'title') {
     const words = text(args.text, 'text', true)!;
     const devices = scene.actors.filter((a): a is DeviceActor => a.kind === 'device');
     const top = devices.reduce((edge, device) => Math.max(edge, actorAt(device, 0).position.y + deviceHeight(device.device) / 2), 10);
@@ -276,6 +342,16 @@ async function addActorTool(args: Args, project: LimelightProjectSource) {
     if (color) actor.color = color;
     const font = text(args.font, 'font');
     if (font) actor.font = font;
+    const reveal = object(args.reveal, 'reveal');
+    if (reveal) {
+      if (!TEXT_REVEAL_STYLES.includes(reveal.style as never)) throw new ToolError(`reveal.style is one of ${TEXT_REVEAL_STYLES.join(', ')}`);
+      actor.reveal = normalizeReveal(reveal);
+    }
+    const highlight = object(args.highlight, 'highlight');
+    if (highlight) {
+      actor.highlight = normalizeHighlight(highlight);
+      if (!actor.highlight) throw new ToolError('highlight is { color: "#rrggbb", words: how many of the last words }');
+    }
   } else {
     const device = (text(args.device, 'device') ?? scene.actors.find((a): a is DeviceActor => a.kind === 'device')?.device ?? 'iphone-17-pro') as DeviceType;
     if (!isStageDevice(device)) throw new ToolError(`${device} has no 3D model. list_limelight_templates lists the devices`);
@@ -286,7 +362,7 @@ async function addActorTool(args: Args, project: LimelightProjectSource) {
       position: { x, y: number(position?.y, 'position.y') ?? deviceHeight(device) / 2 + DEFAULT_LIFT, z: number(position?.z, 'position.z') ?? 0 },
       turn: { yaw: number(turn?.yaw, 'turn.yaw') ?? 0, pitch: number(turn?.pitch, 'turn.pitch') ?? 0, roll: number(turn?.roll, 'turn.roll') ?? 0 },
     });
-    const pictures = await importPictures(pictureRequests(args.pictures), args.fromProject === true, project);
+    const pictures = idsOf(await importPictures(pictureRequests(args.pictures), args.fromProject === true, project));
     actor.screens = spread(pictures, 0, scene.format.duration, 'slide');
   }
   const scale = number(args.scale, 'scale');
@@ -321,7 +397,7 @@ async function updateActorTool(args: Args, project: LimelightProjectSource) {
     });
   }
   if (actor.kind === 'device' && patch.pictures !== undefined) {
-    const media = await importPictures(pictureRequests(patch.pictures), false, project);
+    const media = idsOf(await importPictures(pictureRequests(patch.pictures), false, project));
     const transition = (text(patch.transition, 'transition') ?? 'slide') as ScreenTransition;
     if (!SCREEN_TRANSITIONS.includes(transition)) throw new ToolError(`transition is one of ${SCREEN_TRANSITIONS.join(', ')}`);
     next.screens = spread(media, 0, scene.format.duration, transition);
@@ -384,6 +460,13 @@ async function setLookTool(args: Args) {
     const base = environment && environment !== scene.look.environment ? normalizeLook({ environment }) : scene.look;
     scene = setLook(scene, normalizeLook({ ...base, ...look, backdrop: { ...base.backdrop, ...(object(look.backdrop, 'look.backdrop') ?? {}) }, light: { ...base.light, ...(object(look.light, 'look.light') ?? {}) } }));
   }
+  if (args.music === null) scene = setMusic(scene, undefined);
+  else if (args.music !== undefined) {
+    const given = object(args.music, 'music') ?? {};
+    const music = normalizeMusic({ volume: scene.music?.volume ?? 0.8, ...given });
+    if (!music) throw new ToolError(`music.track is one of ${MUSIC_TRACKS.join(', ')}, or music is null for none`);
+    scene = setMusic(scene, music);
+  }
   const size = text(args.size, 'size');
   const format: Record<string, unknown> = {};
   if (size) {
@@ -397,7 +480,7 @@ async function setLookTool(args: Args) {
   if (fps !== undefined) format.fps = fps;
   if (Object.keys(format).length > 0) scene = setFormat(scene, format, true);
   const saved = await writeScene(scene);
-  return { sceneId: saved.id, look: saved.look, format: saved.format };
+  return { sceneId: saved.id, look: saved.look, music: saved.music ?? null, format: saved.format };
 }
 
 async function updateSceneTool(args: Args) {

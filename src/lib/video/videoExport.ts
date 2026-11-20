@@ -322,9 +322,16 @@ export async function createAudioTrack(
   return {
     async encodeInto(muxer) {
       let failed = false;
+      let described = false;
       const encoder = new AudioEncoder({
         output: (chunk, meta) => {
           if (failed) return;
+          // The encoder's tail runs a few frames past the sound it was given
+          // (15.06 s of track for a 15 s video): those frames are dropped, so
+          // the track ends with the picture and a store's time limit holds.
+          // The first chunk always goes in, for the description it carries.
+          if (described && chunk.timestamp + (chunk.duration ?? 0) > seconds * 1_000_000 + 1) return;
+          described = true;
           // mp4-muxer writes the description into the esds as it is. WebKit's
           // is a whole ES_Descriptor, not the AudioSpecificConfig, and the MP4
           // it makes has an audio track nothing can read.

@@ -1413,6 +1413,22 @@ const LIMELIGHT_TURN = {
   description: 'Degrees, applied yaw then pitch then roll. Yaw 0 faces the screen to +z; positive yaw shows the left side; positive pitch leans the top toward you.',
   properties: { yaw: { type: 'number' }, pitch: { type: 'number' }, roll: { type: 'number' } },
 };
+const LIMELIGHT_REVEAL = {
+  type: 'object',
+  description:
+    'A title only: its words come in one after another instead of all at once. style rise (each comes up from behind its line), fade or pop; by word or letter; time is when the first starts, duration how long until the last is in place, both in seconds.',
+  properties: {
+    style: { type: 'string', enum: ['rise', 'fade', 'pop'] },
+    by: { type: 'string', enum: ['word', 'letter'] },
+    time: { type: 'number' },
+    duration: { type: 'number' },
+  },
+};
+const LIMELIGHT_HIGHLIGHT = {
+  type: 'object',
+  description: 'A title only: its last words in a colour of their own, the way a headline marks what matters. words counts back from the end, across lines.',
+  properties: { color: { type: 'string' }, words: { type: 'number' } },
+};
 const LIMELIGHT_SCENE_ID = { type: 'string', description: 'From list_limelight_scenes or create_limelight_scene.' };
 
 function limelightTool(name: string, description: string, inputSchema: Record<string, unknown>): ToolDef {
@@ -1447,12 +1463,12 @@ function limelightTools(): ToolDef[] {
     ),
     limelightTool(
       'get_limelight_scene',
-      'One Limelight scene in full: format (size, fps, duration in seconds), look (environment, backdrop, light, depthOfField, vignette, grain), camera (shots: each a time, an ease and a camera of target, azimuth, elevation, distance in cm, roll, lens in mm, aperture f-number, focus) and actors (devices with poses, motion and screens; titles). Read it before changing a scene.',
+      'One Limelight scene in full: format (size, fps, duration in seconds), look (environment, backdrop, light, depthOfField, vignette, grain), music, camera (shots: each a time, an ease and a camera of target, azimuth, elevation, distance in cm, roll, lens in mm, aperture f-number, focus) and actors (devices with poses, motion and screens; titles; pictures, which are cards such as the app icon). Read it before changing a scene.',
       { type: 'object', properties: { sceneId: LIMELIGHT_SCENE_ID }, required: ['sceneId'] }
     ),
     limelightTool(
       'list_limelight_templates',
-      "Ready camera moves to start a scene from (template ids such as hero-orbit, push-in, side-by-side), the user's own templates, the sizes (app-store-iphone is 886 x 1920 for App Store previews) and the devices a scene can hold.",
+      "Ready camera moves to start a scene from (template ids such as app-intro, hero-orbit, push-in, side-by-side), the user's own templates, the sizes (app-store-iphone is 886 x 1920 for App Store previews) and the devices a scene can hold. app-intro is a 15 second launch film with its own music: the app's name big with the phone sweeping up in front of it, three screens with their artboards' headlines as captions and a card of each lifting off the screen, three phones together, then the app's icon as a glossy tile with the name.",
       { type: 'object', properties: {} }
     ),
     limelightTool(
@@ -1472,12 +1488,12 @@ function limelightTools(): ToolDef[] {
     ),
     limelightTool(
       'add_limelight_actor',
-      'Adds a device (kind device, placed beside the others unless position is given) or a 3D title (kind title, over the devices unless position is given) to a scene. Then set_limelight_camera with fit true frames everything.',
+      'Adds a device (kind device, placed beside the others unless position is given), a 3D title (kind title, over the devices unless position is given) or a picture card (kind picture: the first of pictures on a rounded card, such as a logo, or a part of a screenshot with crop) to a scene. Then set_limelight_camera with fit true frames everything.',
       {
         type: 'object',
         properties: {
           sceneId: LIMELIGHT_SCENE_ID,
-          kind: { type: 'string', enum: ['device', 'title'] },
+          kind: { type: 'string', enum: ['device', 'title', 'picture'] },
           device: { type: 'string', description: 'A device id from list_limelight_templates, such as iphone-17-pro, pixel-10-pro or ipad-pro-13.' },
           name: { type: 'string' },
           position: LIMELIGHT_XYZ,
@@ -1491,13 +1507,20 @@ function limelightTools(): ToolDef[] {
           size: { type: 'number', description: 'A title only: capital letter height in cm, about 1 to 3.' },
           color: { type: 'string', description: 'A title only: #rrggbb.' },
           font: { type: 'string', description: 'A title only: a font family from list_fonts.' },
+          reveal: LIMELIGHT_REVEAL,
+          highlight: LIMELIGHT_HIGHLIGHT,
+          width: { type: 'number', description: 'A picture only: centimetres across. Left out, 6.' },
+          height: { type: 'number', description: 'A picture only: centimetres down. Left out, as tall as it is wide.' },
+          corner: { type: 'number', description: 'A picture only: how round its corners are, 0 square to 0.5 round. An app icon is 0.225.' },
+          depth: { type: 'number', description: 'A picture only: centimetres thick, 0 a flat sheet. An icon tile looks right at about 0.8.' },
+          crop: { type: 'object', description: 'A picture only: the part to show, { x, y, width, height } as shares of the picture from its top left.' },
         },
         required: ['sceneId'],
       }
     ),
     limelightTool(
       'update_limelight_actor',
-      'Changes a device or title. changes takes any field get_limelight_scene shows on the actor (name, device, finish, color, fit, glare, fold, hidden, text, font, weight, size, color, align, facing), plus poses (a whole new list of { time, ease, position, turn, scale, opacity }; one pose keeps it still), float and spin, and for a device pictures and transition (slide, scroll, fade, zoom or cut) to put new screenshots on its screen.',
+      'Changes a device, title or picture. changes takes any field get_limelight_scene shows on the actor (name, device, finish, color, fit, glare, fold, hidden, text, font, weight, size, color, align, facing; reveal: { style rise, fade or pop, by word or letter, time and duration in seconds } brings a title in a word or a letter at a time, null shows it all at once; highlight: { color, words } colours the last words of a title, null takes it off; for a picture width, height, corner, depth, crop and shine, the second a light sweeps across it), plus poses (a whole new list of { time, ease, position, turn, scale, opacity }; one pose keeps it still), float and spin, and for a device pictures and transition (slide, scroll, fade, zoom or cut) to put new screenshots on its screen.',
       {
         type: 'object',
         properties: {
@@ -1528,10 +1551,17 @@ function limelightTools(): ToolDef[] {
     ),
     limelightTool(
       'set_limelight_look',
-      "Changes a scene's look (environment: studio, daylight, sunset, night or noir, which brings its own backdrop and light; backdrop { style solid, linear or radial, top, bottom as #rrggbb }; light { azimuth, elevation, intensity }; exposure; shadow 0 to 1; depthOfField; vignette; grain), its size (a size id), duration in seconds (shots stretch with it) or fps.",
+      "Changes a scene's look (environment: studio, daylight, sunset, night or noir, which brings its own backdrop and light; backdrop { style solid, linear, radial or glow, top, bottom as #rrggbb }, where glow is soft lights of top on bottom that shift as the camera moves; light { azimuth, elevation, intensity }; exposure; shadow 0 to 1; depthOfField; vignette; grain), its music ({ track pulse or calm, volume 0 to 1 }, made at the video's length with a cymbal on every camera cut, or null for none), its size (a size id), duration in seconds (shots stretch with it) or fps.",
       {
         type: 'object',
-        properties: { sceneId: LIMELIGHT_SCENE_ID, look: { type: 'object' }, size: { type: 'string' }, duration: { type: 'number' }, fps: { type: 'number' } },
+        properties: {
+          sceneId: LIMELIGHT_SCENE_ID,
+          look: { type: 'object' },
+          music: { type: ['object', 'null'], description: 'pulse is upbeat with drums on every beat; calm is slow and warm. null takes the music off.' },
+          size: { type: 'string' },
+          duration: { type: 'number' },
+          fps: { type: 'number' },
+        },
         required: ['sceneId'],
       }
     ),

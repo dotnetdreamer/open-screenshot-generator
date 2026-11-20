@@ -21,8 +21,9 @@
 import * as THREE from 'three';
 import { frameMediaIds, sceneAt } from '../animate';
 import { cameraPose } from '../camera';
-import type { CameraState, DeviceActor, LimelightLook, LimelightScene, SceneFrame, TextActor } from '../types';
-import { DeviceView, TextView, deviceBuildKey, type ActorView } from './actors';
+import { loadTitleFaces } from '../fonts';
+import type { CameraState, DeviceActor, LimelightActor, LimelightLook, LimelightScene, PictureActor, SceneFrame, TextActor } from '../types';
+import { DeviceView, PictureView, TextView, deviceBuildKey, pictureBuildKey, type ActorView } from './actors';
 import { EnvironmentCache, createBackdrop, lightDirection } from './environment';
 import { CameraGuides } from './guides';
 import { StageMedia, type MediaLoader } from './media';
@@ -57,6 +58,11 @@ export interface StillOptions {
   time: number;
   /** PNG unless set. */
   type?: 'image/png' | 'image/jpeg';
+}
+
+/** What a view is built from: a change to it builds the view again instead of updating it. */
+function buildKey(actor: LimelightActor): string {
+  return actor.kind === 'device' ? deviceBuildKey(actor) : actor.kind === 'picture' ? pictureBuildKey(actor) : 'text';
 }
 
 /** The film's height in millimetres for a picture of this shape, as camera.ts measures lenses. */
@@ -134,7 +140,10 @@ export class LimelightStage {
     this.environments = new EnvironmentCache(this.renderer);
     this.post = PostPass.supported(this.renderer) ? new PostPass() : null;
     this.media = new StageMedia(init.loadMedia, () => {
-      for (const view of this.views.values()) if (view instanceof DeviceView) view.invalidateScreen();
+      for (const view of this.views.values()) {
+        if (view instanceof DeviceView) view.invalidateScreen();
+        else if (view instanceof PictureView) view.invalidate();
+      }
       this.invalidate();
     });
 
@@ -164,6 +173,11 @@ export class LimelightStage {
   /** True once the WebGL context is gone: the stage draws nothing until it is made again. */
   get isLost(): boolean {
     return this.lost;
+  }
+
+  /** True while a video is being made from this stage (between `hold` and `release`). */
+  get isFilming(): boolean {
+    return this.filming !== null;
   }
 
   /** True when this browser can draw depth of field, vignette and grain. */
@@ -316,7 +330,7 @@ export class LimelightStage {
     for (const actor of scene.actors) {
       wanted.add(actor.id);
       const existing = this.views.get(actor.id);
-      const key = actor.kind === 'device' ? deviceBuildKey(actor) : 'text';
+      const key = buildKey(actor);
       if (existing && existing.buildKey === key) continue;
       if (existing) {
         this.actorsRoot.remove(existing.root);
@@ -324,7 +338,12 @@ export class LimelightStage {
         this.views.delete(actor.id);
       }
       try {
-        const view = actor.kind === 'device' ? new DeviceView(actor, this.anisotropy) : new TextView(actor, this.anisotropy, () => this.invalidate());
+        const view =
+          actor.kind === 'device'
+            ? new DeviceView(actor, this.anisotropy)
+            : actor.kind === 'picture'
+              ? new PictureView(actor, this.anisotropy)
+              : new TextView(actor, this.anisotropy, () => this.invalidate());
         this.views.set(actor.id, view);
         this.actorsRoot.add(view.root);
       } catch (error) {
@@ -351,8 +370,12 @@ export class LimelightStage {
     this.shadow.setStrength(look.shadow);
   }
 
-  /** Places the camera and every actor for this frame. Returns the camera state used. */
-  private stageFrame(scene: LimelightScene, frame: SceneFrame, cameraState: CameraState, aspect: number) {
+  /**
+   * Places the camera and every actor for this frame. `pixelsTall` is the
+   * height of the picture being drawn, which titles size their canvas by.
+   * Returns the camera state used.
+   */
+  private stageFrame(scene: LimelightScene, frame: SceneFrame, cameraState: CameraState, aspect: number, pixelsTall: number) {
     const pose = cameraPose(cameraState, aspect);
     const camera = this.camera;
     camera.aspect = aspect;
@@ -393,9 +416,12 @@ export class LimelightStage {
           shadowKey += `|${actor.device}:${p.x.toFixed(2)},${p.y.toFixed(2)},${p.z.toFixed(2)},${t.yaw.toFixed(1)},${t.pitch.toFixed(1)},${t.roll.toFixed(1)},${actorFrame.scale.toFixed(3)},${actor.fold ?? ''}`;
         }
       } else if (view instanceof TextView && actor.kind === 'text') {
-        view.update(actor as TextActor, actorFrame, camera);
+        view.update(actor as TextActor, actorFrame, camera, frame.time, pixelsTall);
+      } else if (view instanceof PictureView && actor.kind === 'picture') {
+        view.update(actor as PictureActor, actorFrame, this.media.get(actor.media), frame.time);
       }
     }
+    this.backdrop.place(cameraState, frame.time);
     if (minX <= maxX) {
       const half = Math.max(maxX - minX, maxZ - minZ) / 2 + 14;
       this.shadow.update(this.renderer, this.actorsRoot, { x: (minX + maxX) / 2, z: (minZ + maxZ) / 2, half }, shadowKey);
@@ -434,7 +460,7 @@ export class LimelightStage {
     const cameraState = this.override ?? frame.camera;
     const post = this.usesPost(scene.look);
     this.applyLook(scene.look, aspect, !post);
-    const pose = this.stageFrame(scene, frame, cameraState, aspect);
+    const pose = this.stageFrame(scene, frame, cameraState, aspect, size.y);
     this.guides.group.visible = this.guidesOn;
     if (this.guidesOn) this.guides.update(scene, this.time);
     if (post && this.post) {
@@ -505,7 +531,17 @@ export class LimelightStage {
     // can show more pictures than the stage keeps decoded.
     const release = await this.media.hold(frameMediaIds(frame));
     try {
-      if (typeof document !== 'undefined' && document.fonts) await document.fonts.ready.catch(() => undefined);
+      // The titles' faces first, for the letters they show. `fonts.ready`
+      // only waits for loads already started, and a title asks for its face
+      // when it is first drawn, which for a new stage is this very frame: the
+      // first picture an agent saw of a title in a face nobody had used yet
+      // was in the fallback. And `fonts.ready` itself is never waited on: it
+      // has no limit, so one stalled download held a frame for 43 seconds,
+      // where `loadTitleFaces` gives a face 4 seconds once.
+      const faces = scene.actors
+        .filter((actor): actor is TextActor => actor.kind === 'text' && !actor.hidden)
+        .map((actor) => ({ weight: actor.weight, font: actor.font, text: actor.text }));
+      await loadTitleFaces(faces);
       if (this.disposed) throw new Error('The stage was closed');
       if (this.lost) throw new Error('The 3D view stopped working. Close Limelight and open it again.');
       return this.drawPixels(scene, frame, width, height, options.time, options.keepView === true);
@@ -528,8 +564,11 @@ export class LimelightStage {
     try {
       this.applyLook(scene.look, aspect, !post);
       // A picture that arrived during the wait is drawn now.
-      for (const view of this.views.values()) if (view instanceof DeviceView) view.invalidateScreen();
-      const pose = this.stageFrame(scene, frame, cameraState, aspect);
+      for (const view of this.views.values()) {
+        if (view instanceof DeviceView) view.invalidateScreen();
+        else if (view instanceof PictureView) view.invalidate();
+      }
+      const pose = this.stageFrame(scene, frame, cameraState, aspect, height);
       if (post && this.post) {
         this.post.render(this.renderer, this.scene, this.camera, width, height, { ...this.postSettings(scene, cameraState, pose.focusDistance, aspect, 'final'), seed: Math.round(time * 30) % 1000 }, output);
       } else {

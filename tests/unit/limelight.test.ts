@@ -417,21 +417,22 @@ test('limelight: Fit puts every device just inside the picture', () => {
   }
 });
 
-test('limelight: every template builds at every size with any number of pictures', () => {
+test('limelight: every template builds at every size with any number of pictures', async () => {
   for (const template of TEMPLATES) {
     for (const preset of FORMAT_PRESETS) {
       for (const count of [0, 1, 3, 6]) {
         const pictures = Array.from({ length: count }, (_, i) => `media_${i}`);
         const format = { width: preset.width, height: preset.height, fps: preset.fps, duration: 15, preset: preset.id };
-        const scene = buildTemplate(template.id, { format, pictures, title: 'Juniper' });
+        const captions = pictures.map((_, i) => (i % 2 === 0 ? `Headline number ${i + 1} here` : undefined));
+        const scene = await buildTemplate(template.id, { format, pictures, title: 'Juniper', captions, accent: '#2f9155' });
         assert.ok(scene, template.id);
         // Stable: reading it back changes nothing, so the template made a valid scene.
         assert.deepEqual(normalizeScene(JSON.parse(JSON.stringify(scene))), scene, `${template.id} at ${preset.id} with ${count}`);
         assert.equal(scene.template, template.id);
         assert.equal(scene.format.width, preset.width);
-        // Every picture is on some screen.
+        // Every picture it takes is on some screen.
         const shown = sceneMediaIds(scene);
-        const expected = template.id === 'turntable' ? pictures.slice(0, 1) : pictures;
+        const expected = template.id === 'turntable' ? pictures.slice(0, 1) : pictures.slice(0, template.pictures ?? pictures.length);
         for (const id of expected) assert.ok(shown.has(id), `${template.id} shows ${id}`);
         const devices = scene.actors.filter((actor) => actor.kind === 'device').length;
         assert.equal(devices, template.devices, `${template.id} has ${template.devices} devices`);
@@ -440,9 +441,11 @@ test('limelight: every template builds at every size with any number of pictures
   }
 });
 
-test('limelight: a template shot that is not pulled in keeps every device in the picture', () => {
+test('limelight: a template shot that is not pulled in keeps every device in the picture', async () => {
   for (const template of TEMPLATES) {
-    const scene = buildTemplate(template.id, { pictures: ['media_a', 'media_b', 'media_c'] })!;
+    // The intro frames the words alone before the phone comes up; its own test below checks each part's framing.
+    if (template.id === 'app-intro') continue;
+    const scene = (await buildTemplate(template.id, { pictures: ['media_a', 'media_b', 'media_c'] }))!;
     const aspect = scene.format.width / scene.format.height;
     for (const shot of scene.camera.shots) {
       const points = stagePoints(scene, shot.time).map((p) => project(shot.camera, aspect, p));
@@ -453,8 +456,8 @@ test('limelight: a template shot that is not pulled in keeps every device in the
   }
 });
 
-test('limelight: the turntable ends where it starts, so the video loops', () => {
-  const scene = buildTemplate('turntable', { pictures: ['media_a'] })!;
+test('limelight: the turntable ends where it starts, so the video loops', async () => {
+  const scene = (await buildTemplate('turntable', { pictures: ['media_a'] }))!;
   const start = actorAt(scene.actors[0], 0);
   const end = actorAt(scene.actors[0], scene.format.duration);
   close(end.turn.yaw - start.turn.yaw, 360, 1e-9);
@@ -618,7 +621,7 @@ test('limelight: a change is later than the last one even when the clock is behi
 /** The record a save to Drive, or an open from it, leaves of the scene. */
 const met = (scene: LimelightScene) => ({ version: scene.updatedAt, content: sceneFingerprint(scene) });
 
-test('limelight: opening from Drive never writes over a change made here, however close in time', () => {
+test('limelight: opening from Drive never writes over a change made here, however close in time', async () => {
   const saved = { ...newScene({ name: 'Promo', media: null }), updatedAt: 1_000_000 };
   const editedHere = { ...rename(saved, 'Promo here'), updatedAt: saved.updatedAt + 500 };
   const editedThere = { ...rename(saved, 'Promo there'), updatedAt: saved.updatedAt + 60_000 };
@@ -642,7 +645,7 @@ test('limelight: opening from Drive never writes over a change made here, howeve
   assert.notEqual(sceneFingerprint(editedHere), sceneFingerprint(saved));
   // Every template, as the database or Drive gives it back, keeps its fingerprint, so an unchanged scene is never taken for a changed one.
   for (const template of TEMPLATES) {
-    const scene = buildTemplate(template.id, { pictures: ['media_a', 'media_b', 'media_c'] })!;
+    const scene = (await buildTemplate(template.id, { pictures: ['media_a', 'media_b', 'media_c'] }))!;
     const back = JSON.parse(JSON.stringify(scene));
     assert.equal(sceneFingerprint(back), sceneFingerprint(scene), template.id);
     assert.equal(driveOpenPlan(back, { ...rename(scene, 'Changed there'), updatedAt: scene.updatedAt + 1 }, met(scene)), 'replace', template.id);

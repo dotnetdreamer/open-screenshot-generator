@@ -77,6 +77,16 @@ export interface ViewportProps {
 }
 
 const FRAME_MARGIN = 28;
+/**
+ * How long the stage is kept after the view goes behind another one. The
+ * stage holds a WebGL context and its GPU memory: the devices, their screens
+ * and titles, and render targets the size of the canvas (the post pass's four
+ * sample half float colour and depth with their resolved copies come to 60
+ * bytes a pixel, about 185 MB for a 2200 x 1400 canvas, before the canvas's
+ * own buffers). So it is let go once the user has moved on, and made again
+ * when they come back. A quick look at the editor and back keeps it.
+ */
+const RELEASE_AFTER_MS = 5000;
 
 export function LimelightViewport({ scene, time, playing, active, selectedActorId, onSelectActor, onCommit, onGestureStart, stageRef }: ViewportProps) {
   const boxRef = useRef<HTMLDivElement>(null);
@@ -106,6 +116,23 @@ export function LimelightViewport({ scene, time, playing, active, selectedActorI
   outsideRef.current = outside;
   const directorRef = useRef<CameraState | null>(null);
   const rebuilds = useRef<number[]>([]);
+  // False once the view has been behind another for a while: there is no stage then.
+  const [live, setLive] = useState(active);
+
+  useEffect(() => {
+    if (active) {
+      setLive(true);
+      return;
+    }
+    let timer = 0;
+    const letGo = () => {
+      // A video being made keeps its stage until it is done.
+      if (stageRef.current?.isFilming) timer = window.setTimeout(letGo, RELEASE_AFTER_MS);
+      else setLive(false);
+    };
+    timer = window.setTimeout(letGo, RELEASE_AFTER_MS);
+    return () => window.clearTimeout(timer);
+  }, [active, stageRef]);
 
   /**
    * A stage whose WebGL context is gone draws nothing, though the clock
@@ -152,7 +179,7 @@ export function LimelightViewport({ scene, time, playing, active, selectedActorI
 
   useEffect(() => {
     const mount = canvasRef.current;
-    if (!mount) return;
+    if (!mount || !live) return;
     let stage: LimelightStage;
     try {
       stage = new LimelightStage({
@@ -191,7 +218,7 @@ export function LimelightViewport({ scene, time, playing, active, selectedActorI
       stage.dispose();
       stage.canvas.remove();
     };
-  }, [generation, placeSelection, rebuild, stageRef, time]);
+  }, [generation, live, placeSelection, rebuild, stageRef, time]);
 
   useEffect(() => () => window.clearTimeout(rebuildTimer.current), []);
 

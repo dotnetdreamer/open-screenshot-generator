@@ -14,16 +14,24 @@ watches it change and can undo your change there.
 ## The tools
 
 - list_limelight_scenes and get_limelight_scene read. Read a scene before you change it.
-- list_limelight_templates gives the ready camera moves (hero-orbit, push-in, side-by-side,
-  spin-reveal, low-hero, floating-stack, flyover, phone-and-tablet, title-opener, turntable),
-  the user's own templates, the sizes and the devices.
+- list_limelight_templates gives the ready camera moves (app-intro, hero-orbit, push-in,
+  side-by-side, spin-reveal, low-hero, floating-stack, flyover, phone-and-tablet, title-opener,
+  turntable), the user's own templates, the sizes and the devices. app-intro is a whole 15
+  second launch film with its own music: the app's name big with the phone sweeping up in front
+  of it, three cuts each with a screen, its artboard's headline as a caption and a card of the
+  screen lifting toward the camera, three phones together, and the app's icon as a glossy tile
+  with the name. With fromProject true it takes the project's screenshots, headlines, colour,
+  font and App icon artboard, so use it when the user asks for an intro, a trailer or a launch
+  video.
 - create_limelight_scene makes a scene, from a template or as one phone. Pass fromProject true
   to put the open project's own screenshots on the screens, or pictures with an artboardId or an
   asset: src.
-- add_limelight_actor adds a device (kind device) or a 3D title (kind title).
-  update_limelight_actor changes one; remove_limelight_actor takes one off.
+- add_limelight_actor adds a device (kind device), a 3D title (kind title) or a picture card
+  (kind picture: a logo, or a part of a screenshot with crop). update_limelight_actor changes
+  one; remove_limelight_actor takes one off.
 - set_limelight_camera replaces the shots. set_limelight_look changes the light, the backdrop,
-  the size and the length. update_limelight_scene replaces a whole scene, for big rewrites only.
+  the music, the size and the length. update_limelight_scene replaces a whole scene, for big
+  rewrites only.
 - render_limelight_frame draws a moment and gives you the picture. It is how you look.
 - delete_limelight_scene only when the user asks, and never the scene open in the view.
 
@@ -61,8 +69,28 @@ blurs what is behind) and focus (cm behind the target).
 - A device's screens show pictures from given times on, coming in by slide, scroll, fade, zoom or
   cut. update_limelight_actor with pictures spreads new screenshots over the whole video.
 - A title is 3D text with a pose like a device. Keep it short: the app's name or a few words.
+  reveal brings its words in one after another: style rise (each comes up from behind its line),
+  fade or pop, by word or letter, from time for duration seconds. A name reads well by letter
+  over 0.6 to 1 second, a caption by word over 0.5 to 1. Before its time a word isn't there, so
+  render a moment after the reveal ends to see the whole title. highlight { color, words } puts
+  a title's last words in a colour of their own: a light tint of the app's colour reads on a
+  dark stage.
+- A picture card stands on its own: width and height in cm, corner (0.225 for an app icon),
+  depth (cm thick; an icon tile looks right at about 0.8), glare, crop (the part of the picture,
+  as shares from its top left) and shine (the second a light sweeps across it). It fades with
+  its pose's opacity, unlike a device.
 - Put several devices side by side with a gap of 2 to 4 cm, or one behind another with z offsets
   of 5 to 10 cm for depth.
+
+## Look and music
+
+- backdrop style glow is soft lights of top (a mid colour, such as the app's colour at 30%
+  lightness) on bottom (near black); they shift as the camera moves round, which gives depth.
+- music { track pulse or calm, volume 0 to 1 } is made by the app at the video's length:
+  nothing to license, and every camera cut gets a cymbal. Its tempo is 128 beats a minute, a
+  beat every 0.469 s and a bar every 1.875 s: put cuts (a shot with ease cut, then the next
+  shot) on beats, and the close on a bar, and the music lands with the picture. music null
+  takes it off.
 
 ## Sizes and the App Store
 

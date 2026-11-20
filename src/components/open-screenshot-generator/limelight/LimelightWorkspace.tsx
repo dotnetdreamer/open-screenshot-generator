@@ -10,7 +10,7 @@
 // so there is no Save button to forget. The playhead's time is kept outside
 // React (TimeStore) so playback redraws the stage and the clock only.
 
-import React, { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import {
   BookmarkPlusIcon,
   ChevronDownIcon,
@@ -73,11 +73,15 @@ import { DriveNotGoogle, DriveSignInNeeded, listDriveScenes, openSceneFromDrive,
 import { AccountAuthError } from '@/lib/account/types';
 import { useAccount } from '@/lib/account/store';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { originOf, projectShots, shotBlob, type ProjectShot } from '@/lib/limelight/projectShots';
+import { originOf, projectCopy, projectShots, shotBlob, type ProjectCopy, type ProjectShot } from '@/lib/limelight/projectShots';
 import { DEFAULT_LIFT, defaultFormat, deviceHeight, deviceWidth, newDeviceActor, newScene, newTextActor, sceneMediaIds } from '@/lib/limelight/scene';
 import { buildTemplate, fromMyTemplate, templateById } from '@/lib/limelight/templates';
+import { MusicPlayer } from '@/lib/limelight/musicPlayer';
+import { findCardInPicture } from '@/lib/limelight/cards';
+import { musicKey } from '@/lib/limelight/musicRender';
 import {
   addPicture,
+  getPictureBlob,
   saveMyTemplate,
   deleteScene,
   duplicateScene,
@@ -104,12 +108,16 @@ export interface LimelightProject {
   id: string | null;
   name: string;
   artboards: ArtboardState[];
+  /** The start dialog's template names: a project copied from one is "<name> Copy". */
+  templateNames?: readonly string[];
 }
 
 export interface LimelightWorkspaceProps {
   active: boolean;
   /** The project open in the editor, read when its screenshots are needed. */
   readProject: () => LimelightProject;
+  /** A picture of the project's app icon, for templates that close on it; null when it has none. */
+  captureIcon?: () => Promise<Blob | null>;
   /** Set to a function that writes the open scene now, false when the write failed; the window's close hook calls it (rule 39a). */
   flushRef?: React.MutableRefObject<(() => Promise<boolean>) | null>;
   /** Hands a request about the open scene to the agent. Unset when no agent can take it. */
@@ -265,7 +273,7 @@ function overlayOpen(): boolean {
   );
 }
 
-export function LimelightWorkspace({ active, readProject, flushRef, onAskAgent, agentUnavailable, agentWorking, onShowAgent, onOpenAccount }: LimelightWorkspaceProps) {
+export function LimelightWorkspace({ active, readProject, captureIcon, flushRef, onAskAgent, agentUnavailable, agentWorking, onShowAgent, onOpenAccount }: LimelightWorkspaceProps) {
   const { toast } = useToast();
   const [summaries, setSummaries] = useState<SceneSummary[] | null>(null);
   const [scene, setScene] = useState<LimelightScene | null>(null);
@@ -277,7 +285,11 @@ export function LimelightWorkspace({ active, readProject, flushRef, onAskAgent, 
   const [busy, setBusy] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [shots, setShots] = useState<ProjectShot[]>([]);
+  // The app's name, colour and font from the open project, for templates that use them.
+  const [copy, setCopy] = useState<ProjectCopy>({ appName: '' });
   const [galleryOpen, setGalleryOpen] = useState(false);
+  // One object while it is the same size: a new one on every render started the gallery's previews again.
+  const galleryFormat = useMemo(() => scene?.format ?? defaultFormat(), [scene?.format]);
   const account = useAccount();
   const [driveProgress, setDriveProgress] = useState<string | null>(null);
   const [driveList, setDriveList] = useState<LimelightRemoteScene[] | null>(null);
@@ -454,7 +466,10 @@ export function LimelightWorkspace({ active, readProject, flushRef, onAskAgent, 
   useEffect(() => {
     if (!active) return;
     try {
-      setShots(projectShots(readProject().artboards));
+      const project = readProject();
+      const own = projectCopy(project);
+      setCopy(own);
+      setShots(projectShots(project.artboards, own.appName));
     } catch {
       setShots([]);
     }
@@ -488,24 +503,24 @@ export function LimelightWorkspace({ active, readProject, flushRef, onAskAgent, 
     };
   }, [writeNow]);
 
-  /** Copies pictures in and gives back their ids, with where each came from. */
+  /** Copies pictures in and gives back their ids, each with its artboard's headline when it has one. */
   const importPictures = useCallback(
-    async (source: { files: File[] } | { shots: ProjectShot[] }): Promise<Array<{ id: string }>> => {
+    async (source: { files: File[] } | { shots: ProjectShot[] }): Promise<Array<{ id: string; headline?: string }>> => {
       const project = readProject();
-      const items: Array<{ blob: Blob; name: string; from?: ScreenOrigin }> = [];
+      const items: Array<{ blob: Blob; name: string; from?: ScreenOrigin; headline?: string }> = [];
       if ('files' in source) {
         for (const file of source.files) items.push({ blob: file, name: file.name });
       } else {
         for (const shot of source.shots) {
           const blob = await shotBlob(shot.src);
-          if (blob) items.push({ blob, name: shot.artboardName, from: originOf(project.id, shot) });
+          if (blob) items.push({ blob, name: shot.artboardName, from: originOf(project.id, shot), headline: shot.headline });
         }
       }
-      const added: Array<{ id: string }> = [];
+      const added: Array<{ id: string; headline?: string }> = [];
       const failed: string[] = [];
       for (const item of items) {
         try {
-          added.push(await addPicture(item.blob, item.name, item.from));
+          added.push({ id: (await addPicture(item.blob, item.name, item.from)).id, headline: item.headline });
         } catch (error) {
           failed.push(error instanceof Error ? error.message : item.name);
         }
@@ -524,18 +539,38 @@ export function LimelightWorkspace({ active, readProject, flushRef, onAskAgent, 
         await writeNow();
         const project = readProject();
         const name = project.name ? `${project.name} promo` : undefined;
+        const looks = projectCopy(project);
         // The pictures the gallery's previews showed: the user's own screenshots,
         // or the project's sample ones when it has none of its own yet.
-        const all = projectShots(project.artboards);
+        const all = projectShots(project.artboards, looks.appName);
         const own = all.filter((shot) => !shot.sample).slice(0, 6);
         const source = own.length > 0 ? own : all.slice(0, 3);
-        const pictures = (source.length > 0 ? await importPictures({ shots: source }) : []).map((picture) => picture.id);
+        const imported = source.length > 0 ? await importPictures({ shots: source }) : [];
+        const pictures = imported.map((picture) => picture.id);
         // The size the gallery's previews were drawn at: the open scene's, or the default.
         const format = sceneRef.current?.format ?? defaultFormat();
         let next: LimelightScene | null;
         if (choice.kind === 'builtin') {
           const template = templateById(choice.id);
-          next = buildTemplate(choice.id, { format, pictures, title: project.name, name: name ?? template?.name });
+          // A template that closes on the app's icon gets the project's own.
+          let icon: string | undefined;
+          if (template?.icon && captureIcon) {
+            const blob = await captureIcon().catch(() => null);
+            if (blob) icon = (await addPicture(blob, 'App icon').catch(() => null))?.id;
+          }
+          // A template that lifts a card off each screen gets the ones found in them.
+          const cards = template?.cards ? await Promise.all(imported.map((picture) => getPictureBlob(picture.id).then((blob) => (blob ? findCardInPicture(blob) : null)).catch(() => null))) : undefined;
+          next = await buildTemplate(choice.id, {
+            format,
+            pictures,
+            title: looks.appName,
+            name: name ?? template?.name,
+            captions: imported.map((picture) => picture.headline),
+            accent: looks.accent,
+            font: looks.font,
+            icon,
+            cards,
+          });
         } else if (choice.kind === 'mine') {
           next = fromMyTemplate(choice.template.scene, pictures, name ?? choice.template.name);
         } else {
@@ -559,7 +594,7 @@ export function LimelightWorkspace({ active, readProject, flushRef, onAskAgent, 
         setBusy(null);
       }
     },
-    [importPictures, makeThumb, openScene, readProject, refreshList, toast, writeNow]
+    [captureIcon, importPictures, makeThumb, openScene, readProject, refreshList, toast, writeNow]
   );
 
   const saveAsTemplate = useCallback(
@@ -852,6 +887,41 @@ export function LimelightWorkspace({ active, readProject, flushRef, onAskAgent, 
   // ---- playback -------------------------------------------------------------
 
   const duration = scene?.format.duration ?? 0;
+  // The scene's music, made when the scene is open and played with the preview.
+  const music = useRef<MusicPlayer | null>(null);
+  const [musicReady, setMusicReady] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const musicNeed = scene && active ? musicKey(scene) : null;
+  useEffect(() => {
+    if (!musicNeed) {
+      music.current?.dispose();
+      music.current = null;
+      setMusicReady(false);
+      return;
+    }
+    let cancelled = false;
+    // A moment after the last change, so dragging a shot doesn't make the music again and again.
+    const timer = window.setTimeout(() => {
+      const player = (music.current ??= new MusicPlayer());
+      void player.prepare(sceneRef.current).then((ready) => {
+        if (!cancelled) setMusicReady(ready);
+      });
+    }, 250);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [musicNeed]);
+  useEffect(() => {
+    music.current?.setMuted(muted);
+  }, [muted, musicReady]);
+  // The volume slider is heard at once: the same track, played louder or softer.
+  const musicVolume = scene?.music?.volume;
+  useEffect(() => {
+    if (musicVolume !== undefined) void music.current?.prepare(sceneRef.current);
+  }, [musicVolume]);
+  useEffect(() => () => music.current?.dispose(), []);
+
   const togglePlay = useCallback(() => {
     setPlaying((now) => {
       if (!now && time.get() >= duration - 1e-3) time.set(0);
@@ -863,13 +933,19 @@ export function LimelightWorkspace({ active, readProject, flushRef, onAskAgent, 
     if (!playing || duration <= 0) return;
     let frame = 0;
     let last = performance.now();
+    // With music, the sound's clock is the playhead, so the two never drift apart.
+    const player = musicReady ? music.current : null;
+    player?.play(time.get());
     const tick = (now: number) => {
       const dt = Math.min(0.1, (now - last) / 1000);
       last = now;
-      let t = time.get() + dt;
+      let t = player?.time() ?? time.get() + dt;
       if (t >= duration) {
-        if (loop) t %= duration;
-        else {
+        if (loop) {
+          t %= duration;
+          player?.play(t);
+        } else {
+          player?.stop();
           time.set(duration);
           setPlaying(false);
           return;
@@ -879,8 +955,11 @@ export function LimelightWorkspace({ active, readProject, flushRef, onAskAgent, 
       frame = window.requestAnimationFrame(tick);
     };
     frame = window.requestAnimationFrame(tick);
-    return () => window.cancelAnimationFrame(frame);
-  }, [duration, loop, playing, time]);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      player?.stop();
+    };
+  }, [duration, loop, musicReady, playing, time]);
 
   // A view in the back stops playing.
   useEffect(() => {
@@ -1106,6 +1185,8 @@ export function LimelightWorkspace({ active, readProject, flushRef, onAskAgent, 
                   selection={selection}
                   onPlay={togglePlay}
                   onLoop={() => setLoop((on) => !on)}
+                  muted={muted}
+                  onMute={() => setMuted((on) => !on)}
                   onSeek={seek}
                   onSelect={setSelection}
                   onCommit={commit}
@@ -1200,8 +1281,11 @@ export function LimelightWorkspace({ active, readProject, flushRef, onAskAgent, 
           open={galleryOpen}
           onOpenChange={setGalleryOpen}
           shots={shots}
-          projectName={readProject().name}
-          format={scene?.format ?? defaultFormat()}
+          projectName={copy.appName}
+          accent={copy.accent}
+          font={copy.font}
+          captureIcon={captureIcon}
+          format={galleryFormat}
           onPick={createFrom}
         />
         <AlertDialog open={deleting !== null} onOpenChange={(open) => !open && setDeleting(null)}>

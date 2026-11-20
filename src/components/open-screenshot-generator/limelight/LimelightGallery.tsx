@@ -15,6 +15,7 @@ import { shotBlob, type ProjectShot } from '@/lib/limelight/projectShots';
 import { LimelightStage } from '@/lib/limelight/stage/stage';
 import { deleteMyTemplate, listMyTemplates, type MyTemplate } from '@/lib/limelight/store';
 import { TEMPLATES, buildTemplate } from '@/lib/limelight/templates';
+import { findCardInPicture } from '@/lib/limelight/cards';
 import type { LimelightFormat } from '@/lib/limelight/types';
 import { cn } from '@/lib/utils';
 
@@ -25,6 +26,11 @@ interface GalleryProps {
   onOpenChange: (open: boolean) => void;
   shots: ProjectShot[];
   projectName: string;
+  /** The project's colour and font, for templates that take them. */
+  accent?: string;
+  font?: string;
+  /** The project's app icon, for templates that close on it. */
+  captureIcon?: () => Promise<Blob | null>;
   format: LimelightFormat;
   onPick: (choice: GalleryChoice) => Promise<void>;
 }
@@ -58,7 +64,7 @@ async function placeholderPicture(hue: number): Promise<Blob> {
   return await new Promise<Blob>((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('No picture'))), 'image/png'));
 }
 
-export function LimelightGallery({ open, onOpenChange, shots, projectName, format, onPick }: GalleryProps) {
+export function LimelightGallery({ open, onOpenChange, shots, projectName, accent, font, captureIcon, format, onPick }: GalleryProps) {
   const [previews, setPreviews] = useState<Record<string, string>>({});
   const [mine, setMine] = useState<MyTemplate[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
@@ -80,15 +86,23 @@ export function LimelightGallery({ open, onOpenChange, shots, projectName, forma
     let stage: LimelightStage | null = null;
     void (async () => {
       const pictures = new Map<string, Blob>();
+      // Each picture's headline, for the templates with captions: what the scene made from them will say.
+      const captions: Array<string | undefined> = [];
       const own = shots.filter((shot) => !shot.sample).slice(0, 6);
       const source = own.length > 0 ? own : shots.slice(0, 3);
       for (const shot of source) {
         const blob = await shotBlob(shot.src);
-        if (blob) pictures.set(`preview_${pictures.size}`, blob);
+        if (!blob) continue;
+        pictures.set(`preview_${pictures.size}`, blob);
+        captions.push(shot.headline);
       }
       if (pictures.size === 0) {
         for (const hue of [212, 160, 330]) pictures.set(`preview_${pictures.size}`, await placeholderPicture(hue));
       }
+      const ids = [...pictures.keys()];
+      const cards = await Promise.all(ids.map((id) => findCardInPicture(pictures.get(id)!)));
+      const iconBlob = captureIcon ? await captureIcon().catch(() => null) : null;
+      if (iconBlob) pictures.set('preview_icon', iconBlob);
       if (cancelled) return;
       try {
         stage = new LimelightStage({ loadMedia: async (id) => pictures.get(id) ?? null });
@@ -96,17 +110,22 @@ export function LimelightGallery({ open, onOpenChange, shots, projectName, forma
         console.warn('Limelight could not draw the template previews', error);
         return;
       }
-      const ids = [...pictures.keys()];
       for (const template of TEMPLATES) {
         // Each still reads its pixels back, which holds the page for a moment
         // on a slow GPU: give clicks a turn between them.
         await new Promise((resolve) => window.setTimeout(resolve, 0));
         if (cancelled || picked.current) break;
-        const scene = buildTemplate(template.id, { format, pictures: ids, title: projectName || 'Your app' });
-        if (!scene) continue;
+        let scene: Awaited<ReturnType<typeof buildTemplate>> = null;
+        try {
+          // A template in a file of its own comes in now, with the gallery.
+          scene = await buildTemplate(template.id, { format, pictures: ids, title: projectName || 'Your app', captions, accent, font, icon: iconBlob ? 'preview_icon' : undefined, cards });
+        } catch (error) {
+          console.warn('Limelight could not load a template', template.id, error);
+        }
+        if (!scene || cancelled || picked.current) continue;
         stage.setScene(scene);
         try {
-          const blob = await stage.renderStill({ width: Math.round(PREVIEW_HEIGHT * aspect), height: PREVIEW_HEIGHT, time: scene.format.duration * 0.32, type: 'image/jpeg' });
+          const blob = await stage.renderStill({ width: Math.round(PREVIEW_HEIGHT * aspect), height: PREVIEW_HEIGHT, time: scene.format.duration * (template.poster ?? 0.32), type: 'image/jpeg' });
           if (cancelled) break;
           const url = URL.createObjectURL(blob);
           urls.current.push(url);
@@ -122,7 +141,7 @@ export function LimelightGallery({ open, onOpenChange, shots, projectName, forma
       cancelled = true;
       stage?.dispose();
     };
-  }, [aspect, format, open, projectName, shots]);
+  }, [accent, aspect, captureIcon, font, format, open, projectName, shots]);
 
   // The previews were made for this project's pictures: let them go with the gallery.
   useEffect(() => {

@@ -9,6 +9,7 @@ import { actorAt, cameraAt } from './animate';
 import { DISTANCE_MAX, DISTANCE_MIN, cameraPose, distanceToFrame, nearestAngle } from './camera';
 import { DURATION_MAX, DURATION_MIN, MAX_ACTORS, MAX_DEVICES, MAX_KEYS, MAX_SCREENS, deviceHeight, newId, normalizeFormat } from './scene';
 import { hullPoints } from '@/lib/device3dGeometry';
+import { CAP_SHARE, faceReady, measureLineWidth, tableLineWidth } from './fonts';
 import { stageModelFor } from './models';
 import type {
   ActorMotion,
@@ -20,8 +21,10 @@ import type {
   LimelightEase,
   LimelightFormat,
   LimelightLook,
+  LimelightMusic,
   LimelightScene,
   ScreenChange,
+  PictureActor,
   TextActor,
   Turn,
   XYZ,
@@ -132,8 +135,10 @@ export function removeActor(scene: LimelightScene, actorId: string): LimelightSc
   return touch(scene, { actors: scene.actors.filter((actor) => actor.id !== actorId) });
 }
 
-/** Fields of a device or a title; each actor takes the ones it has. */
-type ActorPatch = Partial<Omit<DeviceActor, 'id' | 'kind' | 'poses' | 'screens'>> & Partial<Omit<TextActor, 'id' | 'kind' | 'poses'>>;
+/** Fields of a device, a title or a picture card; each actor takes the ones it has. */
+type ActorPatch = Partial<Omit<DeviceActor, 'id' | 'kind' | 'poses' | 'screens'>> &
+  Partial<Omit<TextActor, 'id' | 'kind' | 'poses'>> &
+  Partial<Omit<PictureActor, 'id' | 'kind' | 'poses' | 'media'>>;
 
 export function updateActor(scene: LimelightScene, actorId: string, patch: ActorPatch): LimelightScene {
   return touch(scene, {
@@ -263,6 +268,13 @@ export function setLook(scene: LimelightScene, patch: Partial<LimelightLook>): L
   return touch(scene, { look: { ...scene.look, ...patch } });
 }
 
+/** Sets the scene's music; undefined takes it away. */
+export function setMusic(scene: LimelightScene, music: LimelightMusic | undefined): LimelightScene {
+  const next = touch(scene, { music });
+  if (!music) delete next.music;
+  return next;
+}
+
 export function rename(scene: LimelightScene, name: string): LimelightScene {
   return touch(scene, { name: name.trim().slice(0, 80) || 'Untitled scene' });
 }
@@ -286,7 +298,11 @@ export function retimeScene(scene: LimelightScene, factor: number): LimelightSce
     camera: { ...scene.camera, shots: scene.camera.shots.map((shot) => ({ ...shot, time: shot.time * k })) },
     actors: scene.actors.map((actor) => {
       const poses = actor.poses.map((pose) => ({ ...pose, time: pose.time * k }));
-      if (actor.kind !== 'device') return { ...actor, poses };
+      if (actor.kind === 'picture') return actor.shine === undefined ? { ...actor, poses } : { ...actor, poses, shine: actor.shine * k };
+      if (actor.kind !== 'device') {
+        // Words that come in keep their place in the video: they start and take longer in step with it.
+        return actor.reveal ? { ...actor, poses, reveal: { ...actor.reveal, time: actor.reveal.time * k, duration: actor.reveal.duration * k } } : { ...actor, poses };
+      }
       return { ...actor, poses, screens: actor.screens.map((screen) => ({ ...screen, time: screen.time * k })) };
     }),
   };
@@ -304,7 +320,8 @@ export function cameraOnActor(scene: LimelightScene, actorId: string, time: numb
   const actor = scene.actors.find((a) => a.id === actorId);
   if (!actor) return camera;
   const frame = actorAt(actor, time);
-  const height = actor.kind === 'device' ? deviceHeight(actor.device) * frame.scale : Math.max(2, actor.size * 3);
+  const height =
+    actor.kind === 'device' ? deviceHeight(actor.device) * frame.scale : actor.kind === 'picture' ? Math.max(actor.height, actor.width * 0.75) * frame.scale : Math.max(2, actor.size * 3);
   const aspect = scene.format.width / scene.format.height;
   return { ...camera, target: { ...frame.position }, distance: distanceToFrame(height, 0.66, camera.lens, aspect), focus: 0 };
 }
@@ -336,6 +353,47 @@ export function turnPoint(p: XYZ, turn: Turn): XYZ {
 }
 
 /**
+ * How much room a title's words take, in centimetres: `size` is a capital's
+ * height, and a line is 1.2 times the font tall (a capital is 0.7 of the
+ * font). Each line is measured on a canvas in the title's own face
+ * (fonts.ts); once that face has loaded the measure is exact, and before
+ * it has, the measure is taken at least as wide as the letters' table, so a
+ * wide face isn't framed as the narrower fallback. With no canvas (Node) it
+ * is the table. An average letter width framed "WWW" at little more than
+ * half its width and cut both ends off.
+ */
+export function titleBox(text: string, size: number, weight: number, font = ''): { width: number; height: number } {
+  const lines = text.split('\n');
+  const widest = Math.max(
+    0,
+    ...lines.map((line) => {
+      const table = tableLineWidth(line);
+      const face = { weight, font, text: line };
+      const measured = font ? measureLineWidth(line, face) : null;
+      if (measured === null) return table;
+      // Ready for this line's own letters: a face loaded for Latin may not have its Japanese yet.
+      return faceReady(face) ? measured : Math.max(measured, table);
+    })
+  );
+  return { width: widest * size, height: (lines.length * size * 1.2) / CAP_SHARE };
+}
+
+/**
+ * Where a title's highlight starts on each line, as an index into the line:
+ * the last `count` words of the whole title are highlighted, counted back
+ * across lines. A line with none of them gets its own length.
+ */
+export function highlightStarts(lines: string[], count: number): number[] {
+  const starts = lines.map((line) => line.length);
+  let left = Math.max(0, Math.floor(count));
+  for (let i = lines.length - 1; i >= 0 && left > 0; i--) {
+    const spans = Array.from(lines[i].matchAll(/\S+/g), (match) => match.index ?? 0);
+    for (let j = spans.length - 1; j >= 0 && left > 0; j--, left--) starts[i] = spans[j];
+  }
+  return starts;
+}
+
+/**
  * Points on the outside of every visible actor at `time`, in centimetres on
  * the stage: a device's measured hull (device3dGeometry's, which follows a
  * foldable's posture), a title's box.
@@ -352,12 +410,12 @@ export function stagePoints(scene: LimelightScene, time: number): XYZ[] {
       if (!model) continue;
       const posture = model.fold ? { opening: actor.fold ?? model.fold.opening, across: false } : undefined;
       local = hullPoints(model, posture).map(([x, y, z]) => ({ x: x / 10, y: y / 10, z: z / 10 }));
+    } else if (actor.kind === 'picture') {
+      const { width, height, depth } = actor;
+      local = [-1, 1].flatMap((sx) => [-1, 1].flatMap((sy) => [-1, 1].map((sz) => ({ x: (sx * width) / 2, y: (sy * height) / 2, z: (sz * depth) / 2 }))));
     } else {
-      // A capital is `size` tall; letters average a little over half that wide.
-      const lines = actor.text.split('\n');
-      const w = (Math.max(1, ...lines.map((line) => line.length)) * actor.size * 0.62) / 2;
-      const h = (lines.length * actor.size * 1.7) / 2;
-      local = [-1, 1].flatMap((sx) => [-1, 1].map((sy) => ({ x: sx * w, y: sy * h, z: 0 })));
+      const box = titleBox(actor.text, actor.size, actor.weight, actor.font);
+      local = [-1, 1].flatMap((sx) => [-1, 1].map((sy) => ({ x: (sx * box.width) / 2, y: (sy * box.height) / 2, z: 0 })));
     }
     for (const p of local) {
       const q = turnPoint({ x: p.x * frame.scale, y: p.y * frame.scale, z: p.z * frame.scale }, frame.turn);

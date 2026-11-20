@@ -17,6 +17,8 @@ Limelight is the activity bar's view for filming the user's app on real 3D phone
 | 5 | Video: MP4 export at App Store sizes, then every language, recordings and video on the screens, music and beats | Export done 2026-11-20; the rest next |
 | Audit | An outside audit's findings: black frames with the effects off, more than 12 pictures, undo after a delete, the sound track, agent edits during an export, device sizes, Drive's uploads and opening | Fixed 2026-11-20, each with a test that fails on the old code (see the audit section) |
 | Audit 2 | The same reviewer on the fixes: an undo back past a save to Drive, an agent's edit while the export gets ready, eight phones changing picture at once, a hidden Range looping an upload, the session start not retried, a stage made again mid-play | Fixed 2026-11-20, each with a test that fails on the old code (see the second audit section) |
+| Intro | The App intro template in its first tone, titles whose words come in one after another, and Limelight holding GPU memory only while it is on screen | Done 2026-11-20, not committed (see "The App intro") |
+| Intro 2 | The App intro made again after the user found it plain: the name huge with the phone sweeping up, cards lifting off the screens, three phones, the icon as a tile, the glow backdrop, highlighted words, and music made for the scene | Done 2026-11-20, not committed (see "The App intro, second design") |
 
 ## The competitor, and where Limelight stands
 
@@ -115,7 +117,7 @@ Gestures: drag swings the camera, Shift or right drag slides it, the wheel or a 
 
 ## Polish list (any time)
 
-- Titles: a word by word reveal, a card behind the words.
+- Titles: a card behind the words. (The word by word reveal is done, with the App intro.)
 - A model change that alters the size a lot offers Fit in a toast; adding a device does too. Shots could keep the subject framed through a model change instead.
 - Shots as small cameras that can be dragged in the director's view.
 - With software WebGL, a thin dark streak shows at one phone's edge in Flyover: the 3D Studio's shared device model shades to NaN there (the post pass now keeps it from spreading). Look at the model's normals.
@@ -223,11 +225,145 @@ The same reviewer checked the first round's fixes, reran the tests and the mutat
 - SmoothCapture's iOS app, read 2026-11-20 from its App Store listing (through Apple's search API, version 1.0) and its iOS terms page.
 - Not checked: a real Google account (whether Google lets a page read the Range header of a 308 is still unknown, so how often the hidden-Range path runs is unknown too), App Store Connect taking a file with the silent track, the editor's own export using it, the real Mac app (WKWebView inside Tauri), Windows and Linux, Ask AI with a real agent.
 
+## The App intro (2026-11-20)
+
+Asked for: an award winning app intro template for this screen, the first tone now and more later, loaded only on this screen and without overloading memory.
+
+### What it is
+
+`app-intro`, first in the gallery: fifteen seconds cut on a beat of 2.4 seconds ([introTemplate.ts](../src/lib/limelight/introTemplate.ts)).
+
+| Time | What happens |
+| --- | --- |
+| 0 to 2.8 s | A dark stage. "Meet" rises in, then the app's name letter by letter, on an 85 mm lens at f/2.8 easing in; the words lift away and fade. |
+| 2.3 to 4.6 s | The phone comes up from below, turning from its back (yaw 200) to face the camera, quick then a long settle, out of focus behind the words until the camera turns to it. Until then it isn't on the stage at all. |
+| 4.6 to 12 s | Three beats. On each a hard cut to a new angle (high, low on a 50 mm, high from the other side), the phone turns on the cut, the screen slides or scrolls to the next screenshot, and that screenshot's headline rises in word by word over the phone (beside it in a wide video), then fades before the next cut. |
+| 12 to 15 s | The phone turns to the front, the screen goes back to the first screenshot (or shows a fourth), and the name comes in again with "Available on the App Store" or "Get it on Google Play" under it, left out at the App Store's own preview sizes. |
+
+What it takes from the project (`TemplateInput`, filled by the gallery, the view and the agents' create tool alike):
+
+- `captions`: each picture's headline, `artboardHeadline` in [projectShots.ts](../src/lib/limelight/projectShots.ts). The biggest text on the artboard with the same-size lines stacked with it (a headline set as several boxes), never the app's own name, text without letters (stars, prices), turned text, or anything over nine words or sixty characters (a review). A picture without one gets no caption rather than filler.
+- `title`: `projectAppName`, the name the App icon studio keeps, or the project's name without the " Copy" the layout gives a template's copy.
+- `accent`: `projectAccent`, the most colourful (by chroma, so royal blue beats the light blue it fades into) of the backgrounds and big shapes, pastels counting by their hue; none for a white or grey project. The tone makes it a dark glow; yellows and yellow greens lean to amber and green, since they go brown and olive near black.
+- `font`: `projectFont`, the family most of the headlines are set in, when it is one the app ships; otherwise the tone's own, Plus Jakarta Sans.
+
+The layout follows the picture's shape: in a tall or square video the words go over the phone and a long name goes on two lines (`balanceLines`: as few even lines as fit); in a wide one they go beside it, left aligned. How many letters fill a line grows with the width (8, 10, 14), so the title card is about as far away as the phone's first shot and the camera moves in to the phone rather than out past it. Every shot is framed with `cameraToFitPoints` on the actors that part shows, at a moment they show it.
+
+A tone (`IntroTone`) is the look: the environment, the backdrop made from the accent, the light, vignette, grain, shake, the fallback font and the words' colours. `CINEMATIC` is the first; a second tone is a second `IntroTone` and a template entry that builds with it.
+
+### Titles that come in
+
+`TextActor.reveal` ([types.ts](../src/lib/limelight/types.ts)): `style` rise, fade or pop, `by` word or letter, `time` and `duration`. `revealProgress` staggers the words so they overlap and the last lands at `time + duration`; `revealLook` turns progress into opacity, a drop below the line, a mask and a scale. Rise is cut at its line's bottom, so a word comes up from behind it. A longer video stretches a reveal with its keys. The inspector has **Words come in** (At once, Rise, Fade, Pop; Word by word, Letter by letter; Starts at; Takes), and add_limelight_actor and update_limelight_actor take `reveal`.
+
+The stage draws a title once on a canvas and shows it as a quad per word or letter over that one texture ([actors.ts](../src/lib/limelight/stage/actors.ts) `TextView`), so a reveal moves corners and sends no pixels. Letters are graphemes (`Intl.Segmenter`); more than 64 parts come in as one.
+
+### Loaded only here, and light
+
+- The intro's builder is in its own file that `templates.ts` brings in with `import()`; the list the editor carries holds only its name and card. `buildTemplate` is async. Nothing else in src/ imports the file.
+- A title's canvas is drawn at the smallest capital height that is sharp at the size it shows (32 to 160 pixels; it was always 160, sharp at 4K), and the canvas's own copy is let go once the texture is on the GPU. A two line caption at 64 pixels instead of 160 is about a sixth of the pixels.
+- The viewport lets its stage go five seconds after Limelight goes behind another view and makes a new one when it comes back, never mid export: the WebGL context and every texture and render target go with it (the post pass alone allocates 60 bytes a pixel of the canvas).
+- One phone, not three: the intro shows four screens on one device.
+
+### Fixed on the way
+
+- Titles were drawn in the font "Inter", which the app doesn't ship, so they came out in the browser's default face, a serif one on a Mac; a family the page never loaded now falls back to sans-serif.
+- The size `titleBox` gives a title for framing was 0.62 of a capital per letter; measured in Chrome on six of the app's faces at four weights the averages run 0.68 to 0.81, so Fit cut a bold title's ends off. It is now 0.84 bold, 0.8 medium, 0.78 regular.
+- With no scene open, the gallery was given a new size object on every render and started its previews again each time ("The stage was closed" in the console).
+- A title fading now keeps writing its depth (before, it took the backdrop's depth while it faded, so depth of field blurred it like the backdrop).
+- A blank project's name, "Untitled Project", no longer becomes the app's name in a template; the template's stand-in ("Your app") shows instead.
+- A title picked before its words come in showed a dot for its outline; each word now has its place from the start and is only hidden.
+- A title drawn again at another size kept its old texture. three.js gives a texture its storage on the first upload and only copies into it after that, so a bigger canvas was `GL_INVALID_VALUE: glTexSubImage2D: Offset overflows texture dimensions` and the words stayed as they were. Before this work that happened whenever a title's words got longer; with titles drawn at the size they show it happened whenever the camera came closer or a picture or video was made bigger. Each size of canvas now gets its own texture, as the screens already did.
+
+### What was checked
+
+- `npm run test:unit`: 935 of 935. The 14 new ones are in [limelight-intro.test.ts](../tests/unit/limelight-intro.test.ts): the reveal's timing and looks, reading a reveal back and stretching it, every part of the intro framed and filling at least 60% of the picture at all eight sizes, captions per picture, the store line, the colour, the font, two line names, balanced captions, `titleBox` against the measured widths, headlines from made-up boards and from the Budgetly, Paylark and Coinly templates, the project's colour and name, and that nothing in src/ imports introTemplate.ts statically.
+- Mutations, each fix taken out in turn: 12 of 12 caught by the unit tests (the " Copy" left on, the phone under the title card, captions on the most lines, the colour by saturation, 0.62 a letter, the app's name taken for a headline, reveals not stretched, the last word a rounding error short, a reveal dropped when read back, stacked lines not joined, a long name on one line, the store line in a store preview) and 5 of 5 by the e2e test (the stage never let go, the intro imported statically, every word there from the start, no captions from the project, one texture whatever the canvas size).
+- [limelight.spec.ts](../tests/e2e/specs/limelight.spec.ts), the new test: Budgetly Finance's template project; no request for the intro's file until the gallery opens, then one; the intro's preview; the titles on the timeline; "Budgetly / Finance" and "Manage budget / without stress" in the inspector, coming in by Rise, word by word; nothing light on the stage at 0.1 s, part of the name at 0.8 s, all of it at 1.6 s; Save picture at 886 x 1920 with the name in it and no WebGL error; no canvas five seconds after going to the editor, and the title card back on a new stage after coming back.
+- The whole spec on `web` (Chromium): 11 passed, 3 skipped (the exports: no H.264 in Playwright's Chromium), exit 0, 11.0 min; then, after two changes to the spec's helpers and the new test's card click, the new test 3 times in a row, 3 passed. On `desktop` (WebKit, as the Mac app) with the final code: 13 passed, 1 skipped (Drive answers the web build only), exit 0, 4.5 min, WebKit at 1,536 MB at most.
+- Looked at, frame by frame, in Chrome on the GPU: Budgetly in tall, wide and square and Coinly in tall, at the moments of every cut and transition. What looking found and changed: the phone showing as a dark blur under the title card, long names making the title card and the close small, captions blurred at f/4 in the high shot, a backdrop as bright as a green screen (the radial backdrop reaches its edge colour only past a tall frame's top), the camera moving out past the phone in a wide video, three line captions where two fit, and " Copy" in the name.
+- The intro exported in Chrome on the GPU: an 11 MB MP4, 886 x 1920, 15.000 s, made in 16.1 s, no console errors; thirteen frames read back from the file show every part in order.
+- `npm run typecheck`: 133 errors, all in `promo/` and `promo-i18n/`. `node cli/scripts/build.mjs`: 79 tools, `reveal` on add_limelight_actor. The skill file passes what `built_in_skills_stay_plain` checks (frontmatter, no shell lines, no CR), read by eye; the Rust tests weren't built.
+- A trap on the way: after an e2e mutation, `next dev` kept compiling the mutated title code although the file was put back, and a full run then failed on the fixed bug. The server was restarted with `.next/cache/webpack` cleared, the compiled chunk was checked for the fix, and every run above after that is on that server.
+- Not checked: the real Mac app (WKWebView inside Tauri), Windows and Linux, Ask AI asking for an intro, App Store Connect taking an intro, a project in a right-to-left language (by the code, a line's words come in from its left end, which there is the last word, not the first).
+
+### The audit of the App intro, and what changed
+
+The same outside reviewer checked the intro: they confirmed the unit tests (935), the 12 unit mutations, the new e2e test on both engines, and played and exported the intro in the real Mac app (450 H.264 frames, 886 x 1920, exactly 15 s, AAC decoding to silence). Five findings, all real:
+
+| Finding | Why it happened | Fix | Test |
+| --- | --- | --- | --- |
+| A name of wide letters ran off both sides: "WWW" lost both ends at 1.6 s | Framing used one average letter width (0.84 of a capital) for every letter; W is up to 1.54 | `titleBox` measures each line on a canvas in the title's own face (advance or ink, whichever is wider, [fonts.ts](../src/lib/limelight/fonts.ts) `measureLineWidth`); with no canvas (Node), or before the face has loaded, a table of every ASCII letter's widest width in eight of the app's faces stands in. The intro sizes its name by that measure too | unit: "WWW" is 4.62 capitals and "iii" 1.35, and three wide names stay inside the title card and the close at every size; e2e: an intro for a project called WWW, as the agent's picture at 1.6 s, the name clear of both edges and wider than 40 of 96 columns |
+| The first picture of a title in a face nobody had used yet was in the fallback, the next in the face | `renderPixels` waited on `document.fonts.ready`, which only waits for loads already started, and a title asks for its face when it is first drawn: for a new stage, that same frame | `renderPixels` loads its titles' faces first (`loadTitleFaces`, waiting at most 4 s for each face once per page, so a face that never comes doesn't hold every frame of a video); a title's drawing also notes whether its face had loaded, and draws again once it has; the intro loads its faces before it frames anything | e2e: a Bungee title (served 1.5 s late, 40% wider than the fallback) rendered twice through render_limelight_frame: the two pictures differ in fewer than 10 of 9,216 sampled pixels (400 without the fix) |
+| "Carbon Copy" became "Carbon" | The " Copy" the layout adds to a template's copy was taken off any name | The layout lends Limelight the start dialog's template names (`templateNames` in `readProjectForCompliance`), and only "<template name> Copy" loses the word | unit: Budgetly Finance Copy, Carbon Copy, Copy, a name with Copy 2, and no template list; e2e: the Budgetly test's intro is titled "Budgetly / Finance", which only the layout's list makes so |
+| "Plan" wasn't a headline for an app called Planner, and the small "SMART FINANCE" badge became the caption | A text inside the app's name counted as its logo | Only the whole name, or one whole word of it standing alone, is the logo (`headlineTexts`) | unit: the audit's Plan and Planner, the name alone, one word of a longer name, a headline holding a word of it |
+| A see-through Poppins headline and a see-through red shape chose the intro's font and glow | Only the headline picker looked at opacity | Both the font and the colour go by what a person sees: the font by the headline's own text, the colour by shapes at 5% opacity or more, weighed by their opacity; a background under a picture counts for a quarter | unit: the audit's board (Outfit, no colour), a faint pure red against a solid blue, a 3% red alone on white, and the logo not choosing the font |
+
+Checked after:
+
+- `npm run test:unit`: 939 of 939 (4 new, one rewritten). `npm run typecheck`: 133, all in `promo/` and `promo-i18n/`.
+- `tests/e2e/specs/limelight.spec.ts` with the new test: `web` (Chromium) 12 passed, 3 skipped (the exports), exit 0, 10.8 min; `desktop` (WebKit) 14 passed, 1 skipped (Drive), exit 0, 4.7 min, WebKit at 1,747 MB at most.
+
+### The second audit of the App intro, and what changed
+
+The reviewer confirmed the five fixes (in the real Mac app, "WWW" fits and the first and second Bungee pictures match) and found four gaps beside them:
+
+| Finding | Why it happened | Fix | Test |
+| --- | --- | --- | --- |
+| A stalled font download held a frame for 42.9 s, stills and video alike | After the 4 s wait for the titles' faces, `renderPixels` still waited on `document.fonts.ready`, which has no limit | `fonts.ready` isn't waited on at all; `loadTitleFaces` is the only wait, 4 s once per face and letters per page | unit: a font set that never loads: the first wait ends at its limit, the next is skipped, new letters get their own; e2e: a Bungee download held for the whole test, and two agent pictures both drawn (with the old wait: "still waiting" at 20 s) |
+| A Japanese title's first frame drew its kanji in the fallback while the face's Latin piece was already in | `document.fonts.load` and `check` were asked without text, which means a space: a face split by unicode-range (Noto Sans JP) loaded only the piece for a space | A face is loaded and checked for the letters its titles draw (`TitleFace.text`), in `renderPixels`, a title's own drawing, the framing's measure and the intro's build | unit: asked once, with every letter; e2e: Noto Sans JP served as a Latin piece and a kanji piece 1.5 s late (Arial Unicode, macOS), the Latin piece warmed first: the first and next pictures of 日本語 differ in fewer than 10 of 9,216 sampled pixels (460 without the letters) |
+| A red fill at 3% `fillOpacity` chose red on white; a shape painting a blue gradient chose its old red `fillColor` | The colour read `fillColor` and the layer's opacity only | `shapeFills` reads a shape the way ShapeElement paints it: a valid two-stop gradient instead of `fillColor`, `fillOpacity` in place of a colour's alpha when it is set and isn't 1 (0 paints solid there, so it counts as solid), and an rgba colour's own alpha | unit: the audit's two shapes, an rgba fill at 3%, a half-strength fill, a gradient's two stops |
+| With two texts the same size, the headline above gave the caption and a button below gave the font | The caption took the higher of two equal texts, the font the first stored | One rule for both, `headlineTop`: the biggest, then the higher, then the further left | unit: the audit's board in both orders |
+
+Checked after:
+
+- `npm run test:unit`: 942 of 942. `npm run typecheck`: 133, all in `promo/` and `promo-i18n/`.
+- `tests/e2e/specs/limelight.spec.ts`: `web` (Chromium) 14 passed, 3 skipped (the exports), exit 0, 11.2 min; `desktop` (WebKit) 16 passed, 1 skipped (Drive), exit 0, 5.3 min, WebKit at 1,177 MB at most.
+- Mutations: 6 of 6 caught by the unit tests (a stalled face waited for every frame, a face asked for without letters, fill opacity, gradients and a colour's own alpha ignored, the font picked by size alone) and 2 of 2 by the e2e tests (the unlimited `fonts.ready` back: the first picture "still waiting" at 20 s; letters dropped: 460 pixels apart), each checked in the compiled chunks before and after.
+- A check left out of the e2e test: that the second picture after a stalled download skips the wait. In Playwright's Chromium the two pictures took 7.6 s and 6.7 s: each makes a new stage, drawn on the CPU, whose own time swings by more than the 4 s wait, so the skip is the unit test's to show.
+- Mutations: 7 of 7 caught by the unit tests (the average letter, every Copy, a word inside the name, the see-through text, the see-through shape, the faint shape, the logo's font) and 2 of 2 by the e2e test (stills not waiting for their faces: "Received: 400" pixels apart; the average letter: the name touching the left edge). Each e2e mutation was checked in the compiled chunk on disk before the run and the fix after it (`mutate-served.sh` in the session's scratchpad), since webpack once kept serving a mutation.
+
+## The App intro, second design (2026-11-20)
+
+The user looked at the first design and called it plain, and they were right: frames from it showed one small phone on a dark green backdrop, small white captions, no icon and no sound. Two audit rounds had gone into fonts and colours a viewer never notices. This design is judged by its frames and its exported video first.
+
+### What it is
+
+Fifteen seconds, eight bars at 128 beats a minute (`AT` in introTemplate.ts), every cut on a beat:
+
+- 0 to 1.9 s: the app's name, sized to about twice the phone's width, rises letter by letter; the phone sweeps up from below in front of its foot, in a light finish (`lightFinish`) that stands out on the dark.
+- Three features from 1.9 s, each a new angle cut on the beat with the screen's headline over the phone (its last line, or last word, in a light tint of the app's colour: `TextActor.highlight`). Where `findCard` finds a colourful panel in the screenshot, that panel lifts 2.4 cm off the glass toward the camera and settles back before the screen changes (`cardOnScreen` puts it exactly over that part of the display).
+- 8.9 s: the camera pulls back as two more phones slide in, a fan in a tall video and a row in a wide one.
+- 11.25 s, on a bar: the phones are gone on the cut and the music's hit, and the project's icon (the App icon artboard, captured by the layout's `captureIconForLimelight`) pops in as a glossy tile with a light sweeping across it, the name and the store under it. Without an icon it closes on the phone with the name.
+- The backdrop is the new `glow` style: near black with soft lights of the app's colour, which drift and shift against the camera's angle. The music is `pulse`.
+
+### What the engine gained
+
+- `PictureActor` (kind `picture`): a rounded tile with a picture, its crop, depth, glare and `shine`, in the inspector, the agents' tools (`add_limelight_actor` kind picture, `update_limelight_actor`), Drive and undo (its picture counts in `sceneMediaIds`).
+- `BackdropStyle` `glow`, shown as Lights under Backdrop.
+- `TextActor.highlight`, shown as "Last words in another colour".
+- `LimelightScene.music`: `pulse` or `calm`, made by the app at the video's length, with a cymbal on each camera cut, played in the preview (the sound's clock drives the playhead, with a mute button) and encoded into the export's AAC track; `set_limelight_look` takes `music`.
+
+### What was checked
+
+- Frames on the GPU (Chrome, ANGLE Metal) at the App Store, wide and tall sizes, with and without an icon, and frames read back out of an exported MP4 (886 x 1920, 450 frames, 15.000 s of picture, AAC stereo 48 kHz). The first frames of this design showed a backdrop bright enough to be a green wall, the phone hiding the name's second line, the three phones small in a row, the wide name losing its last letter behind the phone, and a messy exit to the icon; each was changed and looked at again.
+- The music, rendered in headless Chrome and measured with numpy (nobody here can listen to it): peak -1 dBFS, about -17.7 dBFS RMS, energy 14% under 60 Hz, 49% to 250 Hz, 28% to 2 kHz, 9% above, stereo width 0.12; the first mix was 95% bass and was rebalanced. The biggest sample to sample jumps all fall within 4% of a beat, on the drum hits.
+- An exported track ran 15.061 s for 15 s of picture (the encoder's tail); `createAudioTrack` now drops the frames past the picture, which the editor's own export uses too.
+- `npm run test:unit`: 954 of 954, 12 of them new in [limelight-film.test.ts](../tests/unit/limelight-film.test.ts) and the intro's tests rewritten for the new timeline. Mutations: 23 of 23 caught (two only after their tests were changed so that the guard alone decided: a chart beating a list by colour rather than size, and a photo with plain stripes).
+- `tests/e2e/specs/limelight.spec.ts`, with a new test that exports a scene with music: `web` (Chromium) 14 passed, 4 skipped (the exports, which skip in that browser as they did before), exit 0, 15.4 min; `desktop` (WebKit) 17 passed, 1 skipped (Drive), exit 0, 8.5 min, WebKit at 1,142 MB at most. E2E mutations, each checked in the compiled chunk before and after: the music left out of the export (the test read a peak of 0 where it wants over 0.2) and the captions in early (1,274 light pixels over the phone where it allows 2), both caught.
+- The final export: 450 frames, 15.000 s of picture and 14.997 s of sound, AAC stereo 48 kHz, made in 19.5 s in Chrome with no console errors.
+- `npm run typecheck`: 133, all in `promo/` and `promo-i18n/`. The copy checker: nothing to fix. The CLI build: 79 tools.
+- A scene kept as the user's own template drops the cards cut from its old screenshots when new pictures go in (they would show the old screen's part), and keeps the icon.
+
+### Not checked
+
+- How the music sounds to a person.
+- The music in the desktop app's own export: Playwright's WebKit reports an AAC encoder, the Mac app's web view was not tried.
+
 ## Next: the rest of step 5
 
 1. Every language: render the scene once per project language with each screen's `ScreenOrigin` resolved to that language's screenshot (`projectArtboards(base, locale)`), one MP4 per language.
 2. Recordings on the screens: a `ScreenChange` with a video media kind, decoded with WebCodecs or a video element per screen and drawn into the screen canvas per frame; media kept in pieces (Blobs fail in Playwright's WebKit), saved to Drive through the resumable upload already there.
-3. Music, with beats the camera's shots can snap to.
+3. More intro tones (a light one), the user's own music file with its beats found, and motion blur in the export.
 4. A README line and a row in its web and desktop table (the user guide is written).
 
 ### For step 3: adding the agent tools

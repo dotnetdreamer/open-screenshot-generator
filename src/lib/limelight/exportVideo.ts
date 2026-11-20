@@ -7,9 +7,10 @@
  * picture the preview shows at that moment. Frames are encoded with
  * WebCodecs' VideoEncoder and muxed by mp4-muxer, the pair the editor's App
  * Preview export uses (src/lib/video/videoExport.ts), with its choice of
- * H.264 profile. Every video gets a silent AAC track, written without an
- * AudioEncoder so no browser leaves it out: App Store Connect turns down a
- * preview without a sound track.
+ * H.264 profile. Every video gets an AAC track: the scene's music when it
+ * has some and the browser has an AAC encoder, otherwise silence written
+ * without an AudioEncoder, so no browser leaves the track out: App Store
+ * Connect turns down a preview without a sound track.
  *
  * The stage holds the scene for the length of the export: the dialog keeps
  * the user's hands off it, but an agent's edit can still arrive, and it
@@ -17,7 +18,7 @@
  */
 
 import { ArrayBufferTarget, Muxer } from 'mp4-muxer';
-import { AUDIO_CHANNELS, AUDIO_SAMPLE_RATE, pickEncoderConfig, silentAudioTrack, storeCodecCandidatesFor } from '@/lib/video/videoExport';
+import { AUDIO_CHANNELS, AUDIO_SAMPLE_RATE, createAudioTrack, pickEncoderConfig, silentAudioTrack, storeCodecCandidatesFor, type AudioTrack } from '@/lib/video/videoExport';
 import { formatPresetById } from './presets';
 import type { LimelightStage } from './stage/stage';
 import type { LimelightScene } from './types';
@@ -52,6 +53,32 @@ export function frameCount(duration: number, fps: number): number {
   return Math.max(1, Math.round(duration * fps));
 }
 
+/**
+ * The scene's music as an AAC track `seconds` long, at its volume, or null
+ * when it has none or this browser can't encode AAC. Whole AAC frames only,
+ * so the sound never runs past the picture.
+ */
+async function musicTrack(scene: LimelightScene, seconds: number): Promise<AudioTrack | null> {
+  if (!scene.music) return null;
+  try {
+    const { renderSceneMusic } = await import('./musicRender');
+    const music = await renderSceneMusic(scene, AUDIO_SAMPLE_RATE);
+    if (!music) return null;
+    const whole = (Math.floor((seconds * AUDIO_SAMPLE_RATE) / 1024) * 1024) / AUDIO_SAMPLE_RATE;
+    const volume = scene.music.volume;
+    const mix = Array.from({ length: AUDIO_CHANNELS }, (_, c) => {
+      const channel = music.getChannelData(Math.min(c, music.numberOfChannels - 1));
+      const out = new Float32Array(Math.ceil(whole * AUDIO_SAMPLE_RATE));
+      for (let i = 0; i < out.length && i < channel.length; i++) out[i] = channel[i] * volume;
+      return out;
+    });
+    return await createAudioTrack(whole, mix);
+  } catch (error) {
+    console.warn('Limelight could not add the music to the video', error);
+    return null;
+  }
+}
+
 export async function exportSceneVideo(stage: LimelightStage, scene: LimelightScene, options: VideoExportOptions = {}): Promise<Blob> {
   if (!canExportVideo()) throw new Error("This browser can't make videos. Use the desktop app, Chrome or Edge.");
   const { width, height, fps, duration } = scene.format;
@@ -75,8 +102,8 @@ export async function exportSceneVideo(stage: LimelightStage, scene: LimelightSc
   stage.hold(scene);
   try {
     encoder.configure(config);
-    // A few KB of silence, written up front, out of the frame loop's way.
-    await silentAudioTrack(frames / fps).encodeInto(muxer);
+    // The sound first, out of the frame loop's way.
+    await ((await musicTrack(scene, frames / fps)) ?? silentAudioTrack(frames / fps)).encodeInto(muxer);
     for (let i = 0; i < frames; i++) {
       if (options.signal?.aborted) throw new ExportStopped();
       if (failure) throw failure;

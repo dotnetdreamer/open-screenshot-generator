@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import fs from 'node:fs';
+import path from 'node:path';
 import type { Page } from '@playwright/test';
 import { test, expect } from '../fixtures/test';
 import { Editor } from '../helpers/editor';
@@ -221,8 +222,8 @@ async function headless(page: Page) {
   });
 }
 
-/** The app booted as the CLI drives it, with one artboard whose phone shows the blue picture. */
-async function bootForAgents(page: Page) {
+/** The app booted as the CLI drives it, with one artboard whose phone shows the blue picture, in a project called `name`. */
+async function bootForAgents(page: Page, name = 'Juniper') {
   await headless(page);
   const editor = new Editor(page);
   await editor.goto();
@@ -238,10 +239,99 @@ async function bootForAgents(page: Page) {
     elements: [{ id: 'el_phone', type: 'device', deviceType: 'iphone-17-pro', screenshotSrc: SOLID_URL, position: { x: 100, y: 400 }, size: { width: 1000, height: 2000 }, rotation: 0, scale: 1 }],
   };
   await page.evaluate(
-    (value) => (window as unknown as { __osg: { loadProject: (d: unknown[], n: string, i: string) => Promise<boolean> } }).__osg.loadProject([value], 'Juniper', 'proj_ll'),
-    board
+    ({ value, name }) => (window as unknown as { __osg: { loadProject: (d: unknown[], n: string, i: string) => Promise<boolean> } }).__osg.loadProject([value], name, 'proj_ll'),
+    { value: board, name }
   );
   return agentTools(page);
+}
+
+const NOTO_LATIN = path.resolve('node_modules/next/dist/compiled/@vercel/og/noto-sans-v27-latin-regular.ttf');
+/** A face with kanji, from macOS, for a Japanese piece of a family. */
+const ARIAL_UNICODE = '/System/Library/Fonts/Supplemental/Arial Unicode.ttf';
+
+interface ServedFace {
+  family: string;
+  file: string;
+  /** A unicode-range: the piece of the family this face covers, as Google splits Noto Sans JP. */
+  range?: string;
+  delayMs?: number;
+  /** Sent only once `release` is called: a download that stalls. */
+  hold?: boolean;
+}
+
+/**
+ * Google's fonts as the page asks for them, answered here: each face 40%
+ * wider than the fallback (size-adjust), sent `delayMs` after it is asked
+ * for, as a real face arrives a moment later, or held until `release`.
+ */
+async function serveFaces(page: Page, faces: ServedFace[]): Promise<{ release: () => void }> {
+  let release!: () => void;
+  const released = new Promise<void>((resolve) => (release = resolve));
+  const cors = { 'access-control-allow-origin': '*' };
+  await page.context().route('https://fonts.gstatic.com/**', async (route) => {
+    const face = faces[Number(/face-(\d+)\.ttf/.exec(route.request().url())?.[1] ?? -1)];
+    if (!face) return route.abort();
+    if (face.hold) await released;
+    else await new Promise((resolve) => setTimeout(resolve, face.delayMs ?? 0));
+    await route.fulfill({ status: 200, headers: { ...cors, 'content-type': 'font/ttf' }, body: fs.readFileSync(face.file) }).catch(() => {});
+  });
+  await page.context().route('https://fonts.googleapis.com/**', (route) =>
+    route.fulfill({
+      status: 200,
+      headers: { ...cors, 'content-type': 'text/css' },
+      body: faces
+        .map(
+          (face, i) =>
+            `@font-face { font-family: '${face.family}'; font-style: normal; font-weight: 400; size-adjust: 140%;${face.range ? ` unicode-range: ${face.range};` : ''} src: url(https://fonts.gstatic.com/e2e/face-${i}.ttf) format('truetype'); }`
+        )
+        .join('\n'),
+    })
+  );
+  return { release };
+}
+
+/** True once a face of `family` has loaded, for the piece covering `char` when the family is split by unicode-range. */
+function faceLoaded(page: Page, family: string, char = 'A'): Promise<boolean> {
+  return page.evaluate(
+    ({ family, char }) => {
+      const code = char.codePointAt(0)!;
+      let loaded = false;
+      document.fonts.forEach((face) => {
+        if (face.family.replace(/["']/g, '') !== family || face.status !== 'loaded') return;
+        const covers = face.unicodeRange.split(',').some((part) => {
+          const [from, to] = part.trim().replace(/^U\+/i, '').split('-').map((hex) => parseInt(hex, 16));
+          return code >= from && code <= (to ?? from);
+        });
+        if (covers) loaded = true;
+      });
+      return loaded;
+    },
+    { family, char }
+  );
+}
+
+/** A JPEG an agent was given, as 96 x 96 grey levels, and how far across the light ones reach. */
+async function agentPicture(page: Page, base64: string): Promise<{ grey: number[]; left: number; right: number }> {
+  return page.evaluate(async (data) => {
+    const bytes = Uint8Array.from(atob(data), (c) => c.charCodeAt(0));
+    const bitmap = await createImageBitmap(new Blob([bytes], { type: 'image/jpeg' }));
+    const canvas = document.createElement('canvas');
+    canvas.width = 96;
+    canvas.height = 96;
+    const ctx = canvas.getContext('2d')!;
+    ctx.drawImage(bitmap, 0, 0, 96, 96);
+    const pixels = ctx.getImageData(0, 0, 96, 96).data;
+    const grey: number[] = [];
+    for (let i = 0; i < pixels.length; i += 4) grey.push((pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3);
+    let left = 96;
+    let right = -1;
+    grey.forEach((value, i) => {
+      if (value <= 140) return;
+      left = Math.min(left, i % 96);
+      right = Math.max(right, i % 96);
+    });
+    return { grey, left, right };
+  }, base64);
 }
 
 // ---------------------------------------------------------------------------
@@ -264,40 +354,64 @@ async function shortest(page: Page) {
   await expect(length).toHaveAttribute('aria-valuenow', '2');
 }
 
+/** The desktop app writes a saved file through Tauri's fs plugin: keeps the bytes of the next one written. */
+async function keepNextWrite(page: Page) {
+  await page.evaluate(() => {
+    const desktop = window as unknown as {
+      __TAURI_INTERNALS__: { invoke(command: string, args?: unknown, options?: unknown): Promise<unknown> };
+      __E2E_WRITTEN__?: string;
+      __E2E_KEEPING__?: boolean;
+    };
+    delete desktop.__E2E_WRITTEN__;
+    if (desktop.__E2E_KEEPING__) return;
+    desktop.__E2E_KEEPING__ = true;
+    const invoke = desktop.__TAURI_INTERNALS__.invoke;
+    desktop.__TAURI_INTERNALS__.invoke = (command, args, options) => {
+      if (command === 'plugin:fs|write_file') {
+        const bytes = args instanceof ArrayBuffer
+          ? new Uint8Array(args)
+          : ArrayBuffer.isView(args)
+            ? new Uint8Array(args.buffer, args.byteOffset, args.byteLength)
+            : Uint8Array.from(args as number[]);
+        let binary = '';
+        for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+        desktop.__E2E_WRITTEN__ = btoa(binary);
+      }
+      return invoke(command, args, options);
+    };
+  });
+}
+
+async function nextWrite(page: Page): Promise<Buffer> {
+  const written = await page.waitForFunction(() => (window as unknown as { __E2E_WRITTEN__?: string }).__E2E_WRITTEN__, null, { timeout: 60_000 });
+  return Buffer.from((await written.jsonValue()) as string, 'base64');
+}
+
 /** Presses Export video and gives back the MP4 the app saved; `during` runs while it is made. */
 async function exportMp4(page: Page, isDesktop: boolean, during?: () => Promise<void>): Promise<Buffer> {
   if (isDesktop) {
-    // The desktop app writes the file through Tauri's fs plugin: keep what it is given.
-    await page.evaluate(() => {
-      const desktop = window as unknown as {
-        __TAURI_INTERNALS__: { invoke(command: string, args?: unknown, options?: unknown): Promise<unknown> };
-        __E2E_MP4__?: string;
-      };
-      const invoke = desktop.__TAURI_INTERNALS__.invoke;
-      desktop.__TAURI_INTERNALS__.invoke = (command, args, options) => {
-        if (command === 'plugin:fs|write_file') {
-          const bytes = args instanceof ArrayBuffer
-            ? new Uint8Array(args)
-            : ArrayBuffer.isView(args)
-              ? new Uint8Array(args.buffer, args.byteOffset, args.byteLength)
-              : Uint8Array.from(args as number[]);
-          let binary = '';
-          for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-          desktop.__E2E_MP4__ = btoa(binary);
-        }
-        return invoke(command, args, options);
-      };
-    });
+    await keepNextWrite(page);
     await page.getByRole('button', { name: 'Export video', exact: true }).click();
     if (during) await during();
     await expect(page.getByTestId('limelight-export')).toBeHidden({ timeout: 180_000 });
-    const written = await page.waitForFunction(() => (window as unknown as { __E2E_MP4__?: string }).__E2E_MP4__, null, { timeout: 30_000 });
-    return Buffer.from((await written.jsonValue()) as string, 'base64');
+    return nextWrite(page);
   }
   const download = page.waitForEvent('download', { timeout: 180_000 });
   await page.getByRole('button', { name: 'Export video', exact: true }).click();
   if (during) await during();
   await expect(page.getByTestId('limelight-export')).toBeHidden({ timeout: 180_000 });
+  return fs.readFileSync((await (await download).path())!);
+}
+
+/** Presses Save picture and gives back the PNG the app saved. */
+async function savePicture(page: Page, isDesktop: boolean): Promise<Buffer> {
+  if (isDesktop) {
+    await keepNextWrite(page);
+    await page.getByRole('button', { name: 'Save picture', exact: true }).click();
+    return nextWrite(page);
+  }
+  const download = page.waitForEvent('download', { timeout: 60_000 });
+  await page.getByRole('button', { name: 'Save picture', exact: true }).click();
   return fs.readFileSync((await (await download).path())!);
 }
 
@@ -409,6 +523,38 @@ async function soundOf(page: Page, mp4: Buffer) {
     for (let c = 0; c < buffer.numberOfChannels; c++) for (const v of buffer.getChannelData(c)) peak = Math.max(peak, Math.abs(v));
     return { seconds: buffer.duration, channels: buffer.numberOfChannels, peak };
   }, mp4.toString('base64'));
+}
+
+/** How loud an MP4's sound is over 30 ms from each of these seconds: the root mean square of both channels. */
+async function loudnessAt(page: Page, mp4: Buffer, times: number[]): Promise<number[]> {
+  return page.evaluate(
+    async ([base64, at]) => {
+      const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+      const context = new OfflineAudioContext(2, 48000, 48000);
+      const buffer = await context.decodeAudioData(bytes.buffer);
+      return at.map((t) => {
+        const from = Math.round(t * buffer.sampleRate);
+        const to = Math.min(buffer.length, from + Math.round(0.03 * buffer.sampleRate));
+        let sum = 0;
+        let n = 0;
+        for (let c = 0; c < buffer.numberOfChannels; c++) {
+          const data = buffer.getChannelData(c);
+          for (let i = from; i < to; i++, n++) sum += data[i] * data[i];
+        }
+        return n > 0 ? Math.sqrt(sum / n) : 0;
+      });
+    },
+    [mp4.toString('base64'), times] as const
+  );
+}
+
+/** Whether this browser can encode AAC, which a video's music needs. */
+async function canEncodeAac(page: Page): Promise<boolean> {
+  return page.evaluate(async () => {
+    if (typeof AudioEncoder === 'undefined') return false;
+    const support = await AudioEncoder.isConfigSupported({ codec: 'mp4a.40.2', sampleRate: 48000, numberOfChannels: 2, bitrate: 128_000 }).catch(() => ({ supported: false }));
+    return !!support.supported;
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -580,6 +726,46 @@ test.describe('Limelight', () => {
     expect(sound.channels).toBe(2);
     expect(sound.seconds).toBeGreaterThan(1.9);
     expect(sound.peak).toBe(0);
+  });
+
+  test("a scene's music goes into its video: as long as the picture, loud on the beat, and silence again once it is off", async ({ page, isDesktop }) => {
+    test.setTimeout(300_000);
+    await startScene(page);
+    test.skip(!(await canEncodeH264(page)), 'This browser has no H.264 encoder');
+    test.skip(!(await canEncodeAac(page)), 'This browser has no AAC encoder');
+    // Four seconds: a bar to open on (1.875 s), a bar of drums, and the close.
+    const length = page.getByRole('slider', { name: 'Length' });
+    await length.focus();
+    await length.press('Home');
+    for (let i = 0; i < 4; i++) await length.press('ArrowRight');
+    await expect(length).toHaveAttribute('aria-valuenow', '4');
+    await page.getByRole('radio', { name: 'Pulse', exact: true }).click();
+    await expect(page.getByRole('radio', { name: 'Pulse', exact: true })).toHaveAttribute('aria-checked', 'true');
+    await expect(page.getByRole('button', { name: 'Mute the music', exact: true }), 'the preview can be muted').toBeVisible();
+
+    const mp4 = await exportMp4(page, isDesktop);
+    const { tracks } = mp4Tracks(mp4);
+    expect(tracks.find((track) => track.kind === 'vide')).toMatchObject({ samples: 120 });
+    // Never longer than the picture: no more whole AAC frames than 4 seconds hold.
+    const sound = tracks.find((track) => track.kind === 'soun')!;
+    expect(sound.codec).toBe('mp4a');
+    expect(sound.samples).toBeLessThanOrEqual(Math.floor((4 * 48000) / 1024));
+    expect(sound.samples).toBeGreaterThan(Math.floor((3.8 * 48000) / 1024));
+    expect((await soundOf(page, mp4)).peak, 'the music is in the video').toBeGreaterThan(0.2);
+    // The bar of drums: the kick at each beat is louder than the gap a third of a beat later.
+    const beat = 60 / 128;
+    const beats = [0, 1, 2, 3].map((k) => 1.875 + k * beat);
+    const on = await loudnessAt(page, mp4, beats);
+    const off = await loudnessAt(page, mp4, beats.map((t) => t + beat / 3));
+    const mean = (values: number[]) => values.reduce((a, b) => a + b, 0) / values.length;
+    expect(mean(on), `on the beat ${mean(on).toFixed(3)}, between ${mean(off).toFixed(3)}`).toBeGreaterThan(mean(off) * 1.3);
+
+    // No music: the next video is silent again, its track still there.
+    await page.getByTestId('limelight-inspector').getByRole('radio', { name: 'None', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Mute the music', exact: true })).toHaveCount(0);
+    const quiet = await exportMp4(page, isDesktop);
+    expect(mp4Tracks(quiet).tracks.find((track) => track.kind === 'soun')).toMatchObject({ codec: 'mp4a' });
+    expect((await soundOf(page, quiet)).peak).toBe(0);
   });
 
   test("an agent's change made while a video is made waits for it, so every frame shows the same scene", async ({ page, isDesktop }) => {
@@ -952,8 +1138,8 @@ test.describe('Limelight', () => {
     const view = await openView(page);
     await view.getByRole('button', { name: 'Start a scene', exact: true }).click();
     const gallery = page.getByTestId('limelight-gallery');
-    // Every built-in template draws its preview: ten stills with depth of field, which Chromium here draws on the CPU.
-    await expect(gallery.locator('img')).toHaveCount(10, { timeout: 180_000 });
+    // Every built-in template draws its preview: eleven stills with depth of field, which Chromium here draws on the CPU.
+    await expect(gallery.locator('img')).toHaveCount(11, { timeout: 180_000 });
     await gallery.getByRole('button', { name: /^Side by side:/ }).click();
     await expect(gallery).toBeHidden();
     const timeline = page.getByTestId('limelight-timeline');
@@ -1109,5 +1295,183 @@ test.describe('Limelight', () => {
     await expect(page.getByTestId('limelight-canvas')).toBeVisible({ timeout: 60_000 });
     await expect(shots).toHaveCount(3);
     await expectPictureShows(page, 'after a reload');
+  });
+
+  test("the App intro loads with the gallery and not before, takes the project's headlines, brings its words in one after another, and the stage is let go when Limelight is left", async ({ page, isDesktop }) => {
+    test.setTimeout(400_000);
+    // The intro's own file, requested by the browser: none until Limelight's gallery asks for it.
+    const introRequests: string[] = [];
+    page.on('request', (request) => {
+      if (/introTemplate/.test(request.url())) introRequests.push(request.url());
+    });
+    // WebGL's complaints: a title drawn again bigger once copied itself into the smaller texture it had.
+    const glErrors: string[] = [];
+    page.on('console', (message) => {
+      if (/GL_INVALID|INVALID_VALUE|INVALID_OPERATION/.test(message.text())) glErrors.push(message.text());
+    });
+    const editor = new Editor(page);
+    await editor.goto();
+    // A template project: screenshots with headlines over them.
+    await editor.startDialog.getByRole('tab', { name: /App Screenshots/ }).click();
+    await editor.startDialog.getByAltText('Budgetly Finance', { exact: true }).click();
+    await expect(editor.startDialog).toBeHidden({ timeout: 30_000 });
+    await expect(editor.artboards.first()).toBeVisible({ timeout: 30_000 });
+    const view = await openView(page);
+    expect(introRequests, 'the intro is not loaded with the editor or the Limelight view').toEqual([]);
+
+    await view.getByRole('button', { name: 'Start a scene', exact: true }).click();
+    const gallery = page.getByTestId('limelight-gallery');
+    const card = gallery.getByRole('button', { name: /^App intro: / });
+    await expect(card.locator('img'), 'the intro has its preview').toBeVisible({ timeout: 180_000 });
+    expect(introRequests.length, 'the gallery brought the intro in').toBeGreaterThan(0);
+    // The other previews are still being drawn; with WebGL on a busy CPU, reading one back holds the page for seconds.
+    await card.click({ timeout: 120_000 });
+    await expect(gallery).toBeHidden({ timeout: 60_000 });
+    await expect(page.getByTestId('limelight-canvas')).toBeVisible({ timeout: 60_000 });
+
+    // Its titles and phones, and the first screenshot's headline as the first caption, coming in word by word.
+    const timeline = page.getByTestId('limelight-timeline');
+    for (const row of ['App name', 'Caption 1', 'Left phone', 'Right phone', 'Closing name']) await expect(timeline.getByRole('button', { name: row, exact: true })).toBeVisible();
+    await timeline.getByRole('button', { name: 'App name', exact: true }).click();
+    await expect(page.getByRole('textbox', { name: 'Words' })).toHaveValue('Budgetly\nFinance');
+    await timeline.getByRole('button', { name: 'Caption 1', exact: true }).click();
+    await expect(page.getByRole('textbox', { name: 'Words' })).toHaveValue('Manage budget\nwithout stress');
+    await expect(page.getByRole('radio', { name: 'Rise', exact: true })).toHaveAttribute('aria-checked', 'true');
+    await expect(page.getByRole('radio', { name: 'Word by word', exact: true })).toHaveAttribute('aria-checked', 'true');
+    // Its last line in the app's colour.
+    await expect(page.getByRole('slider', { name: 'Last words in another colour' })).toHaveAttribute('aria-valuenow', '2');
+    // The scene's own music, and the preview's button to mute it.
+    await page.getByRole('button', { name: 'Camera', exact: true }).click();
+    await expect(page.getByRole('radio', { name: 'Pulse', exact: true })).toHaveAttribute('aria-checked', 'true');
+    await expect(page.getByRole('button', { name: 'Mute the music', exact: true })).toBeVisible();
+
+    // Nothing on the dark stage at first; the name and the phone in the first
+    // second. Then the first feature: just after its cut, nothing yet over the
+    // phone, part of its caption 0.2 s on, all of it by 0.9 s. Light pixels in
+    // the top third are the caption's words.
+    const lightAt = async (seconds: number, rows = 96) => {
+      await page.keyboard.press('Home');
+      for (let i = 0; i < Math.floor(seconds); i++) await page.keyboard.press('Shift+ArrowRight');
+      for (let i = 0; i < Math.round((seconds % 1) * 30); i++) await page.keyboard.press('ArrowRight');
+      await expect(page.getByTestId('limelight-clock')).toContainText(`0:0${seconds.toFixed(1)}`);
+      // The finished frame, then a look.
+      await page.waitForTimeout(600);
+      const look = await stageLook(page);
+      return look ? look.slice(0, rows * 96).filter((grey) => grey > 110).length : -1;
+    };
+    expect(await lightAt(0.1), 'nothing light on the stage before the name comes in').toBeLessThanOrEqual(2);
+    expect(await lightAt(1.2), 'the name and the phone are in').toBeGreaterThan(200);
+    const before = await lightAt(1.93, 30);
+    const coming = await lightAt(2.13, 30);
+    const done = await lightAt(2.8, 30);
+    expect(before, 'nothing over the phone just after the cut').toBeLessThanOrEqual(2);
+    expect(done, 'the caption is over the phone').toBeGreaterThan(40);
+    expect(coming, 'part of it is in 0.2 s on').toBeGreaterThan(3);
+    expect(coming, 'but not all of it').toBeLessThan(done * 0.85);
+    // A picture of the video at its own size (886 x 1920) needs the words drawn
+    // again bigger than the stage showed them: the title's canvas grows, and its
+    // texture has to grow with it.
+    const saved = await savePicture(page, isDesktop);
+    expect(saved.subarray(1, 4).toString(), 'a PNG').toBe('PNG');
+    expect(saved.readUInt32BE(16), 'as wide as the video').toBe(886);
+    expect(glErrors, 'WebGL errors').toEqual([]);
+    // The picture shows the caption: its top third has light pixels (the words) on the dark stage.
+    const words = await page.evaluate(async (data) => {
+      const bitmap = await createImageBitmap(new Blob([new Uint8Array(data)], { type: 'image/png' }));
+      const canvas = document.createElement('canvas');
+      canvas.width = 96;
+      canvas.height = 96;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(bitmap, 0, 0, 96, 96);
+      const pixels = ctx.getImageData(0, 0, 96, 30).data;
+      let light = 0;
+      for (let i = 0; i < pixels.length; i += 4) if ((pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3 > 110) light++;
+      return light;
+    }, [...saved]);
+    expect(words, 'the caption in the saved picture').toBeGreaterThan(40);
+
+    // Leaving Limelight lets the stage and its WebGL context go after a few seconds; coming back makes it again.
+    await page.getByRole('navigation', { name: 'Views' }).getByRole('button', { name: 'Editor', exact: true }).click();
+    await expect(page.getByTestId('limelight-view')).toBeHidden();
+    await expect(page.getByTestId('limelight-canvas'), 'the stage is let go').toHaveCount(0, { timeout: 15_000 });
+    await openView(page);
+    await expect(page.getByTestId('limelight-canvas')).toBeVisible({ timeout: 60_000 });
+    await expect.poll(async () => (await stageLook(page))?.filter((grey) => grey > 110).length ?? -1, { message: 'the stage made again shows the phone and its caption', timeout: 30_000 }).toBeGreaterThan(60);
+  });
+
+  test('a name of wide letters stays on the title card, and the first picture of a title in a face nobody has used yet is in that face', async ({ page }) => {
+    test.setTimeout(300_000);
+    // Bungee arrives 1.5 s after it is asked for, wider than the fallback.
+    await serveFaces(page, [{ family: 'Bungee', file: NOTO_LATIN, delayMs: 1500 }]);
+    const { call, frame } = await bootForAgents(page, 'WWW');
+
+    // The audit's name: framed by an average letter, "WWW" ran off both sides of the title card.
+    const intro = await call('create_limelight_scene', { template: 'app-intro', fromProject: true });
+    expect(intro.actors.find((actor: { name: string }) => actor.name === 'App name').text).toBe('WWW');
+    const card = await agentPicture(page, await frame({ sceneId: intro.sceneId, time: 1.4, width: 360 }));
+    expect(card.right, 'the name is on the title card').toBeGreaterThan(card.left);
+    expect(card.left, 'clear of the left edge').toBeGreaterThan(1);
+    expect(card.right, 'clear of the right edge').toBeLessThan(94);
+    expect(card.right - card.left, 'and big').toBeGreaterThan(40);
+
+    // A title in Bungee, which nothing on the page has drawn or measured (a fit
+    // would measure it, and measuring asks for the face): the agent's first
+    // picture of it was in the fallback, the next one in Bungee.
+    const plain = await call('create_limelight_scene', { name: 'A face nobody used' });
+    await call('add_limelight_actor', { sceneId: plain.sceneId, kind: 'title', text: 'WWW', font: 'Bungee', color: '#111111', size: 1.5 });
+    const first = await agentPicture(page, await frame({ sceneId: plain.sceneId, time: 0, width: 360 }));
+    await expect.poll(() => faceLoaded(page, 'Bungee'), { message: 'Bungee came', timeout: 30_000 }).toBe(true);
+    const second = await agentPicture(page, await frame({ sceneId: plain.sceneId, time: 0, width: 360 }));
+    const differing = first.grey.filter((value, i) => Math.abs(value - second.grey[i]) > 24).length;
+    expect(differing, 'pixels that differ between the first picture of the title and the next').toBeLessThan(10);
+  });
+
+  test("a face whose download stalls holds an agent's picture for its few seconds once, not until it comes", async ({ page }) => {
+    test.setTimeout(300_000);
+    const stalled = await serveFaces(page, [{ family: 'Bungee', file: NOTO_LATIN, hold: true }]);
+    try {
+      const { call, frame } = await bootForAgents(page);
+      const scene = await call('create_limelight_scene', { name: 'A face that never comes' });
+      await call('add_limelight_actor', { sceneId: scene.sceneId, kind: 'title', text: 'Stalled', font: 'Bungee', color: '#111111', size: 1.5 });
+      // The audit's case: the frame waited for document.fonts.ready, which waits for a stalled download however long it takes.
+      const timed = async () => {
+        const started = Date.now();
+        const outcome = await Promise.race([frame({ sceneId: scene.sceneId, time: 0, width: 360 }).then(() => 'drawn'), new Promise((resolve) => setTimeout(() => resolve('still waiting'), 20_000))]);
+        return { outcome, seconds: (Date.now() - started) / 1000 };
+      };
+      const first = await timed();
+      expect(first.outcome, `the first picture after ${first.seconds} s`).toBe('drawn');
+      // And the next one. (That it doesn't wait again is the unit test's: here a new stage on the CPU takes seconds either way.)
+      const second = await timed();
+      expect(second.outcome, `the second picture after ${second.seconds} s`).toBe('drawn');
+      expect(await faceLoaded(page, 'Bungee'), 'the face is still on its way').toBe(false);
+    } finally {
+      stalled.release();
+    }
+  });
+
+  test("a Japanese title's first picture is in its face's Japanese letters when only its Latin letters had loaded", async ({ page }) => {
+    test.skip(!fs.existsSync(ARIAL_UNICODE), 'needs a face with kanji to serve: macOS Arial Unicode');
+    test.setTimeout(300_000);
+    // Noto Sans JP split as Google splits it: a Latin piece that comes at once, and a Japanese one 1.5 s late.
+    await serveFaces(page, [
+      { family: 'Noto Sans JP', file: NOTO_LATIN, range: 'U+0000-00FF' },
+      { family: 'Noto Sans JP', file: ARIAL_UNICODE, range: 'U+3000-9FFF', delayMs: 1500 },
+    ]);
+    const { call, frame } = await bootForAgents(page);
+    // A Latin title in it first, so the Latin piece is in.
+    const latin = await call('create_limelight_scene', { name: 'Latin first' });
+    await call('add_limelight_actor', { sceneId: latin.sceneId, kind: 'title', text: 'Hello', font: 'Noto Sans JP', color: '#111111', size: 1.5 });
+    await frame({ sceneId: latin.sceneId, time: 0, width: 360 });
+    expect(await faceLoaded(page, 'Noto Sans JP', 'A'), 'the Latin piece is in').toBe(true);
+    expect(await faceLoaded(page, 'Noto Sans JP', '日'), 'the Japanese piece is not, yet').toBe(false);
+    // The audit's case: loaded for a space, the face counted as in, and the first picture drew 日本語 in the fallback.
+    const japanese = await call('create_limelight_scene', { name: 'Japanese' });
+    await call('add_limelight_actor', { sceneId: japanese.sceneId, kind: 'title', text: '日本語', font: 'Noto Sans JP', color: '#111111', size: 1.5 });
+    const first = await agentPicture(page, await frame({ sceneId: japanese.sceneId, time: 0, width: 360 }));
+    await expect.poll(() => faceLoaded(page, 'Noto Sans JP', '日'), { message: 'the Japanese piece came', timeout: 30_000 }).toBe(true);
+    const second = await agentPicture(page, await frame({ sceneId: japanese.sceneId, time: 0, width: 360 }));
+    const differing = first.grey.filter((value, i) => Math.abs(value - second.grey[i]) > 24).length;
+    expect(differing, 'pixels that differ between the first picture of the Japanese title and the next').toBeLessThan(10);
   });
 });

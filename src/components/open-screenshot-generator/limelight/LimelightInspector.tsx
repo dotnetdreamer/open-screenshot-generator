@@ -36,6 +36,7 @@ import {
   setFormat,
   setLook,
   setMotion,
+  setMusic,
   setPoseAt,
   setScreens,
   setShake,
@@ -54,8 +55,11 @@ import type {
   LimelightActor,
   LimelightEase,
   LimelightScene,
+  PictureActor,
   ScreenTransition,
   TextActor,
+  TextReveal,
+  TextRevealStyle,
 } from '@/lib/limelight/types';
 import { cn } from '@/lib/utils';
 import { Choices, ColorWell, Info, Section, SliderRow, formatSeconds, type ChangePhase } from './controls';
@@ -307,22 +311,58 @@ function SceneInspector(props: InspectorProps) {
           ))}
         </div>
       </Section>
+      <Section title="Music">
+        <Choices
+          value={scene.music?.track ?? 'none'}
+          options={[
+            { value: 'none', label: 'None', hint: 'A silent video' },
+            { value: 'pulse', label: 'Pulse', hint: 'Upbeat, with drums on the beat and a cymbal on every cut' },
+            { value: 'calm', label: 'Calm', hint: 'Slow and warm, with soft drums and a bell' },
+          ]}
+          onChange={(track) => {
+            props.onCommit(setMusic(scene, track === 'none' ? undefined : { track, volume: scene.music?.volume ?? 0.8 }));
+            props.onSeal();
+          }}
+        />
+        {scene.music && (
+          <SliderRow
+            label="Volume"
+            value={scene.music.volume}
+            min={0}
+            max={1}
+            step={0.01}
+            format={(v) => `${Math.round(v * 100)}%`}
+            onChange={(v, phase) => change(setMusic(scene, { ...scene.music!, volume: v }), phase, 'music-volume')}
+          />
+        )}
+        <p className="text-[11px] text-muted-foreground">Made by the app at your video&apos;s length, so its beat lands on your cuts</p>
+      </Section>
       <Section title="Backdrop">
         <Choices
           value={look.backdrop.style}
           options={[
+            { value: 'glow', label: 'Lights', hint: 'Soft lights in one colour that shift as the camera moves' },
             { value: 'radial', label: 'Glow', hint: 'Lighter in the middle' },
             { value: 'linear', label: 'Fade', hint: 'Top colour to bottom colour' },
             { value: 'solid', label: 'Plain', hint: 'One colour' },
           ]}
+          columns={4}
           onChange={(style) => {
             props.onCommit(setLook(scene, { backdrop: { ...look.backdrop, style } }));
             props.onSeal();
           }}
         />
-        <ColorWell label={look.backdrop.style === 'radial' ? 'Middle' : 'Top'} value={look.backdrop.top} onChange={(v, phase) => change(setLook(scene, { backdrop: { ...look.backdrop, top: v } }), phase, 'backdrop-top')} />
+        <ColorWell
+          label={look.backdrop.style === 'glow' ? 'Lights' : look.backdrop.style === 'radial' ? 'Middle' : 'Top'}
+          value={look.backdrop.top}
+          onChange={(v, phase) => change(setLook(scene, { backdrop: { ...look.backdrop, top: v } }), phase, 'backdrop-top')}
+        />
         {look.backdrop.style !== 'solid' && (
-          <ColorWell label={look.backdrop.style === 'radial' ? 'Edges' : 'Bottom'} value={look.backdrop.bottom} onChange={(v, phase) => change(setLook(scene, { backdrop: { ...look.backdrop, bottom: v } }), phase, 'backdrop-bottom')} />
+          <ColorWell
+            label={look.backdrop.style === 'glow' ? 'Behind them' : look.backdrop.style === 'radial' ? 'Edges' : 'Bottom'}
+            value={look.backdrop.bottom}
+            onChange={(v, phase) => change(setLook(scene, { backdrop: { ...look.backdrop, bottom: v } }), phase, 'backdrop-bottom')}
+          />
         )}
       </Section>
       <Section title="Light">
@@ -563,7 +603,7 @@ function ActorHeader(props: InspectorProps & { actor: LimelightActor }) {
   useEffect(() => setName(actor.name), [actor.name]);
   return (
     <Section
-      title={actor.kind === 'device' ? 'Device' : 'Title'}
+      title={actor.kind === 'device' ? 'Device' : actor.kind === 'picture' ? 'Picture' : 'Title'}
       action={
         <div className="flex gap-0.5">
           <Button type="button" size="icon" variant="ghost" className="h-7 w-7" aria-label={actor.hidden ? 'Show' : 'Hide'} title={actor.hidden ? 'Show' : 'Hide'} onClick={() => { props.onCommit(updateActor(scene, actor.id, { hidden: actor.hidden ? undefined : true })); props.onSeal(); }}>
@@ -855,6 +895,24 @@ function TextInspector(props: InspectorProps & { actor: TextActor }) {
         />
         <SliderRow label="Letter height" value={actor.size} min={0.3} max={12} step={0.1} format={(v) => `${v.toFixed(1)} cm`} onChange={(v, phase) => change(updateActor(scene, actor.id, { size: v }), phase, `size:${actor.id}`)} />
         <ColorWell label="Colour" value={actor.color} onChange={(v, phase) => change(updateActor(scene, actor.id, { color: v }), phase, `textcolor:${actor.id}`)} />
+        <SliderRow
+          label="Last words in another colour"
+          value={actor.highlight?.words ?? 0}
+          min={0}
+          max={Math.max(1, Math.min(12, actor.text.split(/\s+/).filter(Boolean).length))}
+          step={1}
+          format={(v) => (v === 0 ? 'None' : `${v}`)}
+          onChange={(v, phase) =>
+            change(updateActor(scene, actor.id, { highlight: v > 0 ? { color: actor.highlight?.color ?? '#7c9cff', words: Math.round(v) } : undefined }), phase, `highlight:${actor.id}`)
+          }
+        />
+        {actor.highlight && (
+          <ColorWell
+            label="Their colour"
+            value={actor.highlight.color}
+            onChange={(v, phase) => change(updateActor(scene, actor.id, { highlight: { words: actor.highlight?.words ?? 1, color: v } }), phase, `highlightcolor:${actor.id}`)}
+          />
+        )}
         <Choices
           value={actor.align}
           options={[
@@ -869,10 +927,124 @@ function TextInspector(props: InspectorProps & { actor: TextActor }) {
           <Switch className="ml-auto" checked={actor.facing === 'camera'} onCheckedChange={(on) => { props.onCommit(updateActor(scene, actor.id, { facing: on ? 'camera' : 'pose' })); props.onSeal(); }} aria-label="Always face the camera" />
         </label>
       </Section>
+      <RevealSection {...props} actor={actor} />
       {props.selection.kind === 'pose' && <PoseSection {...props} actor={actor} poseId={props.selection.id} />}
       <PlaceSection {...props} actor={actor} />
       <MotionSection {...props} actor={actor} />
     </>
+  );
+}
+
+/** A picture standing on its own: the app's icon, or a card lifted off a screen. */
+function PictureInspector(props: InspectorProps & { actor: PictureActor }) {
+  const { scene, actor } = props;
+  const change = useChange(props);
+  const aspect = actor.width / actor.height;
+  return (
+    <>
+      <ActorHeader {...props} actor={actor} />
+      <Section title="Card">
+        <PictureThumb id={actor.media} className="mx-auto h-24 w-auto max-w-full rounded-md border object-contain" />
+        <SliderRow
+          label="Width"
+          value={actor.width}
+          min={1}
+          max={40}
+          step={0.1}
+          format={(v) => `${v.toFixed(1)} cm`}
+          onChange={(v, phase) => change(updateActor(scene, actor.id, { width: v, height: v / aspect }), phase, `card-width:${actor.id}`)}
+        />
+        <SliderRow
+          label="Corners"
+          value={actor.corner}
+          min={0}
+          max={0.5}
+          step={0.005}
+          format={(v) => `${Math.round(v * 200)}%`}
+          onChange={(v, phase) => change(updateActor(scene, actor.id, { corner: v }), phase, `card-corner:${actor.id}`)}
+        />
+        <SliderRow
+          label="Thickness"
+          value={actor.depth}
+          min={0}
+          max={4}
+          step={0.05}
+          format={(v) => (v === 0 ? 'Flat' : `${v.toFixed(2)} cm`)}
+          onChange={(v, phase) => change(updateActor(scene, actor.id, { depth: v }), phase, `card-depth:${actor.id}`)}
+        />
+        <SliderRow
+          label="Shine"
+          value={actor.glare}
+          min={0}
+          max={1}
+          step={0.01}
+          format={(v) => `${Math.round(v * 100)}%`}
+          onChange={(v, phase) => change(updateActor(scene, actor.id, { glare: v }), phase, `card-glare:${actor.id}`)}
+        />
+      </Section>
+      {props.selection.kind === 'pose' && <PoseSection {...props} actor={actor} poseId={props.selection.id} />}
+      <PlaceSection {...props} actor={actor} />
+      <MotionSection {...props} actor={actor} />
+    </>
+  );
+}
+
+/** How a title's words come in: all at once, or one after another from a moment of the video. */
+function RevealSection(props: InspectorProps & { actor: TextActor }) {
+  const { scene, actor } = props;
+  const change = useChange(props);
+  const reveal = actor.reveal;
+  const set = (next: TextReveal | undefined) => {
+    props.onCommit(updateActor(scene, actor.id, { reveal: next }));
+    props.onSeal();
+  };
+  return (
+    <Section title="Words come in" action={<Info text="Rise: each word comes up from behind its line. Fade: each one fades in. Pop: each one grows in. They start at the playhead when you pick one." />}>
+      <Choices<TextRevealStyle | 'none'>
+        value={reveal?.style ?? 'none'}
+        options={[
+          { value: 'none', label: 'At once' },
+          { value: 'rise', label: 'Rise' },
+          { value: 'fade', label: 'Fade' },
+          { value: 'pop', label: 'Pop' },
+        ]}
+        columns={4}
+        onChange={(style) =>
+          set(style === 'none' ? undefined : { style, by: reveal?.by ?? 'word', time: reveal?.time ?? props.time.get(), duration: reveal?.duration ?? 0.8 })
+        }
+      />
+      {reveal && (
+        <>
+          <Choices
+            value={reveal.by}
+            options={[
+              { value: 'word', label: 'Word by word' },
+              { value: 'letter', label: 'Letter by letter' },
+            ]}
+            columns={2}
+            onChange={(by) => set({ ...reveal, by })}
+          />
+          <SliderRow
+            label="Starts at"
+            value={reveal.time}
+            min={0}
+            max={scene.format.duration}
+            step={0.05}
+            format={(v) => formatSeconds(v)}
+            onChange={(v, phase) => change(updateActor(scene, actor.id, { reveal: { ...reveal, time: v } }), phase, `reveal-time:${actor.id}`)}
+          />
+          <SliderRow
+            label="Takes"
+            value={reveal.duration}
+            min={0.1}
+            max={4}
+            step={0.05}
+            format={(v) => `${v.toFixed(1)} s`}
+            onChange={(v, phase) => change(updateActor(scene, actor.id, { reveal: { ...reveal, duration: v } }), phase, `reveal-length:${actor.id}`)}
+          />
+        </>
+      )}
+    </Section>
   );
 }
 
@@ -886,6 +1058,7 @@ export function LimelightInspector(props: InspectorProps) {
     const actor = scene.actors.find((a) => a.id === actorId);
     if (!actor) body = <SceneInspector {...props} />;
     else if (actor.kind === 'device') body = <DeviceInspector {...props} actor={actor} />;
+    else if (actor.kind === 'picture') body = <PictureInspector {...props} actor={actor} />;
     else body = <TextInspector {...props} actor={actor} />;
   }
   return (
