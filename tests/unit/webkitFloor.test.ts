@@ -91,7 +91,7 @@ function bundle() {
     jsx: 'automatic',
     logLevel: 'silent',
     alias: { '@': path.join(repo, 'src') },
-    loader: Object.fromEntries(['.css', '.svg', '.png', '.jpg', '.webp', '.woff2', '.woff', '.ttf', '.wasm', '.glb', '.mp3', '.mp4'].map((ext) => [ext, 'empty'])),
+    loader: Object.fromEntries(['.css', '.svg', '.png', '.jpg', '.webp', '.woff2', '.woff', '.ttf', '.wasm', '.glb', '.mp3', '.mp4'].map((ext) => [ext, 'empty' as const])),
     define: { 'process.env.NODE_ENV': '"production"' },
     external: ['fs', 'path', 'crypto', 'child_process', 'os', 'url', 'stream', 'zlib', 'http', 'https', 'net', 'tls', 'worker_threads'],
   });
