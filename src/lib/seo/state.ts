@@ -49,6 +49,8 @@ export type Job = 'check' | 'plan' | 'google' | 'speed' | 'crux' | 'inspect' | '
 
 export interface JobError {
   siteId: string;
+  /** For a job about one page (URL inspection): that page, so the error shows only beside it. */
+  url?: string;
   message: string;
   /** For a Google API that is turned off: the page that turns it on. */
   activationUrl?: string | null;
@@ -233,16 +235,24 @@ function messageOf(error: unknown): JobError['message'] {
   return 'Something went wrong. Try again';
 }
 
-function jobError(siteId: string, error: unknown): JobError {
+// URL inspection answers 403 both when the key's email isn't a user of the
+// property and when the page isn't part of it ("You do not own this site, or
+// the inspected URL is not part of this property"), such as a www page under
+// a property for the address without www.
+const INSPECT_ACCESS = "Search Console can't look up this page. It may be outside the property you picked under Setup, or the key's email isn't a user of that property yet";
+
+function jobError(siteId: string, error: unknown, job?: Job): JobError {
   if (error instanceof GoogleApiOffError) return { siteId, message: error.message, activationUrl: error.activationUrl, kind: 'api-off' };
-  if (error instanceof GoogleAccessError) return { siteId, message: "The key's email doesn't have access to this property yet. Add it as a user in Search Console or Analytics, then try again", kind: 'access' };
+  if (error instanceof GoogleAccessError) {
+    return { siteId, message: job === 'inspect' ? INSPECT_ACCESS : "The key's email doesn't have access to this property yet. Add it as a user in Search Console or Analytics, then try again", kind: 'access' };
+  }
   if (error instanceof PageSpeedBusyError) return { siteId, message: error.message, kind: 'busy' };
   return { siteId, message: messageOf(error), kind: 'other' };
 }
 
 const isAbort = (error: unknown) => error instanceof DOMException && error.name === 'AbortError';
 
-async function runJob<T>(job: Job, siteId: string, work: (signal: AbortSignal) => Promise<T>): Promise<T | null> {
+async function runJob<T>(job: Job, siteId: string, work: (signal: AbortSignal) => Promise<T>, url?: string): Promise<T | null> {
   if (state.busy[job]) return null;
   const controller = new AbortController();
   controllers.set(job, controller);
@@ -253,7 +263,7 @@ async function runJob<T>(job: Job, siteId: string, work: (signal: AbortSignal) =
   } catch (error) {
     if (!isAbort(error) && !controller.signal.aborted) {
       console.error(`SEO ${job} failed`, error);
-      setError(job, jobError(siteId, error));
+      setError(job, { ...jobError(siteId, error, job), ...(url ? { url } : {}) });
     }
     return null;
   } finally {
@@ -544,7 +554,7 @@ export function inspectPage(siteId: string, url: string): Promise<Inspection | n
     await writeMeta(`inspect:${siteId}`, inspections);
     setData(siteId, { inspections });
     return result;
-  });
+  }, url);
 }
 
 /** The latest run's score with speed folded in, once PageSpeed has run. */

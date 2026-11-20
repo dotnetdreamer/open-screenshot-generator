@@ -36,6 +36,31 @@ function psi(performance: number, tested: string): string {
   });
 }
 
+const TOKEN: TauriHttpRule = { match: '^POST https://oauth2\\.googleapis\\.com/token$', body: json({ access_token: 'ya29.seo', expires_in: 3600, token_type: 'Bearer' }) };
+
+/**
+ * Google's 403 for an API that's off in the key's project, shaped like its
+ * real answers (apiOff in tests/unit/seo.test.ts has the captured shape); the
+ * old webmasters address adds `errors`.
+ */
+function apiOff(title: string, service: string, legacy = false): Omit<TauriHttpRule, 'match'> {
+  const activationUrl = `https://console.developers.google.com/apis/api/${service}/overview?project=123456789012`;
+  const message = `${title} has not been used in project 123456789012 before or it is disabled. Enable it by visiting ${activationUrl} then retry.`;
+  return {
+    status: 403,
+    headers: { 'content-type': 'application/json' },
+    body: json({
+      error: {
+        code: 403,
+        message,
+        ...(legacy ? { errors: [{ message, domain: 'usageLimits', reason: 'accessNotConfigured', extendedHelp: 'https://console.developers.google.com' }] } : {}),
+        status: 'PERMISSION_DENIED',
+        details: [{ '@type': 'type.googleapis.com/google.rpc.ErrorInfo', reason: 'SERVICE_DISABLED', domain: 'googleapis.com', metadata: { serviceTitle: title, service, activationUrl } }],
+      },
+    }),
+  };
+}
+
 /** One day of Search Console rows, with this many clicks. */
 function searchRows(clicks: number): string {
   return json({ rows: [{ keys: ['2026-11-10'], clicks, impressions: clicks * 10, ctr: 0.1, position: 12.5 }] });
@@ -251,6 +276,73 @@ test.describe('SEO numbers per site, property and project', () => {
     await page.evaluate(() => (window as unknown as { __E2E_TAURI__: { releaseHttp(): number } }).__E2E_TAURI__.releaseHttp());
     await expect(view.getByTestId('seo-search-tiles')).toContainText('7', { timeout: 30_000 });
     await expect(view.getByTestId('seo-search-tiles')).not.toContainText('120');
+  });
+
+  test("Google: a new key whose APIs are off says which one is off, each with a button to Google's page that turns it on", async ({ page, app, isDesktop, tauri }) => {
+    test.skip(!isDesktop, 'Search Console and Analytics are read in the desktop app');
+    await serveFork(page);
+    await seoSettings(page, { key: SEO_KEY });
+    const rules: TauriHttpRule[] = [
+      TOKEN,
+      { match: '^GET https://www\\.googleapis\\.com/webmasters/v3/sites$', ...apiOff('Google Search Console API', 'searchconsole.googleapis.com', true) },
+      { match: '^GET https://analyticsadmin\\.googleapis\\.com/v1beta/accountSummaries', ...apiOff('Google Analytics Admin API', 'analyticsadmin.googleapis.com') },
+    ];
+    await serveSites(page, isDesktop, { [SITE]: sitePages() }, rules);
+    const view = await openSeo(page, app);
+    await checkSite(view);
+    await expect(view.getByTestId('seo-score')).toBeVisible({ timeout: 30_000 });
+
+    // No property can be listed yet: Search says why, under each list, with a way to fix it.
+    await section(view, 'Search').click();
+    await expect(view.getByText("The Google Search Console API is turned off for this key's Google Cloud project")).toBeVisible({ timeout: 30_000 });
+    await expect(view.getByText("The Google Analytics Admin API is turned off for this key's Google Cloud project")).toBeVisible();
+    const turnOn = view.getByRole('button', { name: 'Turn it on in Google Cloud' });
+    await expect(turnOn).toHaveCount(2);
+    await expect(turnOn.nth(0)).toHaveAccessibleDescription(/Search Console API is turned off/);
+    await expect(turnOn.nth(1)).toHaveAccessibleDescription(/Analytics Admin API is turned off/);
+    await turnOn.nth(1).click();
+    await expect.poll(() => tauri.openedUrls()).toEqual(['https://console.developers.google.com/apis/api/analyticsadmin.googleapis.com/overview?project=123456789012']);
+  });
+
+  test("Google: \"Is it on Google?\" says why Search Console wouldn't look a page up, beside that page only", async ({ page, app, isDesktop, tauri }) => {
+    test.skip(!isDesktop, 'Search Console is read in the desktop app');
+    await serveFork(page);
+    await seoSettings(page, { key: SEO_KEY, sites: { [`url:${SITE}/`]: { searchConsole: `${SITE}/` } } });
+    const inspect = '^POST https://searchconsole\\.googleapis\\.com/v1/urlInspection/index:inspect$';
+    // Google's answer when the page isn't part of the property or the key's email isn't a user of it.
+    const refused: TauriHttpRule = {
+      match: inspect,
+      status: 403,
+      headers: { 'content-type': 'application/json' },
+      body: json({ error: { code: 403, message: 'You do not own this site, or the inspected URL is not part of this property.', status: 'PERMISSION_DENIED' } }),
+    };
+    await serveSites(page, isDesktop, { [SITE]: sitePages() }, [TOKEN, refused]);
+    const view = await openSeo(page, app);
+    await checkSite(view);
+    await expect(view.getByTestId('seo-check-now')).toBeVisible({ timeout: 30_000 });
+    // The section's name carries the count of problems ("Site check 1").
+    await view.getByRole('navigation', { name: 'SEO sections' }).getByRole('button', { name: /^Site check/ }).click();
+    await view.getByRole('button', { name: 'By page' }).click();
+    const rows = view.getByTestId('seo-pages').locator(':scope > li');
+    await expect(rows).toHaveCount(2);
+    await rows.nth(0).locator('button[aria-expanded]').click();
+    const ask = view.getByRole('button', { name: 'Is it on Google?' });
+    await ask.click();
+    await expect(view.getByText("Search Console can't look up this page. It may be outside the property you picked under Setup")).toBeVisible({ timeout: 30_000 });
+    await expect(view.getByRole('button', { name: 'Turn it on in Google Cloud' })).toHaveCount(0);
+
+    // The API turned off since: the same place says so, with Google's page that turns it on.
+    await serveSites(page, isDesktop, { [SITE]: sitePages() }, [TOKEN, { match: inspect, ...apiOff('Google Search Console API', 'searchconsole.googleapis.com') }]);
+    await ask.click();
+    await expect(view.getByText("The Google Search Console API is turned off for this key's Google Cloud project")).toBeVisible({ timeout: 30_000 });
+    await expect(view.getByText("Search Console can't look up this page")).toHaveCount(0);
+    await view.getByRole('button', { name: 'Turn it on in Google Cloud' }).click();
+    await expect.poll(() => tauri.openedUrls()).toEqual(['https://console.developers.google.com/apis/api/searchconsole.googleapis.com/overview?project=123456789012']);
+
+    // The other page's details don't show the first page's problem.
+    await rows.nth(1).locator('button[aria-expanded]').click();
+    await expect(ask).toBeVisible();
+    await expect(view.getByText('is turned off for this key')).toHaveCount(0);
   });
 
   test("Google: Search Console's numbers show while Analytics is still on its way", async ({ page, app, isDesktop }) => {

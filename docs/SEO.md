@@ -40,7 +40,7 @@ Every thing the check found, with how urgent it is: **Fix now**, **Important**, 
 
 - For a title or a description, **Write new words** asks the AI for a new title and description for that page, with how many characters each one has.
 - **Ask AI about this** asks the AI how to fix it on your site.
-- **By page** lists every page with its title, description, words and pictures. With Search Console connected, **Is it on Google?** asks Google whether the page is in its search results, and if not, why.
+- **By page** lists every page with its title, description, words and pictures. With Search Console connected, **Is it on Google?** asks Google whether the page is in its search results, and if not, why. If Search Console won't look a page up, the reason shows under that page's button. Usually the page is outside the property you picked (a www address under a property for the address without www), or the key's email isn't a user of the property yet.
 
 ## AI search
 
@@ -68,7 +68,7 @@ Three sections show what Google knows about your site:
 
 Search and Visitors need a Google key and the desktop app. The key is a service account key from Google Cloud. It's free, it only reads, and it stays on your computer. Speed needs a free Google API key instead, and then works in the browser too.
 
-Search and Visitors are read separately, and each shows as soon as it arrives. If Analytics is turned off, your Search numbers still show, and each section says what went wrong with its own. When you pick another property in Setup, its numbers are read straight away, and the old ones never show under the new name.
+Search and Visitors are read separately, and each shows as soon as it arrives. If Analytics is turned off, your Search numbers still show, and each section says what went wrong with its own. When one of Google's APIs is off in the key's project, the message names it, and **Turn it on in Google Cloud** opens Google's page that turns it on. That happens before you've picked a property too, since the lists of properties come from those APIs. When you pick another property in Setup, its numbers are read straight away, and the old ones never show under the new name.
 
 Speed tests a page of the site you have open, and its result stays with that site. PageSpeed says which page it really tested: if your page redirects to another site, or the answer doesn't say which page it tested, the result isn't kept or counted in your score. Chrome counts real visitors for a whole address, so for a site in a folder, like `name.github.io/app/`, the app doesn't show Chrome's site-wide numbers or the six-month history: they'd include the other sites at that address.
 

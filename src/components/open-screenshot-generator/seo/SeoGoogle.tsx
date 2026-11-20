@@ -6,14 +6,14 @@
 // search chart marks Google's confirmed ranking updates, from claude-seo's
 // data/google-updates.json, so a dip next to one reads as what it is.
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useId, useMemo, useState } from 'react';
 import { Area, CartesianGrid, ComposedChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { KeyRoundIcon, Loader2Icon, MousePointerClickIcon, RefreshCwIcon, SparklesIcon, TrendingUpIcon, UsersRoundIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { openExternal } from '@/lib/desktop';
 import { cn } from '@/lib/utils';
-import { closeToPageOne, listAnalyticsProperties, listSearchConsoleSites, propertyFor, type AnalyticsProperty, type SearchConsoleSite, type SearchRow } from '@/lib/seo/google';
+import { GoogleApiOffError, closeToPageOne, listAnalyticsProperties, listSearchConsoleSites, propertyFor, type AnalyticsProperty, type SearchConsoleSite, type SearchRow } from '@/lib/seo/google';
 import { setSiteProperties, useSeoGoogle } from '@/lib/seo/googleSettings';
 import { analyticsOf, googleReason, refreshGoogle, searchOf } from '@/lib/seo/state';
 import { googleUpdates, type GoogleUpdate } from '@/lib/seo/sync';
@@ -60,6 +60,36 @@ function NeedsGoogle({ what }: { what: 'search' | 'visitors' }) {
   );
 }
 
+interface GoogleProblem {
+  message: string;
+  /** Google's page that turns the API on, when the answer was that it's off. */
+  activationUrl?: string | null;
+}
+
+function listProblem(reason: unknown, fallback: string): GoogleProblem {
+  return {
+    message: reason instanceof Error ? reason.message : fallback,
+    activationUrl: reason instanceof GoogleApiOffError ? reason.activationUrl : null,
+  };
+}
+
+/** Why Google couldn't be read, with Google's page that turns its API on when that's why. */
+export function GoogleProblemNote({ problem }: { problem: GoogleProblem }) {
+  const id = useId();
+  return (
+    <div className="space-y-1.5">
+      <p id={id} className="text-xs text-[hsl(var(--rules-critical))]">
+        {problem.message}
+      </p>
+      {problem.activationUrl && (
+        <Button size="sm" variant="outline" className="h-7 text-xs" aria-describedby={id} onClick={() => void openExternal(problem.activationUrl as string)}>
+          Turn it on in Google Cloud
+        </Button>
+      )}
+    </div>
+  );
+}
+
 /** Pick the Search Console and Analytics properties for the site, with the likely one chosen for you. */
 export function PropertyPicker({ compact = false }: { compact?: boolean }) {
   const view = useSeoView();
@@ -67,7 +97,7 @@ export function PropertyPicker({ compact = false }: { compact?: boolean }) {
   const site = view.site;
   const [searchSites, setSearchSites] = useState<SearchConsoleSite[] | null>(null);
   const [analytics, setAnalytics] = useState<AnalyticsProperty[] | null>(null);
-  const [problem, setProblem] = useState<{ search?: string; analytics?: string }>({});
+  const [problem, setProblem] = useState<{ search?: GoogleProblem; analytics?: GoogleProblem }>({});
   const [loading, setLoading] = useState(false);
   const key = google.active;
   const chosen = site ? google.sites[site.id] ?? {} : {};
@@ -82,16 +112,16 @@ export function PropertyPicker({ compact = false }: { compact?: boolean }) {
     if (!key || !site) return;
     setLoading(true);
     const [searchAnswer, analyticsAnswer] = await Promise.allSettled([listSearchConsoleSites(key), listAnalyticsProperties(key)]);
-    const next: { search?: string; analytics?: string } = {};
+    const next: { search?: GoogleProblem; analytics?: GoogleProblem } = {};
     if (searchAnswer.status === 'fulfilled') {
       setSearchSites(searchAnswer.value);
       const likely = site.url ? propertyFor(site.url, searchAnswer.value) : null;
       if (likely && !chosen.searchConsole) setSiteProperties(site.id, { searchConsole: likely });
-    } else next.search = searchAnswer.reason instanceof Error ? searchAnswer.reason.message : 'Search Console did not answer';
+    } else next.search = listProblem(searchAnswer.reason, 'Search Console did not answer');
     if (analyticsAnswer.status === 'fulfilled') {
       setAnalytics(analyticsAnswer.value);
       if (!chosen.analytics && analyticsAnswer.value.length === 1) setSiteProperties(site.id, { analytics: analyticsAnswer.value[0].property, analyticsName: analyticsAnswer.value[0].name });
-    } else next.analytics = analyticsAnswer.reason instanceof Error ? analyticsAnswer.reason.message : 'Analytics did not answer';
+    } else next.analytics = listProblem(analyticsAnswer.reason, 'Analytics did not answer');
     setProblem(next);
     setLoading(false);
   };
@@ -120,7 +150,7 @@ export function PropertyPicker({ compact = false }: { compact?: boolean }) {
             ))}
           </SelectContent>
         </Select>
-        {problem.search && <p className="text-xs text-[hsl(var(--rules-critical))]">{problem.search}</p>}
+        {problem.search && <GoogleProblemNote problem={problem.search} />}
         {searchSites && !searchSites.length && !problem.search && (
           <p className="text-xs text-muted-foreground">Add {key.email} as a user of your site in Search Console, then look again.</p>
         )}
@@ -144,7 +174,7 @@ export function PropertyPicker({ compact = false }: { compact?: boolean }) {
             ))}
           </SelectContent>
         </Select>
-        {problem.analytics && <p className="text-xs text-[hsl(var(--rules-critical))]">{problem.analytics}</p>}
+        {problem.analytics && <GoogleProblemNote problem={problem.analytics} />}
         {analytics && !analytics.length && !problem.analytics && <p className="text-xs text-muted-foreground">Add {key.email} as a Viewer in Analytics, then look again.</p>}
       </div>
       <div className={cn('flex items-center gap-2', !compact && 'sm:col-span-2')}>

@@ -22,6 +22,7 @@ import type { PageReport, SiteFinding } from '@/lib/seo/types';
 import { Gated } from '../growth/GrowthShared';
 import { CopyButton } from '../storeCompliance/StoreComplianceShared';
 import { Card, EmptyState, SEVERITY_STYLE, SeverityBadge, shortAddress, useSeoView } from './SeoShared';
+import { GoogleProblemNote } from './SeoGoogle';
 
 const WORD_FINDINGS = new Set(['missing-title', 'title-too-long', 'title-too-short', 'missing-meta-description', 'meta-description-too-long', 'title-not-reflected-in-content', 'description-not-reflected-in-content', 'duplicate-title', 'duplicate-description', 'templated-metadata']);
 
@@ -390,6 +391,8 @@ function OnGoogle({ url }: { url: string }) {
   const property = google.sites[site.id]?.searchConsole;
   const inspection = view.data.inspections[url];
   const busy = view.state.busy.inspect === site.id;
+  const failed = view.state.errors.inspect;
+  const problem = failed && failed.siteId === site.id && failed.url === url ? failed : null;
   const reason = !view.desktop
     ? 'Needs the desktop app'
     : !google.active
@@ -412,6 +415,11 @@ function OnGoogle({ url }: { url: string }) {
           {coverageWords(inspection)}
           {inspection.lastCrawlTime ? `, last read ${new Date(inspection.lastCrawlTime).toLocaleDateString()}` : ''}
         </span>
+      )}
+      {problem && (
+        <div className="basis-full" role="alert">
+          <GoogleProblemNote problem={problem} />
+        </div>
       )}
     </div>
   );
