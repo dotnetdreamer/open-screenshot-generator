@@ -16,13 +16,13 @@
 // and at the bottom the account and the app's own settings, where VS Code
 // keeps Accounts and Manage. Those are `actions`: buttons with no view. A view
 // can also sit under the actions (`belowActions`): Website, the app's own
-// site, sits under Discover.
+// site, sits under Discover, and SEO under Website.
 
 import React from 'react';
-import { CameraIcon, GlobeIcon, PenToolIcon, ShieldCheckIcon, TrendingUpIcon } from 'lucide-react';
+import { CameraIcon, GlobeIcon, PenToolIcon, SearchCheckIcon, ShieldCheckIcon, TrendingUpIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type ActivityId = 'editor' | 'capture' | 'growth' | 'compliance' | 'website';
+export type ActivityId = 'editor' | 'capture' | 'growth' | 'compliance' | 'website' | 'seo';
 
 export interface Activity {
   id: ActivityId;
@@ -39,6 +39,7 @@ export const ACTIVITIES: Activity[] = [
   { id: 'growth', label: 'Growth: downloads, reviews and your store page', icon: TrendingUpIcon },
   { id: 'compliance', label: 'Store compliance: avoid App Store and Google Play rejections', icon: ShieldCheckIcon },
   { id: 'website', label: "Website: your app's home, support and privacy pages", icon: GlobeIcon, belowActions: true },
+  { id: 'seo', label: "SEO: get your app's website found on Google and in AI answers", icon: SearchCheckIcon, belowActions: true },
 ];
 
 /** A button on the bar that opens something rather than switching the view. */

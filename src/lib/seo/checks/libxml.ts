@@ -1,0 +1,112 @@
+// Copied from github.com/dotnetdreamer/claude-seo osg/checks/libxml.ts at da732e65be7f.
+// Change it there and run npm run sync:seo-checks. Edits here are lost on the next sync.
+
+// libxml2's HTML parser tables, written by osg/tests/make_libxml.py from its
+// HTMLparser.c (the version lxml bundles): do not edit, run the script again.
+
+/** Elements libxml2 closes as soon as they open (html40ElementTable, empty). */
+export const EMPTY_ELEMENTS: ReadonlySet<string> = new Set(['area', 'base', 'basefont', 'br', 'col', 'frame', 'hr', 'img', 'input', 'isindex', 'link', 'meta', 'param']);
+
+/** How libxml2 reads an element's text (html40ElementTable, dataMode). */
+export const DATA_MODES: Readonly<Record<string, 'rcdata' | 'rawtext' | 'plaintext' | 'script'>> = {
+  iframe: 'rawtext',
+  noembed: 'rawtext',
+  noframes: 'rawtext',
+  plaintext: 'plaintext',
+  script: 'script',
+  style: 'rawtext',
+  textarea: 'rcdata',
+  title: 'rcdata',
+  xmp: 'rawtext',
+};
+
+/** For each new element, the open elements it closes first (htmlStartClose, new tag: old tags). */
+export const START_CLOSES: Readonly<Record<string, ReadonlySet<string>>> = {
+  a: new Set(['a', 'head']),
+  abbr: new Set(['head']),
+  acronym: new Set(['head']),
+  address: new Set(['head', 'p', 'ul']),
+  b: new Set(['head']),
+  bdo: new Set(['head']),
+  big: new Set(['head']),
+  blockquote: new Set(['head', 'p']),
+  body: new Set(['head', 'link', 'p', 'style', 'title']),
+  br: new Set(['head']),
+  caption: new Set(['p']),
+  center: new Set(['b', 'font', 'head', 'i', 'p']),
+  cite: new Set(['head']),
+  code: new Set(['head']),
+  col: new Set(['caption', 'col', 'p']),
+  colgroup: new Set(['caption', 'col', 'colgroup', 'p']),
+  dd: new Set(['address', 'dir', 'dt', 'head', 'listing', 'menu', 'p', 'pre', 'xmp']),
+  dfn: new Set(['head']),
+  dir: new Set(['head', 'p']),
+  div: new Set(['head', 'p']),
+  dl: new Set(['address', 'dir', 'dt', 'head', 'listing', 'menu', 'p', 'pre', 'xmp']),
+  dt: new Set(['address', 'dd', 'dir', 'head', 'listing', 'menu', 'p', 'pre', 'xmp']),
+  em: new Set(['head']),
+  fieldset: new Set(['a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'legend', 'listing', 'p', 'pre', 'xmp']),
+  font: new Set(['head']),
+  form: new Set(['address', 'dir', 'dl', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'hr', 'listing', 'menu', 'ol', 'p', 'pre', 'ul', 'xmp']),
+  frameset: new Set(['head', 'link', 'p', 'style', 'title']),
+  h1: new Set(['head', 'p']),
+  h2: new Set(['head', 'p']),
+  h3: new Set(['head', 'p']),
+  h4: new Set(['head', 'p']),
+  h5: new Set(['head', 'p']),
+  h6: new Set(['head', 'p']),
+  head: new Set(['p']),
+  hr: new Set(['head', 'p']),
+  i: new Set(['head']),
+  iframe: new Set(['head']),
+  img: new Set(['head']),
+  kbd: new Set(['head']),
+  li: new Set(['address', 'dl', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'li', 'listing', 'p', 'pre', 'xmp']),
+  listing: new Set(['head', 'p']),
+  map: new Set(['head']),
+  menu: new Set(['head', 'p', 'ul']),
+  noscript: new Set(['script']),
+  ol: new Set(['head', 'p']),
+  optgroup: new Set(['option']),
+  option: new Set(['option']),
+  p: new Set(['b', 'big', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'i', 'p', 's', 'small', 'strike', 'tt', 'u']),
+  pre: new Set(['head', 'p', 'ul']),
+  q: new Set(['head']),
+  s: new Set(['head']),
+  samp: new Set(['head']),
+  small: new Set(['head']),
+  span: new Set(['head']),
+  strike: new Set(['head']),
+  strong: new Set(['head']),
+  sub: new Set(['head']),
+  sup: new Set(['head']),
+  table: new Set(['a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'listing', 'p', 'pre', 'xmp']),
+  tbody: new Set(['caption', 'col', 'colgroup', 'p', 'tbody', 'td', 'tfoot', 'th', 'thead', 'tr']),
+  td: new Set(['a', 'b', 'font', 'i', 'p', 'span', 'td', 'th', 'u']),
+  tfoot: new Set(['caption', 'col', 'colgroup', 'p', 'tbody', 'td', 'th', 'thead', 'tr']),
+  th: new Set(['a', 'b', 'font', 'i', 'p', 'span', 'td', 'th', 'u']),
+  thead: new Set(['caption', 'col', 'colgroup']),
+  title: new Set(['p']),
+  tr: new Set(['caption', 'col', 'colgroup', 'p', 'td', 'th', 'tr']),
+  tt: new Set(['head']),
+  u: new Set(['head']),
+  ul: new Set(['address', 'dir', 'head', 'listing', 'menu', 'p', 'pre', 'xmp']),
+  var: new Set(['head']),
+  xmp: new Set(['head', 'p']),
+};
+
+/** How far an end tag may reach to close what it names (htmlEndPriority). */
+export const END_PRIORITY: Readonly<Record<string, number>> = {
+  div: 150,
+  td: 160,
+  th: 160,
+  tr: 170,
+  thead: 180,
+  tbody: 180,
+  tfoot: 180,
+  table: 190,
+  head: 200,
+  body: 200,
+  html: 220,
+};
+export const DEFAULT_END_PRIORITY = 100;

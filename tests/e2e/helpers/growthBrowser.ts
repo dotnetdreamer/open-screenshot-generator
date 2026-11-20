@@ -58,8 +58,14 @@ export function appStoreKeysPage(key: string): string {
       row.children[0].textContent = document.getElementById('name').value;
       row.children[2].textContent = document.getElementById('access').value;
       document.getElementById('keys').appendChild(row);
-      document.getElementById('download').onclick = () =>
-        parent.__E2E_TAURI__.emitFromBackend('abs-growth-browser', { type: 'key-file', kind: 'apple-key', fileName: 'AuthKey_${NEW_KEY_ID}.p8', content: key });
+      // As growth_browser.rs does: the download's start with its number, then the file with the same number.
+      let downloads = 0;
+      document.getElementById('download').onclick = () => {
+        downloads += 1;
+        const id = 900 + downloads;
+        parent.__E2E_TAURI__.emitFromBackend('abs-growth-browser', { type: 'download-started', fileName: 'AuthKey_${NEW_KEY_ID}.p8', id });
+        parent.__E2E_TAURI__.emitFromBackend('abs-growth-browser', { type: 'key-file', kind: 'apple-key', fileName: 'AuthKey_${NEW_KEY_ID}.p8', content: key, id });
+      };
     };
   </script>
 </body></html>`;

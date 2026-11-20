@@ -13,6 +13,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test:unit": "node scripts/test-unit.mjs",
+    "sync:seo-checks": "node scripts/sync-seo-checks.mjs",
     "test:e2e": "playwright test --project web --project desktop",
     "test:e2e:web": "playwright test --project web",
     "test:e2e:desktop": "playwright test --project desktop",

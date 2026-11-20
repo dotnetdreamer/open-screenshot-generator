@@ -221,6 +221,7 @@ import { GrowthWorkspace, type GrowthRequest } from './growth/GrowthWorkspace';
 import { CaptureWorkspace, type CaptureRequest, type ClipOutcome } from './capture/CaptureWorkspace';
 import { WebsiteWorkspace, type CaptureRequest as WebsiteCaptureRequest, type CapturedBoard } from './website/WebsiteWorkspace';
 import { StoreComplianceWorkspace } from './storeCompliance/StoreComplianceWorkspace';
+import { LazySeoWorkspace } from './seo/LazySeoWorkspace';
 import { flushWebsiteSaves } from '@/lib/website/store';
 import { captureTargets } from '@/lib/capture/frames';
 import { placeClip, placeShots, type ClipPlacement, type ShotPlacement } from '@/lib/capture/place';
@@ -1672,6 +1673,9 @@ export function OpenScreenshotGeneratorLayout() {
   // view's first visit (src/lib/storeCompliance). Mounted on that visit and kept,
   // like Growth, so an answer on its way and the screen's place stay.
   const [complianceMounted, setComplianceMounted] = useState(false);
+  // SEO: how the app's website does in Google and AI answers (src/lib/seo).
+  // Mounted on its first visit and kept, so a check on its way goes on.
+  const [seoMounted, setSeoMounted] = useState(false);
   // While the desktop app runs, Growth keeps the apps synced there fresh and
   // says when something new turns up (src/lib/growth/monitor.ts). The main
   // window only: a tab window would sync the same apps a second time.
@@ -1786,6 +1790,7 @@ export function OpenScreenshotGeneratorLayout() {
         if (next === 'capture') setCaptureMounted(true);
         if (next === 'website') setWebsiteMounted(true);
         if (next === 'compliance') setComplianceMounted(true);
+        if (next === 'seo') setSeoMounted(true);
         setActivity(next);
         return;
       }
@@ -10902,6 +10907,8 @@ const generateRandomProjectName = (): string => {
     []
   );
   const websiteProject = useMemo(() => ({ id: activeProjectId, name: currentProjectName, artboards }), [activeProjectId, currentProjectName, artboards]);
+  // SEO's "Set up with Ask AI" for Google: Growth's assistant, on its SEO job.
+  const setUpGoogleForSeo = useCallback(() => showGrowth('ask', { setupGoal: 'seo' }), [showGrowth]);
 
   // Render one artboard for the MCP export tools. Same capture recipe as the
   // Export dialog (unscale the node, drop editor chrome, restore afterwards),
@@ -13383,6 +13390,11 @@ const generateRandomProjectName = (): string => {
       {complianceMounted && (
         <div className={cn('fixed inset-0 z-30 md:left-12', activity !== 'compliance' && 'hidden')}>
           <StoreComplianceWorkspace active={activity === 'compliance'} readProject={readProjectForCompliance} />
+        </div>
+      )}
+      {seoMounted && (
+        <div className={cn('fixed inset-0 z-30 md:left-12', activity !== 'seo' && 'hidden')}>
+          <LazySeoWorkspace active={activity === 'seo'} readProject={readProjectForCompliance} onSetUpGoogle={setUpGoogleForSeo} />
         </div>
       )}
       {websiteMounted && (

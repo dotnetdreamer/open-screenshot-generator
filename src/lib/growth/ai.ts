@@ -188,6 +188,15 @@ export function runRulesPrompt(request: { system: string; user: string; signal?:
   return runAgentPrompt({ agent: 'claude', system: request.system, user: request.user, signal: request.signal, folders });
 }
 
+/**
+ * One prompt from the SEO view (src/lib/seo/ai.ts): a fix plan, an answer
+ * about the user's site, or new words for a page. It goes to the same AI as
+ * Growth and Store compliance, so `aiWriter` is one choice for all three.
+ */
+export function runSeoPrompt(request: { system: string; user: string; signal?: AbortSignal }): Promise<string> {
+  return runGrowthPrompt(request);
+}
+
 /** Whether the next Store compliance prompt goes to Claude Code, the only AI that may see what it read in the user's code. */
 export function rulesPromptGoesToClaude(): boolean {
   const writer = pickWriter();
