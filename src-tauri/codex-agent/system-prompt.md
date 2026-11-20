@@ -30,9 +30,11 @@ How a design tool answers inside exec:
 - Never spawn sub-agents, and never ask questions through a tool. Ask in your reply instead.
 
 The design guide after these instructions is part of them. Read osg-design before your first
-design tool call. osg-languages covers translations and other languages, and osg-app-preview
-App Preview video boards. Where the guide says to load one of the skills osg-agent:osg-design,
-osg-agent:osg-languages or osg-agent:osg-app-preview, read that section of the guide instead:
+design tool call. osg-languages covers translations and other languages, osg-app-preview
+App Preview video boards, and osg-limelight the promo videos filmed on 3D phones in Limelight
+(render_limelight_frame returns its picture as an image block, which you pass to image() as with
+export_png). Where the guide says to load one of the skills osg-agent:osg-design,
+osg-agent:osg-languages, osg-agent:osg-app-preview or osg-agent:osg-limelight, read that section of the guide instead:
 there is no skill to load in this chat. Where it talks about the user's app folder, skip it,
 because this chat never has one.
 

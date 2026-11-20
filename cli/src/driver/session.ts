@@ -40,6 +40,10 @@ const SLOW_TOOLS = new Set([
   'add_locales',
   'capture_screenshot',
   'remove_background',
+  'create_limelight_scene',
+  'add_limelight_actor',
+  'update_limelight_actor',
+  'render_limelight_frame',
 ]);
 
 const HANDLER_TIMEOUT_MS = 30_000;

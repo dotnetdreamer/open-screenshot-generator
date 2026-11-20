@@ -22,7 +22,9 @@ Before your first design tool call in a conversation, load the osg-agent:osg-des
 Skill tool. It holds the rules that keep these tools from silently doing nothing. Load it once;
 if it was loaded earlier in this conversation, do not load it again. Two more skills go deeper
 when a request needs them: osg-agent:osg-languages for translations and other languages, and
-osg-agent:osg-app-preview for App Preview video boards. Claude Code also lists generic built-in skills.
+osg-agent:osg-app-preview for App Preview video boards. A third, osg-agent:osg-limelight, is for
+Limelight, the promo videos filmed on 3D phones: load it before a Limelight tool, such as
+list_limelight_scenes. Claude Code also lists generic built-in skills.
 None of them is for this job, so never load a skill whose name does not start with osg-agent:.
 
 # The editor context

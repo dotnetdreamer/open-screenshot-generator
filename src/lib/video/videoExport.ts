@@ -209,11 +209,11 @@ async function loadPosterImage(posterSrc: string): Promise<HTMLImageElement | nu
 // 'mp4a.40.2'; 1024 frames is its native packet size, so encoding in
 // 1024-frame chunks avoids any resampling.
 
-const AUDIO_SAMPLE_RATE = 48000;
-const AUDIO_CHANNELS = 2;
+export const AUDIO_SAMPLE_RATE = 48000;
+export const AUDIO_CHANNELS = 2;
 const AUDIO_FRAMES_PER_CHUNK = 1024;
 
-interface AudioTrack {
+export interface AudioTrack {
   encodeInto(muxer: Muxer<ArrayBufferTarget>): Promise<void>;
 }
 
@@ -300,7 +300,7 @@ async function mixAudio(
  * this browser cannot encode one. Never throws: a missing track is worth far
  * less than a failed export, and the caller simply muxes video only.
  */
-async function createAudioTrack(
+export async function createAudioTrack(
   seconds: number,
   mix: Float32Array[] | null,
   bitrate = 128_000
@@ -374,6 +374,36 @@ async function createAudioTrack(
           // already closed
         }
       }
+    },
+  };
+}
+
+/**
+ * One AAC-LC frame of stereo silence, 1024 samples at 48 kHz: a channel pair
+ * with no spectral data, as ffmpeg's own encoder writes digital silence once
+ * it settles (21 10 04 60 8c 1c). Repeated, it is a silent track made with
+ * no AudioEncoder at all, which some browsers lack for AAC (Chrome on some
+ * systems has H.264 but no AAC).
+ */
+const SILENT_AAC_FRAME = new Uint8Array([0x21, 0x10, 0x04, 0x60, 0x8c, 0x1c]);
+/** The AudioSpecificConfig for it: AAC-LC (2), 48 kHz (index 3), two channels. */
+const SILENT_AAC_CONFIG = new Uint8Array([0x11, 0x90]);
+
+/**
+ * A silent AAC track `seconds` long, written frame by frame without an
+ * encoder, so it is there in every browser. Rounded down to whole frames: a
+ * sound track longer than the picture would make a 30 second video slightly
+ * longer than App Store Connect allows.
+ */
+export function silentAudioTrack(seconds: number): AudioTrack {
+  return {
+    async encodeInto(muxer) {
+      const frames = Math.max(1, Math.floor((seconds * AUDIO_SAMPLE_RATE) / AUDIO_FRAMES_PER_CHUNK));
+      const duration = (AUDIO_FRAMES_PER_CHUNK / AUDIO_SAMPLE_RATE) * 1_000_000;
+      const meta: EncodedAudioChunkMetadata = {
+        decoderConfig: { codec: 'mp4a.40.2', sampleRate: AUDIO_SAMPLE_RATE, numberOfChannels: AUDIO_CHANNELS, description: SILENT_AAC_CONFIG },
+      };
+      for (let i = 0; i < frames; i++) muxer.addAudioChunkRaw(SILENT_AAC_FRAME, 'key', i * duration, duration, i === 0 ? meta : undefined);
     },
   };
 }
@@ -818,14 +848,14 @@ const H264_STORE_CODEC_CANDIDATES = [
  */
 const H264_LEVEL_40_MACROBLOCKS = 8192;
 
-function storeCodecCandidatesFor(width: number, height: number): string[] {
+export function storeCodecCandidatesFor(width: number, height: number): string[] {
   const macroblocks = Math.ceil(width / 16) * Math.ceil(height / 16);
   return macroblocks > H264_LEVEL_40_MACROBLOCKS
     ? ['avc1.640033', ...H264_STORE_CODEC_CANDIDATES] // High 5.1 first
     : H264_STORE_CODEC_CANDIDATES;
 }
 
-async function pickEncoderConfig(
+export async function pickEncoderConfig(
   width: number,
   height: number,
   fps: number,
@@ -1040,13 +1070,13 @@ export async function exportArtboardVideo(
   );
   // App Store Connect refuses a preview with no audio track, so the file gets
   // one: the sound layers and kept recording sound mixed down, or silence.
-  // Encoding is best-effort: if
-  // this browser has no AudioEncoder (older WebViews), the export still
-  // produces a valid video-only MP4 rather than failing. A sound that will not
-  // decode does fail it, with the file's name.
+  // Silence needs no encoder (silentAudioTrack), so it is there in every
+  // browser. Sound is best-effort: if this browser can't encode AAC (older
+  // WebViews), the export still produces a valid video-only MP4 rather than
+  // failing. A sound that will not decode does fail it, with the file's name.
   const soundLayers = artboard.elements.filter((el): el is AudioElementProps => el.type === 'audio');
   const mix = await mixAudio(soundLayers, recordingSounds, durationSeconds);
-  const audio = await createAudioTrack(durationSeconds, mix, audioBitrate);
+  const audio = (await createAudioTrack(durationSeconds, mix, audioBitrate)) ?? (mix ? null : silentAudioTrack(durationSeconds));
   const muxer = new Muxer({
     target: new ArrayBufferTarget(),
     video: { codec: 'avc', width: outW, height: outH },

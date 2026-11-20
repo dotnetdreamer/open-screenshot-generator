@@ -1508,9 +1508,21 @@ function roundEdge(thickness: number, round: number): EdgePoint[] {
 }
 
 /**
+ * A body size for a generic model, in millimetres: Limelight puts devices
+ * side by side at their real sizes, where the editor only needs the shape.
+ */
+export interface GenericModelSize {
+  width: number;
+  height: number;
+  thickness: number;
+}
+
+/**
  * A plain phone or tablet shaped from a device's screen proportions, so a
  * device type without a drawing (an older iPhone, Android, a tablet) still
- * turns to any angle. It makes no claim to be any real product.
+ * turns to any angle. It makes no claim to be any real product. Given a
+ * `size`, the body is that size, with an even bezel round the screen's
+ * proportions; without one, it is the editor's stand-in size.
  */
 export function genericPhoneModel(
   deviceType: DeviceType,
@@ -1518,14 +1530,18 @@ export function genericPhoneModel(
   kind: 'phone' | 'tablet',
   platform: 'ios' | 'android' | 'neutral',
   screenAspect: number,
-  cutout: PhoneCutout
+  cutout: PhoneCutout,
+  size?: GenericModelSize
 ): PhoneModel {
   const tablet = kind === 'tablet';
-  const width = tablet ? 180 : 72;
-  const bezel = tablet ? 6 : platform === 'android' ? 2.2 : 2.6;
+  const width = size?.width ?? (tablet ? 180 : 72);
+  // From the size: the bezel b with (width - 2b) / (height - 2b) = screenAspect.
+  const fitted = size ? (size.height - size.width / screenAspect) / (2 * (1 - 1 / screenAspect)) : NaN;
+  const bezel = Number.isFinite(fitted) && fitted > 0.5 && fitted < width / 4 ? fitted : tablet ? 6 : platform === 'android' ? 2.2 : 2.6;
   const height = (width - 2 * bezel) / screenAspect + 2 * bezel;
-  const thickness = tablet ? 6.1 : 8.2;
-  const cornerRadius = tablet ? 14 : platform === 'android' ? 8 : 12;
+  const thickness = size?.thickness ?? (tablet ? 6.1 : 8.2);
+  // The editor's tablet corner suits a 180 mm body; a smaller tablet gets a smaller one.
+  const cornerRadius = tablet ? Math.min(14, width * 0.078) : platform === 'android' ? 8 : 12;
   const lensRing = tablet ? 7 : 13;
   const backX = tablet ? 14 : 13;
   const lenses = tablet

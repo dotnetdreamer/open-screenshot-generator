@@ -90,6 +90,7 @@ pub(crate) const SKILLS: &[(&str, &str)] = &[
     ("osg-design", include_str!("../claude-agent/skills/osg-design/SKILL.md")),
     ("osg-languages", include_str!("../claude-agent/skills/osg-languages/SKILL.md")),
     ("osg-app-preview", include_str!("../claude-agent/skills/osg-app-preview/SKILL.md")),
+    ("osg-limelight", include_str!("../claude-agent/skills/osg-limelight/SKILL.md")),
 ];
 
 /// Folder under the app's local data directory the agent runs in.

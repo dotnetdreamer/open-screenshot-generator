@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, useDeferredValue } from 'react';
+import dynamic from 'next/dynamic';
 import { captureNodeToPng } from '@/lib/exportRaster';
 import { updateStudioLive } from '@/lib/device3dStudioLive';
 import { preloadGoogleFonts } from '@/services/fontService';
@@ -231,6 +232,7 @@ import { CutoutWorkspace, type CutoutRequest } from './cutout/CutoutWorkspace';
 import { placementProps } from './cutout/CustomPaletteTab';
 import { markLibraryImagePlaced, refOf, type LibraryImageRow } from '@/lib/cutout/library';
 import { deleteMyImageForMcp, listMyImagesForMcp, removeBackgroundForMcp, saveToMyImagesForMcp } from '@/lib/cutout/mcp';
+import { runLimelightTool } from '@/lib/limelight/mcp';
 import { detectCutout, getCutoutStatus } from '@/lib/cutout/engine';
 import { megabytes } from '@/lib/cutout/models';
 import { CUSTOM_PREFIX, customLibraryId } from '@/lib/libraryIds';
@@ -445,6 +447,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
+
+// Limelight brings its 3D stage only when the view first opens.
+const LimelightWorkspace = dynamic(() => import('./limelight/LimelightWorkspace').then((m) => m.LimelightWorkspace), { ssr: false });
 
 // Reduce the margin between artboards
 const ARTBOARD_MARGIN = 15; // Reduced from 30
@@ -1693,6 +1698,10 @@ export function OpenScreenshotGeneratorLayout() {
   // Mounted on its first visit and kept, so a picture being cut carries on
   // while the editor is in front. A request picks the picture to show.
   const [cutoutMounted, setCutoutMounted] = useState(false);
+  // Limelight: the app filmed on 3D phones for promo videos (src/lib/limelight).
+  // Mounted on its first visit and kept, so the stage and the open scene are
+  // as they were left.
+  const [limelightMounted, setLimelightMounted] = useState(false);
   const [cutoutRequest, setCutoutRequest] = useState<CutoutRequest | null>(null);
   const showCutout = useCallback((imageId?: string) => {
     setCutoutMounted(true);
@@ -1814,6 +1823,7 @@ export function OpenScreenshotGeneratorLayout() {
         if (next === 'website') setWebsiteMounted(true);
         if (next === 'compliance') setComplianceMounted(true);
         if (next === 'cutout') setCutoutMounted(true);
+        if (next === 'limelight') setLimelightMounted(true);
         setActivity(next);
         return;
       }
@@ -2625,6 +2635,7 @@ export function OpenScreenshotGeneratorLayout() {
   // and the agent chat.
   const beforeWindowCloseRef = useRef<() => Promise<unknown>>(() => Promise.resolve());
   const cutoutFlushRef = useRef<(() => Promise<boolean>) | null>(null);
+  const limelightFlushRef = useRef<(() => Promise<boolean>) | null>(null);
   // Installing an update ends the process without the close hook below ever
   // running, so Rust asks every editor window to write its edits first, and
   // calls the install off when one cannot (src-tauri/src/updater.rs).
@@ -7267,6 +7278,9 @@ export function OpenScreenshotGeneratorLayout() {
       flushWebsiteSaves(),
       cutoutFlushRef.current?.().then((saved) => {
         if (!saved) throw new Error("Your change wasn't saved");
+      }),
+      limelightFlushRef.current?.().then((saved) => {
+        if (!saved) throw new Error("Your Limelight scene wasn't saved");
       }),
     ]);
   };
@@ -12294,6 +12308,8 @@ const generateRandomProjectName = (): string => {
     listMyImages: () => listMyImagesForMcp(),
     saveToMyImages: (input) => saveToMyImagesForMcp(input),
     deleteMyImage: (id) => deleteMyImageForMcp(id),
+    // Limelight's scenes, in their own database; the view, when mounted, takes changes to the scene it shows.
+    limelight: ({ tool, args }) => runLimelightTool(tool, args, readProjectForCompliance),
 
     // The Claude Code agent's code folders. Rust reads the picture and checks
     // the path; the store knows whether the process can read a folder now, and
@@ -12357,6 +12373,35 @@ const generateRandomProjectName = (): string => {
 
   // Remove background's "Design with the agent": the picture goes to the
   // Claude Code or Codex chat, the same way Growth hands it a question.
+  // Limelight's Ask AI: the agent changes the scene through the Limelight tools
+  // while the user stays on the stage and watches it change. The chat is in
+  // the editor's Agent tab, one click away (onShowAgent).
+  const handleAskAgentAboutScene = (request: string, scene: { id: string; name: string }) => {
+    const { session } = claudeAgentState;
+    claudeAgent.setPanelEnabled(true);
+    if (session.status === 'working' || session.status === 'starting') {
+      toast({ title: 'The agent is busy', description: 'Wait for it to finish, or stop it in the Agent tab, then ask again.' });
+      return;
+    }
+    track('limelight_ask_agent');
+    void claudeAgent
+      .send({
+        text: `In Limelight, change the scene "${scene.name}" (sceneId ${scene.id}): ${request}\n\nLoad the osg-agent:osg-limelight skill first. Read the scene with get_limelight_scene, make the change with the Limelight tools, and look at it with render_limelight_frame before you reply.`,
+      })
+      .catch((error) =>
+        toast({
+          title: "The agent couldn't take the request",
+          description: error instanceof Error ? error.message : 'Try again in the Agent tab.',
+        })
+      );
+  };
+  const showAgentChat = () => {
+    setActivity('editor');
+    claudeAgent.setPanelEnabled(true);
+    revealDockTab('agent');
+    if (isMobileViewport) setIsMobileDockOpen(true);
+  };
+
   const handleAskAgentAboutPicture = (row: LibraryImageRow) => {
     const ref = refOf(row);
     if (!ref) return;
@@ -13750,6 +13795,20 @@ const generateRandomProjectName = (): string => {
             onBackToEditor={() => setActivity('editor')}
             agentUnavailable={isSecondaryWindow ? 'The agent only works in the main window' : undefined}
             onAskAgent={claudeAgentState.available && !isSecondaryWindow ? handleAskAgentAboutPicture : undefined}
+          />
+        </div>
+      )}
+      {limelightMounted && (
+        <div className={cn('fixed inset-0 z-30', BAR_INSET.left, activity !== 'limelight' && 'hidden')}>
+          <LimelightWorkspace
+            active={activity === 'limelight'}
+            readProject={readProjectForCompliance}
+            flushRef={limelightFlushRef}
+            onAskAgent={claudeAgentState.available && !isSecondaryWindow ? handleAskAgentAboutScene : undefined}
+            agentUnavailable={isSecondaryWindow ? 'The agent only works in the main window' : 'Ask AI works in the desktop app, with Claude Code or Codex signed in'}
+            agentWorking={claudeAgentState.session.status === 'working' || claudeAgentState.session.status === 'starting'}
+            onShowAgent={showAgentChat}
+            onOpenAccount={() => openAccountDialog('Sign in with Google Drive to save your Limelight scenes there.', 'storage')}
           />
         </div>
       )}

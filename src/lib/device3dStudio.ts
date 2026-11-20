@@ -40,6 +40,7 @@ import {
   finishOf,
   genericPhoneModel,
   measuredModelFor,
+  type GenericModelSize,
   type PhoneCutout,
   type PhoneFinish,
   type PhoneModel,
@@ -103,6 +104,18 @@ const CUTOUTS: Partial<Record<DeviceType, PhoneCutout>> = {
 const MODEL_CACHE = new Map<DeviceType, PhoneModel | null>();
 
 /**
+ * The plain model for a phone or tablet without a drawing, or null for
+ * other device types. Without `size` it is the editor's stand-in; Limelight
+ * passes a real body size (src/lib/limelight/models.ts).
+ */
+export function genericModelFor(deviceType: DeviceType, size?: GenericModelSize): PhoneModel | null {
+  const d = getDeviceDescriptor(deviceType);
+  return d.category === 'phone' || d.category === 'tablet'
+    ? genericPhoneModel(deviceType, d.label, d.category, d.platform, d.nativeAspect, CUTOUTS[deviceType] ?? { kind: 'none' }, size)
+    : null;
+}
+
+/**
  * The model a device type is drawn with: the measured one when there is a
  * drawing for it, a plain phone or tablet for the other phones and tablets,
  * and null for watches, Macs and custom frames, which fall back to the posed
@@ -111,14 +124,7 @@ const MODEL_CACHE = new Map<DeviceType, PhoneModel | null>();
 export function studioModelFor(deviceType: DeviceType): PhoneModel | null {
   const measured = measuredModelFor(deviceType);
   if (measured) return measured;
-  if (!MODEL_CACHE.has(deviceType)) {
-    const d = getDeviceDescriptor(deviceType);
-    const model =
-      d.category === 'phone' || d.category === 'tablet'
-        ? genericPhoneModel(deviceType, d.label, d.category, d.platform, d.nativeAspect, CUTOUTS[deviceType] ?? { kind: 'none' })
-        : null;
-    MODEL_CACHE.set(deviceType, model);
-  }
+  if (!MODEL_CACHE.has(deviceType)) MODEL_CACHE.set(deviceType, genericModelFor(deviceType));
   return MODEL_CACHE.get(deviceType) ?? null;
 }
 

@@ -355,7 +355,7 @@ function loftGeometry(model: PhoneModel, bar: LoftPad, back: number): THREE.Buff
 }
 
 /** The finish's shades: the polished lens rings a little darker than the frame. */
-function ringShade(frame: THREE.Color): THREE.Color {
+export function ringShade(frame: THREE.Color): THREE.Color {
   return frame.clone().multiplyScalar(0.82);
 }
 
@@ -409,7 +409,7 @@ function buildStudioEnvironment(light: Device3DLight): THREE.Scene {
   return scene;
 }
 
-interface PhoneMaterials {
+export interface PhoneMaterials {
   frame: THREE.MeshPhysicalMaterial;
   /** The frame's finish on a button of another colour (a Pixel's power button). */
   accent: THREE.MeshPhysicalMaterial;
@@ -451,7 +451,7 @@ const FRAME_SHINE: Record<PhoneModel['metal'], { metalness: number; roughness: n
   coated: { metalness: 0.25, roughness: 0.55 },
 };
 
-function createMaterials(model: PhoneModel): PhoneMaterials {
+export function createMaterials(model: PhoneModel): PhoneMaterials {
   const shine = FRAME_SHINE[model.metal];
   return {
     frame: new THREE.MeshPhysicalMaterial(shine),
@@ -502,7 +502,7 @@ function createMaterials(model: PhoneModel): PhoneMaterials {
   };
 }
 
-interface BuiltPhone {
+export interface BuiltPhone {
   group: THREE.Group;
   /** The display's active area, for laying the screenshot on; centerY is 0 unless the bezels above and below it differ. */
   display: { outline: OutlinePoint[]; width: number; height: number; z: number; centerY: number };
@@ -860,7 +860,7 @@ function addEdgeHoles(add: AddMesh, mats: PhoneMaterials, model: PhoneModel, fro
  * window), the camera plateau or islands, the lenses, flash, sensor and mic,
  * the buttons, and the port, holes and screws in the bottom edge.
  */
-function buildPhone(model: PhoneModel, mats: PhoneMaterials): BuiltPhone {
+export function buildPhone(model: PhoneModel, mats: PhoneMaterials): BuiltPhone {
   const group = new THREE.Group();
   const geometries: THREE.BufferGeometry[] = [];
   const add = meshAdder(group, geometries);
@@ -1012,15 +1012,18 @@ function buildPhone(model: PhoneModel, mats: PhoneMaterials): BuiltPhone {
 // The device the component draws: a phone, or a foldable
 // ---------------------------------------------------------------------------
 
-/** The screenshot to lay on a display, and how it fills it. */
-interface ShotInput {
+/**
+ * The screenshot to lay on a display, and how it fills it. `image` is only
+ * read for its size, so a canvas drawn for the screen (Limelight's) works too.
+ */
+export interface ShotInput {
   texture: THREE.Texture;
-  image: HTMLImageElement;
+  image: { naturalWidth: number; naturalHeight: number };
   fit: 'contain' | 'cover' | 'fill';
 }
 
 /** What the component needs of a built device. */
-interface BuiltDevice {
+export interface BuiltDevice {
   group: THREE.Group;
   geometries: THREE.BufferGeometry[];
   glareMeshes: THREE.Mesh[];
@@ -1066,7 +1069,7 @@ function fitTexture(shot: ShotInput, screenAspect: number, centered = false) {
 }
 
 /** A built phone as a device: the screenshot lies on its display's active area. */
-function phoneDevice(built: BuiltPhone): BuiltDevice {
+export function phoneDevice(built: BuiltPhone): BuiltDevice {
   const { display } = built;
   let shotMesh: THREE.Mesh | null = null;
   const clear = () => {
@@ -1208,7 +1211,7 @@ function screenUVs(geo: THREE.BufferGeometry, frame: ScreenFrame, width: number,
 /** Degrees open past which a foldable is in use opened, so its outer display turns its picture upright, as in the tent. */
 const OUTER_TURNS_ABOVE = 10;
 
-function buildFoldable(model: PhoneModel, mats: PhoneMaterials): BuiltDevice {
+export function buildFoldable(model: PhoneModel, mats: PhoneMaterials): BuiltDevice {
   const fold = model.fold!;
   const W = model.width;
   const H = model.height;

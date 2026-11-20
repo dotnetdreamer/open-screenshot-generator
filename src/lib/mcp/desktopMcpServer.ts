@@ -107,6 +107,13 @@ const DEFAULT_PROTOCOL_VERSION = '2025-06-18';
 // The surface the app layout must implement so the tools can do their work.
 // ---------------------------------------------------------------------------
 
+/** What a Limelight tool gives back: its answer, and for render_limelight_frame a picture. */
+export interface McpLimelightResult {
+  json: unknown;
+  /** Base64 without the data: prefix. */
+  image?: { data: string; mimeType: string };
+}
+
 /** One of the user's own pictures, as list_my_images reports it. */
 export interface McpMyImageSummary {
   id: string;
@@ -655,6 +662,15 @@ export interface McpDesignApi {
   /** Add a picture to the user's own pictures as it is. */
   saveToMyImages(input: { source: string; name?: string }): Promise<McpMyImageSummary>;
   deleteMyImage(id: string): Promise<boolean>;
+
+  // -- Limelight: promo videos on 3D phones (src/lib/limelight/mcp.ts) --
+  /**
+   * Runs one `*_limelight_*` tool. The scenes live in Limelight's own
+   * database, so the view does not have to be open; when it is, a scene it
+   * shows changes there, as one step the user can undo. Throws with a message
+   * for the agent.
+   */
+  limelight(request: { tool: string; args: Record<string, unknown> }): Promise<McpLimelightResult>;
 
   // -- The Claude Code agent's code folders (desktop) --------------------------
 
@@ -1372,6 +1388,177 @@ async function readTemplateFills(args: Record<string, any>): Promise<TemplateFil
     fills.screenshots = entries.map((entry, index) => ({ elementId: entry.elementId, src: sources[index] }));
   }
   return fills;
+}
+
+// ---------------------------------------------------------------------------
+// Limelight: the user's app filmed on 3D phones, for promo videos
+// ---------------------------------------------------------------------------
+
+const LIMELIGHT_PICTURES = {
+  type: 'array',
+  description:
+    "Screenshots for the screens, shown one after another over the video. Each item is { artboardId } (that artboard's device screenshot in the open project) or { src } (an asset: reference from upload_asset or list_assets, or a data: URL).",
+  items: {
+    type: 'object',
+    properties: { artboardId: { type: 'string' }, src: { type: 'string' } },
+  },
+};
+const LIMELIGHT_XYZ = {
+  type: 'object',
+  description: 'Centimetres. The floor is y 0; a phone stands about 9.5 cm up at its centre; +z is toward a camera in front.',
+  properties: { x: { type: 'number' }, y: { type: 'number' }, z: { type: 'number' } },
+};
+const LIMELIGHT_TURN = {
+  type: 'object',
+  description: 'Degrees, applied yaw then pitch then roll. Yaw 0 faces the screen to +z; positive yaw shows the left side; positive pitch leans the top toward you.',
+  properties: { yaw: { type: 'number' }, pitch: { type: 'number' }, roll: { type: 'number' } },
+};
+const LIMELIGHT_SCENE_ID = { type: 'string', description: 'From list_limelight_scenes or create_limelight_scene.' };
+
+function limelightTool(name: string, description: string, inputSchema: Record<string, unknown>): ToolDef {
+  return {
+    name,
+    description,
+    inputSchema,
+    run: async (args, api) => {
+      try {
+        const result = await api.limelight({ tool: name, args });
+        if (!result.image) return textResult(result.json);
+        return {
+          content: [
+            { type: 'image', data: result.image.data, mimeType: result.image.mimeType },
+            { type: 'text', text: JSON.stringify(result.json) },
+          ],
+          structuredContent: asStructured(result.json),
+        };
+      } catch (error) {
+        return { ...textResult(error instanceof Error ? error.message : String(error)), isError: true };
+      }
+    },
+  };
+}
+
+function limelightTools(): ToolDef[] {
+  return [
+    limelightTool(
+      'list_limelight_scenes',
+      "The user's Limelight scenes, newest first: promo videos of their app filmed on 3D phones and tablets. Each has its sceneId, name, size, length, number of devices and whether it is open in the Limelight view.",
+      { type: 'object', properties: {} }
+    ),
+    limelightTool(
+      'get_limelight_scene',
+      'One Limelight scene in full: format (size, fps, duration in seconds), look (environment, backdrop, light, depthOfField, vignette, grain), camera (shots: each a time, an ease and a camera of target, azimuth, elevation, distance in cm, roll, lens in mm, aperture f-number, focus) and actors (devices with poses, motion and screens; titles). Read it before changing a scene.',
+      { type: 'object', properties: { sceneId: LIMELIGHT_SCENE_ID }, required: ['sceneId'] }
+    ),
+    limelightTool(
+      'list_limelight_templates',
+      "Ready camera moves to start a scene from (template ids such as hero-orbit, push-in, side-by-side), the user's own templates, the sizes (app-store-iphone is 886 x 1920 for App Store previews) and the devices a scene can hold.",
+      { type: 'object', properties: {} }
+    ),
+    limelightTool(
+      'create_limelight_scene',
+      "Makes a new Limelight scene, from a template or as one phone with a slow camera move, with the user's screenshots on the screens. fromProject true takes the open project's own screenshots in canvas order. The camera of a template is framed for the size. Does not switch the user's view.",
+      {
+        type: 'object',
+        properties: {
+          name: { type: 'string' },
+          template: { type: 'string', description: 'A template id from list_limelight_templates. Left out, one phone.' },
+          size: { type: 'string', description: 'A size id from list_limelight_templates. Left out, app-store-iphone.' },
+          duration: { type: 'number', description: 'Seconds. The App Store takes previews of 15 to 30.' },
+          fromProject: { type: 'boolean', description: "True to put the open project's screenshots on the screens." },
+          pictures: LIMELIGHT_PICTURES,
+        },
+      }
+    ),
+    limelightTool(
+      'add_limelight_actor',
+      'Adds a device (kind device, placed beside the others unless position is given) or a 3D title (kind title, over the devices unless position is given) to a scene. Then set_limelight_camera with fit true frames everything.',
+      {
+        type: 'object',
+        properties: {
+          sceneId: LIMELIGHT_SCENE_ID,
+          kind: { type: 'string', enum: ['device', 'title'] },
+          device: { type: 'string', description: 'A device id from list_limelight_templates, such as iphone-17-pro, pixel-10-pro or ipad-pro-13.' },
+          name: { type: 'string' },
+          position: LIMELIGHT_XYZ,
+          turn: LIMELIGHT_TURN,
+          scale: { type: 'number', description: '1 is the real size.' },
+          float: { type: 'number', description: 'Centimetres it bobs up and down, 0 to 4.' },
+          spin: { type: 'number', description: 'Degrees a second it turns on the spot.' },
+          fromProject: { type: 'boolean' },
+          pictures: LIMELIGHT_PICTURES,
+          text: { type: 'string', description: 'A title only: the words.' },
+          size: { type: 'number', description: 'A title only: capital letter height in cm, about 1 to 3.' },
+          color: { type: 'string', description: 'A title only: #rrggbb.' },
+          font: { type: 'string', description: 'A title only: a font family from list_fonts.' },
+        },
+        required: ['sceneId'],
+      }
+    ),
+    limelightTool(
+      'update_limelight_actor',
+      'Changes a device or title. changes takes any field get_limelight_scene shows on the actor (name, device, finish, color, fit, glare, fold, hidden, text, font, weight, size, color, align, facing), plus poses (a whole new list of { time, ease, position, turn, scale, opacity }; one pose keeps it still), float and spin, and for a device pictures and transition (slide, scroll, fade, zoom or cut) to put new screenshots on its screen.',
+      {
+        type: 'object',
+        properties: {
+          sceneId: LIMELIGHT_SCENE_ID,
+          actorId: { type: 'string' },
+          changes: { type: 'object' },
+        },
+        required: ['sceneId', 'actorId', 'changes'],
+      }
+    ),
+    limelightTool(
+      'remove_limelight_actor',
+      'Takes a device or title off a scene.',
+      { type: 'object', properties: { sceneId: LIMELIGHT_SCENE_ID, actorId: { type: 'string' } }, required: ['sceneId', 'actorId'] }
+    ),
+    limelightTool(
+      'set_limelight_camera',
+      "Replaces a scene's camera shots. Each shot is a time in seconds and an ease (smooth stops at the shot, glide keeps moving through it, steady, snappy, bounce, cut), with any of target, azimuth (degrees round the target, 0 in front, never wrapped, so 0 then 360 is a full turn), elevation, distance (cm), roll, lens (mm: 24 wide, 50 normal, 85 and up flat like product photos), aperture (f-number) and focus; a field left out keeps the previous shot's. fit true frames every device from that angle, and pull then moves in (below 1) or out. lookAt names an actor to aim at. shake 0 to 1 adds a handheld wobble.",
+      {
+        type: 'object',
+        properties: {
+          sceneId: LIMELIGHT_SCENE_ID,
+          shots: { type: 'array', items: { type: 'object' } },
+          shake: { type: 'number' },
+        },
+        required: ['sceneId'],
+      }
+    ),
+    limelightTool(
+      'set_limelight_look',
+      "Changes a scene's look (environment: studio, daylight, sunset, night or noir, which brings its own backdrop and light; backdrop { style solid, linear or radial, top, bottom as #rrggbb }; light { azimuth, elevation, intensity }; exposure; shadow 0 to 1; depthOfField; vignette; grain), its size (a size id), duration in seconds (shots stretch with it) or fps.",
+      {
+        type: 'object',
+        properties: { sceneId: LIMELIGHT_SCENE_ID, look: { type: 'object' }, size: { type: 'string' }, duration: { type: 'number' }, fps: { type: 'number' } },
+        required: ['sceneId'],
+      }
+    ),
+    limelightTool(
+      'update_limelight_scene',
+      'Replaces a whole scene with one you send, in the shape get_limelight_scene gives. Anything out of range is clamped and anything unknown dropped. For big rewrites; the other tools are safer for one change.',
+      { type: 'object', properties: { sceneId: LIMELIGHT_SCENE_ID, scene: { type: 'object' } }, required: ['sceneId', 'scene'] }
+    ),
+    limelightTool(
+      'render_limelight_frame',
+      'Draws one moment of a scene as the video shows it, and gives the picture back, so you can look at your change. Look at a few times (start, middle, end) after changing the camera.',
+      {
+        type: 'object',
+        properties: {
+          sceneId: LIMELIGHT_SCENE_ID,
+          time: { type: 'number', description: 'Seconds from the start.' },
+          width: { type: 'number', description: 'Pixels, 160 to 720. Left out, 360.' },
+        },
+        required: ['sceneId'],
+      }
+    ),
+    limelightTool(
+      'delete_limelight_scene',
+      'Deletes a scene the user asked you to delete. Not one open in the Limelight view.',
+      { type: 'object', properties: { sceneId: LIMELIGHT_SCENE_ID }, required: ['sceneId'] }
+    ),
+  ];
 }
 
 const TOOLS: ToolDef[] = [
@@ -3075,6 +3262,7 @@ const TOOLS: ToolDef[] = [
       return ok ? textResult({ ok }) : { ...textResult('No such picture. Call list_my_images.'), isError: true };
     },
   },
+  ...limelightTools(),
   {
     name: 'import_project_image',
     description:
@@ -3546,6 +3734,11 @@ const SLOW_TOOLS = new Set([
   'capture_screenshot',
   // Runs the cut-out model, seconds a picture, longer while it first loads.
   'remove_background',
+  // Copy screenshots into Limelight, and draw a frame with WebGL.
+  'create_limelight_scene',
+  'add_limelight_actor',
+  'update_limelight_actor',
+  'render_limelight_frame',
 ]);
 
 function toolNameOf(message: JsonRpcMessage): string | undefined {
@@ -3639,6 +3832,19 @@ const READ_ONLY_TOOLS = new Set([
   'list_my_images',
   'save_to_my_images',
   'delete_my_image',
+  // So do Limelight's scenes, in a database of their own.
+  'list_limelight_scenes',
+  'get_limelight_scene',
+  'list_limelight_templates',
+  'create_limelight_scene',
+  'add_limelight_actor',
+  'update_limelight_actor',
+  'remove_limelight_actor',
+  'set_limelight_camera',
+  'set_limelight_look',
+  'update_limelight_scene',
+  'render_limelight_frame',
+  'delete_limelight_scene',
 ]);
 
 /**

@@ -43,6 +43,7 @@ import {
   type SignInOptions,
 } from '../types';
 import { bridgeFetch, createPkcePair, formEncode, randomState, requestJson, runLoopbackFlow, throwIfSignInCancelled } from '../transport';
+import { MULTIPART_LIMIT, ResumableHttpError, sendResumable, type ResumableAnswer } from '../resumable';
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '';
 // No fallback to CLIENT_ID: Google rejects a 127.0.0.1 redirect on a Web
@@ -913,5 +914,207 @@ export const googleDriveLibrary: LibraryRemote = {
       // Drive moves what an app made with drive.file to the user's trash.
       if (fileId) await driveJson(session, `${DRIVE_API}/files/${fileId}`, { method: 'DELETE' }).catch(() => undefined);
     }
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Limelight's scenes (src/lib/limelight/drive.ts)
+// ---------------------------------------------------------------------------
+//
+// A folder at the top of My Drive, beside the projects' folder and never in it
+// (every folder there is listed as a project), found by its app property so a
+// rename does not lose it, and made only by a save the user pressed. Each
+// scene is a folder of its own inside, found by the scene's id, holding
+// scene.json and one file__<mediaId> file per picture. A picture's id names
+// its bytes for good, so a picture already there is never sent again; large
+// files (a recording, later) go up resumably.
+
+const LIMELIGHT_FOLDER_NAME = 'Open Screenshot Generator Limelight';
+
+export interface LimelightRemoteScene {
+  folderId: string;
+  sceneId: string;
+  name: string;
+  modifiedTime?: string;
+}
+
+export interface LimelightRemoteFile {
+  /** The media id, from the file's name. */
+  id: string;
+  fileId: string;
+  mimeType?: string;
+}
+
+async function limelightFolder(session: AccountSession): Promise<string | null> {
+  const query = encodeURIComponent(
+    `mimeType = '${FOLDER_MIME}' and trashed = false and 'root' in parents and appProperties has { key='absLimelight' and value='1' }`
+  );
+  const found = await driveJson<{ files: { id: string }[] }>(session, `${DRIVE_API}/files?q=${query}&fields=files(id)&pageSize=1`);
+  return found.files?.[0]?.id ?? null;
+}
+
+async function makeFolder(session: AccountSession, name: string, appProperties: Record<string, string>, parentId?: string): Promise<string> {
+  const created = await driveJson<{ id: string }>(session, `${DRIVE_API}/files?fields=id`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, mimeType: FOLDER_MIME, appProperties, ...(parentId ? { parents: [parentId] } : {}) }),
+  });
+  return created.id;
+}
+
+async function sceneFolder(session: AccountSession, parentId: string, sceneId: string): Promise<{ id: string; name: string } | null> {
+  const query = encodeURIComponent(
+    `'${parentId}' in parents and mimeType = '${FOLDER_MIME}' and trashed = false and appProperties has { key='absLimelightScene' and value='${escapeQuery(sceneId)}' }`
+  );
+  const found = await driveJson<{ files: { id: string; name: string }[] }>(session, `${DRIVE_API}/files?q=${query}&fields=files(id,name)&pageSize=1`);
+  return found.files?.[0] ?? null;
+}
+
+/**
+ * Sends a file over 5 MB in 8 MiB pieces (resumable.ts), so no single request
+ * holds the whole file: the desktop's HTTP plugin copies a body into an array
+ * of numbers, which a video would not survive. The session is checked before
+ * each request, since a long upload can outlast an access token, and a
+ * dropped connection or a server error is waited out and resumed, the
+ * request that starts the session included.
+ */
+async function uploadResumable(
+  session: AccountSession,
+  options: { name: string; parentId: string; blob: Blob; mimeType: string },
+  fresh: () => Promise<AccountSession>,
+  onBytes?: (sent: number) => void
+): Promise<string> {
+  if (options.blob.size <= MULTIPART_LIMIT) {
+    const done = await uploadFile(session, options);
+    onBytes?.(options.blob.size);
+    return done.id;
+  }
+  const doFetch = await bridgeFetch();
+  const total = options.blob.size;
+  let location = '';
+  const answer = (response: Response): ResumableAnswer => {
+    const range = response.headers.get('Range');
+    // A browser hides a header Drive doesn't list as readable; the desktop's HTTP plugin hides none.
+    const exposed = response.headers.get('Access-Control-Expose-Headers');
+    const rangeHidden = !range && response.type === 'cors' && !(exposed && /(^|,)\s*range\s*(,|$)/i.test(exposed));
+    return { status: response.status, range, rangeHidden, body: () => response.json() };
+  };
+  const body = (await sendResumable({
+    total,
+    begin: async () => {
+      const current = await fresh();
+      const start = await doFetch(`${DRIVE_UPLOAD}?uploadType=resumable&fields=id,size`, {
+        method: 'POST',
+        headers: {
+          ...authHeaders(current),
+          'Content-Type': 'application/json; charset=UTF-8',
+          'X-Upload-Content-Type': options.mimeType,
+          'X-Upload-Content-Length': String(total),
+        },
+        body: JSON.stringify({ name: options.name, parents: [options.parentId] }),
+      });
+      if (start.status === 401) throw new AccountAuthError('Your Google sign-in expired. Please connect again.');
+      const next = start.headers.get('Location') ?? start.headers.get('location');
+      // A server error here is waited out like one on a piece; a refusal isn't.
+      if (!start.ok || !next) throw new ResumableHttpError(start.status, `Google Drive did not start the upload (HTTP ${start.status}).`);
+      location = next;
+    },
+    send: async (contentRange, from, to) => {
+      const current = await fresh();
+      const response = await doFetch(location, {
+        method: 'PUT',
+        headers: { ...authHeaders(current), 'Content-Range': contentRange },
+        ...(from !== undefined && to !== undefined ? { body: options.blob.slice(from, to + 1) } : {}),
+      });
+      if (response.status === 401) throw new AccountAuthError('Your Google sign-in expired. Please connect again.');
+      return answer(response);
+    },
+    transient: (error) => !(error instanceof AccountAuthError),
+    onBytes,
+  })) as { id: string; size?: string };
+  // With the Range header hidden, the pieces were taken as received: the size says whether they all were.
+  if (body.size !== undefined && Number(body.size) !== total) {
+    // A file that is there is never sent again, so a short one can't stay.
+    await driveJson(await fresh(), `${DRIVE_API}/files/${body.id}`, { method: 'DELETE' }).catch(() => undefined);
+    throw new Error('Google Drive got only part of a file. Save to Google Drive again.');
+  }
+  return body.id;
+}
+
+export const googleDriveLimelight = {
+  /** The scenes saved in the user's Drive. None, never a new folder, when there is no Limelight folder yet. */
+  async list(session: AccountSession): Promise<LimelightRemoteScene[]> {
+    const root = await limelightFolder(session);
+    if (!root) return [];
+    const query = encodeURIComponent(`'${root}' in parents and mimeType = '${FOLDER_MIME}' and trashed = false`);
+    const scenes: LimelightRemoteScene[] = [];
+    let pageToken: string | undefined;
+    do {
+      const page = pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '';
+      const result = await driveJson<{ files?: Array<{ id: string; name: string; modifiedTime?: string; appProperties?: Record<string, string> }>; nextPageToken?: string }>(
+        session,
+        `${DRIVE_API}/files?q=${query}&fields=files(id,name,modifiedTime,appProperties),nextPageToken&pageSize=100&orderBy=modifiedTime desc${page}`
+      );
+      for (const file of result.files ?? []) {
+        const sceneId = file.appProperties?.absLimelightScene;
+        if (sceneId) scenes.push({ folderId: file.id, sceneId, name: file.name, modifiedTime: file.modifiedTime });
+      }
+      pageToken = result.nextPageToken;
+    } while (pageToken);
+    return scenes;
+  },
+
+  /**
+   * Saves a scene and the pictures it shows. Makes the Limelight folder and
+   * the scene's folder the first time. Pictures already in the scene's folder
+   * stay as they are; scene.json is replaced.
+   */
+  async save(
+    session: AccountSession,
+    scene: { id: string; name: string; json: string },
+    pictures: Array<{ id: string; mimeType: string; read: () => Promise<Blob> }>,
+    fresh: () => Promise<AccountSession>,
+    onProgress?: (done: number, total: number) => void
+  ): Promise<{ folderId: string; sent: number; kept: number }> {
+    const root = (await limelightFolder(session)) ?? (await makeFolder(session, LIMELIGHT_FOLDER_NAME, { absLimelight: '1' }));
+    let folder = await sceneFolder(session, root, scene.id);
+    if (!folder) folder = { id: await makeFolder(session, scene.name, { absLimelightScene: scene.id }, root), name: scene.name };
+    else if (folder.name !== scene.name) {
+      await driveJson(session, `${DRIVE_API}/files/${folder.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: scene.name }) });
+    }
+    const children = new Map((await listChildren(session, folder.id)).map((file) => [file.name, file.id]));
+    const missing = pictures.filter((picture) => !children.has(`file__${picture.id}`));
+    let done = 0;
+    const total = missing.length + 1;
+    onProgress?.(done, total);
+    for (const picture of missing) {
+      const current = await fresh();
+      await uploadResumable(current, { name: `file__${picture.id}`, parentId: folder.id, blob: await picture.read(), mimeType: picture.mimeType }, fresh);
+      onProgress?.(++done, total);
+    }
+    const current = await fresh();
+    await uploadFile(current, {
+      name: 'scene.json',
+      parentId: folder.id,
+      blob: new Blob([scene.json], { type: 'application/json' }),
+      mimeType: 'application/json',
+      existingId: children.get('scene.json'),
+    });
+    onProgress?.(total, total);
+    return { folderId: folder.id, sent: missing.length, kept: pictures.length - missing.length };
+  },
+
+  /** A saved scene's JSON and its picture files, for loading back. */
+  async read(session: AccountSession, folderId: string): Promise<{ json: string; files: LimelightRemoteFile[] }> {
+    const children = await listChildren(session, folderId);
+    const sceneFile = children.find((file) => file.name === 'scene.json');
+    if (!sceneFile) throw new Error('That folder in Google Drive has no scene in it.');
+    const json = await (await downloadBlob(session, sceneFile.id)).text();
+    const files = children.filter((file) => file.name.startsWith('file__')).map((file) => ({ id: file.name.slice('file__'.length), fileId: file.id }));
+    return { json, files };
+  },
+
+  download(session: AccountSession, fileId: string): Promise<Blob> {
+    return downloadBlob(session, fileId);
   },
 };

@@ -3,7 +3,8 @@
 // The strip down the left edge of the window that switches between the app's
 // views, the way VS Code's activity bar does, with each view's name under its
 // icon so nobody has to guess from the picture: the editor, where the
-// screenshots are made, Capture, where they are taken from the app running in
+// screenshots are made, Limelight, where the app is filmed on real phones in
+// 3D for its promo videos, Capture, where they are taken from the app running in
 // a simulator or emulator, Remove background, where people and products are
 // cut out of photos for them, Growth, where their numbers come back, Store
 // compliance, what the stores reject apps for and the checks to make before
@@ -21,10 +22,10 @@
 // site, sits under Discover.
 
 import React from 'react';
-import { CameraIcon, GlobeIcon, PenToolIcon, ScissorsIcon, ShieldCheckIcon, TrendingUpIcon } from 'lucide-react';
+import { CameraIcon, ClapperboardIcon, GlobeIcon, PenToolIcon, ScissorsIcon, ShieldCheckIcon, TrendingUpIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type ActivityId = 'editor' | 'capture' | 'cutout' | 'growth' | 'compliance' | 'website';
+export type ActivityId = 'editor' | 'limelight' | 'capture' | 'cutout' | 'growth' | 'compliance' | 'website';
 
 export interface Activity {
   id: ActivityId;
@@ -39,6 +40,7 @@ export interface Activity {
 
 export const ACTIVITIES: Activity[] = [
   { id: 'editor', name: 'Editor', label: 'Editor', icon: PenToolIcon },
+  { id: 'limelight', name: 'Limelight', label: 'Limelight: film your app in 3D for promo videos', icon: ClapperboardIcon },
   { id: 'capture', name: 'Capture screenshots', label: 'Capture screenshots of your app', icon: CameraIcon },
   { id: 'cutout', name: 'Remove background', label: 'Remove background: cut people and products out of photos', icon: ScissorsIcon },
   { id: 'growth', name: 'Growth', label: 'Growth: downloads, reviews and your store page', icon: TrendingUpIcon },

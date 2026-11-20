@@ -84,6 +84,11 @@ const SLOW_TOOLS: &[&str] = &[
     "capture_screenshot",
     // Runs the background remover's model on a picture (src/lib/cutout).
     "remove_background",
+    // Copy screenshots into Limelight, and draw a frame with WebGL (src/lib/limelight).
+    "create_limelight_scene",
+    "add_limelight_actor",
+    "update_limelight_actor",
+    "render_limelight_frame",
 ];
 
 /// Max request body we will buffer (generous for base64 image arguments).
