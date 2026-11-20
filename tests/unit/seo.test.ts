@@ -11,6 +11,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import zlib from 'node:zlib';
+import { generateKeyPairSync } from 'node:crypto';
 
 const storage = new Map<string, string>();
 (globalThis as { window?: unknown }).window = {
@@ -31,13 +32,26 @@ import vendored from '@/lib/seo/checks/VENDORED.json';
 import { SITE_CHECKS, plainFinding, severityOf, SEVERITY_WORDS, AREA_WORDS } from '@/lib/seo/plain';
 import { llmsUnread, overallScore, pageLinks, readPage, scoreFindings, siteFindings, type SiteExtras } from '@/lib/seo/report';
 import { fetchUrl, isPrivateHost, mayFetch, normaliseStart, type Fetched, type Transport } from '@/lib/seo/fetch';
-import { checkLiveSite, readSitemapAnswer } from '@/lib/seo/run';
+import { MAX_PAGES, checkLiveSite, readSitemapAnswer } from '@/lib/seo/run';
 import { DEFAULT_MANIFEST, MANIFEST_PATH, BRANCH_HEAD_URL, isKnowledgePath, readManifest, treeUrl, wantedPaths } from '@/lib/seo/source';
 import { runKnowledgeSync, knowledgeFor, googleUpdates, type KnowledgeState } from '@/lib/seo/sync';
 import { memoryKnowledgeStore } from '@/lib/seo/store';
 import { readPlan, googleDigest, runDigest } from '@/lib/seo/ai';
-import { closeToPageOne, propertyFor, rate, readPageSpeed, reportWindow, type PageSpeedResult } from '@/lib/seo/google';
-import { CRUX_SHARED_HOST, draftArtboards, getSeoState, loadCrux, pageOfSite, resetSeoState, runSpeed, scoreWithSpeed, seedSeoState, siteIsWholeHost, siteOrigin, speedOf } from '@/lib/seo/state';
+import {
+  GoogleApiOffError,
+  analyticsReport,
+  closeToPageOne,
+  inspectUrl,
+  listAnalyticsProperties,
+  listSearchConsoleSites,
+  propertyFor,
+  rate,
+  readPageSpeed,
+  reportWindow,
+  searchConsoleReport,
+  type PageSpeedResult,
+} from '@/lib/seo/google';
+import { CRUX_SHARED_HOST, draftArtboards, getSeoState, loadCrux, movedFrom, pageOfSite, resetSeoState, runSpeed, scoreWithSpeed, seedSeoState, siteIsWholeHost, siteOrigin, speedOf, speedPages } from '@/lib/seo/state';
 import { setSeoGoogle } from '@/lib/seo/googleSettings';
 import type { ArtboardState } from '@/types/artboard';
 import { isGoogleApiKey, readKeyFile } from '@/lib/seo/googleSettings';
@@ -214,7 +228,7 @@ test('fetch: a typed address is made whole, or refused', () => {
   assert.equal(normaliseStart('a.example:8080'), 'https://a.example:8080/');
 });
 
-type Route = { status: number; body?: string; headers?: Record<string, string> };
+type Route = { status: number; body?: string | Uint8Array; headers?: Record<string, string> };
 
 function fakeTransport(routes: Record<string, Route>, manualRedirects = true): Transport & { asked: string[] } {
   const asked: string[] = [];
@@ -326,6 +340,59 @@ test("GPT's third round: a sitemap with a namespace prefix is found, and one tha
     pauseMs: 0,
   });
   assert.deepEqual([mixed.sitemap.url, mixed.sitemap.pages, sitemapFindings(mixed)], ['https://pebble.example/sitemap.xml', 1, []]);
+});
+
+test("GPT's fourth round: an index of three sitemaps of 50,000 addresses each is read whole, and the crawl still stops at its limit", async () => {
+  // Their 150,000 addresses went into one push(...list), which V8 refuses past about 125,000: the check stopped with a RangeError.
+  const SM = 'http://www.sitemaps.org/schemas/sitemap/0.9';
+  const site = { id: 'url:big', url: 'https://big.example/', name: 'Big', source: 'address' as const, addedAt: 0 };
+  const xml = { 'content-type': 'application/xml' };
+  const home = { status: 200, body: HOME.replace(/\/pebble\//g, '/') };
+  const routes: Record<string, Route> = {
+    'https://big.example/': home,
+    'https://big.example/robots.txt': { status: 200, body: 'User-agent: *\nAllow: /\nSitemap: https://big.example/sitemap.xml\n', headers: { 'content-type': 'text/plain' } },
+    'https://big.example/sitemap.xml': { status: 200, body: `<sitemapindex xmlns="${SM}">${[0, 1, 2].map((part) => `<sitemap><loc>https://big.example/s${part}.xml</loc></sitemap>`).join('')}</sitemapindex>`, headers: xml },
+  };
+  for (const part of [0, 1, 2]) {
+    const entries = Array.from({ length: 50_000 }, (_, at) => `<url><loc>https://big.example/p/${part}-${at}</loc></url>`).join('');
+    routes[`https://big.example/s${part}.xml`] = { status: 200, body: `<urlset xmlns="${SM}">${entries}</urlset>`, headers: xml };
+  }
+  for (let at = 0; at < MAX_PAGES; at++) routes[`https://big.example/p/0-${at}`] = home;
+  const transport = fakeTransport(routes);
+  const run = await checkLiveSite(site, { transport, pauseMs: 0 });
+  assert.deepEqual([run.sitemap.url, run.sitemap.pages, run.sitemap.unknown ?? false], ['https://big.example/sitemap.xml', 150_000, false]);
+  assert.ok(run.pages.length <= MAX_PAGES, `${run.pages.length} pages read`);
+  assert.ok(run.leftOut >= 150_000 - MAX_PAGES, `${run.leftOut} left out`);
+  // The index, its three sitemaps, robots.txt, llms.txt and the pages read: nothing per address beyond the limit.
+  assert.ok(transport.asked.length < 2 * MAX_PAGES, `${transport.asked.length} requests`);
+});
+
+test("GPT's fourth round: a text sitemap's line that isn't UTF-8 is never checked, so it's never called broken", async () => {
+  // /café saved as windows-1252: claude-seo reads text sitemaps as UTF-8, so it, and the port, read /caf and U+FFFD.
+  const bytes = (...parts: Array<string | number>) => Uint8Array.from(parts.flatMap((part) => (typeof part === 'number' ? [part] : [...new TextEncoder().encode(part)])));
+  const answer = (body: Uint8Array): Fetched => ({ url: 'https://a.example/sitemap.txt', finalUrl: 'https://a.example/sitemap.txt', redirects: [], status: 200, headers: { 'content-type': 'text/plain' }, text: '', bytes: body.length, body });
+  assert.deepEqual(readSitemapAnswer(answer(bytes('https://a.example/caf', 0xe9, '\nhttps://a.example/ok\n'))), { state: 'read', index: false, urls: ['https://a.example/ok'], incomplete: true });
+  assert.deepEqual(readSitemapAnswer(answer(bytes('https://a.example/ok\n'))), { state: 'read', index: false, urls: ['https://a.example/ok'], incomplete: false });
+
+  const site = { id: 'url:txt', url: 'https://pebble.example/', name: 'Pebble', source: 'address' as const, addedAt: 0 };
+  const text = { 'content-type': 'text/plain' };
+  const base: Record<string, Route> = {
+    'https://pebble.example/': { status: 200, body: HOME.replace(/\/pebble\//g, '/') },
+    'https://pebble.example/robots.txt': { status: 200, body: 'User-agent: *\nAllow: /\nSitemap: https://pebble.example/sitemap.txt\n', headers: text },
+    'https://pebble.example/support/': { status: 200, body: HOME },
+  };
+  const named = (url: string) => /caf/.test(url);
+  // With a line of the site's it can read: that's the sitemap, and the other line is neither fetched nor reported.
+  const both = fakeTransport({ ...base, 'https://pebble.example/sitemap.txt': { status: 200, body: bytes('https://pebble.example/caf', 0xe9, '\nhttps://pebble.example/support/\n'), headers: text } });
+  const mixed = await checkLiveSite(site, { transport: both, pauseMs: 0 });
+  assert.deepEqual([mixed.sitemap.url, mixed.sitemap.pages], ['https://pebble.example/sitemap.txt', 1]);
+  assert.deepEqual(both.asked.filter(named), [], 'the guessed address was fetched');
+  assert.ok(!mixed.pages.some((page) => named(page.url)) && !JSON.stringify(mixed.findings).includes('caf'), 'the guessed address was reported');
+  // That line alone: the check can't tell whether the site has a sitemap.
+  const alone = fakeTransport({ ...base, 'https://pebble.example/sitemap.txt': { status: 200, body: bytes('https://pebble.example/caf', 0xe9, '\n'), headers: text } });
+  const unknown = await checkLiveSite(site, { transport: alone, pauseMs: 0 });
+  assert.deepEqual([unknown.sitemap.url, unknown.sitemap.unknown, unknown.findings.filter((finding) => /sitemap/.test(finding.id)).map((finding) => finding.id)], [null, true, []]);
+  assert.deepEqual(alone.asked.filter(named), []);
 });
 
 test('a live check: the folder sitemap, every page, a broken link and robots.txt in the folder', async () => {
@@ -610,6 +677,18 @@ test('a Website view site that moves keeps its results, and its old check never 
   assert.equal(siteIsWholeHost(after, run), true);
   assert.equal(siteOrigin(after, run), 'https://pebble.example');
 
+  // GPT's fourth round: Speed offered the old check's pages after the move, which runSpeed then refused.
+  const page = (url: string, status = 200) => ({ url, finalUrl: url, label: url, status, checks: {} }) as unknown as PageReport;
+  const read = { ...run, pages: [page(before.url), page(`${before.url}support/`), page(`${before.url}gone/`, 404), { ...page(`${before.url}x/`), checks: undefined }] } as SiteRun;
+  assert.deepEqual(speedPages(before, read).map((entry) => entry.finalUrl), [before.url, `${before.url}support/`], 'only pages that answered, with checks');
+  assert.deepEqual(speedPages(after, read), [], "the old address's pages offered after the move");
+  assert.deepEqual([movedFrom(before, read), movedFrom(after, read)], [null, before.url]);
+  // Not a move: a check before publishing, a run from before runs kept their address, a site with no address yet.
+  assert.equal(movedFrom(after, { ...read, mode: 'draft' } as SiteRun), null);
+  assert.equal(movedFrom(after, { ...read, site: undefined } as SiteRun), null);
+  assert.equal(movedFrom({ ...after, url: '' }, read), null);
+  assert.equal(movedFrom(after, null), null);
+
   // The other way: www.pebble.example sent everyone to pebble.example, then the site moved to a folder.
   const own = { ...before, url: 'https://www.pebble.example/' };
   const ownRun = { mode: 'live', site: own.url, root: 'https://pebble.example/', pages: [], findings: [] } as unknown as SiteRun;
@@ -823,6 +902,69 @@ test("Search Console: the domain property first, else the longest prefix, never 
   assert.equal(propertyFor('https://name.github.io/pebble/support/', sites), 'https://name.github.io/pebble/');
   assert.equal(propertyFor('https://www.pebble.example/', sites), 'sc-domain:pebble.example');
   assert.equal(propertyFor('https://notpebble.example/', sites), null);
+});
+
+/**
+ * Google's answer when an API is off in the key's Google Cloud project, as it
+ * came for each call below on 2026-11-20 (a service account whose project had
+ * none of them on), the project number made up. The old webmasters/v3 address
+ * adds the v1 `errors` list.
+ */
+function apiOff(title: string, service: string, legacy = false, project = '123456789012'): string {
+  const activationUrl = `https://console.developers.google.com/apis/api/${service}/overview?project=${project}`;
+  const message = `${title} has not been used in project ${project} before or it is disabled. Enable it by visiting ${activationUrl} then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.`;
+  return JSON.stringify({
+    error: {
+      code: 403,
+      message,
+      ...(legacy ? { errors: [{ message, domain: 'usageLimits', reason: 'accessNotConfigured', extendedHelp: 'https://console.developers.google.com' }] } : {}),
+      status: 'PERMISSION_DENIED',
+      details: [
+        { '@type': 'type.googleapis.com/google.rpc.ErrorInfo', reason: 'SERVICE_DISABLED', domain: 'googleapis.com', metadata: { containerInfo: project, serviceTitle: title, service, consumer: `projects/${project}`, activationUrl } },
+        { '@type': 'type.googleapis.com/google.rpc.LocalizedMessage', locale: 'en-US', message },
+        { '@type': 'type.googleapis.com/google.rpc.Help', links: [{ description: 'Google developers console API activation', url: activationUrl }] },
+      ],
+    },
+  });
+}
+
+test("Google's real answers when an API is off: each call says which one to turn on, with the page that does it", async () => {
+  const email = 'seo-api-off@pebble-project.iam.gserviceaccount.com';
+  const privateKey = generateKeyPairSync('rsa', { modulusLength: 2048 }).privateKey.export({ type: 'pkcs8', format: 'pem' }).toString();
+  const key = { json: JSON.stringify({ type: 'service_account', client_email: email, private_key: privateKey, token_uri: 'https://oauth2.googleapis.com/token' }), email, projectId: 'pebble-project', from: 'seo' as const };
+  const SEARCH = ['Google Search Console API', 'searchconsole.googleapis.com'] as const;
+  const ADMIN = ['Google Analytics Admin API', 'analyticsadmin.googleapis.com'] as const;
+  const DATA = ['Google Analytics Data API', 'analyticsdata.googleapis.com'] as const;
+  const win = (globalThis as unknown as { window: { fetch: unknown } }).window;
+  const realFetch = win.fetch;
+  const asked: string[] = [];
+  win.fetch = async (url: string) => {
+    if (url === 'https://oauth2.googleapis.com/token') return new Response(JSON.stringify({ access_token: 'token-off', expires_in: 3600 }), { status: 200 });
+    asked.push(url);
+    const [title, service] = /analyticsadmin/.test(url) ? ADMIN : /analyticsdata/.test(url) ? DATA : SEARCH;
+    return new Response(apiOff(title, service, url.startsWith('https://www.googleapis.com/webmasters/v3/')), { status: 403 });
+  };
+  try {
+    const calls: Array<[string, () => Promise<unknown>, readonly [string, string]]> = [
+      ['Search Console sites', () => listSearchConsoleSites(key), SEARCH],
+      ['Search Console report', () => searchConsoleReport(key, 'sc-domain:pebble.example'), SEARCH],
+      ['URL inspection', () => inspectUrl(key, 'sc-domain:pebble.example', 'https://pebble.example/'), SEARCH],
+      ['Analytics properties', () => listAnalyticsProperties(key), ADMIN],
+      ['Analytics report', () => analyticsReport(key, 'properties/123456789'), DATA],
+    ];
+    for (const [label, call, [title, service]] of calls) {
+      await assert.rejects(call(), (error: unknown) => {
+        assert.ok(error instanceof GoogleApiOffError, `${label}: ${String(error)}`);
+        assert.equal(error.api, title, label);
+        assert.equal(error.activationUrl, `https://console.developers.google.com/apis/api/${service}/overview?project=123456789012`, label);
+        assert.equal(error.message, `The ${title} is turned off for this key's Google Cloud project. Turn it on, wait a minute and try again`);
+        return true;
+      });
+    }
+  } finally {
+    win.fetch = realFetch;
+  }
+  assert.ok(asked.some((url) => url.startsWith('https://www.googleapis.com/webmasters/v3/')) && asked.some((url) => url.includes('analyticsdata')), 'every API was asked');
 });
 
 test('Search Console: searches on the edge of page one, and the report window', () => {

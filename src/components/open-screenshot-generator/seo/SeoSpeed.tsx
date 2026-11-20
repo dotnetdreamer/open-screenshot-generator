@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { VITALS, rate, type Rating, type Strategy, type VitalId } from '@/lib/seo/google';
 import { useSeoGoogle } from '@/lib/seo/googleSettings';
-import { CRUX_SHARED_HOST, loadCrux, runSpeed, siteIsWholeHost, siteOrigin, speedOf } from '@/lib/seo/state';
+import { CRUX_SHARED_HOST, loadCrux, runSpeed, siteIsWholeHost, siteOrigin, speedOf, speedPages } from '@/lib/seo/state';
 import { formatAgo } from '../storeCompliance/StoreComplianceShared';
 import { Gated } from '../growth/GrowthShared';
 import { InfoTip } from '../capture/InfoTip';
@@ -54,7 +54,8 @@ export function SeoSpeed() {
   const google = useSeoGoogle();
   const site = view.site;
   const [strategy, setStrategy] = useState<Strategy>('mobile');
-  const pages = (view.run?.pages ?? []).filter((page) => page.checks && (page.status ?? 200) < 400 && view.run?.mode === 'live');
+  // After a move the last check's pages are of the old address: the test is of the new one's home page.
+  const pages = speedPages(site, view.run);
   // The page picked belongs to the site it was picked on: after a switch of
   // site, the test is of the new site's home page until one of its own is picked.
   const [picked, setPicked] = useState<{ siteId: string; url: string } | null>(null);

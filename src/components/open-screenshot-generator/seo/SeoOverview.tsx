@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { setGrowthSettings, useGrowthSettings } from '@/lib/growth/settings';
 import { plainFinding } from '@/lib/seo/plain';
-import { addSiteAddress, analyticsOf, makePlan, searchOf, speedOf, startCheck, useSeo } from '@/lib/seo/state';
+import { addSiteAddress, analyticsOf, makePlan, movedFrom, searchOf, speedOf, startCheck, useSeo } from '@/lib/seo/state';
 import { useSeoGoogle } from '@/lib/seo/googleSettings';
 import { formatAgo } from '../storeCompliance/StoreComplianceShared';
 import { AiLogo, AiPicker, type AiChoice } from '../growth/AiPicker';
@@ -159,8 +159,8 @@ function Results() {
   const pagesRead = run.pages.filter((page) => page.checks).length;
   const top = run.findings.slice(0, 5);
   const progress = view.state.progress?.siteId === view.site?.id ? view.state.progress : null;
-  // A Website view site that moved keeps its last check, of the old address (state.ts, liveRunOf).
-  const moved = run.mode === 'live' && !!run.site && !!view.site?.url && run.site !== view.site.url ? run.site : null;
+  // A Website view site that moved keeps its last check, of the old address.
+  const moved = movedFrom(view.site, run);
   return (
     <>
       <Card className="grid gap-6 md:grid-cols-[auto,1fr] md:items-center" data-testid="seo-score">

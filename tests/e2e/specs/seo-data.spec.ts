@@ -52,6 +52,39 @@ async function pickSite(page: Page, view: Locator, name: string | RegExp): Promi
   await page.getByRole('option', { name }).click();
 }
 
+/**
+ * The Website view's site for `projectId`, as published at `url`: the record
+ * a publish leaves (nothing here reaches GitHub), then the app loaded again
+ * so every view reads it fresh.
+ */
+async function publishAt(page: Page, projectId: string, url: string): Promise<void> {
+  await page.evaluate(
+    async ({ projectId, url }) => {
+      const db = await new Promise<IDBDatabase>((resolve, reject) => {
+        const open = indexedDB.open('OpenScreenshotGeneratorWebsite');
+        open.onsuccess = () => resolve(open.result);
+        open.onerror = () => reject(open.error);
+      });
+      await new Promise<void>((resolve, reject) => {
+        const store = db.transaction('sites', 'readwrite').objectStore('sites');
+        const get = store.get(projectId);
+        get.onsuccess = () => {
+          const row = get.result;
+          if (!row) return reject(new Error(`no Website view site for ${projectId}`));
+          row.draft.publish = { owner: 'pebble', repo: 'pebble.github.io', branch: 'main', url, at: Date.now(), build: 'e2e', fingerprint: 'e2e', live: true };
+          const put = store.put(row);
+          put.onsuccess = () => resolve();
+          put.onerror = () => reject(put.error);
+        };
+        get.onerror = () => reject(get.error);
+      });
+      db.close();
+    },
+    { projectId, url }
+  );
+  await page.reload();
+}
+
 /** What the desktop app asked the Tauri HTTP plugin for. */
 async function sent(page: Page): Promise<Array<{ method: string; url: string }>> {
   return page.evaluate(() => (window as unknown as { __E2E_TAURI__: { httpRequests: Array<{ method: string; url: string }> } }).__E2E_TAURI__.httpRequests);
@@ -100,6 +133,68 @@ test.describe('SEO numbers per site, property and project', () => {
     // Pebble never had a test, and Otter's result stays Otter's.
     await pickSite(page, view, 'pebble.example');
     await expect(view.getByText('No phone test yet')).toBeVisible();
+  });
+
+  test('a Website view site that moves: the Overview says the check read the old address, and Speed tests the new one', async ({ page, app, isDesktop }) => {
+    await serveFork(page);
+    await seoSettings(page, { apiKey: API_KEY });
+    const tested: string[] = [];
+    await page.route(/^https:\/\/www\.googleapis\.com\/pagespeedonline\//, (route) => {
+      const asked = new URL(route.request().url()).searchParams.get('url') ?? '';
+      tested.push(asked);
+      return route.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: psi(64, asked) });
+    });
+    // The desktop stand-in keeps its rules in the page, so a reload (publishAt) needs them again; page.route stays.
+    const serve = () =>
+      serveSites(page, isDesktop, { [SITE]: sitePages(), [OTTER]: sitePages({}, OTTER) }, [
+        { match: '^GET https://www\\.googleapis\\.com/pagespeedonline/v5/runPagespeed\\?', headers: { 'content-type': 'application/json' }, body: psi(64, `${OTTER}/`) },
+      ]);
+    await serve();
+    // A Website view site, made as a developer makes one.
+    await app.startBlankProject();
+    await app.addElementFrom('Basic', 'Text', 'basic:text');
+    const projectId = new URL(page.url()).searchParams.get('projectId');
+    expect(projectId).toBeTruthy();
+    await page.getByRole('navigation', { name: 'Views' }).getByRole('button', { name: WEBSITE, exact: true }).click();
+    const website = page.getByTestId('website-view');
+    await website.getByRole('button', { name: 'Make my website' }).click();
+    const dialog = page.getByTestId('website-setup');
+    await dialog.getByLabel('App name').fill('Pebble');
+    await dialog.getByLabel('Support email').fill('help@pebble.app');
+    await dialog.getByLabel("Your name or your company's").fill('Pebble Labs');
+    await dialog.getByRole('button', { name: 'Next' }).click();
+    await dialog.getByText('Nothing', { exact: true }).click();
+    await dialog.getByRole('button', { name: 'Next' }).click();
+    await dialog.getByRole('button', { name: 'Make my website' }).click();
+    await expect(dialog).toBeHidden();
+
+    // Published at pebble.example and checked there: Speed offers its pages.
+    await publishAt(page, projectId!, `${SITE}/`);
+    if (isDesktop) await serve();
+    const view = await openSeo(page, app);
+    await pickSite(page, view, /Pebble/);
+    await view.getByTestId('seo-check-now').click();
+    await expect(view.getByTestId('seo-score')).toContainText('2 pages', { timeout: 30_000 });
+    await expect(view.getByTestId('seo-check-now')).toBeVisible({ timeout: 30_000 });
+    await section(view, 'Speed').click();
+    await view.getByLabel('Page to test').click();
+    await expect(page.getByRole('option', { name: '/support' })).toBeVisible();
+    await page.keyboard.press('Escape');
+
+    // Moved to otter.example: the last check is of the old address, said so, and Speed tests the new one.
+    await publishAt(page, projectId!, `${OTTER}/`);
+    if (isDesktop) await serve();
+    await openSeo(page, app);
+    await pickSite(page, view, /Pebble/);
+    await expect(view.getByText('This check read pebble.example, where the site was before. Check again to read it at otter.example.')).toBeVisible({ timeout: 30_000 });
+    await section(view, 'Speed').click();
+    await expect(view.getByLabel('Page to test')).toHaveCount(0);
+    await view.getByTestId('seo-test-speed').click();
+    await expect(view.getByText('otter.example on a phone')).toBeVisible({ timeout: 30_000 });
+    const asked = isDesktop
+      ? (await sent(page)).filter((request) => request.url.includes('pagespeedonline')).map((request) => new URL(request.url).searchParams.get('url'))
+      : tested;
+    expect(asked).toEqual([`${OTTER}/`]);
   });
 
   test("Google: one service failing keeps the other's numbers, and a new property never shows the old one's", async ({ page, app, isDesktop }) => {

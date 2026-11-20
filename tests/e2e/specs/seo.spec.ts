@@ -111,6 +111,33 @@ test.describe('SEO', () => {
     await expect(editor.exportButton).toBeVisible();
   });
 
+  test('Try again loads the SEO view after its code failed to arrive', async ({ page }) => {
+    // The connection drops while the SEO code loads. next/dynamic kept that failure for good, so Try again
+    // showed the same message without asking for the code again (GPT's fourth round).
+    let failing = true;
+    const dropped: string[] = [];
+    await page.route(/\/_next\/static\/.+\.js(\?.*)?$/, async (route) => {
+      if (!failing) return route.continue();
+      const response = await route.fetch();
+      const body = await response.text();
+      if (!body.includes('consectetur adipiscing')) return route.fulfill({ response, body });
+      dropped.push(new URL(route.request().url()).pathname);
+      await route.abort('connectionreset');
+    });
+    const editor = new Editor(page);
+    await editor.goto();
+    await editor.dismissStartDialog();
+    const views = page.getByRole('navigation', { name: 'Views' });
+    await views.getByRole('button', { name: SEO_VIEW, exact: true }).click();
+    const failed = page.getByRole('alert').filter({ hasText: "The SEO view couldn't open" });
+    await expect(failed).toBeVisible({ timeout: 60_000 });
+    expect(dropped.length).toBeGreaterThan(0);
+    failing = false;
+    await failed.getByRole('button', { name: 'Try again' }).click();
+    await expect(page.getByTestId('seo-view')).toBeVisible({ timeout: 60_000 });
+    await expect(failed).toBeHidden();
+  });
+
   test.describe('with Claude Code', () => {
     test.use({ tauriConfig: { responses: { abs_claude_detect: CLAUDE_READY } } });
 

@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { draftLlmsTxt } from '@/lib/seo/ai';
 import type { AgentRole, LlmsVerdict } from '@/lib/seo/checks';
 import { llmsUnread } from '@/lib/seo/report';
+import { MOVED_REASON, movedFrom } from '@/lib/seo/state';
 import { getKnowledgeState } from '@/lib/seo/sync';
 import { Gated } from '../growth/GrowthShared';
 import { CopyButton } from '../storeCompliance/StoreComplianceShared';
@@ -215,7 +216,7 @@ function LlmsCard({ verdict, existing }: { verdict: LlmsVerdict; existing: strin
         title="llms.txt"
         hint="A short guide to your site for AI tools, in a file called llms.txt at the root of the site. It's a proposal, not a rule: Google doesn't use it, and Lighthouse checks it."
         actions={
-          <Gated reason={view.ai.available ? null : view.ai.reason}>
+          <Gated reason={!view.ai.available ? view.ai.reason : movedFrom(view.site, view.run) ? MOVED_REASON : null}>
             <Button size="sm" variant="outline" className="h-8" disabled={busy} onClick={() => void write()}>
               {busy ? <Loader2Icon className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <SparklesIcon className="mr-1.5 h-3.5 w-3.5" />}
               {busy ? 'Writing' : draft ? 'Write again' : verdict.lighthouse === 'pass' ? 'Write a new one' : 'Write one with AI'}

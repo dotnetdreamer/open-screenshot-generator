@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 import { PAGE_CHECKS, SEVERITY_ORDER, type Severity } from '@/lib/seo/checks';
 import { AREA_WORDS, isPageCheckId, plainFinding, SEVERITY_WORDS } from '@/lib/seo/plain';
 import { suggestPageWords, type PageWords } from '@/lib/seo/ai';
-import { inspectPage } from '@/lib/seo/state';
+import { MOVED_REASON, inspectPage, movedFrom } from '@/lib/seo/state';
 import { useSeoGoogle } from '@/lib/seo/googleSettings';
 import { getKnowledgeState } from '@/lib/seo/sync';
 import type { Inspection } from '@/lib/seo/google';
@@ -390,7 +390,15 @@ function OnGoogle({ url }: { url: string }) {
   const property = google.sites[site.id]?.searchConsole;
   const inspection = view.data.inspections[url];
   const busy = view.state.busy.inspect === site.id;
-  const reason = !view.desktop ? 'Needs the desktop app' : !google.active ? 'Add a Google key under Setup first' : !property ? 'Pick the Search Console property under Setup first' : null;
+  const reason = !view.desktop
+    ? 'Needs the desktop app'
+    : !google.active
+      ? 'Add a Google key under Setup first'
+      : !property
+        ? 'Pick the Search Console property under Setup first'
+        : movedFrom(site, view.run)
+          ? MOVED_REASON
+          : null;
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Gated reason={reason}>

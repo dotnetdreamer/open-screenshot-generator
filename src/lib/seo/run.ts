@@ -115,7 +115,14 @@ export function readSitemapAnswer(answer: Fetched): SitemapAnswer {
     if (isHtml(answer)) return { state: 'page' };
     return { state: 'unreadable', reason: UNREADABLE_WORDS[read.error ?? ''] ?? "it isn't a sitemap" };
   }
-  if (read.kind === 'text') return { state: 'read', index: false, urls: read.lines ?? [], incomplete: false };
+  if (read.kind === 'text') {
+    // claude-seo reads a text sitemap as UTF-8 and puts U+FFFD for bytes that aren't (an accent saved as windows-1252, say),
+    // as the port does. Such a line names an address nobody can know, so it isn't checked, and the reading
+    // is partial: with nothing else of the site's, the check can't tell, rather than call a guess broken.
+    const lines = read.lines ?? [];
+    const urls = lines.filter((line) => !line.includes('\u{FFFD}'));
+    return { state: 'read', index: false, urls, incomplete: urls.length < lines.length };
+  }
   const urls = read.entries.flatMap((entry) => (entry.loc ? [entry.loc] : []));
   return { state: 'read', index: read.kind === 'sitemapindex', urls, incomplete: !!read.unread };
 }
@@ -186,12 +193,13 @@ export async function findSitemaps(named: string[] | null, folder: string, origi
         else if (childMap.state === 'unreadable') unreadable ??= { url: child, reason: childMap.reason };
         // An index inside an index is one Google doesn't read: what it lists are sitemaps, not pages.
         else if (childMap.state === 'read' && !childMap.index) {
-          found.push(...childMap.urls);
+          // One at a time: a sitemap holds up to 50,000 addresses, more than a spread (f(...list)) can pass.
+          for (const page of childMap.urls) found.push(page);
           if (childMap.incomplete) partial = true;
         }
       }
     } else {
-      found.push(...sitemap.urls);
+      for (const page of sitemap.urls) found.push(page);
     }
     // Read in part (an index past three, an entry this check can't place) says nothing about the rest.
     if (partial && !found.some((page) => inFolder(page, folder))) {
@@ -204,7 +212,7 @@ export async function findSitemaps(named: string[] | null, folder: string, origi
       continue;
     }
     url ??= candidate;
-    urls.push(...ours);
+    for (const page of ours) urls.push(page);
   }
   if (url) return { url, urls, unknown: false };
   // A place not read may hold the site's sitemap, so a broken file elsewhere doesn't make the sitemap broken.

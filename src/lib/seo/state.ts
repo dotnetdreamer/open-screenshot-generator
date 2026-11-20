@@ -27,7 +27,7 @@ import { scoreFindings } from './report';
 import { checkDraftSite, checkLiveSite, inFolder, siteFolder } from './run';
 import { putRun, putSite, readMeta, readRuns, readSites, removeSite, writeMeta } from './store';
 import { getKnowledgeState } from './sync';
-import type { RunProgress, SeoSite, SiteRun } from './types';
+import type { PageReport, RunProgress, SeoSite, SiteRun } from './types';
 import { listSiteDrafts } from '@/lib/website/store';
 import { isTauri } from '@/lib/desktop';
 import { canOpenAsProject } from '@/lib/projectCanvas';
@@ -356,6 +356,25 @@ export function analyticsOf(siteId: string | null, from: SeoState = state): Anal
  */
 export function liveRunOf(site: SeoSite, run: SiteRun | null): SiteRun | null {
   return run?.mode === 'live' && !!site.url && run.site === site.url ? run : null;
+}
+
+/**
+ * Where the site's latest check read it, when the site has moved since (a
+ * Website view site published at a new address). Its results stay on screen
+ * with a note, but nothing new is asked about its old pages: Speed tests the
+ * new address, and "Is it on Google?" and the llms.txt draft wait for a check.
+ */
+export function movedFrom(site: SeoSite | null, run: SiteRun | null): string | null {
+  return site?.url && run?.mode === 'live' && run.site && run.site !== site.url ? run.site : null;
+}
+
+/** Why a button about the latest check's pages waits, when the site moved after that check (movedFrom). */
+export const MOVED_REASON = 'Check the site again first: the last check read its old address';
+
+/** The pages Speed offers: those the latest check read at the site's address now, that answered. None after a move. */
+export function speedPages(site: SeoSite | null, run: SiteRun | null): PageReport[] {
+  const live = site ? liveRunOf(site, run) : null;
+  return (live?.pages ?? []).filter((page) => page.checks && (page.status ?? 200) < 400);
 }
 
 /**
