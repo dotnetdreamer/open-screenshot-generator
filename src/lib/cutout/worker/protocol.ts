@@ -62,8 +62,17 @@ export interface CutDone {
   engine: CutoutEngine;
   /** Whether the colour cut took part. */
   flat: boolean;
+  /**
+   * The model ran but its mask says nothing: almost no pixel is clearly kept or
+   * clearly removed. A GPU that gets the model's sums wrong answers this way (a
+   * flat grey mask), and no photo the model was tried on did.
+   */
+  unsure?: boolean;
   ms: number;
 }
+
+/** What the worker answers about a picture it no longer holds (`forget`, or room made for others). */
+export const NOT_OPEN = 'That picture is no longer open';
 
 export interface RenderDone {
   rgba: ArrayBuffer;

@@ -13,7 +13,7 @@ To start, click **Remove background** on the bar at the left. Remove background 
 3. Each photo shows up in **Your pictures** while the app works on it. Click a picture to see it big.
 4. Click **Add to artboard** to put the picture on the artboard you picked in the editor.
 
-The first time, the app needs a one-time download: 118 MB, or 94 MB on some computers. You'll see how far the download got on the left, with a **Stop** button. After that, everything works without internet.
+The first time, the app needs a one-time download: 118 MB, or 94 MB on some computers. You'll see how far the download got on the left, with a **Stop** button. After that, everything works without internet. If your computer's graphics card gets a picture wrong, the app switches to the 94 MB download by itself and does that picture again.
 
 A logo or a product on a plain color doesn't wait for the download. The app takes the plain color out straight away.
 
@@ -28,7 +28,7 @@ Most pictures come out right the first time. When one doesn't:
 - **Erase** and **Bring back**: paint over the parts you want gone, or the parts you want back. Press **X** to switch between the two, and **[** or **]** to make the brush smaller or bigger.
 - To move around the picture, hold **Alt** and drag, or use two fingers on a trackpad. To zoom, hold **Ctrl** or **Cmd** and scroll.
 - On a phone or tablet, tap **Erase** or **Bring back** first, then paint with your finger or pen. Tap it again to stop. Until you tap one, swiping over the picture scrolls the page instead of painting.
-- **Shrink or grow**: drag left to trim off a thin line of the old background. Drag right if the edge cuts into the person or product.
+- **Shrink or grow**: drag left to trim off a thin line of the old background. Drag right if the edge cuts into the person or product. Growing never brings back parts the photo had see-through.
 - **Soften** makes the edges a little blurry. A little helps with hair and fur.
 - **Fix colored edges** takes leftover color from the old background out of the edges, so hair doesn't look outlined. It's on unless you turn it off.
 - **Cut off empty space** crops the picture close around what's left, so the picture is easier to place.
@@ -38,7 +38,9 @@ Most pictures come out right the first time. When one doesn't:
 
 The app saves every change by itself a moment later. There's no Save button.
 
-**Start over** has two choices: **Remove the background again** does the whole photo afresh, and **Keep the whole photo** puts everything back.
+With the same picture open in two windows, a change saved in one shows up in the other. Change it in both at the same moment, and one change is kept while the other window tells you yours wasn't saved and shows the picture as it is now.
+
+**Start over** has two choices: **Remove the background again** does the whole photo afresh, and **Keep the whole photo** puts everything back. Parts the photo had see-through to begin with stay see-through.
 
 A picture you already put on an artboard doesn't change when you fix the edges later. Click **Add to artboard** again to use the fixed picture.
 
@@ -56,12 +58,18 @@ The **Custom** tab at the top of the editor's left panel shows Your pictures:
 
 Your pictures are kept on this computer. To keep a copy in your own Google Drive or GitHub account, sign in under **Account**, then click **Back up to Google Drive** (or **Back up to GitHub**) at the top of Remove background.
 
-- **Google Drive** gets a folder called **Open Screenshot Generator images**. Your pictures are normal PNG files you can open in Drive, each named after the picture. When you rename a picture, its files get the new name the next time you back up. The original photos go too, so you can still fix the edges on another computer. They have "(photo)" and "(mask)" at the end of their names.
-- **GitHub** gets one private gist with the finished pictures only. A gist holds up to 298 pictures, each up to 7.5 MB.
+- **Google Drive** gets a folder called **Open Screenshot Generator images**. Your pictures are normal PNG files you can open in Drive, each named after the picture. When you rename a picture, its files get the new name the next time you back up. The original photos go too, so you can still fix the edges on another computer. They have "(photo)" and "(mask)" at the end of their names. Next to them are small library files, one for each computer that backs up there, which list your pictures. Leave them in the folder.
+- **GitHub** gets one private gist with the finished pictures only. A gist holds up to 298 pictures, one fewer for each other computer that backs up to it, and each picture can be up to 7.5 MB.
 
 The same button brings your pictures back on a new computer. When you delete a picture, the copy online goes too the next time you back up, and so does the copy in any other account you back up to in the next four months. On Google Drive it goes to the trash, where Drive keeps it for 30 days. Nothing gets backed up until you click the button.
 
 If a picture can't be brought back, deleted or renamed online this time, the message after the backup says so, and the next backup tries again.
+
+If part of a picture is missing from Google Drive, for example its "(mask)" file was deleted there, the picture still comes back and the message says it came back without its original photo. The files still in Drive stay there. Take the missing file out of the Drive trash, and the next backup brings the original back as well.
+
+A change you make while a backup runs is kept, and the next backup sends it. Two computers can back up at the same time, and each keeps the other's pictures.
+
+Once this version of the app has backed up to an account, older versions stop backing up there, so they can't take out pictures they don't know about. Update the app on each computer you back up from.
 
 ## With the AI assistant
 

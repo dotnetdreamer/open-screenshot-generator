@@ -32,6 +32,8 @@ export interface CutoutModelSpec {
   urls: string[];
   /** Where it runs: 'gpu' needs WebGPU, 'cpu' runs anywhere. */
   device: 'gpu' | 'cpu';
+  /** Nodes the WebGPU provider must leave to the CPU, by name in the graph. */
+  cpuNodes?: string[];
 }
 
 export const CUTOUT_MODELS: Record<CutoutModelId, CutoutModelSpec> = {
@@ -47,6 +49,19 @@ export const CUTOUT_MODELS: Record<CutoutModelId, CutoutModelSpec> = {
       'https://huggingface.co/runes/birefnet-lite-webgpu/resolve/d553b221039609f1ab170e3c2e651b59f363c98a/birefnet_lite_webgpu_fp16.onnx',
     ],
     device: 'gpu',
+    // The decoder's five channel attention averages. WebGPU adds them up in
+    // f16, and on a bright photo the 256 by 256 sum passes f16's 65504 (one
+    // portrait reached 69615, November 2026): the attention goes to infinity
+    // and the whole mask comes out a flat grey. On the CPU they add up in f32.
+    // Measured on Intel UHD Graphics (gen-12lp) in WebView2: the native
+    // runtime's mask, and no slower. onnxruntime-web 1.33.0-dev still overflows.
+    cpuNodes: [
+      '/squeeze_module/squeeze_module.0/dec_att/global_avg_pool/global_avg_pool.0/GlobalAveragePool',
+      '/decoder/decoder_block4/dec_att/global_avg_pool/global_avg_pool.0/GlobalAveragePool',
+      '/decoder/decoder_block3/dec_att/global_avg_pool/global_avg_pool.0/GlobalAveragePool',
+      '/decoder/decoder_block2/dec_att/global_avg_pool/global_avg_pool.0/GlobalAveragePool',
+      '/decoder/decoder_block1/dec_att/global_avg_pool/global_avg_pool.0/GlobalAveragePool',
+    ],
   },
   // The same weights exported at 512 (studioludens/birefnet-lite-512), which
   // fits the CPU's memory. Its fp16 file runs on the CPU at fp32's speed (5.9 s

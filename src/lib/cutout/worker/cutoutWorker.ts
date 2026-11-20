@@ -26,7 +26,7 @@ import {
   trimBounds,
   type Plane,
 } from '../refine';
-import type { CutDone, LoadDone, RenderDone, RenderSettings, WorkerRequest, WorkerResponse } from './protocol';
+import { NOT_OPEN, type CutDone, type LoadDone, type RenderDone, type RenderSettings, type WorkerRequest, type WorkerResponse } from './protocol';
 
 // The DOM library has no worker scope type; this is the part used here.
 declare const self: {
@@ -52,8 +52,55 @@ interface Loaded {
 }
 
 let loaded: Loaded | null = null;
+/**
+ * The pictures the page has handed over, by key, the one used last at the
+ * end. The page forgets each one it is done with: the view the picture on
+ * screen once it shows another and its saves are written, a cut its own key.
+ * That is two at most, three while the view changes pictures under a cut.
+ * Past MAX_IMAGES the one used longest ago goes, which only a page that
+ * forgot to forget needs; the view sends its picture again if it was that one.
+ */
 const images = new Map<string, { rgba: Uint8ClampedArray; width: number; height: number }>();
+const MAX_IMAGES = 4;
 const downloads = new Map<number, AbortController>();
+
+/** The picture under `key`, marked as used just now. */
+function imageOf(key: string): { rgba: Uint8ClampedArray; width: number; height: number } {
+  const image = images.get(key);
+  if (!image) throw new Error(NOT_OPEN);
+  images.delete(key);
+  images.set(key, image);
+  return image;
+}
+
+/** A mask's share of pixels clearly kept or clearly removed: about 0.98 for a photo, none for a GPU's flat grey. */
+function sureShare(plane: Plane): number {
+  const { data } = plane;
+  let sure = 0;
+  for (let i = 0; i < data.length; i++) if (data[i] < 0.1 || data[i] > 0.9) sure++;
+  return data.length ? sure / data.length : 1;
+}
+
+/**
+ * Keeps what the photo itself left see-through that way: a mask never brings
+ * back a pixel the photo did not have (a PNG's transparent corners, which
+ * come out of the canvas black). Nothing changes for an opaque photo.
+ */
+function keepOwnTransparency(mask: Uint8Array, rgba: Uint8ClampedArray): Uint8Array {
+  for (let i = 0; i < mask.length; i++) {
+    const own = rgba[i * 4 + 3];
+    if (own < mask[i]) mask[i] = own;
+  }
+  return mask;
+}
+
+/** keepOwnTransparency for a mask as 0 to 1, in place. */
+function keepOwnPlane(alpha: Float32Array, rgba: Uint8ClampedArray): void {
+  for (let i = 0; i < alpha.length; i++) {
+    const own = rgba[i * 4 + 3] / 255;
+    if (own < alpha[i]) alpha[i] = own;
+  }
+}
 
 function post(message: WorkerResponse, transfer: Transferable[] = []): void {
   self.postMessage(message, transfer);
@@ -69,7 +116,7 @@ async function load(spec: CutoutModelSpec, gpu: boolean): Promise<LoadDone> {
   const bytes = await readModel(spec);
   const device = gpu ? 'webgpu' : 'wasm';
   const session = await ort.InferenceSession.create(bytes, {
-    executionProviders: [device],
+    executionProviders: [gpu ? { name: 'webgpu', forceCpuNodeNames: spec.cpuNodes ?? [] } : 'wasm'],
     graphOptimizationLevel: 'all',
     // Errors only: the graph optimiser's notes otherwise fill the console.
     logSeverityLevel: 3,
@@ -93,8 +140,7 @@ async function runModel(rgba: Uint8ClampedArray, width: number, height: number):
 }
 
 async function cut(request: Extract<WorkerRequest, { type: 'cut' }>): Promise<{ result: CutDone; transfer: Transferable[] }> {
-  const image = images.get(request.key);
-  if (!image) throw new Error('That picture is no longer open');
+  const image = imageOf(request.key);
   const started = performance.now();
   const { rgba, width, height } = image;
   const n = width * height;
@@ -107,9 +153,13 @@ async function cut(request: Extract<WorkerRequest, { type: 'cut' }>): Promise<{ 
 
   let coarse: Plane | null = null;
   let engine: CutDone['engine'] = 'color';
+  let unsure = false;
   if (request.useModel && loaded) {
     coarse = await runModel(rgba, width, height);
     engine = 'model';
+    // Under a tenth sure, where a photo's mask is about 98 per cent sure and a
+    // GPU's flat grey none at all (measured on the round-one masks, Nov 2026).
+    unsure = sureShare(coarse) < 0.1;
   } else if (request.hint) {
     const bytes = new Uint8Array(request.hint.mask);
     const data = new Float32Array(bytes.length);
@@ -128,15 +178,15 @@ async function cut(request: Extract<WorkerRequest, { type: 'cut' }>): Promise<{ 
   } else {
     throw new Error('NO_ENGINE');
   }
+  keepOwnTransparency(mask, rgba);
   return {
-    result: { mask: mask.buffer as ArrayBuffer, width, height, engine, flat: !!flat, ms: Math.round(performance.now() - started) },
+    result: { mask: mask.buffer as ArrayBuffer, width, height, engine, flat: !!flat, ...(unsure ? { unsure } : {}), ms: Math.round(performance.now() - started) },
     transfer: [mask.buffer as ArrayBuffer],
   };
 }
 
 function render(request: Extract<WorkerRequest, { type: 'render' }>): { result: RenderDone; transfer: Transferable[] } {
-  const image = images.get(request.key);
-  if (!image) throw new Error('That picture is no longer open');
+  const image = imageOf(request.key);
   const settings: RenderSettings = request.settings;
   let { rgba, width, height } = image;
   let mask: Uint8Array = new Uint8Array(request.mask);
@@ -154,7 +204,12 @@ function render(request: Extract<WorkerRequest, { type: 'render' }>): { result: 
   let alpha = toFloats(mask);
   if (settings.edge) alpha = shiftEdge(alpha, width, height, settings.edge * scale);
   if (settings.softness > 0) alpha = featherEdge(alpha, width, height, settings.softness * scale);
-  const finalMask = settings.edge || settings.softness > 0 ? toBytes(alpha) : mask;
+  // Last, after every step that can spread the mask (Grow, Soften, the
+  // brush's Bring back): what the photo had see-through stays so. Its colour
+  // there is whatever the file kept, black mostly, which a grown edge would
+  // show as a dark rim.
+  keepOwnPlane(alpha, rgba);
+  const finalMask = toBytes(alpha);
   const full = { x: 0, y: 0, width, height };
   const rect = settings.trim ? trimBounds(finalMask, width, height) ?? full : full;
   const foreground = settings.cleanColors ? estimateForeground(rgba, width, height, alpha) : null;
@@ -197,9 +252,10 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
         post({ id: request.id, type: 'done', result: await load(request.spec, request.gpu) });
         return;
       case 'image':
+        // Sent again, it counts as new: it goes to the end of the line.
+        images.delete(request.key);
         images.set(request.key, { rgba: new Uint8ClampedArray(request.rgba), width: request.width, height: request.height });
-        // Two at most: the one on screen and the one being cut behind it.
-        while (images.size > 2) images.delete(images.keys().next().value as string);
+        while (images.size > MAX_IMAGES) images.delete(images.keys().next().value as string);
         post({ id: request.id, type: 'done', result: null });
         return;
       case 'cut': {

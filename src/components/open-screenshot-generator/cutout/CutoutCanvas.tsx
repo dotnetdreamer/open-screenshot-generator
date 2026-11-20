@@ -8,6 +8,15 @@
 // stroke updates one small rectangle of the mask canvas instead of rebuilding a
 // cut-out the size of the photo. The backdrop is the element's CSS.
 //
+// The photo is drawn solid and the mask alone says what shows, as in the
+// exported picture (the worker's `composeCutout`): a photo that had see-through
+// parts of its own has them in its mask already, and drawn see-through as
+// well it would show them twice (a half see-through pixel at a quarter). The
+// mask never shows more of a pixel than the photo had, as in the export, so
+// an edge grown past the photo's see-through parts stays out of them.
+// "Before" shows the photo as it came, so the mask canvas holds the photo's
+// own transparency then.
+//
 // Pointer events throughout (rule 20 in .agents/AGENTS.md): one finger paints,
 // two pan and zoom. A trackpad or wheel pans, with Ctrl or Cmd it zooms. Where
 // a finger is not to paint (`fingerPaints` false: a phone or tablet, until the
@@ -92,7 +101,7 @@ export const CutoutCanvas = React.forwardRef<CutoutCanvasHandle, CutoutCanvasPro
     if (!canvas || !source || !maskCanvas) return;
     const context = canvas.getContext('2d');
     if (!context) return;
-    const { brush, showOriginal } = propsRef.current;
+    const { brush } = propsRef.current;
     const { dpr } = sizeRef.current;
     const view = viewRef.current;
     context.setTransform(1, 0, 0, 1, 0, 0);
@@ -102,11 +111,9 @@ export const CutoutCanvas = React.forwardRef<CutoutCanvasHandle, CutoutCanvasPro
     context.imageSmoothingQuality = 'high';
     context.globalCompositeOperation = 'source-over';
     context.drawImage(source, 0, 0);
-    if (!showOriginal) {
-      context.globalCompositeOperation = 'destination-in';
-      context.drawImage(maskCanvas, 0, 0);
-      context.globalCompositeOperation = 'source-over';
-    }
+    context.globalCompositeOperation = 'destination-in';
+    context.drawImage(maskCanvas, 0, 0);
+    context.globalCompositeOperation = 'source-over';
     const cursor = cursorRef.current;
     if (cursor && brush) {
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -126,20 +133,34 @@ export const CutoutCanvas = React.forwardRef<CutoutCanvasHandle, CutoutCanvasPro
     if (!frameRef.current) frameRef.current = requestAnimationFrame(draw);
   }, [draw]);
 
-  /** Copies the mask (or the shown one) into the mask canvas, in `rect` or whole. */
+  /**
+   * Copies the mask (or the shown one) into the mask canvas, in `rect` or
+   * whole. While "Before" is held, the photo's own transparency instead.
+   */
   const refresh = useCallback(
     (rect?: Rect) => {
       const maskCanvas = maskCanvasRef.current;
       const image = maskImageRef.current;
       if (!maskCanvas || !image) return;
-      const { picture, mask } = propsRef.current;
+      const { picture, mask, showOriginal } = propsRef.current;
       const { width, height } = picture;
       const area = rect ?? { x: 0, y: 0, width, height };
-      const from = rect || !shownRef.current ? mask : shownRef.current;
       const data = image.data;
-      for (let y = area.y; y < area.y + area.height; y++) {
-        let i = y * width + area.x;
-        for (let x = 0; x < area.width; x++, i++) data[i * 4 + 3] = from[i];
+      if (showOriginal) {
+        for (let y = area.y; y < area.y + area.height; y++) {
+          let i = y * width + area.x;
+          for (let x = 0; x < area.width; x++, i++) data[i * 4 + 3] = picture.rgba[i * 4 + 3];
+        }
+      } else {
+        const from = rect || !shownRef.current ? mask : shownRef.current;
+        // Never more than the photo had, as in the exported picture: a grown
+        // edge or a Bring back stroke over the photo's own see-through parts
+        // would show the colour the file kept there, black mostly.
+        const own = picture.hasAlpha ? picture.rgba : null;
+        for (let y = area.y; y < area.y + area.height; y++) {
+          let i = y * width + area.x;
+          for (let x = 0; x < area.width; x++, i++) data[i * 4 + 3] = own ? Math.min(from[i], own[i * 4 + 3]) : from[i];
+        }
       }
       maskCanvas.getContext('2d')?.putImageData(image, 0, 0, area.x, area.y, area.width, area.height);
       schedule();
@@ -184,12 +205,15 @@ export const CutoutCanvas = React.forwardRef<CutoutCanvasHandle, CutoutCanvasPro
     [fit, refresh, zoomAround]
   );
 
-  // The photo and the mask canvases, made again for each picture.
+  // The photo and the mask canvases, made again for each picture. The photo
+  // solid: its own transparency is in the mask (see the top of the file).
   useEffect(() => {
     const source = document.createElement('canvas');
     source.width = picture.width;
     source.height = picture.height;
-    source.getContext('2d')?.putImageData(new ImageData(new Uint8ClampedArray(picture.rgba), picture.width, picture.height), 0, 0);
+    const solid = new Uint8ClampedArray(picture.rgba);
+    if (picture.hasAlpha) for (let i = 3; i < solid.length; i += 4) solid[i] = 255;
+    source.getContext('2d')?.putImageData(new ImageData(solid, picture.width, picture.height), 0, 0);
     const maskCanvas = document.createElement('canvas');
     maskCanvas.width = picture.width;
     maskCanvas.height = picture.height;
@@ -215,11 +239,11 @@ export const CutoutCanvas = React.forwardRef<CutoutCanvasHandle, CutoutCanvasPro
 
   useEffect(() => {
     refresh();
-  }, [shown, mask, refresh]);
+  }, [shown, mask, showOriginal, refresh]);
 
   useEffect(() => {
     schedule();
-  }, [showOriginal, brush, schedule]);
+  }, [brush, schedule]);
 
   // The on-screen canvas follows its box, at the screen's pixel density.
   useEffect(() => {

@@ -131,6 +131,7 @@ export async function removeBackgroundForMcp(
   const ref = `asset:${mediaId}`;
   if (input.saveToMyImages !== false) {
     const source = await encodeRgba(files.source.rgba, files.source.width, files.source.height, files.source.hasAlpha ? 'image/png' : 'image/jpeg', 0.92);
+    // Nothing has the picture yet when it cannot be kept (no room), so it goes too.
     const row = await addLibraryImageFromMedia({
       name,
       mediaId,
@@ -147,6 +148,9 @@ export async function removeBackgroundForMcp(
         settings: files.settings,
         rect: files.rect,
       },
+    }).catch(async (error) => {
+      await db.media.delete(mediaId).catch(() => undefined);
+      throw error;
     });
     myImageId = row.id;
   }

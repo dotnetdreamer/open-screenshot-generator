@@ -38,10 +38,11 @@ import {
   type ProgressFn,
   type ProjectBundle,
   type ProjectManifest,
-  type RemoteLibraryManifest,
+  type RemoteLibraryList,
   type RemoteLibraryState,
   type SignInOptions,
 } from '../types';
+import { deviceOfListFile, FENCE_TEXT, LEGACY_DEVICE, LEGACY_LIST, listFileName, readListFile } from '../libraryFiles';
 import { bridgeFetch, createPkcePair, formEncode, randomState, requestJson, runLoopbackFlow, throwConnectionFailure, throwIfSignInCancelled } from '../transport';
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '';
@@ -835,10 +836,10 @@ export const googleDriveProvider: CloudProvider = {
 // is found by its name. A sync renames a file whose picture was renamed, and
 // gives an `image__` file its picture's name and the appProperties. The photos
 // and masks travel, so a cut can be changed after a restore on another
-// computer.
+// computer. Beside them, each computer's list of the pictures and library.json
+// (src/lib/account/libraryFiles.ts).
 
 const LIBRARY_FOLDER_NAME = 'Open Screenshot Generator images';
-const LIBRARY_MANIFEST = 'library.json';
 /** The start of a picture file's name when the name is its media id. */
 const LIBRARY_FILE_PREFIX = 'image__';
 /** The appProperties key holding a picture file's media id. */
@@ -866,7 +867,7 @@ function libraryMediaId(child: DriveChild): string | null {
   return child.name.startsWith(LIBRARY_FILE_PREFIX) ? child.name.slice(LIBRARY_FILE_PREFIX.length) : null;
 }
 
-/** A file in the pictures folder, as the state's `files` keeps it (keyed by media id, or `library.json`). */
+/** A file in the pictures folder, as the state's `files` keeps it (keyed by media id, or by the name of a list). */
 interface LibraryFile {
   fileId: string;
   name: string;
@@ -893,18 +894,65 @@ async function libraryState(session: AccountSession, folderId: string): Promise<
   const children = await listChildren(session, folderId);
   const files = new Map<string, unknown>();
   const mediaIds = new Set<string>();
-  let manifest: RemoteLibraryManifest | null = null;
+  const lists: RemoteLibraryList[] = [];
+  const unreadable: string[] = [];
+  let fenced = false;
   for (const child of children) {
     const id = libraryMediaId(child);
     if (id) {
       mediaIds.add(id);
       files.set(id, { fileId: child.id, name: child.name, tagged: !!child.appProperties?.[LIBRARY_MEDIA_KEY] } satisfies LibraryFile);
-    } else if (child.name === LIBRARY_MANIFEST) {
-      manifest = JSON.parse(await (await downloadBlob(session, child.id)).text()) as RemoteLibraryManifest;
-      files.set(LIBRARY_MANIFEST, { fileId: child.id, name: child.name, tagged: false } satisfies LibraryFile);
+      continue;
     }
+    if (child.name !== LEGACY_LIST && !deviceOfListFile(child.name)) continue;
+    // Drive lets two files share a name: the first library.json is the one
+    // the note goes in, and every one is read.
+    if (!files.has(child.name)) files.set(child.name, { fileId: child.id, name: child.name, tagged: false } satisfies LibraryFile);
+    const read = readListFile(child.name, await (await downloadBlob(session, child.id)).text());
+    if (read.kind === 'list') lists.push(read.list);
+    else if (read.kind === 'fence') fenced = true;
+    else unreadable.push(child.name);
   }
-  return { manifest, mediaIds, handle: folderId, files };
+  return { lists, fenced, unreadable, mediaIds, handle: folderId, files };
+}
+
+/**
+ * The picture files in the folder's part of the Drive trash, by media id. A
+ * backup that would send one of them again takes it out of the trash instead:
+ * another computer put it there going by an older list, and its own check puts
+ * it back too, so sending a second copy left the folder with two files of one
+ * picture (a real two-computer backup did, 20 Nov 2026).
+ */
+async function trashedLibraryFiles(session: AccountSession, folderId: string): Promise<Map<string, DriveChild>> {
+  const query = encodeURIComponent(`'${folderId}' in parents and trashed = true`);
+  const found = new Map<string, DriveChild>();
+  let pageToken: string | undefined;
+  do {
+    const page = pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : '';
+    const result = await driveJson<{ files?: DriveChild[]; nextPageToken?: string }>(
+      session,
+      `${DRIVE_API}/files?q=${query}&fields=files(id,name,appProperties),nextPageToken&pageSize=200${page}`
+    );
+    for (const child of result.files ?? []) {
+      const id = libraryMediaId(child);
+      if (id && !found.has(id)) found.set(id, child);
+    }
+    pageToken = result.nextPageToken;
+  } while (pageToken);
+  return found;
+}
+
+/** Writes a small JSON file into the pictures folder, over the one of that name when there is one. */
+async function writeLibraryJson(session: AccountSession, state: RemoteLibraryState, name: string, text: string): Promise<LibraryFile> {
+  if (!state.handle) throw new Error('The pictures folder is missing from Drive');
+  const written = await uploadFile(session, {
+    name,
+    parentId: state.handle,
+    blob: new Blob([text], { type: 'application/json' }),
+    mimeType: 'application/json',
+    existingId: libraryFile(state, name)?.fileId,
+  });
+  return { fileId: written.id, name, tagged: false };
 }
 
 export const googleDriveLibrary: LibraryRemote = {
@@ -912,24 +960,54 @@ export const googleDriveLibrary: LibraryRemote = {
 
   async read(session) {
     const folderId = await libraryFolder(session);
-    if (!folderId) return { manifest: null, mediaIds: new Set(), handle: null, files: new Map() };
+    if (!folderId) return { lists: [], fenced: false, unreadable: [], mediaIds: new Set(), handle: null, files: new Map() };
     return libraryState(session, folderId);
   },
 
-  async upload(session, state, files, onProgress) {
-    let folderId = state.handle;
-    if (!folderId) {
+  async refresh(session, state) {
+    return state.handle ? libraryState(session, state.handle) : googleDriveLibrary.read(session);
+  },
+
+  async upload(session, state, files, options = {}) {
+    const { onProgress } = options;
+    let start = state;
+    if (!start.handle) {
       const created = await driveJson<{ id: string }>(session, `${DRIVE_API}/files?fields=id`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: LIBRARY_FOLDER_NAME, mimeType: FOLDER_MIME, appProperties: { absLibrary: '1' } }),
       });
-      folderId = created.id;
+      // A new folder has no list from before to keep, so the note goes in
+      // first: a build from before that finds the folder stops at it.
+      start = { ...state, handle: created.id, files: new Map(state.files) };
+      start.files.set(LEGACY_LIST, await writeLibraryJson(session, start, LEGACY_LIST, FENCE_TEXT));
+      start.fenced = true;
     }
-    const next: RemoteLibraryState = { ...state, handle: folderId, mediaIds: new Set(state.mediaIds), files: new Map(state.files) };
+    const folderId = start.handle as string;
+    const next: RemoteLibraryState = { ...start, mediaIds: new Set(start.mediaIds), files: new Map(start.files) };
     const todo = files.filter((file) => !next.mediaIds.has(file.mediaId));
+    // A new folder has nothing in the trash.
+    const trashed = todo.length && state.handle ? await trashedLibraryFiles(session, folderId) : new Map<string, DriveChild>();
     for (const [index, file] of todo.entries()) {
       onProgress?.(`Sending picture ${index + 1} of ${todo.length}`, (index + 1) / (todo.length + 1));
+      const inTrash = trashed.get(file.mediaId);
+      if (inTrash) {
+        try {
+          // Same media id, same bytes: the file comes back, and the rename
+          // after the list is written gives it the picture's name.
+          await driveJson(session, `${DRIVE_API}/files/${inTrash.id}?fields=id`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ trashed: false }),
+          });
+          next.mediaIds.add(file.mediaId);
+          next.files.set(file.mediaId, { fileId: inTrash.id, name: inTrash.name, tagged: !!inTrash.appProperties?.[LIBRARY_MEDIA_KEY] } satisfies LibraryFile);
+          continue;
+        } catch (error) {
+          if (error instanceof AccountAuthError) throw error;
+          console.error('Taking a picture file out of the Drive trash failed; it goes up again', file.mediaId, error);
+        }
+      }
       const name = libraryFileName(file.name, file.mediaId, file.mimeType);
       const uploaded = await uploadFile(session, {
         name,
@@ -944,18 +1022,19 @@ export const googleDriveLibrary: LibraryRemote = {
     return next;
   },
 
-  async writeManifest(session, state, manifest) {
-    if (!state.handle) throw new Error('The pictures folder is missing from Drive');
-    const written = await uploadFile(session, {
-      name: LIBRARY_MANIFEST,
-      parentId: state.handle,
-      blob: new Blob([JSON.stringify(manifest)], { type: 'application/json' }),
-      mimeType: 'application/json',
-      existingId: libraryFile(state, LIBRARY_MANIFEST)?.fileId,
-    });
+  async writeList(session, state, list, options = {}) {
+    const name = listFileName(list.device);
     const files = new Map(state.files);
-    files.set(LIBRARY_MANIFEST, { fileId: written.id, name: LIBRARY_MANIFEST, tagged: false } satisfies LibraryFile);
-    return { ...state, manifest, files };
+    files.set(name, await writeLibraryJson(session, state, name, JSON.stringify(list)));
+    let { fenced } = state;
+    // The list first: library.json's pictures are in it by now, so the note
+    // can take their place.
+    if (options.fence && !fenced) {
+      files.set(LEGACY_LIST, await writeLibraryJson(session, { ...state, files }, LEGACY_LIST, FENCE_TEXT));
+      fenced = true;
+    }
+    const lists = [...state.lists.filter((other) => other.device !== list.device && !(fenced && other.device === LEGACY_DEVICE)), list];
+    return { ...state, lists, fenced, files };
   },
 
   async download(session, state, mediaId) {
@@ -1007,6 +1086,30 @@ export const googleDriveLibrary: LibraryRemote = {
         if (error instanceof AccountAuthError) throw error;
         if (isGone(error)) continue;
         console.error('Moving a picture file to the Drive trash failed', mediaId, error);
+        left.push(mediaId);
+      }
+    }
+    return left;
+  },
+
+  async restore(session, from, mediaIds) {
+    const left: string[] = [];
+    for (const mediaId of mediaIds) {
+      // The trash keeps the file under the same id, which `from` read.
+      const file = libraryFile(from, mediaId);
+      if (!file) {
+        left.push(mediaId);
+        continue;
+      }
+      try {
+        await driveJson(session, `${DRIVE_API}/files/${file.fileId}?fields=id`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ trashed: false }),
+        });
+      } catch (error) {
+        if (error instanceof AccountAuthError) throw error;
+        console.error('Taking a picture file out of the Drive trash failed', mediaId, error);
         left.push(mediaId);
       }
     }

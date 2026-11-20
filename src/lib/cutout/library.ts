@@ -136,12 +136,7 @@ export async function addLibraryImage(input: {
   const now = Date.now();
   const id = newId('img_');
   const sourceMediaId = newId('libsrc_');
-  await putMedia(sourceMediaId, input.source, input.name, input);
-  let mediaId: string | undefined;
-  if (!input.cut) {
-    mediaId = newId('asset_');
-    await putMedia(mediaId, input.source, input.name, input);
-  }
+  const mediaId = input.cut ? undefined : newId('asset_');
   const row: LibraryImageRow = {
     id,
     name: input.name,
@@ -156,8 +151,32 @@ export async function addLibraryImage(input: {
     createdAt: now,
     updatedAt: now,
   };
-  await libraryDb.images.put(row);
+  await keepAll(async (written) => {
+    await putMedia(sourceMediaId, input.source, input.name, input);
+    written.push(sourceMediaId);
+    if (mediaId) {
+      await putMedia(mediaId, input.source, input.name, input);
+      written.push(mediaId);
+    }
+    await libraryDb.images.put(row);
+  });
   return row;
+}
+
+/**
+ * Runs `job`, which writes media rows and notes each one in `written`, then
+ * the row that names them. When any write fails (no room) the media already
+ * written go again: nothing would name them, and nothing shows them, so they
+ * would only take up room.
+ */
+async function keepAll(job: (written: string[]) => Promise<void>): Promise<void> {
+  const written: string[] = [];
+  try {
+    await job(written);
+  } catch (error) {
+    if (written.length) await db.media.bulkDelete(written).catch((cleanup) => console.error('Clearing the files of a picture that was not added failed', cleanup));
+    throw error;
+  }
 }
 
 /** Adds an existing media row, keeping its photo and mask when the picture was cut here. */
@@ -207,13 +226,18 @@ export async function addLibraryImageFromMedia(input: {
     updatedAt: input.updatedAt ?? now,
   };
   // Two databases, so no one transaction: the media first, so a row never
-  // names a picture that is not there.
-  if (input.cut && sourceMediaId && maskMediaId) {
-    const size = { width: input.cut.sourceWidth, height: input.cut.sourceHeight };
-    await putMedia(sourceMediaId, input.cut.source, input.name, size);
-    await putMedia(maskMediaId, input.cut.mask, `${input.name} mask`, size);
-  }
-  await libraryDb.images.put(row);
+  // names a picture that is not there. The picture itself was there before,
+  // so a failure leaves it.
+  await keepAll(async (written) => {
+    if (input.cut && sourceMediaId && maskMediaId) {
+      const size = { width: input.cut.sourceWidth, height: input.cut.sourceHeight };
+      await putMedia(sourceMediaId, input.cut.source, input.name, size);
+      written.push(sourceMediaId);
+      await putMedia(maskMediaId, input.cut.mask, `${input.name} mask`, size);
+      written.push(maskMediaId);
+    }
+    await libraryDb.images.put(row);
+  });
   return row;
 }
 
@@ -328,13 +352,37 @@ export async function setLibraryImageState(id: string, state: LibraryImageState,
 }
 
 /**
+ * The end of a cut that kept nothing (it failed, or was stopped), for a
+ * picture still waiting for one. A picture finished meanwhile (an edit saved
+ * in a window, a version a backup brought down) keeps its state: that
+ * version is newer than the cut. False when it was left so.
+ */
+export async function settleUnfinishedImage(id: string, state: 'waiting' | 'failed', error?: string): Promise<boolean> {
+  return libraryDb.transaction('rw', libraryDb.images, async () => {
+    const row = await libraryDb.images.get(id);
+    if (!row || row.deletedAt || (row.state !== 'waiting' && row.state !== 'cutting')) return false;
+    await libraryDb.images.put({ ...row, state, error, updatedAt: Date.now() });
+    return true;
+  });
+}
+
+/** Whether a picture still waits for its cut, rather than having a finished version (or being gone). */
+export async function stillUnfinished(id: string): Promise<boolean> {
+  const row = await libraryDb.images.get(id);
+  return !!row && !row.deletedAt && (row.state === 'waiting' || row.state === 'cutting');
+}
+
+/**
  * Keeps a finished cut: the mask, the settings, and the picture they make.
  * The mask fits the photo it was made over and no other, so that photo comes
  * too: the row's own photo, or the picture itself when photoOf had no room to
  * keep a copy, which is kept now (a save with no room for it fails, and
- * nothing changes). A row that has another photo or another picture by now
- * throws PictureChangedError, and nothing changes either. The picture before
- * it is let go unless an artboard may still show it.
+ * nothing changes). The cut starts from one version of the picture, `basis`:
+ * a row that has another picture by now (an edit saved in another window, a
+ * newer version a backup brought) or another photo throws
+ * PictureChangedError, and nothing changes either, so a window showing an
+ * older version never writes over a newer one. The picture before it is let
+ * go unless an artboard may still show it.
  */
 export async function saveLibraryCut(
   id: string,
@@ -350,10 +398,13 @@ export async function saveLibraryCut(
     engine?: CutoutEngine;
     /** The photo the mask is over, as photoOf gave it. */
     photo: MediaAsset;
+    /** The picture the cut or edit started from: the row's `mediaId` then, none before a first cut. */
+    basis: string | undefined;
   }
 ): Promise<LibraryImageRow | null> {
   const row = await libraryDb.images.get(id);
   if (!row || row.deletedAt) return null;
+  if (row.mediaId !== cut.basis) throw new PictureChangedError();
   const own = !!row.sourceMediaId && row.sourceMediaId === cut.photo.id;
   // The picture as its own photo, the row having no photo kept yet.
   const itself = !own && cut.photo.id === row.mediaId && !(row.sourceMediaId && (await db.media.get(row.sourceMediaId)));
@@ -444,20 +495,27 @@ export async function markLibraryImagePlaced(id: string): Promise<void> {
  * so every account this computer backs up to in that time hears of it.
  */
 export async function deleteLibraryImage(id: string): Promise<void> {
-  const row = await libraryDb.images.get(id);
+  // Read and marked in one write, so the files that go are the ones the row
+  // names then: an edit another window saved a moment before, or a picture
+  // put on an artboard, is what is deleted, and what an artboard shows stays.
+  const row = await libraryDb.transaction('rw', libraryDb.images, async () => {
+    const now = await libraryDb.images.get(id);
+    if (!now || now.deletedAt) return null;
+    await libraryDb.images.put({
+      id: now.id,
+      name: now.name,
+      state: now.state,
+      mediaId: now.placed ? now.mediaId : undefined,
+      createdAt: now.createdAt,
+      updatedAt: Date.now(),
+      deletedAt: Date.now(),
+    });
+    return now;
+  });
   if (!row) return;
-  const media = [row.sourceMediaId, row.maskMediaId, row.placed ? undefined : row.mediaId].filter((value): value is string => !!value);
   // The row first, then the media: a failure in between leaves a file nobody
   // names, never a row that names a missing file.
-  await libraryDb.images.put({
-    id: row.id,
-    name: row.name,
-    state: row.state,
-    mediaId: row.placed ? row.mediaId : undefined,
-    createdAt: row.createdAt,
-    updatedAt: Date.now(),
-    deletedAt: Date.now(),
-  });
+  const media = [row.sourceMediaId, row.maskMediaId, row.placed ? undefined : row.mediaId].filter((value): value is string => !!value);
   if (media.length) await db.media.bulkDelete(media);
 }
 

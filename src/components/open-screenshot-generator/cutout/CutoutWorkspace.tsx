@@ -54,6 +54,7 @@ import { saveBlobToDisk } from '@/lib/desktop';
 import { getMediaAsset, type MediaAsset } from '@/lib/mediaStore';
 import { useAccount } from '@/lib/account/store';
 import {
+  CutoutWorkerError,
   DEFAULT_RENDER,
   detectCutout,
   downloadCutoutModel,
@@ -67,6 +68,7 @@ import {
   type CutoutEngine,
   type RenderSettings,
 } from '@/lib/cutout/engine';
+import { NOT_OPEN } from '@/lib/cutout/worker/protocol';
 import { megabytes } from '@/lib/cutout/models';
 import {
   deleteLibraryImage,
@@ -83,7 +85,7 @@ import {
 } from '@/lib/cutout/library';
 import { addPictureFiles, mayBePicture, PICTURE_ACCEPT } from '@/lib/cutout/add';
 import { drainLibraryQueue, onLibraryCutStep } from '@/lib/cutout/queue';
-import { decodeMask, decodePicture, encodeMask, encodeRgba, thumbnailOf, type WorkingPicture } from '@/lib/cutout/picture';
+import { asPng, decodeMask, decodePicture, encodeMask, encodeRgba, thumbnailOf, type WorkingPicture } from '@/lib/cutout/picture';
 import { swapPatch, type BrushMode, type MaskPatch } from '@/lib/cutout/refine';
 import { describeSync, libraryBackupLabel, syncLibrary } from '@/lib/cutout/backup';
 import { useThumbUrl } from './thumbs';
@@ -123,6 +125,60 @@ interface Open {
   mask: Uint8Array;
   settings: RenderSettings;
   engine?: CutoutEngine;
+  /** The opening of the picture these belong to, the same object for every change made in it. */
+  session: EditSession;
+}
+
+/**
+ * What an edit of a picture starts from: the photo its mask is over, and the
+ * version of the picture it opened at (or this view saved last). A save names
+ * both, so one made over an older version is refused (saveLibraryCut).
+ */
+interface Basis {
+  photo: MediaAsset;
+  mediaId: string | undefined;
+  sourceMediaId: string | undefined;
+}
+
+/**
+ * One opening of a picture, from when it is shown until it is opened again or
+ * another one is. Every change made in it is saved over its own basis, which
+ * only its own saves move on, so a save that runs late (queued behind others,
+ * or after the view moved to another picture) keeps the mask with the version
+ * it was drawn on: one made over a version the picture no longer is, is
+ * refused, never written over the newer one.
+ */
+interface EditSession {
+  /** The worker's name for the picture in this opening. */
+  key: string;
+  basis: Basis;
+  /** Changes made in it, and how many of them a save has kept. */
+  made: number;
+  kept: number;
+  /** Its changes were made over a version the picture no longer is: they went, and it saves no more. */
+  over: boolean;
+  /**
+   * The versions of the picture it opened at or saved (`versionOf`). The list
+   * showing one of them is no change made elsewhere: the list hears of a save
+   * a moment after the save is done, so for that moment it shows the version
+   * before.
+   */
+  known: Set<string>;
+}
+
+/** Which version of a picture a row shows: its picture and its photo. */
+const versionOf = (row: Pick<LibraryImageRow, 'mediaId' | 'sourceMediaId'>) => `${row.mediaId ?? ''}|${row.sourceMediaId ?? ''}`;
+
+/** The finished picture for one opening of a picture, handing the worker the picture again when it let it go. */
+async function renderOpen(current: Open, mask: Uint8Array): Promise<Awaited<ReturnType<typeof renderCutout>>> {
+  const { key } = current.session;
+  try {
+    return await renderCutout(key, mask, current.settings);
+  } catch (error) {
+    if (!(error instanceof CutoutWorkerError) || error.message !== NOT_OPEN) throw error;
+    await openPicture(key, current.picture);
+    return renderCutout(key, mask, current.settings);
+  }
 }
 
 function Hint({ text }: { text: string }) {
@@ -280,16 +336,50 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
   const shapeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const openRef = useRef(open);
   openRef.current = open;
-  // The photo each picture's mask is over, by picture: what photoOf gave when
-  // it opened, and the photo a save kept for it since. A save sends it, and
-  // saves of a picture already left run after this one changed it.
-  const photosRef = useRef(new Map<string, MediaAsset>());
-  // Opens the picture again when a save found it changed under the edit.
+  // The change waiting for its save: the opening it was made in, as it was
+  // after the change. A save started for it saves that opening, whichever
+  // picture is on screen by then.
+  const pendingRef = useRef<Open | null>(null);
+  // Counts openings, for the worker's names for them.
+  const openingsRef = useRef(0);
+  // The opening this view handed the worker. Another one opening lets it go,
+  // once the saves still to run for it have.
+  const workerKeyRef = useRef<string | null>(null);
+  // Opens the picture again when it changed elsewhere, or a save found it so.
   const [reopened, setReopened] = useState(0);
+  // The load the picture on screen came from (loadedKey below).
+  const openedKeyRef = useRef('');
   // The settings an edge slider started its drag from, which undo goes back to.
   const dragFrom = useRef<RenderSettings | null>(null);
 
   const selected = useMemo(() => rows?.find((row) => row.id === selectedId) ?? null, [rows, selectedId]);
+
+  // `save`, for the code above where it is made.
+  const saveRef = useRef<(target: Open) => Promise<boolean>>(async () => true);
+
+  /** Saves a change still waiting for its moment now, before the view moves to another picture or opening. */
+  const startPending = useCallback(() => {
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+    }
+    const pending = pendingRef.current;
+    pendingRef.current = null;
+    if (pending) void saveRef.current(pending);
+  }, []);
+
+  /**
+   * Shows another picture. A change still waiting on the one on screen is
+   * saved first, for every way a picture is chosen: a tile, a picture just
+   * added or dropped, a request from the editor.
+   */
+  const choose = useCallback(
+    (id: string | null) => {
+      startPending();
+      setSelectedId(id);
+    },
+    [startPending]
+  );
 
   useEffect(() => {
     if (!active) return;
@@ -299,15 +389,23 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
 
   // A request names a picture to show (the palette's "Remove background").
   useEffect(() => {
-    if (request?.imageId) setSelectedId(request.imageId);
-  }, [request]);
+    if (request?.imageId) choose(request.imageId);
+  }, [request, choose]);
+
+  // A picture just added, chosen before the list has it: the list catches up
+  // a moment later, and until then the choice stands.
+  const arrivingRef = useRef<string | null>(null);
 
   // The first picture is shown when nothing is.
   useEffect(() => {
     if (!rows) return;
-    if (selectedId && rows.some((row) => row.id === selectedId)) return;
-    setSelectedId(rows[0]?.id ?? null);
-  }, [rows, selectedId]);
+    if (selectedId && rows.some((row) => row.id === selectedId)) {
+      if (arrivingRef.current === selectedId) arrivingRef.current = null;
+      return;
+    }
+    if (selectedId && arrivingRef.current === selectedId) return;
+    choose(rows[0]?.id ?? null);
+  }, [rows, selectedId, choose]);
 
   const clearHistory = () => {
     undoRef.current = [];
@@ -321,6 +419,8 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
   const cutting = selected?.state === 'waiting' || selected?.state === 'cutting';
   const loadedKey = selected ? `${selected.id}|${cutting ? 'cutting' : 'settled'}|${reopened}` : '';
   useEffect(() => {
+    // A change still waiting belongs to the opening on screen until now.
+    startPending();
     if (!selected) {
       setOpen(null);
       return;
@@ -342,11 +442,39 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
         if (picture.hasAlpha) for (let i = 0; i < mask.length; i++) mask[i] = picture.rgba[i * 4 + 3];
         else mask.fill(255);
       }
-      await openPicture(selected.id, picture);
       if (cancelled) return;
-      photosRef.current.set(selected.id, source.photo);
-      setOpen({ id: selected.id, picture, mask, settings: { ...DEFAULT_RENDER, ...source.row.settings }, engine: source.row.engine });
+      // Each opening is the worker's own picture, so a save of the one
+      // before (the same picture at another version, or another picture)
+      // still draws on what it was drawn over. That one goes from the worker
+      // once its saves ran.
+      const session: EditSession = {
+        key: `${selected.id}#${(openingsRef.current += 1)}`,
+        basis: { photo: source.photo, mediaId: source.row.mediaId, sourceMediaId: source.row.sourceMediaId },
+        made: 0,
+        kept: 0,
+        over: false,
+        // The row as the list showed it, and as photoOf left it (a copy of the picture kept as its photo).
+        known: new Set([versionOf(selected), versionOf(source.row)]),
+      };
+      const previous = workerKeyRef.current;
+      if (previous) {
+        void saveChain.current.then(() => {
+          if (workerKeyRef.current !== previous) forgetPicture(previous);
+        });
+      }
+      workerKeyRef.current = session.key;
+      await openPicture(session.key, picture);
+      if (cancelled) {
+        forgetPicture(session.key);
+        return;
+      }
+      const next: Open = { id: selected.id, picture, mask, settings: { ...DEFAULT_RENDER, ...source.row.settings }, engine: source.row.engine, session };
+      openRef.current = next;
+      openedKeyRef.current = loadedKey;
+      setOpen(next);
       setShown(null);
+      // The edge settings it was saved with, on the mask as the picture has them.
+      reshape(next);
       clearHistory();
     })()
       .catch((error) => {
@@ -366,9 +494,23 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
   }, [loadedKey]);
 
   useEffect(() => () => {
-    const current = openRef.current;
-    if (current) forgetPicture(current.id);
-  }, []);
+    startPending();
+    const key = workerKeyRef.current;
+    workerKeyRef.current = null;
+    if (key) void saveChain.current.then(() => forgetPicture(key));
+  }, [startPending]);
+
+  // The picture on screen changed somewhere else: an edit saved in another
+  // window, or a newer version a backup brought. It opens again as it is now,
+  // so the next change here starts from that version. A change made here and
+  // not saved yet is left alone; its save finds the same and opens it again.
+  useEffect(() => {
+    if (!selected || !open || open.id !== selected.id || saving || openedKeyRef.current !== loadedKey) return;
+    const { session } = open;
+    if (session.known.has(versionOf(selected))) return;
+    if (pendingRef.current?.session === session || (!session.over && session.kept < session.made)) return;
+    setReopened((count) => count + 1);
+  }, [selected, open, saving, loadedKey]);
 
   // The queue's masks for the picture on screen, as they improve.
   useEffect(
@@ -402,40 +544,63 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
     }, 120);
   }, []);
 
-  const save = useCallback((): Promise<boolean> => {
-    const current = openRef.current;
-    saveTimer.current = null;
-    if (!current) return Promise.resolve(true);
-    const mask = current.mask.slice();
+  /**
+   * Saves `target`: an opening of a picture as it was after a change. The
+   * mask is the one on screen now; the version it is saved over is the
+   * opening's own, read when the save's turn comes, so the saves queued
+   * before it in the same opening count and nothing else does.
+   */
+  const save = useCallback((target: Open): Promise<boolean> => {
+    const { session } = target;
+    if (session.over) return Promise.resolve(true);
+    const mask = target.mask.slice();
+    // This save keeps every change made in the opening until now.
+    const made = session.made;
     setSaving(true);
     const job = saveChain.current.then(async () => {
+      if (session.over) return true;
       try {
-        const rendered = await renderCutout(current.id, mask, current.settings);
+        const rendered = await renderOpen(target, mask);
+        // An opening the view left, sent to the worker again for this save.
+        if (workerKeyRef.current !== session.key) forgetPicture(session.key);
         const rgba = new Uint8ClampedArray(rendered.rgba);
         const [picture, maskFile, thumb] = await Promise.all([
           encodeRgba(rgba, rendered.width, rendered.height),
-          encodeMask(mask, current.picture.width, current.picture.height),
+          encodeMask(mask, target.picture.width, target.picture.height),
           thumbnailOf(rgba, rendered.width, rendered.height),
         ]);
-        const photo = photosRef.current.get(current.id);
-        if (!photo) throw new PictureChangedError();
-        const row = await saveLibraryCut(current.id, {
+        const { basis } = session;
+        const row = await saveLibraryCut(target.id, {
           picture,
           mask: maskFile,
           width: rendered.width,
           height: rendered.height,
           thumb: await thumb.arrayBuffer(),
-          settings: current.settings,
+          settings: target.settings,
           rect: rendered.rect,
-          photo,
+          photo: basis.photo,
+          basis: basis.mediaId,
         });
-        // A picture that had no room for its photo when it opened has it kept now.
-        if (row?.sourceMediaId && row.sourceMediaId !== photo.id) photosRef.current.set(current.id, { ...photo, id: row.sourceMediaId });
+        if (row) {
+          // The next save in this opening starts from this version. A
+          // picture that had no room for its photo when it opened has the
+          // photo kept now.
+          const photo = row.sourceMediaId && row.sourceMediaId !== basis.photo.id ? { ...basis.photo, id: row.sourceMediaId } : basis.photo;
+          session.basis = { photo, mediaId: row.mediaId, sourceMediaId: row.sourceMediaId };
+          session.known.add(versionOf(row));
+        }
+        session.kept = Math.max(session.kept, made);
         return true;
       } catch (error) {
         console.error('Saving a cut-out failed', error);
         const changed = error instanceof PictureChangedError;
-        const onScreen = openRef.current?.id === current.id;
+        const onScreen = openRef.current?.session === session;
+        // Made over a version the picture no longer is: the opening's
+        // changes go, and the picture opens again as it is now.
+        if (changed) {
+          session.kept = session.made;
+          session.over = true;
+        }
         if (changed && onScreen) setReopened((count) => count + 1);
         toast({
           title: "Your change wasn't saved",
@@ -456,18 +621,59 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
     });
     return job;
   }, [toast]);
+  saveRef.current = save;
 
+  /** A change was made in the opening on screen: it is saved a moment later, or sooner when the view moves on. */
   const scheduleSave = useCallback(() => {
+    const current = openRef.current;
+    if (!current) return;
+    // A change still waiting in another opening goes now, rather than with this one's timer.
+    if (pendingRef.current && pendingRef.current.session !== current.session) startPending();
+    current.session.made += 1;
+    pendingRef.current = current;
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => void save(), 900);
+    saveTimer.current = setTimeout(() => {
+      saveTimer.current = null;
+      const pending = pendingRef.current;
+      pendingRef.current = null;
+      if (pending) void save(pending);
+    }, 900);
+  }, [save, startPending]);
+
+  /**
+   * Saves a change still waiting, before an export, a placement or a backup.
+   * False when the picture on screen has a change no save could keep; a save
+   * that failed is tried again here, and only for that opening's own changes:
+   * another picture's failure, or a change let go since, holds nothing up.
+   */
+  const flushSave = useCallback(async (): Promise<boolean> => {
+    const current = openRef.current;
+    const pending = pendingRef.current;
+    if (pending) {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+      pendingRef.current = null;
+      const saved = save(pending);
+      if (pending.session === current?.session) return saved;
+    }
+    await saveChain.current;
+    const { session } = openRef.current ?? {};
+    if (session && !session.over && session.kept < session.made) return save(openRef.current as Open);
+    return true;
   }, [save]);
 
-  const flushSave = useCallback(async () => {
-    if (!saveTimer.current) return saveChain.current;
-    clearTimeout(saveTimer.current);
-    saveTimer.current = null;
-    return save();
-  }, [save]);
+  /** Changes on screen that will not be saved: the picture is cut again, or deleted. */
+  const letChangesGo = (id: string) => {
+    const pending = pendingRef.current;
+    if (pending?.id === id) {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+      pendingRef.current = null;
+      pending.session.kept = pending.session.made;
+    }
+    const current = openRef.current;
+    if (current?.id === id) current.session.kept = current.session.made;
+  };
 
   useImperativeHandle(flushRef, () => flushSave, [flushSave]);
 
@@ -475,15 +681,6 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
     if (!selected || !(await flushSave())) return null;
     const row = await getLibraryImage(selected.id);
     return row && !row.deletedAt ? row : null;
-  };
-
-  /** Shows another picture, saving the one on screen first if a change is waiting. */
-  const select = (id: string) => {
-    if (saveTimer.current) {
-      clearTimeout(saveTimer.current);
-      void save();
-    }
-    setSelectedId(id);
   };
 
   /** A slider drag is one undo step, back to where the drag began. */
@@ -579,7 +776,12 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
     if (result?.reason) {
       toast({ title: `${result.notAdded} of the ${files.length} files ${result.notAdded === 1 ? "wasn't" : "weren't"} added`, description: result.reason });
     }
-    if (result?.added.length) setSelectedId(result.added[0].id);
+    if (result?.added.length) {
+      // Saved first, as every way of choosing a picture does: a change made
+      // a moment ago on the one on screen is kept with that one.
+      arrivingRef.current = result.added[0].id;
+      choose(result.added[0].id);
+    }
     void drainLibraryQueue();
   };
 
@@ -593,25 +795,30 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
     if (!row?.mediaId) return;
     const asset = await getMediaAsset(row.mediaId);
     if (!asset) return;
-    await saveBlobToDisk(asset.blob, `${row.name}.png`).catch((error) =>
-      toast({ title: "The picture wasn't exported", description: error instanceof Error ? error.message : 'Try again.' })
-    );
+    try {
+      // A picture kept as it came is a JPEG when it has no transparency.
+      await saveBlobToDisk(await asPng(asset.blob), `${row.name}.png`);
+    } catch (error) {
+      toast({ title: "The picture wasn't exported", description: error instanceof Error ? error.message : 'Try again.' });
+    }
   };
 
   const cutAgain = async () => {
     if (!selected) return;
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = null;
+    letChangesGo(selected.id);
     await setLibraryImageState(selected.id, 'waiting');
     void drainLibraryQueue();
   };
 
+  /** The whole photo back, as it came: the parts it had see-through stay so. */
   const keepWhole = () => {
     const current = openRef.current;
     if (!current) return;
-    const before = current.mask.slice();
-    current.mask.fill(255);
-    onStroke({ rect: { x: 0, y: 0, width: current.picture.width, height: current.picture.height }, before });
+    const { picture, mask } = current;
+    const before = mask.slice();
+    if (picture.hasAlpha) for (let i = 0; i < mask.length; i++) mask[i] = picture.rgba[i * 4 + 3];
+    else mask.fill(255);
+    onStroke({ rect: { x: 0, y: 0, width: picture.width, height: picture.height }, before });
     canvasRef.current?.refresh();
   };
 
@@ -622,7 +829,9 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
     }
     setSyncing(true);
     try {
-      if (!(await flushSave())) return;
+      // A change that cannot be saved stays on screen, and its own message
+      // said so; every picture already saved is backed up all the same.
+      await flushSave();
       const result = await syncLibrary();
       toast(describeSync(result, libraryBackupLabel(account.session.provider)));
     } catch (error) {
@@ -727,7 +936,7 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
               <div className="flex gap-2 overflow-x-auto pb-1 md:grid md:grid-cols-2 md:overflow-visible md:pb-0">
                 {rows!.map((row) => (
                   <div key={row.id} className="w-20 shrink-0 md:w-auto">
-                    <LibraryTile row={row} selected={row.id === selectedId} onSelect={() => select(row.id)} />
+                    <LibraryTile row={row} selected={row.id === selectedId} onSelect={() => choose(row.id)} />
                   </div>
                 ))}
               </div>
@@ -1059,10 +1268,7 @@ export function CutoutWorkspace({ active, request, flushRef, onPlace, onOpenAcco
                   const row = confirmDelete;
                   setConfirmDelete(null);
                   if (!row) return;
-                  if (saveTimer.current && openRef.current?.id === row.id) {
-                    clearTimeout(saveTimer.current);
-                    saveTimer.current = null;
-                  }
+                  letChangesGo(row.id);
                   void deleteLibraryImage(row.id);
                 }}
               >

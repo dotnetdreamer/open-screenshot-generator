@@ -247,6 +247,17 @@ export function stopCutoutDownload(): void {
 
 let loading: Promise<LoadDone> | null = null;
 
+/**
+ * This computer's GPU cannot run the 1024 model well: the CPU model is used
+ * from now on, and downloaded when it is not here yet.
+ */
+async function useCpuModel(): Promise<void> {
+  noteGpuFailed();
+  const fallback = modelFor(false);
+  const ready = await hasModel(fallback);
+  setStatus({ model: fallback, phase: ready ? 'ready' : 'missing', received: ready ? fallback.bytes : 0, total: fallback.bytes, device: null });
+}
+
 /** Loads the downloaded model into the worker. */
 async function loadModel(): Promise<LoadDone> {
   const model = status.model;
@@ -262,10 +273,7 @@ async function loadModel(): Promise<LoadDone> {
       if (model.device === 'gpu') {
         // The GPU would not take the 1024 model: use the CPU model from now on.
         console.error('The GPU could not run the cut-out model', error);
-        noteGpuFailed();
-        const fallback = modelFor(false);
-        const ready = await hasModel(fallback);
-        setStatus({ model: fallback, phase: ready ? 'ready' : 'missing', received: ready ? fallback.bytes : 0, total: fallback.bytes, device: null });
+        await useCpuModel();
         throw new Error('GPU_FALLBACK');
       }
       setStatus({ phase: 'failed', error: error instanceof Error ? error.message : String(error) });
@@ -402,9 +410,24 @@ export async function cutPicture(
   }
 
   checkStopped();
-  if (await modelReady(download)) {
+  // The model's mask, unless it says nothing. A GPU that gets the model's
+  // sums wrong answers with a flat grey mask (an Intel one did, until
+  // models.ts kept five of its nodes on the CPU), and the CPU model cuts this
+  // photo and every one after it then. When the CPU model's mask says nothing
+  // too, the photo gives the model nothing to go on.
+  let empty = false;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if (!(await modelReady(download))) break;
     checkStopped();
-    return emit(await cutWith(key, true, null), true);
+    const done = await cutWith(key, true, null);
+    if (!done.unsure) return emit(done, true);
+    if (status.device !== 'webgpu') {
+      empty = true;
+      break;
+    }
+    console.error('The GPU gave the cut-out model a mask with nothing in it, so the CPU model is used from now on');
+    await useCpuModel();
+    checkStopped();
   }
   if (first) {
     const done: CutStep = { ...first, final: true };
@@ -416,11 +439,14 @@ export async function cutPicture(
     return emit(await cutWith(key, false, null), true);
   } catch (error) {
     if (error instanceof Error && error.message === 'NO_ENGINE') {
-      throw new Error(status.error ?? 'Do the one-time download on the left first, then try again');
+      throw new Error(empty ? EMPTY_MASK : (status.error ?? 'Do the one-time download on the left first, then try again'));
     }
     throw error;
   }
 }
+
+/** Why a photo the model found nothing in was not cut, in words for the user. */
+export const EMPTY_MASK = "The app couldn't tell what to keep in this photo. Use Erase to remove the background by hand.";
 
 /** The finished picture for a mask: edges, colours and trim applied in the worker. */
 export function renderCutout(key: string, mask: Uint8Array, settings: RenderSettings, maxSide?: number): Promise<RenderDone> {
