@@ -196,20 +196,31 @@ in editable templates, not standalone downloads.
 | postie-screen-circle.png | 299117684, 488088494, 405130341, 298905292, 616151886, 268560315, 568002174 | App screen with head crops of those library photos (section 1) | postie-cards.json |
 | postie-artist-1.png to postie-artist-9.png | 476183094, 622285813, 722428418, 436829852, 616151886, 176708273, 298618010, 307920555, 479330034 | Head crops of those library photos, one per file in that order (section 1) | postie-cards.json |
 | hummi-bg-5.png | 483315298 | group-as483315298.png, blurred and darkened (section 1) | hummi-cash-gifts.json |
+| traceberry-screen-camera.png | 568605361 | girls-as568605361.png, painted at the top and a pencil sketch lower down (section 1) | traceberry-drawing.json |
+| traceberry-screen-upload.png | 479330034, 211660510, 299117684 | Painted head crops of those library photos, the same pictures as sketches/sketch-painted-1 to -3 (section 1) | traceberry-drawing.json |
+| traceberry-screen-share.png | 616151886, 176708273, 262780760, 622285813, 488088494 | Round head crops of those library photos as contact pictures (section 1) | traceberry-drawing.json |
+| paylark-screen-wellbeing.png | 616151886, 176708273, 622285813 | Those library photos on soft colour cards under "Need help?" (section 1) | paylark-benefits.json |
 
 The `fg-screens/*.png` skeleton screens in that folder are original in-house
 artwork (generated placeholders), not licensed stock.
 
-## 5. Original illustrations (`mascots/`, `objects/`, `stickers/`, `products/`, `cards/`)
+## 5. Original illustrations (`mascots/`, `objects/`, `stickers/`, `products/`, `cards/`, `drawings/`, `sketches/`, `line-art/`)
 
-The Mascots, 3D objects, Stickers, Products and Cards groups are original
-artwork drawn for this project (SVG and HTML written for the Hoppi, Expertly,
-Roamo, Formpal, Sunup, Wishmint, Lavish, Postie and Hummi templates, rendered to
-PNG and trimmed). None of it is stock or traced. The app icons in 3D objects
+The Mascots, 3D objects, Stickers, Products, Cards, Drawings and Line art
+groups are original artwork drawn for this project (SVG and HTML written for
+the Hoppi, Expertly, Roamo, Formpal, Sunup, Wishmint, Lavish, Postie, Hummi,
+Signsy, Traceberry and Paylark templates, rendered to PNG and trimmed). The
+Signsy signer and the people in Line art are invented cartoon people, not
+likenesses of anyone. None of it is stock or traced. The app icons in 3D objects
 are invented designs, not the icons of real apps. Three cards build on library
 photos from section 1: card-person.png is girls-as622285813 in black and white,
 and card-dance.png and card-yourself.png use guys-as211660510 and
-girls-as608612382 as one-colour silhouettes. Lettering in the cards and stickers
+girls-as608612382 as one-colour silhouettes. The Sketches group is made from
+section 1 photos only: sketch-portrait-1 to -7 are pencil-sketch versions of
+girls-as568002174, girls-as608612382, guys-as476183094, education-as436829852,
+girls-as622285813, guys-as488088494 and education-as268560315, in that order,
+and sketch-painted-1 to -3 are painted versions of girls-as479330034,
+guys-as211660510 and guys-as299117684. Lettering in the cards and stickers
 uses Google Fonts under the SIL Open Font License (Anton, Bangers, Caveat,
 Luckiest Guy, Permanent Marker, Playfair Display, Shrikhand, Alfa Slab One,
 Abril Fatface, Pacifico, Inter), which allows pictures made with the fonts. The

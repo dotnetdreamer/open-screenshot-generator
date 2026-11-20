@@ -5,10 +5,11 @@
  * project owner's Adobe account and background-removed; filenames embed the
  * Stock asset ID (<group>-as<ID>.png). Badges: official vendor marketing
  * badges from each store's badge program. Mascots, 3D objects, stickers,
- * products and cards: illustrations drawn for this project's templates, which
- * also use them, so a template and the palette share one file. Three cards
- * build on library photos (see the license record). Full license record:
- * docs/image-asset-licenses.md.
+ * products, cards, drawings and line art: illustrations drawn for this
+ * project's templates, which also use them, so a template and the palette
+ * share one file. Three cards build on library photos, and every sketch is a
+ * pencil or painted version of one (see the license record). Full license
+ * record: docs/image-asset-licenses.md.
  *
  * Each item becomes an image element with imageSrc pointing at the asset;
  * defaultSize preserves the asset's aspect ratio.
@@ -156,6 +157,10 @@ export const IMAGE_CATEGORIES: ImageCategory[] = [
       { id: 'mascot-robot', label: 'Robot', src: '/elements/images/mascots/mascot-robot.png', defaultSize: { width: 430, height: 385 } },
       { id: 'mascot-sun', label: 'Sun', src: '/data/projects/sunup-mascot-happy.png', defaultSize: { width: 430, height: 430 } },
       { id: 'mascot-sun-wink', label: 'Winking sun', src: '/data/projects/sunup-mascot-wink.png', defaultSize: { width: 430, height: 430 } },
+      { id: 'mascot-signer-ily', label: 'Signer, I love you sign', src: '/elements/images/mascots/mascot-signer-ily.png', defaultSize: { width: 304, height: 430 } },
+      { id: 'mascot-signer-point', label: 'Signer pointing', src: '/elements/images/mascots/mascot-signer-point.png', defaultSize: { width: 382, height: 430 } },
+      { id: 'mascot-signer-clipboard', label: 'Signer with clipboard', src: '/elements/images/mascots/mascot-signer-clipboard.png', defaultSize: { width: 275, height: 430 } },
+      { id: 'mascot-signer-chest', label: 'Signer, hand on chest', src: '/elements/images/mascots/mascot-signer-chest.png', defaultSize: { width: 222, height: 430 } },
     ],
   },
   {
@@ -186,6 +191,16 @@ export const IMAGE_CATEGORIES: ImageCategory[] = [
       { id: 'object-app-globe', label: 'Globe app icon', src: '/elements/images/objects/object-app-globe.png', defaultSize: { width: 430, height: 429 } },
       { id: 'object-app-gallery', label: 'Gallery app icon', src: '/elements/images/objects/object-app-gallery.png', defaultSize: { width: 430, height: 429 } },
       { id: 'object-app-lens', label: 'Camera app icon', src: '/elements/images/objects/object-app-lens.png', defaultSize: { width: 415, height: 430 } },
+      { id: 'object-lightbulb', label: 'Lightbulb', src: '/elements/images/objects/object-lightbulb.png', defaultSize: { width: 394, height: 430 } },
+      { id: 'object-brain', label: 'Brain', src: '/elements/images/objects/object-brain.png', defaultSize: { width: 430, height: 394 } },
+      { id: 'object-puzzle', label: 'Puzzle pieces', src: '/elements/images/objects/object-puzzle.png', defaultSize: { width: 430, height: 341 } },
+      { id: 'object-trophy', label: 'Trophy', src: '/elements/images/objects/object-trophy.png', defaultSize: { width: 336, height: 430 } },
+      { id: 'object-flame', label: 'Flame', src: '/elements/images/objects/object-flame.png', defaultSize: { width: 269, height: 430 } },
+      { id: 'object-hand-peace', label: 'Peace hand', src: '/elements/images/objects/object-hand-peace.png', defaultSize: { width: 273, height: 430 } },
+      { id: 'object-chat-bubble', label: 'Chat bubble', src: '/elements/images/objects/object-chat-bubble.png', defaultSize: { width: 430, height: 357 } },
+      { id: 'object-check', label: 'Check badge', src: '/elements/images/objects/object-check.png', defaultSize: { width: 370, height: 430 } },
+      { id: 'object-calendar', label: 'Calendar', src: '/elements/images/objects/object-calendar.png', defaultSize: { width: 364, height: 430 } },
+      { id: 'object-clock', label: 'Clock', src: '/elements/images/objects/object-clock.png', defaultSize: { width: 356, height: 430 } },
     ],
   },
   {
@@ -204,6 +219,9 @@ export const IMAGE_CATEGORIES: ImageCategory[] = [
       { id: 'sticker-sunglasses', label: 'Pink sunglasses', src: '/elements/images/stickers/sticker-sunglasses.png', defaultSize: { width: 430, height: 223 } },
       { id: 'sticker-earphones', label: 'Earphones', src: '/elements/images/stickers/sticker-earphones.png', defaultSize: { width: 236, height: 430 } },
       { id: 'sticker-handbag', label: 'Handbag', src: '/elements/images/stickers/sticker-handbag.png', defaultSize: { width: 430, height: 401 } },
+      { id: 'sticker-confetti', label: 'Confetti', src: '/elements/images/stickers/sticker-confetti.png', defaultSize: { width: 399, height: 430 } },
+      { id: 'sticker-hand-pencil', label: 'Hand with pencil', src: '/elements/images/stickers/sticker-hand-pencil.png', defaultSize: { width: 430, height: 426 } },
+      { id: 'sticker-confetti-strips', label: 'Confetti strips', src: '/elements/images/stickers/sticker-confetti-strips.png', defaultSize: { width: 261, height: 430 } },
     ],
   },
   {
@@ -253,6 +271,51 @@ export const IMAGE_CATEGORIES: ImageCategory[] = [
       { id: 'card-minds', label: 'We get each other', src: '/elements/images/cards/card-minds.png', defaultSize: { width: 307, height: 430 } },
       { id: 'card-love', label: 'Sending love', src: '/elements/images/cards/card-love.png', defaultSize: { width: 307, height: 430 } },
       { id: 'card-space', label: 'Out of this world', src: '/elements/images/cards/card-space.png', defaultSize: { width: 325, height: 430 } },
+    ],
+  },
+  {
+    id: 'drawings',
+    label: 'Drawings',
+    items: [
+      { id: 'drawing-raccoon', label: 'Raccoon', src: '/elements/images/drawings/drawing-raccoon.png', defaultSize: { width: 417, height: 430 } },
+      { id: 'drawing-raccoon-line', label: 'Raccoon outline', src: '/elements/images/drawings/drawing-raccoon-line.png', defaultSize: { width: 417, height: 430 } },
+      { id: 'drawing-owl', label: 'Owl', src: '/elements/images/drawings/drawing-owl.png', defaultSize: { width: 376, height: 430 } },
+      { id: 'drawing-rocket', label: 'Rocket', src: '/elements/images/drawings/drawing-rocket.png', defaultSize: { width: 389, height: 430 } },
+      { id: 'drawing-milkshake', label: 'Milkshake', src: '/elements/images/drawings/drawing-milkshake.png', defaultSize: { width: 199, height: 430 } },
+      { id: 'drawing-cupcake', label: 'Cupcake', src: '/elements/images/drawings/drawing-cupcake.png', defaultSize: { width: 320, height: 430 } },
+      { id: 'drawing-eye-1', label: 'Eye, step 1', src: '/elements/images/drawings/drawing-eye-1.png', defaultSize: { width: 430, height: 430 } },
+      { id: 'drawing-eye-2', label: 'Eye, step 2', src: '/elements/images/drawings/drawing-eye-2.png', defaultSize: { width: 430, height: 430 } },
+      { id: 'drawing-eye-3', label: 'Eye, step 3', src: '/elements/images/drawings/drawing-eye-3.png', defaultSize: { width: 430, height: 430 } },
+      { id: 'drawing-eye-4', label: 'Eye, step 4', src: '/elements/images/drawings/drawing-eye-4.png', defaultSize: { width: 430, height: 430 } },
+      { id: 'drawing-eye-5', label: 'Eye, step 5', src: '/elements/images/drawings/drawing-eye-5.png', defaultSize: { width: 430, height: 430 } },
+    ],
+  },
+  {
+    id: 'sketches',
+    label: 'Sketches',
+    items: [
+      { id: 'sketch-portrait-1', label: 'Pencil portrait 1', src: '/elements/images/sketches/sketch-portrait-1.png', defaultSize: { width: 339, height: 430 } },
+      { id: 'sketch-portrait-2', label: 'Pencil portrait 2', src: '/elements/images/sketches/sketch-portrait-2.png', defaultSize: { width: 339, height: 430 } },
+      { id: 'sketch-portrait-3', label: 'Pencil portrait 3', src: '/elements/images/sketches/sketch-portrait-3.png', defaultSize: { width: 339, height: 430 } },
+      { id: 'sketch-portrait-4', label: 'Pencil portrait 4', src: '/elements/images/sketches/sketch-portrait-4.png', defaultSize: { width: 339, height: 430 } },
+      { id: 'sketch-portrait-5', label: 'Pencil portrait 5', src: '/elements/images/sketches/sketch-portrait-5.png', defaultSize: { width: 339, height: 430 } },
+      { id: 'sketch-portrait-6', label: 'Pencil portrait 6', src: '/elements/images/sketches/sketch-portrait-6.png', defaultSize: { width: 339, height: 430 } },
+      { id: 'sketch-portrait-7', label: 'Pencil portrait 7', src: '/elements/images/sketches/sketch-portrait-7.png', defaultSize: { width: 339, height: 430 } },
+      { id: 'sketch-painted-1', label: 'Painted portrait 1', src: '/elements/images/sketches/sketch-painted-1.png', defaultSize: { width: 363, height: 430 } },
+      { id: 'sketch-painted-2', label: 'Painted portrait 2', src: '/elements/images/sketches/sketch-painted-2.png', defaultSize: { width: 363, height: 430 } },
+      { id: 'sketch-painted-3', label: 'Painted portrait 3', src: '/elements/images/sketches/sketch-painted-3.png', defaultSize: { width: 363, height: 430 } },
+    ],
+  },
+  {
+    id: 'line-art',
+    label: 'Line art',
+    items: [
+      { id: 'line-art-bedtime', label: 'Asleep in bed', src: '/elements/images/line-art/line-art-bedtime.png', defaultSize: { width: 430, height: 336 } },
+      { id: 'line-art-coin', label: 'Coin', src: '/elements/images/line-art/line-art-coin.png', defaultSize: { width: 415, height: 430 } },
+      { id: 'line-art-coin-phone', label: 'Coin going into a phone', src: '/elements/images/line-art/line-art-coin-phone.png', defaultSize: { width: 430, height: 231 } },
+      { id: 'line-art-scarf', label: 'Wrapped in a scarf', src: '/elements/images/line-art/line-art-scarf.png', defaultSize: { width: 430, height: 362 } },
+      { id: 'line-art-grater', label: 'Grating cash', src: '/elements/images/line-art/line-art-grater.png', defaultSize: { width: 430, height: 329 } },
+      { id: 'line-art-meditate', label: 'Meditating', src: '/elements/images/line-art/line-art-meditate.png', defaultSize: { width: 430, height: 351 } },
     ],
   },
 ];

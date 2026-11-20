@@ -40,14 +40,18 @@ function anchorDownload(href: string, fileName: string) {
  * Save a Blob to the user's machine.
  * Returns the chosen path in Tauri, null if the user cancelled the dialog,
  * and undefined on the web (browser downloads don't expose a path).
+ *
+ * `blob` can be a function that makes it. In Tauri it runs after the user
+ * picks where to save, so nothing is made for a save that's cancelled.
  */
 export async function saveBlobToDisk(
-  blob: Blob,
+  blob: Blob | (() => Promise<Blob>),
   fileName: string
 ): Promise<string | null | undefined> {
   fileName = sanitizeFileName(fileName);
+  const made = () => (typeof blob === 'function' ? blob() : Promise.resolve(blob));
   if (!isTauri()) {
-    const url = URL.createObjectURL(blob);
+    const url = URL.createObjectURL(await made());
     try {
       anchorDownload(url, fileName);
     } finally {
@@ -70,7 +74,7 @@ export async function saveBlobToDisk(
   });
   if (!path) return null;
 
-  const bytes = new Uint8Array(await blob.arrayBuffer());
+  const bytes = new Uint8Array(await (await made()).arrayBuffer());
   await writeFile(path, bytes);
   return path;
 }

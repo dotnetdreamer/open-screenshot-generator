@@ -1169,6 +1169,19 @@ test('places: every artboard in every language, a language that repeats the base
   );
 });
 
+test('places: the app icon and header art at the front of the canvas leave the screenshots numbered from 1', () => {
+  const boards = [
+    board('icon', 'App icon', [textElement('t0', 'P')], { appIcon: {}, size: { width: 1024, height: 1024 } } as Partial<ArtboardState>),
+    board('art', 'Header', [textElement('t1', 'Top app')], { creativeAsset: 'header' } as Partial<ArtboardState>),
+    board('a', 'Artboard 3', [textElement('t2', 'Track every habit')]),
+    board('b', 'Artboard 4', [textElement('t3', 'Stats')]),
+  ];
+  assert.deepEqual(
+    artboardPlaces(boards).places.map((place) => place.label),
+    ['App icon', 'App Store header art "Header"', 'Artboard 1', 'Artboard 2']
+  );
+});
+
 test('places: text past what one check reads is listed as left out, not dropped quietly', () => {
   const long = 'Word '.repeat(Math.ceil(MAX_CHARACTERS / 2 / 5));
   const boards = [board('a', 'One', [textElement('t1', long)]), board('b', 'Two', [textElement('t2', 'Short words')]), board('c', 'Three', [textElement('t3', long)])];

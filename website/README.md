@@ -14,6 +14,15 @@ CSS and JavaScript, with no build step or bundler
   the desktop app. It uses the homepage's `css/home.css`, `css/hero.css` and
   `js/home.js`, plus `css/ratings-reviews.css` for its screenshot frames and
   close-up cards
+- `compare.html` (URL `/compare`, linked from the homepage menu) puts Open
+  Screenshot Generator next to other screenshot tools: a price chart, one big
+  table, a card for each tool and the pages every answer came from. It uses the
+  homepage's `css/home.css`, `css/hero.css` and `js/home.js`, plus
+  `css/compare.css` and `js/compare.js`, which fades the tools that can't do
+  what a visitor picks and can show one tool next to ours. The table holds every
+  answer as a `data-v` value on its cell, and the script only reads them. When
+  a price or a feature changes, update the table, the tool's card, the price
+  chart and the date checked together
 - `privacy.html` and `terms.html` are the legal pages
 - `assets/img/` holds real exports and screenshots from the app. The homepage adds
   PNG copies from `docs/` and `public/` alongside the existing WebP imagery

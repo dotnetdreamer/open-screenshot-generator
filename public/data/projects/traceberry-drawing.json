@@ -1,0 +1,2609 @@
+{
+  "id": "template_traceberry_drawing",
+  "name": "Traceberry AR Drawing",
+  "description": "App Store & Play Store screenshots for an AR drawing, tracing, sketching or art lesson app. Violet boards with soft rays and heavy Poppins headlines, a phone on a cup tracing a cute raccoon, category chips, a grid of pencil sketches and cartoon drawings, an upload button, eye-drawing steps, lessons and a share sheet, all grouped into editable layers.",
+  "previewImage": "/data/projects/previews/traceberry-drawing.png",
+  "timestamp": "2026-11-19T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tb-board-1",
+      "name": "Draw With Your Camera",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#6E60FA",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#7E73FE",
+        "color2": "#5642F6",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tb-b1-rays",
+          "type": "shape",
+          "name": "Rays",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1206,
+            "height": 2622
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.07,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M603 1450 L3803 1450 L3788.51 1754.18 Z M603 1450 L3733.07 2115.32 L3655.66 2409.84 Z M603 1450 L3526.35 2751.56 L3389.39 3023.55 Z M603 1450 L3191.85 3330.91 L3001.34 3568.48 Z M603 1450 L2744.22 3828.06 L2508.47 4020.83 Z M603 1450 L2203 4221.28 L1932.33 4360.82 Z M603 1450 L1591.85 4493.38 L1298.09 4573.6 Z M603 1450 L937.49 4632.47 L633.46 4649.85 Z M603 1450 L268.51 4632.47 L-32.49 4586.26 Z M603 1450 L-385.85 4493.38 L-670.67 4385.6 Z M603 1450 L-997 4221.28 L-1253.18 4056.64 Z M603 1450 L-1538.22 3828.06 L-1754.57 3613.76 Z M603 1450 L-1985.85 3330.91 L-2152.92 3076.31 Z M603 1450 L-2320.35 2751.56 L-2430.83 2467.78 Z M603 1450 L-2527.07 2115.32 L-2576.14 1814.77 Z M603 1450 L-2597 1450 L-2582.51 1145.82 Z M603 1450 L-2527.07 784.68 L-2449.66 490.16 Z M603 1450 L-2320.35 148.44 L-2183.39 -123.55 Z M603 1450 L-1985.85 -430.91 L-1795.34 -668.48 Z M603 1450 L-1538.22 -928.06 L-1302.47 -1120.83 Z M603 1450 L-997 -1321.28 L-726.33 -1460.82 Z M603 1450 L-385.85 -1593.38 L-92.09 -1673.6 Z M603 1450 L268.51 -1732.47 L572.54 -1749.85 Z M603 1450 L937.49 -1732.47 L1238.49 -1686.26 Z M603 1450 L1591.85 -1593.38 L1876.67 -1485.6 Z M603 1450 L2203 -1321.28 L2459.18 -1156.64 Z M603 1450 L2744.22 -928.06 L2960.57 -713.76 Z M603 1450 L3191.85 -430.91 L3358.92 -176.31 Z M603 1450 L3526.35 148.44 L3636.83 432.22 Z M603 1450 L3733.07 784.68 L3782.14 1085.23 Z",
+          "specialProps": {
+            "viewBox": "0 0 1206 2622"
+          }
+        },
+        {
+          "id": "tb-b1-title-bg",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 187,
+            "y": 99
+          },
+          "size": {
+            "width": 828,
+            "height": 284
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 0,
+            "color": "rgba(40,28,150,0.55)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 142,
+          "groupId": "tb-b1-g-title",
+          "groupName": "Title pill"
+        },
+        {
+          "id": "tb-b1-title-text",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 278.65,
+            "y": 94.2
+          },
+          "size": {
+            "width": 640,
+            "height": 309.64
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Draw",
+          "fontSize": 63.62,
+          "color": "#5B4CF0",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.95,
+          "groupId": "tb-b1-g-title",
+          "groupName": "Title pill"
+        },
+        {
+          "id": "tb-b1-h-1",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 226.46,
+            "y": 448.08
+          },
+          "size": {
+            "width": 753,
+            "height": 198.93
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 9,
+            "blur": 0,
+            "color": "rgba(40,28,150,0.55)"
+          },
+          "content": "With Your",
+          "fontSize": 40.88,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.2,
+          "groupId": "tb-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "tb-b1-h-2",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 291.61,
+            "y": 613.84
+          },
+          "size": {
+            "width": 609,
+            "height": 215.25
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 9,
+            "blur": 0,
+            "color": "rgba(40,28,150,0.55)"
+          },
+          "content": "Camera",
+          "fontSize": 44.23,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -3.1,
+          "groupId": "tb-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "tb-b1-scene",
+          "type": "image",
+          "name": "Drawing scene",
+          "position": {
+            "x": 0,
+            "y": 820
+          },
+          "size": {
+            "width": 1206,
+            "height": 1520
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/traceberry-scene.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "tb-b1-levels",
+          "type": "text",
+          "name": "Levels title",
+          "position": {
+            "x": 245.59,
+            "y": 2216.84
+          },
+          "size": {
+            "width": 706,
+            "height": 109.91
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 6,
+            "blur": 0,
+            "color": "rgba(40,28,150,0.5)"
+          },
+          "content": "Drawing Levels:",
+          "fontSize": 22.58,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 1.13
+        },
+        {
+          "id": "tb-b1-level-easy-bg",
+          "type": "shape",
+          "name": "Level",
+          "position": {
+            "x": 70,
+            "y": 2389
+          },
+          "size": {
+            "width": 324,
+            "height": 151
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 8,
+            "blur": 0,
+            "color": "#169A47"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#22C55E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 76,
+          "groupId": "tb-b1-g-level-easy",
+          "groupName": "Level"
+        },
+        {
+          "id": "tb-b1-level-easy-text",
+          "type": "text",
+          "name": "Level text",
+          "position": {
+            "x": 138.2,
+            "y": 2421.52
+          },
+          "size": {
+            "width": 184,
+            "height": 84.68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Easy",
+          "fontSize": 17.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "tb-b1-g-level-easy",
+          "groupName": "Level"
+        },
+        {
+          "id": "tb-b1-level-medium-bg",
+          "type": "shape",
+          "name": "Level",
+          "position": {
+            "x": 434,
+            "y": 2389
+          },
+          "size": {
+            "width": 331,
+            "height": 151
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 8,
+            "blur": 0,
+            "color": "#D96D00"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FF8C1A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 76,
+          "groupId": "tb-b1-g-level-medium",
+          "groupName": "Level"
+        },
+        {
+          "id": "tb-b1-level-medium-text",
+          "type": "text",
+          "name": "Level text",
+          "position": {
+            "x": 454.39,
+            "y": 2421.52
+          },
+          "size": {
+            "width": 290,
+            "height": 84.68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Medium",
+          "fontSize": 17.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "tb-b1-g-level-medium",
+          "groupName": "Level"
+        },
+        {
+          "id": "tb-b1-level-hard-bg",
+          "type": "shape",
+          "name": "Level",
+          "position": {
+            "x": 805,
+            "y": 2389
+          },
+          "size": {
+            "width": 325,
+            "height": 151
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 8,
+            "blur": 0,
+            "color": "#C8243F"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#F43F5E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 76,
+          "groupId": "tb-b1-g-level-hard",
+          "groupName": "Level"
+        },
+        {
+          "id": "tb-b1-level-hard-text",
+          "type": "text",
+          "name": "Level text",
+          "position": {
+            "x": 872.51,
+            "y": 2421.52
+          },
+          "size": {
+            "width": 190,
+            "height": 84.68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Hard",
+          "fontSize": 17.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "tb-b1-g-level-hard",
+          "groupName": "Level"
+        }
+      ]
+    },
+    {
+      "id": "tb-board-2",
+      "name": "Sketch Like A Pro",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#50565F",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#4D5360",
+        "color2": "#5C6470",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tb-b2-paper-back",
+          "type": "shape",
+          "name": "Paper",
+          "position": {
+            "x": 760,
+            "y": 300
+          },
+          "size": {
+            "width": 760,
+            "height": 980
+          },
+          "rotation": 14,
+          "scale": 1,
+          "opacity": 0.55,
+          "shapeType": "rectangle",
+          "fillColor": "#E4E7EB",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 10
+        },
+        {
+          "id": "tb-b2-paper",
+          "type": "shape",
+          "name": "Paper",
+          "position": {
+            "x": 190,
+            "y": 660
+          },
+          "size": {
+            "width": 900,
+            "height": 1800
+          },
+          "rotation": -9,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 60,
+            "color": "rgba(0,0,0,0.35)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#F4F5F6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 10
+        },
+        {
+          "id": "tb-b2-h-1",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 323.89,
+            "y": 93.92
+          },
+          "size": {
+            "width": 557,
+            "height": 207.17
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 8,
+            "blur": 0,
+            "color": "rgba(0,0,0,0.45)"
+          },
+          "content": "Sketch",
+          "fontSize": 42.57,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.11,
+          "groupId": "tb-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "tb-b2-h-2",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 196.1,
+            "y": 286.68
+          },
+          "size": {
+            "width": 815,
+            "height": 200.71
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 8,
+            "blur": 0,
+            "color": "rgba(0,0,0,0.45)"
+          },
+          "content": "Like a PRO",
+          "fontSize": 41.24,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 1.65,
+          "groupId": "tb-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "tb-b2-chip-animals-bg",
+          "type": "shape",
+          "name": "Category",
+          "position": {
+            "x": -30,
+            "y": 568
+          },
+          "size": {
+            "width": 378,
+            "height": 128
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.92,
+          "shadow": {
+            "x": 0,
+            "y": 6,
+            "blur": 14,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#C3C8D0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 64,
+          "groupId": "tb-b2-g-chip-animals",
+          "groupName": "Category"
+        },
+        {
+          "id": "tb-b2-chip-animals-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": 12.88,
+            "y": 599
+          },
+          "size": {
+            "width": 66,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/traceberry-emoji-dog.png",
+          "objectFit": "contain",
+          "groupId": "tb-b2-g-chip-animals",
+          "groupName": "Category"
+        },
+        {
+          "id": "tb-b2-chip-animals-text",
+          "type": "text",
+          "name": "Category text",
+          "position": {
+            "x": 70.86,
+            "y": 593.61
+          },
+          "size": {
+            "width": 259,
+            "height": 75.92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Animals",
+          "fontSize": 15.6,
+          "color": "#2A2F3A",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "tb-b2-g-chip-animals",
+          "groupName": "Category"
+        },
+        {
+          "id": "tb-b2-chip-portraits-bg",
+          "type": "shape",
+          "name": "Category",
+          "position": {
+            "x": 394,
+            "y": 568
+          },
+          "size": {
+            "width": 429,
+            "height": 128
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.92,
+          "shadow": {
+            "x": 0,
+            "y": 6,
+            "blur": 14,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#C3C8D0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 64,
+          "groupId": "tb-b2-g-chip-portraits",
+          "groupName": "Category"
+        },
+        {
+          "id": "tb-b2-chip-portraits-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": 460.95,
+            "y": 599
+          },
+          "size": {
+            "width": 66,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/traceberry-emoji-woman.png",
+          "objectFit": "contain",
+          "groupId": "tb-b2-g-chip-portraits",
+          "groupName": "Category"
+        },
+        {
+          "id": "tb-b2-chip-portraits-text",
+          "type": "text",
+          "name": "Category text",
+          "position": {
+            "x": 516.8,
+            "y": 593.61
+          },
+          "size": {
+            "width": 264,
+            "height": 75.92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Portraits",
+          "fontSize": 15.6,
+          "color": "#2A2F3A",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "tb-b2-g-chip-portraits",
+          "groupName": "Category"
+        },
+        {
+          "id": "tb-b2-chip-nature-bg",
+          "type": "shape",
+          "name": "Category",
+          "position": {
+            "x": 870,
+            "y": 568
+          },
+          "size": {
+            "width": 380,
+            "height": 128
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.92,
+          "shadow": {
+            "x": 0,
+            "y": 6,
+            "blur": 14,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#C3C8D0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 64,
+          "groupId": "tb-b2-g-chip-nature",
+          "groupName": "Category"
+        },
+        {
+          "id": "tb-b2-chip-nature-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": 932.97,
+            "y": 599
+          },
+          "size": {
+            "width": 66,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/traceberry-emoji-palm.png",
+          "objectFit": "contain",
+          "groupId": "tb-b2-g-chip-nature",
+          "groupName": "Category"
+        },
+        {
+          "id": "tb-b2-chip-nature-text",
+          "type": "text",
+          "name": "Category text",
+          "position": {
+            "x": 989.02,
+            "y": 593.61
+          },
+          "size": {
+            "width": 222,
+            "height": 75.92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Nature",
+          "fontSize": 15.6,
+          "color": "#2A2F3A",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "tb-b2-g-chip-nature",
+          "groupName": "Category"
+        },
+        {
+          "id": "tb-b2-chip-arch-bg",
+          "type": "shape",
+          "name": "Category",
+          "position": {
+            "x": -60,
+            "y": 754
+          },
+          "size": {
+            "width": 304,
+            "height": 128
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.92,
+          "shadow": {
+            "x": 0,
+            "y": 6,
+            "blur": 14,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#C3C8D0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 64,
+          "groupId": "tb-b2-g-chip-arch",
+          "groupName": "Category"
+        },
+        {
+          "id": "tb-b2-chip-arch-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": -6.88,
+            "y": 785
+          },
+          "size": {
+            "width": 66,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/traceberry-emoji-house.png",
+          "objectFit": "contain",
+          "groupId": "tb-b2-g-chip-arch",
+          "groupName": "Category"
+        },
+        {
+          "id": "tb-b2-chip-arch-text",
+          "type": "text",
+          "name": "Category text",
+          "position": {
+            "x": 50.94,
+            "y": 779.61
+          },
+          "size": {
+            "width": 166,
+            "height": 75.92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Arch",
+          "fontSize": 15.6,
+          "color": "#2A2F3A",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "tb-b2-g-chip-arch",
+          "groupName": "Category"
+        },
+        {
+          "id": "tb-b2-chip-anime-bg",
+          "type": "shape",
+          "name": "Category",
+          "position": {
+            "x": 290,
+            "y": 754
+          },
+          "size": {
+            "width": 355,
+            "height": 128
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.92,
+          "shadow": {
+            "x": 0,
+            "y": 6,
+            "blur": 14,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#C3C8D0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 64,
+          "groupId": "tb-b2-g-chip-anime",
+          "groupName": "Category"
+        },
+        {
+          "id": "tb-b2-chip-anime-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": 343.43,
+            "y": 785
+          },
+          "size": {
+            "width": 66,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/traceberry-emoji-ninja.png",
+          "objectFit": "contain",
+          "groupId": "tb-b2-g-chip-anime",
+          "groupName": "Category"
+        },
+        {
+          "id": "tb-b2-chip-anime-text",
+          "type": "text",
+          "name": "Category text",
+          "position": {
+            "x": 401.58,
+            "y": 779.61
+          },
+          "size": {
+            "width": 214,
+            "height": 75.92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Anime",
+          "fontSize": 15.6,
+          "color": "#2A2F3A",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "tb-b2-g-chip-anime",
+          "groupName": "Category"
+        },
+        {
+          "id": "tb-b2-chip-cars-bg",
+          "type": "shape",
+          "name": "Category",
+          "position": {
+            "x": 691,
+            "y": 754
+          },
+          "size": {
+            "width": 599,
+            "height": 128
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.92,
+          "shadow": {
+            "x": 0,
+            "y": 6,
+            "blur": 14,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#C3C8D0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 64,
+          "groupId": "tb-b2-g-chip-cars",
+          "groupName": "Category"
+        },
+        {
+          "id": "tb-b2-chip-cars-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": 789.24,
+            "y": 785
+          },
+          "size": {
+            "width": 66,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/traceberry-emoji-car.png",
+          "objectFit": "contain",
+          "groupId": "tb-b2-g-chip-cars",
+          "groupName": "Category"
+        },
+        {
+          "id": "tb-b2-chip-cars-text",
+          "type": "text",
+          "name": "Category text",
+          "position": {
+            "x": 847.29,
+            "y": 779.61
+          },
+          "size": {
+            "width": 369,
+            "height": 75.92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Cars & Bikes",
+          "fontSize": 15.6,
+          "color": "#2A2F3A",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "tb-b2-g-chip-cars",
+          "groupName": "Category"
+        },
+        {
+          "id": "tb-b2-phone-rim",
+          "type": "shape",
+          "name": "Phone outline",
+          "position": {
+            "x": 150,
+            "y": 957
+          },
+          "size": {
+            "width": 894,
+            "height": 1848.92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 24,
+            "blur": 50,
+            "color": "rgba(30,20,110,0.32)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#D9DCE1",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 133.8
+        },
+        {
+          "id": "tb-b2-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 162,
+            "y": 969
+          },
+          "size": {
+            "width": 870,
+            "height": 1824.92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#1A1A1A",
+          "screenshotSrc": "/data/projects/traceberry-screen-camera.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tb-board-3",
+      "name": "1000 Templates",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#6C5EFB",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#7E73FE",
+        "color2": "#5642F6",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tb-b3-rays",
+          "type": "shape",
+          "name": "Rays",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1206,
+            "height": 2622
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.07,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M603 1450 L3803 1450 L3788.51 1754.18 Z M603 1450 L3733.07 2115.32 L3655.66 2409.84 Z M603 1450 L3526.35 2751.56 L3389.39 3023.55 Z M603 1450 L3191.85 3330.91 L3001.34 3568.48 Z M603 1450 L2744.22 3828.06 L2508.47 4020.83 Z M603 1450 L2203 4221.28 L1932.33 4360.82 Z M603 1450 L1591.85 4493.38 L1298.09 4573.6 Z M603 1450 L937.49 4632.47 L633.46 4649.85 Z M603 1450 L268.51 4632.47 L-32.49 4586.26 Z M603 1450 L-385.85 4493.38 L-670.67 4385.6 Z M603 1450 L-997 4221.28 L-1253.18 4056.64 Z M603 1450 L-1538.22 3828.06 L-1754.57 3613.76 Z M603 1450 L-1985.85 3330.91 L-2152.92 3076.31 Z M603 1450 L-2320.35 2751.56 L-2430.83 2467.78 Z M603 1450 L-2527.07 2115.32 L-2576.14 1814.77 Z M603 1450 L-2597 1450 L-2582.51 1145.82 Z M603 1450 L-2527.07 784.68 L-2449.66 490.16 Z M603 1450 L-2320.35 148.44 L-2183.39 -123.55 Z M603 1450 L-1985.85 -430.91 L-1795.34 -668.48 Z M603 1450 L-1538.22 -928.06 L-1302.47 -1120.83 Z M603 1450 L-997 -1321.28 L-726.33 -1460.82 Z M603 1450 L-385.85 -1593.38 L-92.09 -1673.6 Z M603 1450 L268.51 -1732.47 L572.54 -1749.85 Z M603 1450 L937.49 -1732.47 L1238.49 -1686.26 Z M603 1450 L1591.85 -1593.38 L1876.67 -1485.6 Z M603 1450 L2203 -1321.28 L2459.18 -1156.64 Z M603 1450 L2744.22 -928.06 L2960.57 -713.76 Z M603 1450 L3191.85 -430.91 L3358.92 -176.31 Z M603 1450 L3526.35 148.44 L3636.83 432.22 Z M603 1450 L3733.07 784.68 L3782.14 1085.23 Z",
+          "specialProps": {
+            "viewBox": "0 0 1206 2622"
+          }
+        },
+        {
+          "id": "tb-b3-h-1",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 350.69,
+            "y": 93.34
+          },
+          "size": {
+            "width": 512,
+            "height": 213.32
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 9,
+            "blur": 0,
+            "color": "rgba(40,28,150,0.55)"
+          },
+          "content": "1000+",
+          "fontSize": 43.83,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 2.19,
+          "groupId": "tb-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "tb-b3-h-2",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 202.34,
+            "y": 285.82
+          },
+          "size": {
+            "width": 811,
+            "height": 192.63
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 9,
+            "blur": 0,
+            "color": "rgba(40,28,150,0.55)"
+          },
+          "content": "Templates",
+          "fontSize": 39.58,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 1.09,
+          "groupId": "tb-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "tb-b3-tile-591-0-bg",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": -168,
+            "y": 591
+          },
+          "size": {
+            "width": 376,
+            "height": 499
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 26,
+            "color": "rgba(30,20,110,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-591-0-art",
+          "type": "image",
+          "name": "Template",
+          "position": {
+            "x": -154,
+            "y": 605
+          },
+          "size": {
+            "width": 348,
+            "height": 471
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover",
+          "borderRadius": 22,
+          "imageSrc": "/elements/images/sketches/sketch-portrait-1.png",
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-591-1-bg",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 209,
+            "y": 591
+          },
+          "size": {
+            "width": 376,
+            "height": 499
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 26,
+            "color": "rgba(30,20,110,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-591-1-art",
+          "type": "image",
+          "name": "Template",
+          "position": {
+            "x": 276.36,
+            "y": 692.92
+          },
+          "size": {
+            "width": 274.34,
+            "height": 383.08
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "contain",
+          "borderRadius": 22,
+          "imageSrc": "/elements/images/drawings/drawing-raccoon.png",
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-591-2-bg",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 622,
+            "y": 591
+          },
+          "size": {
+            "width": 376,
+            "height": 499
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 26,
+            "color": "rgba(30,20,110,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-591-2-art",
+          "type": "image",
+          "name": "Template",
+          "position": {
+            "x": 636,
+            "y": 605
+          },
+          "size": {
+            "width": 348,
+            "height": 471
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover",
+          "borderRadius": 22,
+          "imageSrc": "/elements/images/sketches/sketch-portrait-2.png",
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-591-3-bg",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 1032,
+            "y": 591
+          },
+          "size": {
+            "width": 376,
+            "height": 499
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 26,
+            "color": "rgba(30,20,110,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-591-3-art",
+          "type": "image",
+          "name": "Template",
+          "position": {
+            "x": 1092.98,
+            "y": 669.37
+          },
+          "size": {
+            "width": 254.04,
+            "height": 393.29
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "contain",
+          "borderRadius": 22,
+          "imageSrc": "/elements/images/drawings/drawing-owl.png",
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-1129-0-bg",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 0,
+            "y": 1129
+          },
+          "size": {
+            "width": 376,
+            "height": 499
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 26,
+            "color": "rgba(30,20,110,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-1129-0-art",
+          "type": "image",
+          "name": "Template",
+          "position": {
+            "x": 14,
+            "y": 1143
+          },
+          "size": {
+            "width": 348,
+            "height": 471
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover",
+          "borderRadius": 22,
+          "imageSrc": "/elements/images/sketches/sketch-portrait-3.png",
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-1129-1-bg",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 416,
+            "y": 1129
+          },
+          "size": {
+            "width": 376,
+            "height": 499
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 26,
+            "color": "rgba(30,20,110,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-1129-1-art",
+          "type": "image",
+          "name": "Template",
+          "position": {
+            "x": 488.58,
+            "y": 1189.32
+          },
+          "size": {
+            "width": 219.82,
+            "height": 399.57
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "contain",
+          "borderRadius": 22,
+          "imageSrc": "/elements/images/drawings/drawing-cupcake.png",
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-1129-2-bg",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 829,
+            "y": 1129
+          },
+          "size": {
+            "width": 376,
+            "height": 499
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 26,
+            "color": "rgba(30,20,110,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-1129-2-art",
+          "type": "image",
+          "name": "Template",
+          "position": {
+            "x": 843,
+            "y": 1143
+          },
+          "size": {
+            "width": 348,
+            "height": 471
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover",
+          "borderRadius": 22,
+          "imageSrc": "/elements/images/sketches/sketch-portrait-4.png",
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-1670-0-bg",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": -168,
+            "y": 1670
+          },
+          "size": {
+            "width": 376,
+            "height": 499
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 26,
+            "color": "rgba(30,20,110,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-1670-0-art",
+          "type": "image",
+          "name": "Template",
+          "position": {
+            "x": -91.36,
+            "y": 1778.99
+          },
+          "size": {
+            "width": 205.32,
+            "height": 306.94
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "contain",
+          "borderRadius": 22,
+          "imageSrc": "/elements/images/drawings/drawing-rocket.png",
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-1670-1-bg",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 209,
+            "y": 1670
+          },
+          "size": {
+            "width": 376,
+            "height": 499
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 26,
+            "color": "rgba(30,20,110,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-1670-1-art",
+          "type": "image",
+          "name": "Template",
+          "position": {
+            "x": 223,
+            "y": 1684
+          },
+          "size": {
+            "width": 348,
+            "height": 471
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover",
+          "borderRadius": 22,
+          "imageSrc": "/elements/images/sketches/sketch-portrait-5.png",
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-1670-2-bg",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 622,
+            "y": 1670
+          },
+          "size": {
+            "width": 376,
+            "height": 499
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 26,
+            "color": "rgba(30,20,110,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-1670-2-art",
+          "type": "image",
+          "name": "Template",
+          "position": {
+            "x": 712.56,
+            "y": 1693.3
+          },
+          "size": {
+            "width": 194.88,
+            "height": 450.55
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "contain",
+          "borderRadius": 22,
+          "imageSrc": "/elements/images/drawings/drawing-milkshake.png",
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-1670-3-bg",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 1032,
+            "y": 1670
+          },
+          "size": {
+            "width": 376,
+            "height": 499
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 26,
+            "color": "rgba(30,20,110,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-1670-3-art",
+          "type": "image",
+          "name": "Template",
+          "position": {
+            "x": 1046,
+            "y": 1684
+          },
+          "size": {
+            "width": 348,
+            "height": 471
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover",
+          "borderRadius": 22,
+          "imageSrc": "/elements/images/sketches/sketch-portrait-6.png",
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-2222-0-bg",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 0,
+            "y": 2222
+          },
+          "size": {
+            "width": 376,
+            "height": 499
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 26,
+            "color": "rgba(30,20,110,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-2222-0-art",
+          "type": "image",
+          "name": "Template",
+          "position": {
+            "x": 67.36,
+            "y": 2323.92
+          },
+          "size": {
+            "width": 274.34,
+            "height": 383.08
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "contain",
+          "borderRadius": 22,
+          "imageSrc": "/elements/images/drawings/drawing-raccoon-line.png",
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-2222-1-bg",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 416,
+            "y": 2222
+          },
+          "size": {
+            "width": 376,
+            "height": 499
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 26,
+            "color": "rgba(30,20,110,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-2222-1-art",
+          "type": "image",
+          "name": "Template",
+          "position": {
+            "x": 430,
+            "y": 2236
+          },
+          "size": {
+            "width": 348,
+            "height": 471
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "cover",
+          "borderRadius": 22,
+          "imageSrc": "/elements/images/sketches/sketch-portrait-7.png",
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-2222-2-bg",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 829,
+            "y": 2222
+          },
+          "size": {
+            "width": 376,
+            "height": 499
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 26,
+            "color": "rgba(30,20,110,0.25)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        },
+        {
+          "id": "tb-b3-tile-2222-2-art",
+          "type": "image",
+          "name": "Template",
+          "position": {
+            "x": 843,
+            "y": 2236
+          },
+          "size": {
+            "width": 348,
+            "height": 471
+          },
+          "rotation": 0,
+          "scale": 1,
+          "objectFit": "contain",
+          "borderRadius": 22,
+          "imageSrc": "/elements/images/mascots/mascot-bunny.png",
+          "groupId": "tb-b3-g-grid",
+          "groupName": "Template grid"
+        }
+      ]
+    },
+    {
+      "id": "tb-board-4",
+      "name": "Upload Your Photo",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#6C5EFB",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#7E73FE",
+        "color2": "#5642F6",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tb-b4-rays",
+          "type": "shape",
+          "name": "Rays",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1206,
+            "height": 2622
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.07,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M603 1450 L3803 1450 L3788.51 1754.18 Z M603 1450 L3733.07 2115.32 L3655.66 2409.84 Z M603 1450 L3526.35 2751.56 L3389.39 3023.55 Z M603 1450 L3191.85 3330.91 L3001.34 3568.48 Z M603 1450 L2744.22 3828.06 L2508.47 4020.83 Z M603 1450 L2203 4221.28 L1932.33 4360.82 Z M603 1450 L1591.85 4493.38 L1298.09 4573.6 Z M603 1450 L937.49 4632.47 L633.46 4649.85 Z M603 1450 L268.51 4632.47 L-32.49 4586.26 Z M603 1450 L-385.85 4493.38 L-670.67 4385.6 Z M603 1450 L-997 4221.28 L-1253.18 4056.64 Z M603 1450 L-1538.22 3828.06 L-1754.57 3613.76 Z M603 1450 L-1985.85 3330.91 L-2152.92 3076.31 Z M603 1450 L-2320.35 2751.56 L-2430.83 2467.78 Z M603 1450 L-2527.07 2115.32 L-2576.14 1814.77 Z M603 1450 L-2597 1450 L-2582.51 1145.82 Z M603 1450 L-2527.07 784.68 L-2449.66 490.16 Z M603 1450 L-2320.35 148.44 L-2183.39 -123.55 Z M603 1450 L-1985.85 -430.91 L-1795.34 -668.48 Z M603 1450 L-1538.22 -928.06 L-1302.47 -1120.83 Z M603 1450 L-997 -1321.28 L-726.33 -1460.82 Z M603 1450 L-385.85 -1593.38 L-92.09 -1673.6 Z M603 1450 L268.51 -1732.47 L572.54 -1749.85 Z M603 1450 L937.49 -1732.47 L1238.49 -1686.26 Z M603 1450 L1591.85 -1593.38 L1876.67 -1485.6 Z M603 1450 L2203 -1321.28 L2459.18 -1156.64 Z M603 1450 L2744.22 -928.06 L2960.57 -713.76 Z M603 1450 L3191.85 -430.91 L3358.92 -176.31 Z M603 1450 L3526.35 148.44 L3636.83 432.22 Z M603 1450 L3733.07 784.68 L3782.14 1085.23 Z",
+          "specialProps": {
+            "viewBox": "0 0 1206 2622"
+          }
+        },
+        {
+          "id": "tb-b4-h-1",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 139.24,
+            "y": 96.82
+          },
+          "size": {
+            "width": 934,
+            "height": 192.63
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 9,
+            "blur": 0,
+            "color": "rgba(40,28,150,0.55)"
+          },
+          "content": "Upload Your",
+          "fontSize": 39.58,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 1.39,
+          "groupId": "tb-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "tb-b4-h-2",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 365.78,
+            "y": 280.91
+          },
+          "size": {
+            "width": 474,
+            "height": 205.22
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 9,
+            "blur": 0,
+            "color": "rgba(40,28,150,0.55)"
+          },
+          "content": "Photo",
+          "fontSize": 42.17,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.32,
+          "groupId": "tb-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "tb-b4-phone-rim",
+          "type": "shape",
+          "name": "Phone outline",
+          "position": {
+            "x": 92,
+            "y": 586
+          },
+          "size": {
+            "width": 1022,
+            "height": 2117.41
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 24,
+            "blur": 50,
+            "color": "rgba(30,20,110,0.32)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#ECEBFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 151.72
+        },
+        {
+          "id": "tb-b4-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 104,
+            "y": 598
+          },
+          "size": {
+            "width": 998,
+            "height": 2093.41
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#1A1A1A",
+          "screenshotSrc": "/data/projects/traceberry-screen-upload.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tb-b4-upload-bg",
+          "type": "shape",
+          "name": "Button",
+          "position": {
+            "x": 35,
+            "y": 923
+          },
+          "size": {
+            "width": 1136,
+            "height": 237
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 34,
+            "color": "rgba(30,20,110,0.35)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#7A6CFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 64,
+          "groupId": "tb-b4-g-upload",
+          "groupName": "Upload button"
+        },
+        {
+          "id": "tb-b4-upload-dash",
+          "type": "shape",
+          "name": "Dashed edge",
+          "position": {
+            "x": 53,
+            "y": 941
+          },
+          "size": {
+            "width": 1100,
+            "height": 201
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.8,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 0 L52 0 L54 0 L56 0 L58 0 L60 0 L62 0 L64 0 L66 0 L68 0 L70 0 L72 0 L74 0 L76 0 M92 0 L94 0 L96 0 L98 0 L100 0 L102 0 L104 0 L106 0 L108 0 L110 0 L112 0 L114 0 L116 0 L118 0 M134 0 L136 0 L138 0 L140 0 L142 0 L144 0 L146 0 L148 0 L150 0 L152 0 L154 0 L156 0 L158 0 L160 0 M176 0 L178 0 L180 0 L182 0 L184 0 L186 0 L188 0 L190 0 L192 0 L194 0 L196 0 L198 0 L200 0 L202 0 M218 0 L220 0 L222 0 L224 0 L226 0 L228 0 L230 0 L232 0 L234 0 L236 0 L238 0 L240 0 L242 0 L244 0 M260 0 L262 0 L264 0 L266 0 L268 0 L270 0 L272 0 L274 0 L276 0 L278 0 L280 0 L282 0 L284 0 L286 0 M302 0 L304 0 L306 0 L308 0 L310 0 L312 0 L314 0 L316 0 L318 0 L320 0 L322 0 L324 0 L326 0 L328 0 M344 0 L346 0 L348 0 L350 0 L352 0 L354 0 L356 0 L358 0 L360 0 L362 0 L364 0 L366 0 L368 0 L370 0 M386 0 L388 0 L390 0 L392 0 L394 0 L396 0 L398 0 L400 0 L402 0 L404 0 L406 0 L408 0 L410 0 L412 0 M428 0 L430 0 L432 0 L434 0 L436 0 L438 0 L440 0 L442 0 L444 0 L446 0 L448 0 L450 0 L452 0 L454 0 M470 0 L472 0 L474 0 L476 0 L478 0 L480 0 L482 0 L484 0 L486 0 L488 0 L490 0 L492 0 L494 0 L496 0 M512 0 L514 0 L516 0 L518 0 L520 0 L522 0 L524 0 L526 0 L528 0 L530 0 L532 0 L534 0 L536 0 L538 0 M554 0 L556 0 L558 0 L560 0 L562 0 L564 0 L566 0 L568 0 L570 0 L572 0 L574 0 L576 0 L578 0 L580 0 M596 0 L598 0 L600 0 L602 0 L604 0 L606 0 L608 0 L610 0 L612 0 L614 0 L616 0 L618 0 L620 0 L622 0 M638 0 L640 0 L642 0 L644 0 L646 0 L648 0 L650 0 L652 0 L654 0 L656 0 L658 0 L660 0 L662 0 L664 0 M680 0 L682 0 L684 0 L686 0 L688 0 L690 0 L692 0 L694 0 L696 0 L698 0 L700 0 L702 0 L704 0 L706 0 M722 0 L724 0 L726 0 L728 0 L730 0 L732 0 L734 0 L736 0 L738 0 L740 0 L742 0 L744 0 L746 0 L748 0 M764 0 L766 0 L768 0 L770 0 L772 0 L774 0 L776 0 L778 0 L780 0 L782 0 L784 0 L786 0 L788 0 L790 0 M806 0 L808 0 L810 0 L812 0 L814 0 L816 0 L818 0 L820 0 L822 0 L824 0 L826 0 L828 0 L830 0 L832 0 M848 0 L850 0 L852 0 L854 0 L856 0 L858 0 L860 0 L862 0 L864 0 L866 0 L868 0 L870 0 L872 0 L874 0 M890 0 L892 0 L894 0 L896 0 L898 0 L900 0 L902 0 L904 0 L906 0 L908 0 L910 0 L912 0 L914 0 L916 0 M932 0 L934 0 L936 0 L938 0 L940 0 L942 0 L944 0 L946 0 L948 0 L950 0 L952 0 L954 0 L956 0 L958 0 M974 0 L976 0 L978 0 L980 0 L982 0 L984 0 L986 0 L988 0 L990 0 L992 0 L994 0 L996 0 L998 0 L1000 0 M1016 0 L1018 0 L1020 0 L1022 0 L1024 0 L1026 0 L1028 0 L1030 0 L1032 0 L1034 0 L1036 0 L1038 0 L1040 0 L1042 0 M1059.93 1 L1062.37 1.55 L1064.78 2.23 L1067.14 3.03 L1069.47 3.95 L1071.75 4.98 L1073.97 6.12 L1076.13 7.37 L1078.23 8.73 L1080.26 10.2 L1082.21 11.76 L1084.08 13.42 M1094.56 27.32 L1095.64 29.58 L1096.6 31.88 L1097.45 34.23 L1098.18 36.63 L1098.79 39.05 L1099.27 41.5 L1099.64 43.97 L1099.87 46.46 L1099.99 48.96 L1100 50 L1100 52 L1100 54 M1100 70 L1100 72 L1100 74 L1100 76 L1100 78 L1100 80 L1100 82 L1100 84 L1100 86 L1100 88 L1100 90 L1100 92 L1100 94 L1100 96 M1100 112 L1100 114 L1100 116 L1100 118 L1100 120 L1100 122 L1100 124 L1100 126 L1100 128 L1100 130 L1100 132 L1100 134 L1100 136 L1100 138 M1099.75 155.99 L1099.44 158.47 L1099 160.93 L1098.45 163.37 L1097.77 165.78 L1096.97 168.14 L1096.05 170.47 L1095.02 172.75 L1093.88 174.97 L1092.63 177.13 L1091.27 179.23 L1089.8 181.26 M1077.02 193.07 L1074.88 194.37 L1072.68 195.56 L1070.42 196.64 L1068.12 197.6 L1065.77 198.45 L1063.37 199.18 L1060.95 199.79 L1058.5 200.27 L1056.03 200.64 L1053.54 200.87 L1051.04 200.99 M1034 201 L1032 201 L1030 201 L1028 201 L1026 201 L1024 201 L1022 201 L1020 201 L1018 201 L1016 201 L1014 201 L1012 201 L1010 201 L1008 201 M992 201 L990 201 L988 201 L986 201 L984 201 L982 201 L980 201 L978 201 L976 201 L974 201 L972 201 L970 201 L968 201 L966 201 M950 201 L948 201 L946 201 L944 201 L942 201 L940 201 L938 201 L936 201 L934 201 L932 201 L930 201 L928 201 L926 201 L924 201 M908 201 L906 201 L904 201 L902 201 L900 201 L898 201 L896 201 L894 201 L892 201 L890 201 L888 201 L886 201 L884 201 L882 201 M866 201 L864 201 L862 201 L860 201 L858 201 L856 201 L854 201 L852 201 L850 201 L848 201 L846 201 L844 201 L842 201 L840 201 M824 201 L822 201 L820 201 L818 201 L816 201 L814 201 L812 201 L810 201 L808 201 L806 201 L804 201 L802 201 L800 201 L798 201 M782 201 L780 201 L778 201 L776 201 L774 201 L772 201 L770 201 L768 201 L766 201 L764 201 L762 201 L760 201 L758 201 L756 201 M740 201 L738 201 L736 201 L734 201 L732 201 L730 201 L728 201 L726 201 L724 201 L722 201 L720 201 L718 201 L716 201 L714 201 M698 201 L696 201 L694 201 L692 201 L690 201 L688 201 L686 201 L684 201 L682 201 L680 201 L678 201 L676 201 L674 201 L672 201 M656 201 L654 201 L652 201 L650 201 L648 201 L646 201 L644 201 L642 201 L640 201 L638 201 L636 201 L634 201 L632 201 L630 201 M614 201 L612 201 L610 201 L608 201 L606 201 L604 201 L602 201 L600 201 L598 201 L596 201 L594 201 L592 201 L590 201 L588 201 M572 201 L570 201 L568 201 L566 201 L564 201 L562 201 L560 201 L558 201 L556 201 L554 201 L552 201 L550 201 L548 201 L546 201 M530 201 L528 201 L526 201 L524 201 L522 201 L520 201 L518 201 L516 201 L514 201 L512 201 L510 201 L508 201 L506 201 L504 201 M488 201 L486 201 L484 201 L482 201 L480 201 L478 201 L476 201 L474 201 L472 201 L470 201 L468 201 L466 201 L464 201 L462 201 M446 201 L444 201 L442 201 L440 201 L438 201 L436 201 L434 201 L432 201 L430 201 L428 201 L426 201 L424 201 L422 201 L420 201 M404 201 L402 201 L400 201 L398 201 L396 201 L394 201 L392 201 L390 201 L388 201 L386 201 L384 201 L382 201 L380 201 L378 201 M362 201 L360 201 L358 201 L356 201 L354 201 L352 201 L350 201 L348 201 L346 201 L344 201 L342 201 L340 201 L338 201 L336 201 M320 201 L318 201 L316 201 L314 201 L312 201 L310 201 L308 201 L306 201 L304 201 L302 201 L300 201 L298 201 L296 201 L294 201 M278 201 L276 201 L274 201 L272 201 L270 201 L268 201 L266 201 L264 201 L262 201 L260 201 L258 201 L256 201 L254 201 L252 201 M236 201 L234 201 L232 201 L230 201 L228 201 L226 201 L224 201 L222 201 L220 201 L218 201 L216 201 L214 201 L212 201 L210 201 M194 201 L192 201 L190 201 L188 201 L186 201 L184 201 L182 201 L180 201 L178 201 L176 201 L174 201 L172 201 L170 201 L168 201 M152 201 L150 201 L148 201 L146 201 L144 201 L142 201 L140 201 L138 201 L136 201 L134 201 L132 201 L130 201 L128 201 L126 201 M110 201 L108 201 L106 201 L104 201 L102 201 L100 201 L98 201 L96 201 L94 201 L92 201 L90 201 L88 201 L86 201 L84 201 M68 201 L66 201 L64 201 L62 201 L60 201 L58 201 L56 201 L54 201 L52 201 L50 201 L50 201 L47.5 200.94 L45.01 200.75 L42.53 200.44 L40.07 200 M23.87 193.63 L21.77 192.27 L19.74 190.8 L17.79 189.24 L15.92 187.58 L14.13 185.84 L12.44 184 L10.83 182.08 L9.33 180.08 L7.93 178.02 L6.63 175.88 L5.44 173.68 M0.36 157.03 L0.13 154.54 L0.01 152.04 L0 151 L0 149 L0 147 L0 145 L0 143 L0 141 L0 139 L0 137 L0 135 L0 133 L0 131 M0 115 L0 113 L0 111 L0 109 L0 107 L0 105 L0 103 L0 101 L0 99 L0 97 L0 95 L0 93 L0 91 L0 89 M0 73 L0 71 L0 69 L0 67 L0 65 L0 63 L0 61 L0 59 L0 57 L0 55 L0 53 L0 51 L0 50 L0.06 47.5 L0.25 45.01 M4.98 28.25 L6.12 26.03 L7.37 23.87 L8.73 21.77 L10.2 19.74 L11.76 17.79 L13.42 15.92 L15.16 14.13 L17 12.44 L18.92 10.83 L20.92 9.33 L22.98 7.93 M39.05 1.21 L41.5 0.73 L43.97 0.36 L46.46 0.13 L48.96 0.01",
+          "specialProps": {
+            "viewBox": "0 0 1100 201",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4
+          },
+          "groupId": "tb-b4-g-upload",
+          "groupName": "Upload button"
+        },
+        {
+          "id": "tb-b4-upload-icon",
+          "type": "shape",
+          "name": "Icon",
+          "position": {
+            "x": 250,
+            "y": 1006
+          },
+          "size": {
+            "width": 74,
+            "height": 74
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M3 5h18v14H3Z M3 16l5-5 4 4 3-3 6 5 M16 9h.01",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 6
+          },
+          "groupId": "tb-b4-g-upload",
+          "groupName": "Upload button"
+        },
+        {
+          "id": "tb-b4-upload-text",
+          "type": "text",
+          "name": "Button text",
+          "position": {
+            "x": 343.52,
+            "y": 1000.4
+          },
+          "size": {
+            "width": 611,
+            "height": 84.68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Upload Your Image",
+          "fontSize": 17.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "tb-b4-g-upload",
+          "groupName": "Upload button"
+        }
+      ]
+    },
+    {
+      "id": "tb-board-5",
+      "name": "Step By Step Drawing",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#6C5EFB",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#7E73FE",
+        "color2": "#5642F6",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tb-b5-rays",
+          "type": "shape",
+          "name": "Rays",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1206,
+            "height": 2622
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.07,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M603 1450 L3803 1450 L3788.51 1754.18 Z M603 1450 L3733.07 2115.32 L3655.66 2409.84 Z M603 1450 L3526.35 2751.56 L3389.39 3023.55 Z M603 1450 L3191.85 3330.91 L3001.34 3568.48 Z M603 1450 L2744.22 3828.06 L2508.47 4020.83 Z M603 1450 L2203 4221.28 L1932.33 4360.82 Z M603 1450 L1591.85 4493.38 L1298.09 4573.6 Z M603 1450 L937.49 4632.47 L633.46 4649.85 Z M603 1450 L268.51 4632.47 L-32.49 4586.26 Z M603 1450 L-385.85 4493.38 L-670.67 4385.6 Z M603 1450 L-997 4221.28 L-1253.18 4056.64 Z M603 1450 L-1538.22 3828.06 L-1754.57 3613.76 Z M603 1450 L-1985.85 3330.91 L-2152.92 3076.31 Z M603 1450 L-2320.35 2751.56 L-2430.83 2467.78 Z M603 1450 L-2527.07 2115.32 L-2576.14 1814.77 Z M603 1450 L-2597 1450 L-2582.51 1145.82 Z M603 1450 L-2527.07 784.68 L-2449.66 490.16 Z M603 1450 L-2320.35 148.44 L-2183.39 -123.55 Z M603 1450 L-1985.85 -430.91 L-1795.34 -668.48 Z M603 1450 L-1538.22 -928.06 L-1302.47 -1120.83 Z M603 1450 L-997 -1321.28 L-726.33 -1460.82 Z M603 1450 L-385.85 -1593.38 L-92.09 -1673.6 Z M603 1450 L268.51 -1732.47 L572.54 -1749.85 Z M603 1450 L937.49 -1732.47 L1238.49 -1686.26 Z M603 1450 L1591.85 -1593.38 L1876.67 -1485.6 Z M603 1450 L2203 -1321.28 L2459.18 -1156.64 Z M603 1450 L2744.22 -928.06 L2960.57 -713.76 Z M603 1450 L3191.85 -430.91 L3358.92 -176.31 Z M603 1450 L3526.35 148.44 L3636.83 432.22 Z M603 1450 L3733.07 784.68 L3782.14 1085.23 Z",
+          "specialProps": {
+            "viewBox": "0 0 1206 2622"
+          }
+        },
+        {
+          "id": "tb-b5-h-1",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 79.85,
+            "y": 96.33
+          },
+          "size": {
+            "width": 1052,
+            "height": 195.54
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 9,
+            "blur": 0,
+            "color": "rgba(40,28,150,0.55)"
+          },
+          "content": "Step-by-Step",
+          "fontSize": 40.18,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 1.21,
+          "groupId": "tb-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "tb-b5-h-2",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 276.73,
+            "y": 289.49
+          },
+          "size": {
+            "width": 661,
+            "height": 188.69
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 9,
+            "blur": 0,
+            "color": "rgba(40,28,150,0.55)"
+          },
+          "content": "Drawing",
+          "fontSize": 38.77,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 1.94,
+          "groupId": "tb-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "tb-b5-step-ring",
+          "type": "shape",
+          "name": "Ring",
+          "position": {
+            "x": 841,
+            "y": 576
+          },
+          "size": {
+            "width": 284,
+            "height": 284
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#8C80FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "tb-b5-g-steps",
+          "groupName": "Drawing steps"
+        },
+        {
+          "id": "tb-b5-step-1",
+          "type": "image",
+          "name": "Step",
+          "position": {
+            "x": 111.61,
+            "y": 590.61
+          },
+          "size": {
+            "width": 254.78,
+            "height": 254.78
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 22,
+            "color": "rgba(30,20,110,0.3)"
+          },
+          "imageSrc": "/elements/images/drawings/drawing-eye-1.png",
+          "objectFit": "contain",
+          "groupId": "tb-b5-g-steps",
+          "groupName": "Drawing steps"
+        },
+        {
+          "id": "tb-b5-step-2",
+          "type": "image",
+          "name": "Step",
+          "position": {
+            "x": 297.61,
+            "y": 590.61
+          },
+          "size": {
+            "width": 254.78,
+            "height": 254.78
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 22,
+            "color": "rgba(30,20,110,0.3)"
+          },
+          "imageSrc": "/elements/images/drawings/drawing-eye-2.png",
+          "objectFit": "contain",
+          "groupId": "tb-b5-g-steps",
+          "groupName": "Drawing steps"
+        },
+        {
+          "id": "tb-b5-step-3",
+          "type": "image",
+          "name": "Step",
+          "position": {
+            "x": 483.61,
+            "y": 590.61
+          },
+          "size": {
+            "width": 254.78,
+            "height": 254.78
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 22,
+            "color": "rgba(30,20,110,0.3)"
+          },
+          "imageSrc": "/elements/images/drawings/drawing-eye-3.png",
+          "objectFit": "contain",
+          "groupId": "tb-b5-g-steps",
+          "groupName": "Drawing steps"
+        },
+        {
+          "id": "tb-b5-step-4",
+          "type": "image",
+          "name": "Step",
+          "position": {
+            "x": 669.61,
+            "y": 590.61
+          },
+          "size": {
+            "width": 254.78,
+            "height": 254.78
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 22,
+            "color": "rgba(30,20,110,0.3)"
+          },
+          "imageSrc": "/elements/images/drawings/drawing-eye-4.png",
+          "objectFit": "contain",
+          "groupId": "tb-b5-g-steps",
+          "groupName": "Drawing steps"
+        },
+        {
+          "id": "tb-b5-step-5",
+          "type": "image",
+          "name": "Step",
+          "position": {
+            "x": 855.61,
+            "y": 590.61
+          },
+          "size": {
+            "width": 254.78,
+            "height": 254.78
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 22,
+            "color": "rgba(30,20,110,0.3)"
+          },
+          "imageSrc": "/elements/images/drawings/drawing-eye-5.png",
+          "objectFit": "contain",
+          "groupId": "tb-b5-g-steps",
+          "groupName": "Drawing steps"
+        },
+        {
+          "id": "tb-b5-phone-rim",
+          "type": "shape",
+          "name": "Phone outline",
+          "position": {
+            "x": 76,
+            "y": 957
+          },
+          "size": {
+            "width": 1049,
+            "height": 2174.05
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 24,
+            "blur": 50,
+            "color": "rgba(30,20,110,0.32)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#ECEBFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 155.5
+        },
+        {
+          "id": "tb-b5-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 88,
+            "y": 969
+          },
+          "size": {
+            "width": 1025,
+            "height": 2150.05
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#1A1A1A",
+          "screenshotSrc": "/data/projects/traceberry-screen-lessons.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        }
+      ]
+    },
+    {
+      "id": "tb-board-6",
+      "name": "Share Art With Friends",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#6C5EFB",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#7E73FE",
+        "color2": "#5642F6",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tb-b6-rays",
+          "type": "shape",
+          "name": "Rays",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1206,
+            "height": 2622
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.07,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M603 1450 L3803 1450 L3788.51 1754.18 Z M603 1450 L3733.07 2115.32 L3655.66 2409.84 Z M603 1450 L3526.35 2751.56 L3389.39 3023.55 Z M603 1450 L3191.85 3330.91 L3001.34 3568.48 Z M603 1450 L2744.22 3828.06 L2508.47 4020.83 Z M603 1450 L2203 4221.28 L1932.33 4360.82 Z M603 1450 L1591.85 4493.38 L1298.09 4573.6 Z M603 1450 L937.49 4632.47 L633.46 4649.85 Z M603 1450 L268.51 4632.47 L-32.49 4586.26 Z M603 1450 L-385.85 4493.38 L-670.67 4385.6 Z M603 1450 L-997 4221.28 L-1253.18 4056.64 Z M603 1450 L-1538.22 3828.06 L-1754.57 3613.76 Z M603 1450 L-1985.85 3330.91 L-2152.92 3076.31 Z M603 1450 L-2320.35 2751.56 L-2430.83 2467.78 Z M603 1450 L-2527.07 2115.32 L-2576.14 1814.77 Z M603 1450 L-2597 1450 L-2582.51 1145.82 Z M603 1450 L-2527.07 784.68 L-2449.66 490.16 Z M603 1450 L-2320.35 148.44 L-2183.39 -123.55 Z M603 1450 L-1985.85 -430.91 L-1795.34 -668.48 Z M603 1450 L-1538.22 -928.06 L-1302.47 -1120.83 Z M603 1450 L-997 -1321.28 L-726.33 -1460.82 Z M603 1450 L-385.85 -1593.38 L-92.09 -1673.6 Z M603 1450 L268.51 -1732.47 L572.54 -1749.85 Z M603 1450 L937.49 -1732.47 L1238.49 -1686.26 Z M603 1450 L1591.85 -1593.38 L1876.67 -1485.6 Z M603 1450 L2203 -1321.28 L2459.18 -1156.64 Z M603 1450 L2744.22 -928.06 L2960.57 -713.76 Z M603 1450 L3191.85 -430.91 L3358.92 -176.31 Z M603 1450 L3526.35 148.44 L3636.83 432.22 Z M603 1450 L3733.07 784.68 L3782.14 1085.23 Z",
+          "specialProps": {
+            "viewBox": "0 0 1206 2622"
+          }
+        },
+        {
+          "id": "tb-b6-h-1",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 232.43,
+            "y": 94.43
+          },
+          "size": {
+            "width": 741,
+            "height": 209.13
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 9,
+            "blur": 0,
+            "color": "rgba(40,28,150,0.55)"
+          },
+          "content": "Share Art",
+          "fontSize": 42.97,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "tb-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "tb-b6-h-2",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 127.66,
+            "y": 288.68
+          },
+          "size": {
+            "width": 956,
+            "height": 200.71
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 9,
+            "blur": 0,
+            "color": "rgba(40,28,150,0.55)"
+          },
+          "content": "with Friends",
+          "fontSize": 41.24,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.93,
+          "groupId": "tb-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "tb-b6-phone-rim",
+          "type": "shape",
+          "name": "Phone outline",
+          "position": {
+            "x": 69,
+            "y": 596
+          },
+          "size": {
+            "width": 1068,
+            "height": 2213.9
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 24,
+            "blur": 50,
+            "color": "rgba(30,20,110,0.32)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#ECEBFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 158.16
+        },
+        {
+          "id": "tb-b6-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 81,
+            "y": 608
+          },
+          "size": {
+            "width": 1044,
+            "height": 2189.9
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#1A1A1A",
+          "screenshotSrc": "/data/projects/traceberry-screen-share.png",
+          "naturalScreenshotWidth": 1320,
+          "naturalScreenshotHeight": 2868,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "tb-b6-app-pop",
+          "type": "image",
+          "name": "App icon",
+          "position": {
+            "x": 840,
+            "y": 1985
+          },
+          "size": {
+            "width": 250,
+            "height": 250
+          },
+          "rotation": 7,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 30,
+            "color": "rgba(30,20,110,0.4)"
+          },
+          "imageSrc": "/data/projects/traceberry-app-gallery.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "tb-b6-share-bg",
+          "type": "shape",
+          "name": "Button",
+          "position": {
+            "x": 42,
+            "y": 2354
+          },
+          "size": {
+            "width": 1125,
+            "height": 220
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 34,
+            "color": "rgba(30,20,110,0.38)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#7466FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 110,
+          "groupId": "tb-b6-g-share",
+          "groupName": "Share button"
+        },
+        {
+          "id": "tb-b6-share-text",
+          "type": "text",
+          "name": "Button text",
+          "position": {
+            "x": 303.03,
+            "y": 2417.11
+          },
+          "size": {
+            "width": 531,
+            "height": 93.44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Share Art Work",
+          "fontSize": 19.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "tb-b6-g-share",
+          "groupName": "Share button"
+        },
+        {
+          "id": "tb-b6-share-arrow",
+          "type": "shape",
+          "name": "Arrow",
+          "position": {
+            "x": 852,
+            "y": 2430
+          },
+          "size": {
+            "width": 60,
+            "height": 60
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M5 19 L19 5 M8 5 H19 V16",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 6
+          },
+          "groupId": "tb-b6-g-share",
+          "groupName": "Share button"
+        }
+      ]
+    }
+  ]
+}

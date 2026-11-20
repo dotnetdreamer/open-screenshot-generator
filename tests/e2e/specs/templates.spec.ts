@@ -27,6 +27,19 @@ test.describe('templates', () => {
     }
   });
 
+  test('the start dialog opens on App Screenshots, with Community second', async ({ app }) => {
+    const dialog = app.startDialog;
+    await expect(dialog).toBeVisible();
+    const tabs = dialog.getByRole('tab');
+    await expect(tabs.first()).toHaveText(/^App Screenshots/);
+    await expect(tabs.first()).toHaveAttribute('aria-selected', 'true');
+    // A build with no community backend has no Community tab at all.
+    if (await dialog.getByRole('tab', { name: 'Community', exact: true }).count()) {
+      await expect(tabs.nth(1)).toHaveText('Community');
+      await expect(tabs.nth(1)).toHaveAttribute('aria-selected', 'false');
+    }
+  });
+
   test('picking a template loads its whole project onto the canvas', async ({ app, page }) => {
     const dialog = app.startDialog;
     await dialog.getByRole('tab', { name: /App Screenshots/ }).click();

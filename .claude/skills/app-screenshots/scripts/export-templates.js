@@ -8,6 +8,9 @@ const path = require('path');
 const { launch, startBlankProject, sleep, exportArtboards, clickTab, dismissTipsDialog, waitForProjectFonts, APP_URL } = require('./lib');
 
 const TEMPLATES = [
+  { slug: 'paylark-benefits', card: 'Paylark Benefits', boards: 6 },
+  { slug: 'signsy-asl', card: 'Signsy ASL', boards: 6 },
+  { slug: 'traceberry-drawing', card: 'Traceberry AR Drawing', boards: 6 },
   { slug: 'wishmint-wishlist', card: 'Wishmint Wishlist', boards: 5 },
   { slug: 'lavish-creator-wishlist', card: 'Lavish Creator Wishlist', boards: 5 },
   { slug: 'postie-cards', card: 'Postie Cards', boards: 5 },
@@ -102,10 +105,10 @@ async function openTemplateFromStartDialog(page, cardTitle, tab) {
   await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 120000 });
   // First-run Tips dialog blocks the start dialog on every fresh profile.
   await dismissTipsDialog(page);
-  // Every template lives behind a Radix tab, and the dialog now opens on the
-  // Community feed tab, so ALWAYS click the template's tab (default: App
-  // Screenshots). Radix keeps INACTIVE tab panels mounted (just hidden), so the
-  // card search below must be scoped to the active panel; an unscoped
+  // Every template lives behind a Radix tab, so ALWAYS click the template's tab
+  // (default: App Screenshots, the tab the dialog opens on). Radix keeps
+  // INACTIVE tab panels mounted (just hidden), so the card search below must
+  // be scoped to the active panel; an unscoped
   // [role=dialog] search matches hidden cards in other tabs and can open the
   // wrong project (e.g. "Lavender" also appears in a screenshots-tab
   // description).

@@ -654,3 +654,21 @@ html[data-growth-browser] [data-toast-viewport] {
     transition: none !important;
   }
 }
+
+/* The app icon window's Android preview: the front layer drifts over the back,
+   the way a launcher nudges an adaptive icon. Still for anyone who asked the
+   system for less motion. */
+@keyframes osg-icon-drift {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(3%, -2%); }
+  50% { transform: translate(-2%, 3%); }
+  75% { transform: translate(-3%, -1.5%); }
+}
+.osg-icon-drift {
+  animation: osg-icon-drift 7s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .osg-icon-drift {
+    animation: none;
+  }
+}

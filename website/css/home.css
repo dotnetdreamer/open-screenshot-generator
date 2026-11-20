@@ -2144,6 +2144,20 @@ h1 {
 }
 
 @media (max-width: 360px) {
+  /* The header button drops its arrow, so the logo, the button and the menu
+     button fit on a 320px screen */
+  .header-actions {
+    gap: 4px;
+  }
+  .header-actions .button.small span {
+    display: none;
+  }
+  .header-actions .button.small {
+    padding-inline: 9px;
+  }
+  .brand {
+    gap: 7px;
+  }
   .locale-demo {
     padding: 14px;
   }

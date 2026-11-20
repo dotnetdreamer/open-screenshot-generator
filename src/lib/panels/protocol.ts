@@ -70,6 +70,12 @@ export interface DockData {
    * the background off it, and the elements are already in layerElements.
    */
   activeArtboardDetails: ArtboardState | null;
+  /**
+   * The active artboard is the app icon (src/lib/appIcon/), so an element's
+   * form offers which of the icon's two layers it is in. Separate from
+   * activeArtboardDetails, which is null while an element is selected.
+   */
+  onIconBoard?: boolean;
   activeLocale: string | null;
   baseLocale: string;
   localeOverride?: ElementLocaleOverride;
@@ -161,6 +167,7 @@ export type DockIntent =
   | { name: 'translateElement'; elementId: string }
   /** A screenshot from the running simulator or emulator into this frame, or Capture opened on it. */
   | { name: 'captureScreenshot'; elementId: string }
+  | { name: 'removeImageBackground'; elementId: string }
   | { name: 'updateArtboardDetails'; updates: Partial<ArtboardState>; scope?: 'board' | 'all' }
   | { name: 'resetLocaleField'; field: LocalizableField }
   | { name: 'toggleLocaleDetach'; keys: DetachableKey[]; detach: boolean }

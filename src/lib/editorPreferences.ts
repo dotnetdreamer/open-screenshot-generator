@@ -31,6 +31,8 @@ export type EditorPreference =
   | 'wheelZoom'
   /** Draw Apple's art safe area over App Store header and search artboards. */
   | 'creativeSafeArea'
+  /** Draw Apple's shape and Android's safe circle over the app icon artboard. */
+  | 'appIconGuides'
   /** Ask before closing a tab whose project was edited since it opened. */
   | 'confirmTabClose'
   /** Desktop: look for a new version of the app in the background. */
@@ -43,6 +45,7 @@ const KEYS: Record<EditorPreference, string> = {
   accountAutoSync: 'open-screenshot-generator.account-auto-sync',
   wheelZoom: 'open-screenshot-generator.wheel-zoom',
   creativeSafeArea: 'open-screenshot-generator.creative-safe-area',
+  appIconGuides: 'open-screenshot-generator.app-icon-guides',
   confirmTabClose: 'open-screenshot-generator.confirm-tab-close',
   updatesAutoCheck: 'open-screenshot-generator.updates-auto-check',
   updatesBeta: 'open-screenshot-generator.updates-beta',
@@ -61,6 +64,9 @@ const KEYS: Record<EditorPreference, string> = {
  * their bandwidth and their permanent gist commit history are theirs, and
  * writing to them unattended is a thing to be asked for rather than assumed.
  *
+ * The app icon's guides are on for the same reason: a corner Apple rounds off
+ * and the part an Android circle cuts look like part of the icon on the canvas.
+ *
  * The safe area guide is on: some devices show far less of a header than an
  * iPhone does, and the guide is the only place that says so while you design.
  *
@@ -77,6 +83,7 @@ const DEFAULTS: Record<EditorPreference, boolean> = {
   accountAutoSync: false,
   wheelZoom: true,
   creativeSafeArea: true,
+  appIconGuides: true,
   confirmTabClose: true,
   updatesAutoCheck: true,
   updatesBeta: false,

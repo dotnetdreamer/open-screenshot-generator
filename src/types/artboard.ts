@@ -124,6 +124,15 @@ export interface BaseElement {
    * Ignored unless spanArtboards is on.
    */
   spanBehind?: boolean;
+  /**
+   * On the app icon artboard only (ArtboardState.appIcon): 'back' puts the
+   * element in the icon's background layer with the board's own colour,
+   * gradient and picture. Unset is the front layer, which is what an Android
+   * icon moves on its own, what iOS shows alone on its dark home screen, and
+   * what a themed or tinted icon is drawn from. See src/lib/appIcon/specs.ts.
+   * Ignored on every other artboard.
+   */
+  iconLayer?: 'back';
 }
 
 export interface TextElementProps extends BaseElement {
@@ -570,6 +579,25 @@ export interface ProjectLocalization {
  */
 export type CreativeAssetKind = 'header' | 'search' | 'universal';
 
+/**
+ * What the app icon artboard keeps of its own (src/lib/appIcon/). The board is
+ * the icon as iOS shows it, 1024 x 1024; every other size and store is made
+ * from it when it is exported.
+ */
+export interface AppIconSettings {
+  /**
+   * How the front layer shows in iOS's dark icons, where the system draws its
+   * own dark background behind it. 'light' turns it white, for a design whose
+   * front is too dark to see there. Unset is as designed.
+   */
+  dark?: 'light';
+  /**
+   * The app's name under the icon in the previews, and in the export's
+   * folder and README, as the user typed it. Unset follows the project name.
+   */
+  appName?: string;
+}
+
 /** See DeviceFrameElementProps.captureScreen. */
 export interface CaptureScreen {
   /** A link the app opens, such as `myapp://settings`. Absent: the screen the app opens on. */
@@ -591,6 +619,14 @@ export interface ArtboardState {
    * placement's name instead of a screenshot number. Unset is a screenshot.
    */
   creativeAsset?: CreativeAssetKind;
+  /**
+   * Set when this artboard is the app's icon rather than a screenshot. Like
+   * header art it keeps its own size (1024 x 1024), never joins a shared
+   * background picture or an element crossing artboard edges, takes no part
+   * in the device sets, and exports under its own name. Its elements are the
+   * front layer unless marked `iconLayer: 'back'`. See src/lib/appIcon/.
+   */
+  appIcon?: AppIconSettings;
   backgroundColor: string;
   backgroundType?: 'solid' | 'gradient';
   backgroundGradient?: {

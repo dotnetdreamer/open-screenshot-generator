@@ -33,6 +33,7 @@ import {
   FilmIcon,
   MusicIcon,
   PanelTopIcon,
+  UserRoundIcon,
 } from "lucide-react";
 import type { ElementType, ShapeType, DeviceType } from '@/types/artboard';
 import { ELEMENT_CATEGORIES, type ElementCategory, type LibraryElementDef } from '@/lib/elementLibrary';
@@ -80,6 +81,7 @@ import {
 } from '@/lib/previewScenes';
 import type { CreativeLookChoice } from '@/lib/creative/paletteDrag';
 import { StoreArtPaletteTab } from './creative/StoreArtPaletteTab';
+import { CustomPaletteTab } from './cutout/CustomPaletteTab';
 
 type PaletteDragStart = (
   e: React.DragEvent<HTMLElement> | null,
@@ -394,6 +396,12 @@ interface ElementPaletteProps {
     styleProps: Record<string, any> | undefined,
     point: { x: number; y: number }
   ) => void;
+  /**
+   * Opens the background remover, on one of the user's pictures when an id is
+   * given. Absent on a host without that view; the Custom tab then only adds
+   * and places pictures.
+   */
+  onOpenCutout?: (imageId?: string) => void;
 }
 
 /**
@@ -574,7 +582,7 @@ const CategoryCard: React.FC<{ category: ElementCategory; onOpen: (id: string) =
  * nothing in it depends on canvas state, so it must not rebuild every time the
  * layout re-renders. Pass a stable `onAddElement` or the memo does nothing.
  */
-export const ElementPalette = memo(function ElementPalette({ onAddElement, onDropElement, onAddPreviewScene, onAddCreativeLook }: ElementPaletteProps) {
+export const ElementPalette = memo(function ElementPalette({ onAddElement, onDropElement, onAddPreviewScene, onAddCreativeLook, onOpenCutout }: ElementPaletteProps) {
   const [openCategoryId, setOpenCategoryId] = useState<string | null>(null);
   const openCategory = ELEMENT_CATEGORIES.find(c => c.id === openCategoryId) || null;
 
@@ -689,7 +697,7 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
         long enough to scroll would sit behind the sidebar's footer. */}
     <div className="flex min-h-0 flex-1 flex-col">
       <Tabs value={activeTab} onValueChange={handleTabChange} className="h-full flex flex-col">
-        <TabsList className={`grid w-[95%] ${onAddCreativeLook ? 'grid-cols-5' : 'grid-cols-4'} mx-auto mt-2 h-auto p-0.5`}>
+        <TabsList className={`grid w-[95%] ${onAddCreativeLook ? 'grid-cols-6' : 'grid-cols-5'} mx-auto mt-2 h-auto p-0.5`}>
           <TabsTrigger value="elements" className="flex flex-col items-center gap-0.5 px-0.5 py-1.5 h-auto text-[10px] leading-none">
             <TypeIcon className="w-4 h-4" />
             Elements
@@ -712,6 +720,10 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
               Header
             </TabsTrigger>
           )}
+          <TabsTrigger value="custom" className="flex flex-col items-center gap-0.5 px-0.5 py-1.5 h-auto text-[10px] leading-none" title="Your own pictures">
+            <UserRoundIcon className="w-4 h-4" />
+            Custom
+          </TabsTrigger>
         </TabsList>
 
         {/* Rule: no bare `flex` on TabsContent (it defeats [hidden]), and no
@@ -1226,6 +1238,12 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
             <StoreArtPaletteTab onAdd={handleCreativeLookClick} bindTouch={bindTileTouchDrag} />
           </TabsContent>
         )}
+
+        {/* Custom: the user's own pictures, from the background remover or
+            added here as they are (lib/cutout/library.ts). */}
+        <TabsContent value="custom" className="flex-grow p-3 pt-2 mt-0 min-h-0 flex-col data-[state=active]:flex">
+          <CustomPaletteTab onDragStart={handleDragStart} bindTouch={bindTileTouchDrag} onOpenCutout={onOpenCutout} />
+        </TabsContent>
 
       </Tabs>
     </div>

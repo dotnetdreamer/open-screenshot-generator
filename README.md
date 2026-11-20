@@ -25,6 +25,14 @@ https://github.com/user-attachments/assets/1b1d7ff4-5f89-4fc5-8e48-efbe89782562
 
 ## What's new
 
+### 19 November 2026: App icon
+
+Design your app's icon on the canvas, starting from your app's name and colours or from your logo. See how the icon looks on an iPhone, an Android phone and a Mac, in light, dark and tinted mode and at actual size. The app tells you if anything will be hard to see or cut off. Then save every size for iPhone, Android, Google Play and the Mac in one go. In the desktop app, you can put the new icon straight into your app's folder. Read [how the app icon works](docs/APP-ICON.md).
+
+### 19 November 2026: Remove background
+
+Cut people, products and logos out of photos for your screenshots, right on your computer, even offline once the model is downloaded. On a Mac it starts with your Mac's own cut-out, and you can fix any edge with a brush. Everything you cut out waits in the new **Custom** tab, ready for any project, and backs up to your Google Drive or GitHub. Read [how Remove background works](docs/REMOVE-BACKGROUND.md).
+
 ### 17 November 2026: Every device
 
 Make your screenshots once and see them laid out again for the iPad, Android phones and tablets, and the Mac. Pick another layout for any screenshot, add an iPad or Mac screenshot where a device needs its own, and export every set with your project. Read [how Every device works](docs/DEVICES.md).
@@ -78,7 +86,7 @@ The canvas holds all your designs together. Choose an item to change it in the r
 
 ## How it compares
 
-Open Screenshot Generator is free and open source, with no watermark or export cap. You can use it without an account and save projects locally. The site has longer comparisons with [AppScreens](https://openscrgen.app/appscreens-alternative), [Previewed](https://openscrgen.app/previewed-alternative), [AppMockUp](https://openscrgen.app/appmockup-alternative), and [Smartmockups](https://openscrgen.app/smartmockups-alternative).
+Open Screenshot Generator is free and open source, with no watermark or export cap. You can use it without an account and save projects locally. [Compare it with other screenshot tools](https://openscrgen.app/compare) on one page, with their prices and what each one does best. The site also has longer comparisons with [AppScreens](https://openscrgen.app/appscreens-alternative), [Previewed](https://openscrgen.app/previewed-alternative), [AppMockUp](https://openscrgen.app/appmockup-alternative), and [Smartmockups](https://openscrgen.app/smartmockups-alternative).
 
 ## Feature checklist: web vs desktop
 
@@ -88,6 +96,7 @@ Both versions use the same editor. The desktop app adds features that need acces
 | --- | --- | --- |
 | Templates, design tools, languages, store size PNG export | Yes | Yes |
 | Every device: your design laid out for iPad, Android and Mac sizes | Yes | Yes |
+| App icon: one design, every size for iPhone, Android, Mac and the stores | Yes, as a zip | Yes, as a zip, a folder or straight into your app's folder |
 | Preview video export | In Chrome or Edge | Yes |
 | AI agent with your own API key | Yes | Yes |
 | AI agent with an existing assistant account | Copy and paste, or use the [companion extension](extension/README.md) | Built in assistant window |
@@ -97,6 +106,7 @@ Both versions use the same editor. The desktop app adds features that need acces
 | Save to your own Google Drive or GitHub account | Yes | Yes |
 | Upload screenshots directly to App Store Connect or Google Play | No | Yes |
 | Capture: screenshots and recordings from the iPhone Simulator, Android emulators and phones | No | Yes |
+| Remove background: people and products cut out of photos on your computer, a Custom tab of your own pictures, backed up to Google Drive or GitHub | Yes | Yes, plus your Mac's own cut-out on macOS 14 and later |
 | Growth: App Store and Google Play numbers, reviews, store page checks, results of new screenshots | Empty screens only | Yes |
 | Growth: competitors' screenshots, ratings, versions and prices in each country, with alerts for new screenshots | App Store apps | App Store and Google Play apps |
 | Growth: your rank in App Store search for each keyword, every day, with ideas for more keywords | Yes | Yes |

@@ -151,7 +151,7 @@ export class Editor {
    * wait out a delay.
    */
   async create(
-    item: 'Start from a template' | 'Start from screenshots' | 'Make social graphics' | 'App Store header and search art'
+    item: 'Start from a template' | 'Start from screenshots' | 'Make social graphics' | 'App Store header and search art' | 'App icon'
   ): Promise<void> {
     await this.createButton.click();
     const choice = this.page.getByRole('button', { name: item, exact: true });
@@ -213,7 +213,7 @@ export class Editor {
   // ----------------------------------------------------------------- palette
 
   /** Elements / Devices / Images / Previews / Header. */
-  paletteTab(name: 'Elements' | 'Devices' | 'Images' | 'Previews' | 'Header'): Locator {
+  paletteTab(name: 'Elements' | 'Devices' | 'Images' | 'Previews' | 'Header' | 'Custom'): Locator {
     return this.page.getByRole('tab', { name, exact: true });
   }
 

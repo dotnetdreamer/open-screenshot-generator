@@ -25,6 +25,9 @@ import { CREATIVE_LOOK_DRAG_TYPE } from '@/lib/creative/paletteDrag';
 import { getPlayback, stopPlayback, togglePlayback, usePlaybackRunning, usePlaybackTransport } from '@/lib/video/playback';
 import { ArtboardToolbar } from './ArtboardToolbar'; // Import the new toolbar
 import { CreativeSafeAreaOverlay } from './creative/CreativeSafeAreaOverlay';
+import { AppIconGuidesOverlay } from './appIcon/AppIconGuidesOverlay';
+import { AppIconBoardBadge } from './appIcon/AppIconBoardBadge';
+import { isIconBoard } from '@/lib/appIcon/specs';
 import { CreativeBoardBadge } from './creative/CreativeBoardBadge';
 import { Input } from '@/components/ui/input';
 import { EditIcon } from 'lucide-react';
@@ -1261,6 +1264,10 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
           />
         )}
 
+        {isIconBoard(artboard) && (
+          <AppIconGuidesOverlay board={artboard} screenScale={screenScale} displayScale={displayScaleFactor} />
+        )}
+
         {/* The rubber band. A sibling of the board for the same reason the
             collab marks are, so it can never reach an exported PNG, and drawn
             in artboard pixels with a stroke divided by the screen scale so it
@@ -1332,6 +1339,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
               {artboard.name}
             </span>
             {artboard.creativeAsset && <CreativeBoardBadge board={artboard} locale={activeLocale} />}
+            {isIconBoard(artboard) && <AppIconBoardBadge board={artboard} />}
           </>
         )}
       </div>

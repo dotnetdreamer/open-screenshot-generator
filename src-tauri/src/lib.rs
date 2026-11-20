@@ -1,9 +1,12 @@
 mod claude_code;
 mod code_folders;
 mod codex;
+mod cutout;
 mod device_capture;
 mod devtools;
 mod growth_browser;
+mod folder_lock;
+mod icon_export;
 mod mcp_server;
 mod migrate;
 mod oauth;
@@ -95,6 +98,9 @@ pub fn run() {
             mcp_server::abs_mcp_respond,
             mcp_server::abs_mcp_write_png,
             mcp_server::abs_write_export_png,
+            icon_export::abs_write_export_files,
+            icon_export::abs_scan_icon_targets,
+            icon_export::abs_write_export_zip,
             mcp_server::abs_mcp_bridge_nonce,
             claude_code::abs_claude_detect,
             claude_code::abs_claude_start,
@@ -127,6 +133,8 @@ pub fn run() {
             updater::abs_update_install,
             updater::abs_update_flushed,
             device_capture::abs_capture_devices,
+            cutout::abs_cutout_vision_available,
+            cutout::abs_cutout_vision,
             device_capture::abs_capture_start_device,
             device_capture::abs_capture_create_simulator,
             device_capture::abs_capture_apps,

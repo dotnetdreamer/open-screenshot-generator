@@ -10,7 +10,7 @@ Growth shows how your app is doing in the App Store and on Google Play, in the s
 - What do my competitors show in each country, and when do my competitors change their screenshots?
 - Where does my app show up when people search the App Store, and for which words?
 
-To open Growth, click the Growth button (an arrow going up) on the bar at the left of the window. After you upload screenshots to App Store Connect, you can also click **See results in Growth**. The pen button above the Growth button takes you back to the editor, just as you left the editor.
+To open Growth, click **Growth** on the bar at the left of the window. After you upload screenshots to App Store Connect, you can also click **See results in Growth**. **Editor**, at the top of the same bar, takes you back to the editor, just as you left it.
 
 Growth works in the desktop app only, except **Competitors** and **Keywords**. Competitors and Keywords need no key, so both also work in the web version. Growth opens on **Ask AI**. In the web version, and in the desktop app before you add a key, every other screen of Growth is empty. Buttons that need your app are turned off. Point at a button to see why the button is off.
 

@@ -37,6 +37,8 @@ export function ArtboardBackgroundImage({ artboard }: { artboard: ArtboardState 
         alt=""
         aria-hidden
         draggable={false}
+        // The app icon's front layer is captured without the board's ground.
+        data-board-background=""
         style={{
           position: 'absolute',
           top: 0,
@@ -74,6 +76,7 @@ export function ArtboardBackgroundImage({ artboard }: { artboard: ArtboardState 
          */
         <div
           aria-hidden
+          data-board-background=""
           style={{
             position: 'absolute',
             inset: 0,

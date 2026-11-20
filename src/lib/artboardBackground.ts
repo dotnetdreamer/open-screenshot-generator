@@ -8,7 +8,7 @@
 // the gaps instead of dropping the background on the floor.
 
 import type { ArtboardState, Size } from '@/types/artboard';
-import { isCreativeBoard } from '@/lib/creative/specs';
+import { isScreenshotBoard } from '@/lib/creative/specs';
 
 export const DEFAULT_GRADIENT = { color1: '#00F260', color2: '#0575E6', angle: 45 };
 
@@ -125,7 +125,7 @@ export function normalizeBackgroundImage(artboards: ArtboardState[]): ArtboardSt
     'backgroundImage' | 'backgroundImageFit' | 'backgroundImageApply' | 'backgroundImageTintColor' | 'backgroundImageTintOpacity'
   > | null = null;
   for (const board of artboards) {
-    if (isCreativeBoard(board)) continue;
+    if (!isScreenshotBoard(board)) continue;
     const src = backgroundImageSrc(board);
     const apply = board.backgroundImageApply;
     if (!src || (apply !== 'all' && apply !== 'span')) continue;
@@ -144,7 +144,7 @@ export function normalizeBackgroundImage(artboards: ArtboardState[]): ArtboardSt
   let changed = false;
   const filled = shared
     ? artboards.map((board) => {
-        if (backgroundImageSrc(board) || isCreativeBoard(board)) return board;
+        if (backgroundImageSrc(board) || !isScreenshotBoard(board)) return board;
         changed = true;
         return { ...board, ...shared! };
       })
@@ -152,7 +152,7 @@ export function normalizeBackgroundImage(artboards: ArtboardState[]): ArtboardSt
 
   const spans = new Map<string, ArtboardState[]>();
   for (const board of filled) {
-    if (isCreativeBoard(board)) continue;
+    if (!isScreenshotBoard(board)) continue;
     const src = backgroundImageSrc(board);
     if (!src || board.backgroundImageApply !== 'span') continue;
     const group = spans.get(src);

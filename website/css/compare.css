@@ -1,0 +1,839 @@
+/* The compare page. It loads home.css and hero.css first and reuses their
+   header, sections, cards, FAQ and footer. This file adds the price chart in
+   the hero, the big table with its need picker, the tool cards and the list
+   of sources */
+
+/* The price chart in the hero window. One row per tool: the name, then a bar
+   from one baseline with the price at its tip. --w is the price as a share of
+   the highest price on the chart */
+.price-chart {
+  list-style: none;
+  margin: 0;
+  padding: 26px 30px 22px;
+  display: grid;
+  gap: 4px;
+  background: #0d1c1e;
+  border-block: 1px solid #344545;
+}
+.price-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 230px) minmax(0, 1fr);
+  align-items: center;
+  gap: 20px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  transition: background 0.15s;
+}
+.price-row:hover {
+  background: #ffffff09;
+}
+.price-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--text);
+}
+.price-name small {
+  font-size: 10px;
+  color: var(--muted);
+}
+.price-track {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 30px;
+  padding-left: 1px;
+  border-left: 1px solid #3c5557;
+}
+.price-bar {
+  flex: none;
+  width: calc(var(--w, 0) * 74%);
+  height: 16px;
+  background: var(--teal);
+  border-radius: 0 4px 4px 0;
+  transition: filter 0.15s;
+}
+.price-row:hover .price-bar {
+  filter: brightness(1.12);
+}
+.price-value {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--text);
+}
+.price-value small {
+  margin-left: 6px;
+  font-size: 10px;
+  color: var(--muted);
+}
+/* A price of nothing draws no bar, only a dot on the baseline */
+.price-row.is-free .price-bar {
+  width: 9px;
+  height: 9px;
+  margin-left: -5px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 0 2px #0d1c1e;
+}
+.price-row.is-us {
+  background: #e1bd4f12;
+}
+.price-row.is-us .price-name {
+  font-weight: 600;
+}
+.price-row.is-us .price-value {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+/* Links to each tool's card, under the hero copy */
+.jump-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 920px;
+  margin: 26px auto 0;
+  padding: 0;
+  list-style: none;
+}
+.jump-row a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 6px 13px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 11px;
+  color: var(--muted);
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+.jump-row a:hover {
+  color: var(--text);
+  border-color: var(--teal);
+}
+
+/* The big table */
+.table-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px 40px;
+  margin-bottom: 18px;
+}
+.need-picker {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.need-picker legend,
+.compare-pick > span {
+  display: block;
+  margin-bottom: 11px;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.need-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.need-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 38px;
+  padding: 8px 15px 8px 12px;
+  border: 1px solid #bccabf;
+  border-radius: 999px;
+  background: #fcfcf8;
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1.3;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.need-chip::before {
+  content: "";
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border: 1px solid #7f978f;
+  border-radius: 4px;
+  background: #fff center / 10px no-repeat;
+}
+.need-chip:hover {
+  border-color: #477873;
+}
+.need-chip[aria-pressed="true"] {
+  color: var(--paper);
+  background: var(--ink);
+  border-color: var(--ink);
+}
+.need-chip[aria-pressed="true"]::before {
+  border-color: var(--gold);
+  background-color: var(--gold);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2 5 8.6l4.6-5' fill='none' stroke='%230a1719' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+.need-chip.is-free {
+  border-style: dashed;
+}
+.need-chip.is-free[aria-pressed="true"] {
+  border-style: solid;
+}
+.compare-pick {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+}
+.compare-pick select {
+  min-width: 230px;
+  min-height: 40px;
+  padding: 9px 40px 9px 14px;
+  border: 1px solid #bccabf;
+  border-radius: 8px;
+  color: var(--ink);
+  font: 500 13px/1.3 var(--font-text);
+  background: #fcfcf8
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='m3 4.5 3 3 3-3' fill='none' stroke='%23447676' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    no-repeat right 13px center / 12px;
+  appearance: none;
+  cursor: pointer;
+}
+.compare-pick select:hover {
+  border-color: #477873;
+}
+.need-result {
+  min-height: 24px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--light-muted);
+}
+.need-result strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+.mark-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+  font-size: 11px;
+  color: var(--light-muted);
+}
+.mark-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.swipe-hint {
+  display: none;
+  margin: 0 0 12px;
+  font-size: 11px;
+  color: var(--light-muted);
+}
+.table-scroll {
+  position: relative;
+  overflow-x: auto;
+  border: 1px solid var(--light-line);
+  border-radius: 12px;
+  background: #fcfcf8;
+  box-shadow: 0 16px 48px #0a171910;
+  overscroll-behavior-x: contain;
+}
+.table-scroll:focus-visible {
+  outline-offset: 3px;
+}
+.compare-table {
+  width: 100%;
+  min-width: 1120px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.compare-table.is-pair {
+  min-width: 0;
+}
+.compare-table th,
+.compare-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #e3e6de;
+  text-align: center;
+  vertical-align: middle;
+  transition: opacity 0.2s;
+}
+.compare-table thead th {
+  padding-block: 22px 16px;
+  vertical-align: bottom;
+  border-bottom-color: var(--light-line);
+}
+.compare-table thead .row-head {
+  vertical-align: bottom;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--light-muted);
+}
+.tool-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.tool-head strong {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.2px;
+}
+.tool-head span {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--light-muted);
+}
+.tool-head .us-tag {
+  margin-bottom: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--ink);
+  background: var(--gold);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+/* The first column names each row and stays put while the table slides */
+.compare-table .row-head {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 200px;
+  max-width: 240px;
+  text-align: left;
+  font-weight: 500;
+  background: #fcfcf8;
+  box-shadow: inset -1px 0 0 var(--light-line);
+}
+.compare-table tbody .row-head small {
+  display: block;
+  margin-top: 2px;
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--light-muted);
+}
+.compare-table .us {
+  background: #eaf2ee;
+}
+.compare-table thead .us {
+  box-shadow: inset 0 3px 0 var(--gold);
+}
+.compare-table tr:last-child > * {
+  border-bottom: 0;
+}
+.compare-table .group-row th {
+  padding: 18px 12px 9px;
+  border-bottom-color: var(--light-line);
+  background: #f3f3ec;
+  text-align: left;
+}
+.compare-table .group-row span {
+  position: sticky;
+  left: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: #447676;
+}
+.compare-table tbody tr:not(.group-row):hover > * {
+  background-color: #f1f4ee;
+}
+.compare-table tbody tr:not(.group-row):hover > .us {
+  background-color: #e1ece6;
+}
+.compare-table [data-dim="true"] {
+  opacity: 0.28;
+}
+.compare-table [data-hide="true"] {
+  display: none;
+}
+
+/* A mark in a cell: a tick, a cross, a coin for a paid plan, half a circle
+   for a part, or a question mark when the tool's site doesn't say. The word
+   is in the cell too, for screen readers and for print */
+.v {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  max-width: 132px;
+}
+.v::before,
+.mark {
+  content: "";
+  flex: none;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ecece6 center / 12px no-repeat;
+}
+[data-v="yes"] > .v::before,
+.mark.yes {
+  background-color: #d3e9dd;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.4 6.3 4.9 8.7l4.7-5.2' fill='none' stroke='%23256452' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+[data-v="no"] > .v::before,
+.mark.no {
+  background-color: #f2e4df;
+  background-size: 9px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='m2.5 2.5 7 7m0-7-7 7' fill='none' stroke='%239a4b3f' stroke-width='1.7' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+[data-v="paid"] > .v::before,
+.mark.paid {
+  background-color: #f5e8bd;
+  background-size: 12px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M8.3 3.6C7.8 3 7 2.7 6.1 2.7c-1.3 0-2.2.6-2.2 1.6 0 2.2 4.4 1.2 4.4 3.4 0 1-1 1.6-2.3 1.6-1 0-1.8-.4-2.3-1M6 1.4v1.3m0 6.6v1.3' fill='none' stroke='%237a5a0c' stroke-width='1.3' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+[data-v="part"] > .v::before,
+.mark.part {
+  background-color: #dfe8e3;
+  background-size: 12px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Ccircle cx='6' cy='6' r='4' fill='none' stroke='%23256452' stroke-width='1.4'/%3E%3Cpath d='M6 2a4 4 0 0 1 0 8z' fill='%23256452'/%3E%3C/svg%3E");
+}
+[data-v="unknown"] > .v::before,
+.mark.unknown {
+  background-color: #ecece6;
+  background-size: 12px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M4.3 4.4c0-1 .8-1.7 1.8-1.7s1.8.7 1.8 1.6c0 1.4-1.8 1.5-1.8 2.9' fill='none' stroke='%23667573' stroke-width='1.3' stroke-linecap='round'/%3E%3Ccircle cx='6.1' cy='9.3' r='.8' fill='%23667573'/%3E%3C/svg%3E");
+}
+[data-v="info"] > .v::before {
+  display: none;
+}
+[data-v="info"] > .v {
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: -0.2px;
+}
+.v small {
+  font-size: 10px;
+  line-height: 1.35;
+  color: var(--light-muted);
+}
+.mark {
+  width: 18px;
+  height: 18px;
+  background-size: 11px;
+}
+.mark.no {
+  background-size: 8px;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+.table-note {
+  margin-top: 18px;
+  max-width: 760px;
+  font-size: 11px;
+  color: var(--light-muted);
+}
+.table-note a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: #477873;
+  text-underline-offset: 3px;
+}
+
+/* One card for each tool */
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.tool-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 28px 30px 24px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--ink-soft);
+  scroll-margin-top: 110px;
+}
+.tool-card:target {
+  border-color: var(--teal);
+}
+.tool-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: start;
+  gap: 12px 18px;
+}
+.tool-card h3 {
+  font-size: 25px;
+}
+.tool-kind {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.tool-price {
+  flex: none;
+  text-align: right;
+  font-family: var(--font-display);
+  font-size: 21px;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+}
+.tool-price small {
+  display: block;
+  max-width: 220px;
+  margin-top: 4px;
+  margin-left: auto;
+  font-family: var(--font-text);
+  font-size: 10px;
+  letter-spacing: 0;
+  white-space: normal;
+  color: var(--muted);
+}
+.tool-summary {
+  margin-top: 18px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.pick-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 26px;
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.pick h4 {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--text);
+}
+.pick ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+  color: var(--muted);
+}
+.pick li {
+  display: flex;
+  align-items: baseline;
+  gap: 11px;
+  margin-top: 9px;
+}
+.pick li::before {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 4px;
+  border-left: 1px solid var(--gold);
+  border-bottom: 1px solid var(--gold);
+  transform: translateY(-2px) rotate(-45deg);
+}
+.pick.ours li::before {
+  border-color: var(--teal);
+}
+.tool-source {
+  margin-top: auto;
+  padding-top: 22px;
+  font-size: 10px;
+  color: var(--muted);
+}
+.tool-source a {
+  color: var(--teal);
+  text-decoration: underline;
+  text-decoration-color: #4b7471;
+  text-underline-offset: 3px;
+}
+.tool-source a:hover {
+  text-decoration-color: var(--teal);
+}
+
+/* What ours does, and where it falls short */
+.own-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+.own-card {
+  padding: 28px 30px 30px;
+  border: 1px solid var(--light-line);
+  border-radius: 12px;
+  background: #fcfcf8;
+}
+.own-card h3 {
+  font-size: 23px;
+}
+.own-card > p {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--light-muted);
+}
+.own-card .check-list {
+  margin-bottom: 0;
+}
+.own-card.is-short {
+  background: #f1efe6;
+  border-color: #ddd9c9;
+}
+.light-section .short-list li::before {
+  width: 6px;
+  height: 6px;
+  border: 1px solid #9c7618;
+  border-radius: 50%;
+  transform: translateY(-1px);
+}
+
+/* How the page was checked, and the pages it was checked against */
+.method-layout {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 90px;
+  align-items: start;
+}
+.method-layout > * {
+  min-width: 0;
+}
+.source-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+.source-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px 22px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+.source-list strong {
+  flex: none;
+  font-weight: 500;
+}
+.source-list span {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: end;
+  gap: 4px 16px;
+  min-width: 0;
+}
+.source-list a {
+  color: var(--teal);
+  overflow-wrap: anywhere;
+}
+.source-list a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.fine-print {
+  margin-top: 22px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.fine-print a {
+  color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Where the whole table fits, it doesn't need to slide, so the tool names can
+   stay in view under the site header while the rows scroll past */
+@media (min-width: 1240px) {
+  .table-scroll {
+    overflow: visible;
+  }
+  .compare-table thead th {
+    position: sticky;
+    top: 85px;
+    z-index: 2;
+    background: #fcfcf8;
+  }
+  .compare-table thead th.us {
+    background: #eaf2ee;
+  }
+  .compare-table thead th:first-child {
+    z-index: 3;
+    border-top-left-radius: 12px;
+  }
+  .compare-table thead th:last-child {
+    border-top-right-radius: 12px;
+  }
+  .compare-table tbody tr:last-child > :first-child {
+    border-bottom-left-radius: 12px;
+  }
+  .compare-table tbody tr:last-child > :last-child {
+    border-bottom-right-radius: 12px;
+  }
+}
+
+@media (max-width: 1050px) {
+  .own-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .own-card.is-short {
+    grid-column: 1 / -1;
+  }
+  .method-layout {
+    gap: 50px;
+  }
+}
+
+@media (max-width: 800px) {
+  .tool-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .method-layout {
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+  .swipe-hint {
+    display: block;
+  }
+  .price-chart {
+    padding: 18px 16px 16px;
+  }
+  .price-row {
+    grid-template-columns: minmax(118px, 34%) minmax(0, 1fr);
+    gap: 14px;
+    padding-inline: 6px;
+  }
+}
+
+@media (max-width: 560px) {
+  .price-chart {
+    padding: 12px 8px;
+    gap: 2px;
+  }
+  .price-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+    padding: 8px 8px 9px;
+  }
+  .price-name {
+    font-size: 12px;
+  }
+  .price-name small {
+    font-size: 9px;
+  }
+  .price-track {
+    min-height: 22px;
+  }
+  .price-bar {
+    width: calc(var(--w, 0) * 66%);
+    height: 12px;
+  }
+  .price-value {
+    font-size: 11px;
+  }
+  .jump-row {
+    gap: 6px;
+  }
+  .jump-row a {
+    font-size: 10px;
+    padding-inline: 11px;
+  }
+  .table-controls {
+    gap: 18px;
+  }
+  .compare-pick,
+  .compare-pick select {
+    width: 100%;
+  }
+  .need-chip {
+    font-size: 11px;
+    min-height: 36px;
+  }
+  .compare-table .row-head {
+    min-width: 138px;
+    max-width: 150px;
+    font-size: 11px;
+  }
+  .compare-table th,
+  .compare-table td {
+    padding: 11px 8px;
+  }
+  .compare-table {
+    min-width: 960px;
+  }
+  .tool-card {
+    padding: 22px 20px 20px;
+  }
+  .tool-top {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .tool-price {
+    text-align: left;
+  }
+  .tool-price small {
+    margin-left: 0;
+  }
+  .tool-card h3 {
+    font-size: 23px;
+  }
+  .pick-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .own-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .own-card {
+    padding: 24px;
+  }
+  .source-list li {
+    flex-direction: column;
+  }
+  .source-list span {
+    justify-content: start;
+  }
+}
+
+@media print {
+  .table-scroll {
+    overflow: visible;
+    box-shadow: none;
+  }
+  .compare-table {
+    min-width: 0;
+  }
+}

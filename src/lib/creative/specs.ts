@@ -28,6 +28,7 @@
  */
 
 import type { ArtboardState, CreativeAssetKind, Size } from '@/types/artboard';
+import { ICON_SIZE, isIconBoard } from '@/lib/appIcon/specs';
 
 export interface PixelRect {
   x: number;
@@ -132,9 +133,19 @@ export function isCreativeBoard(board: Pick<ArtboardState, 'creativeAsset'>): bo
   return isCreativeAssetKind(board.creativeAsset);
 }
 
+/**
+ * Whether an artboard is a screenshot: neither header or search art nor the
+ * app icon (src/lib/appIcon/). Anything that treats every artboard as a
+ * screenshot (the canvas size, the device sets, the spans, the numbering, the
+ * upload) asks this, so a new kind of artboard is one more test here.
+ */
+export function isScreenshotBoard(board: Pick<ArtboardState, 'creativeAsset' | 'appIcon'>): boolean {
+  return !isCreativeBoard(board) && !isIconBoard(board);
+}
+
 /** The artboards that are screenshots, in canvas order. */
-export function screenshotBoards<T extends Pick<ArtboardState, 'creativeAsset'>>(boards: T[]): T[] {
-  return boards.some(isCreativeBoard) ? boards.filter((board) => !isCreativeBoard(board)) : boards;
+export function screenshotBoards<T extends Pick<ArtboardState, 'creativeAsset' | 'appIcon'>>(boards: T[]): T[] {
+  return boards.every(isScreenshotBoard) ? boards : boards.filter(isScreenshotBoard);
 }
 
 export function creativeBoards<T extends Pick<ArtboardState, 'creativeAsset'>>(boards: T[]): T[] {
@@ -335,7 +346,9 @@ export function minReadableGlyph(board: Pick<ArtboardState, 'creativeAsset' | 's
  * own name is added only when it is not the default one. Two boards can still
  * come out the same, so an export names them through creativeFileStems.
  */
-export function creativeFileStem(board: Pick<ArtboardState, 'creativeAsset' | 'size' | 'name'>): string | null {
+export function creativeFileStem(board: Pick<ArtboardState, 'creativeAsset' | 'appIcon' | 'size' | 'name'>): string | null {
+  // The icon is one design at Apple's size, exported as the App Store icon.
+  if (isIconBoard(board)) return `AppIcon_${ICON_SIZE}x${ICON_SIZE}`;
   if (!isCreativeAssetKind(board.creativeAsset)) return null;
   const spec = creativeSpec(board.creativeAsset);
   const name = board.name.trim();
@@ -354,7 +367,7 @@ export function creativeFileStem(board: Pick<ArtboardState, 'creativeAsset' | 's
  * keeps its name when it is exported on its own.
  */
 export function creativeFileStems(
-  boards: readonly Pick<ArtboardState, 'id' | 'creativeAsset' | 'size' | 'name'>[]
+  boards: readonly Pick<ArtboardState, 'id' | 'creativeAsset' | 'appIcon' | 'size' | 'name'>[]
 ): Record<string, string> {
   const stems: Record<string, string> = {};
   const taken = new Set<string>();

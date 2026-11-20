@@ -59,6 +59,8 @@ export interface DockHandlers {
   onTranslateElement: (elementId: string) => void;
   /** Take a screenshot from the running simulator or emulator into this frame, or open Capture on it. */
   onCaptureScreenshot: (elementId: string) => void;
+  /** Cut the image element's picture out in place (src/lib/cutout). */
+  onRemoveImageBackground: (elementId: string) => void;
   onUpdateArtboardDetails: (updates: Partial<ArtboardState>, scope?: 'board' | 'all') => void;
   onResetLocaleField: (field: LocalizableField) => void;
   onToggleLocaleDetach: (keys: DetachableKey[], detach: boolean) => void;
@@ -239,7 +241,9 @@ export function RightDockPanels({
               onTranslateElement={handlers.onTranslateElement}
               translationAvailable={data.translationAvailable}
               onCaptureScreenshot={handlers.onCaptureScreenshot}
+              onRemoveImageBackground={handlers.onRemoveImageBackground}
               activeArtboardDetails={data.activeArtboardDetails}
+              onIconBoard={data.onIconBoard}
               onUpdateArtboardDetails={handlers.onUpdateArtboardDetails}
               activeLocale={data.activeLocale}
               baseLocale={data.baseLocale}
