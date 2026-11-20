@@ -161,6 +161,7 @@ export const IMAGE_CATEGORIES: ImageCategory[] = [
       { id: 'mascot-signer-point', label: 'Signer pointing', src: '/elements/images/mascots/mascot-signer-point.png', defaultSize: { width: 382, height: 430 } },
       { id: 'mascot-signer-clipboard', label: 'Signer with clipboard', src: '/elements/images/mascots/mascot-signer-clipboard.png', defaultSize: { width: 275, height: 430 } },
       { id: 'mascot-signer-chest', label: 'Signer, hand on chest', src: '/elements/images/mascots/mascot-signer-chest.png', defaultSize: { width: 222, height: 430 } },
+      { id: 'mascot-box-robot', label: 'Box robot', src: '/elements/images/mascots/mascot-box-robot.png', defaultSize: { width: 418, height: 430 } },
     ],
   },
   {
@@ -201,6 +202,9 @@ export const IMAGE_CATEGORIES: ImageCategory[] = [
       { id: 'object-check', label: 'Check badge', src: '/elements/images/objects/object-check.png', defaultSize: { width: 370, height: 430 } },
       { id: 'object-calendar', label: 'Calendar', src: '/elements/images/objects/object-calendar.png', defaultSize: { width: 364, height: 430 } },
       { id: 'object-clock', label: 'Clock', src: '/elements/images/objects/object-clock.png', defaultSize: { width: 356, height: 430 } },
+      { id: 'object-burger', label: 'Burger', src: '/elements/images/objects/object-burger.png', defaultSize: { width: 430, height: 419 } },
+      { id: 'object-notepad', label: 'Notepad and pencil', src: '/elements/images/objects/object-notepad.png', defaultSize: { width: 348, height: 430 } },
+      { id: 'object-sponge', label: 'Sponge and plate', src: '/elements/images/objects/object-sponge.png', defaultSize: { width: 430, height: 419 } },
     ],
   },
   {

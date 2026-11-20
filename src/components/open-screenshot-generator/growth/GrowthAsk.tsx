@@ -20,6 +20,7 @@ import {
   FileKeyIcon,
   KeyRoundIcon,
   LayersIcon,
+  Loader2Icon,
   LogInIcon,
   MonitorSmartphoneIcon,
   PlayIcon,
@@ -28,7 +29,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { openExternal } from '@/lib/desktop';
-import { finishWaiting, newConversation, sendMessage, useAssistant } from '@/lib/growth/setup/assistant';
+import { askWhenReady, assistantGoal, finishWaiting, newConversation, sendMessage, startSeoSetup, useAssistant } from '@/lib/growth/setup/assistant';
 import { setGrowthSettings, useGrowthSettings } from '@/lib/growth/settings';
 import type { GrowthStore } from '@/lib/growth/stores';
 import { cn } from '@/lib/utils';
@@ -357,11 +358,20 @@ export function GrowthAsk() {
     sendMessage(text);
   };
 
-  // A question handed over from an insight card is asked straight away.
+  // A question handed over from an insight card is asked as soon as the AI
+  // can answer, and SEO's "Set up with Ask AI" starts its Google setup the
+  // same way. Both wait in the assistant, not here: Growth can still be
+  // looking for Claude Code or Codex when this screen first shows.
   useEffect(() => {
-    if (started.current || !view.tabOptions.question || reason) return;
+    if (started.current) return;
+    if (view.tabOptions.setupGoal === 'seo') {
+      started.current = true;
+      startSeoSetup();
+      return;
+    }
+    if (!view.tabOptions.question) return;
     started.current = true;
-    sendMessage(view.tabOptions.question);
+    askWhenReady(view.tabOptions.question);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -468,7 +478,7 @@ export function GrowthAsk() {
               variant="ghost"
               size="icon"
               className="h-8 w-8"
-              disabled={chat.items.length === 0}
+              disabled={chat.items.length === 0 && !chat.pending}
               onClick={newConversation}
               title="Start a new conversation"
               aria-label="New chat"
@@ -490,8 +500,17 @@ export function GrowthAsk() {
 
           <div ref={scroller} className="min-h-0 flex-1 overflow-y-auto">
             <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 py-5">
-              {(setUp || chat.items.length > 0) && !desktopOnly && <SetupProgress onAsk={ask} />}
-              {chat.items.length === 0 ? (
+              {/* The stores' progress, which the SEO job's Google setup has nothing to do with. */}
+              {(setUp || chat.items.length > 0) && !desktopOnly && assistantGoal() !== 'seo' && <SetupProgress onAsk={ask} />}
+              {chat.items.length === 0 && chat.pending ? (
+                <div className="flex flex-col items-center gap-3 py-10 text-center" data-testid="growth-ask-pending" role="status">
+                  <Loader2Icon className="h-5 w-5 animate-spin text-[hsl(var(--growth-assistant))]" />
+                  <p className="max-w-sm rounded-2xl bg-muted px-4 py-2.5 text-sm">{chat.pending}</p>
+                  <p className="max-w-sm text-xs text-muted-foreground">
+                    {reason && reason !== 'Loading' ? `This goes as soon as the AI is ready. ${reason}` : 'This goes as soon as the AI is ready'}
+                  </p>
+                </div>
+              ) : chat.items.length === 0 ? (
                 <Welcome setUp={setUp} onAsk={ask} />
               ) : (
                 <AssistantMessages

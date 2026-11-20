@@ -50,6 +50,8 @@ export interface CaughtKeyFile {
   kind: 'apple-key' | 'play-key';
   fileName: string;
   content: string;
+  /** The browser's number for the download, the same as its start had (onDownloadStarted). */
+  downloadId?: number;
 }
 
 type RustEvent =
@@ -57,8 +59,27 @@ type RustEvent =
   | { type: 'title'; title: string }
   | { type: 'blocked'; url: string; host: string }
   | { type: 'external'; url: string }
-  | { type: 'key-file'; kind: CaughtKeyFile['kind']; fileName: string; content: string }
-  | { type: 'download-refused'; fileName: string; reason: string };
+  | { type: 'download-started'; fileName: string; id: number }
+  | { type: 'key-file'; kind: CaughtKeyFile['kind']; fileName: string; content: string; id?: number }
+  | { type: 'download-refused'; fileName: string; reason: string; id?: number };
+
+const downloadListeners = new Set<(download: { fileName: string; id: number }) => void>();
+const refusedListeners = new Set<(download: { fileName: string; id?: number }) => void>();
+
+/** A key file starting to download, before its content arrives through onKeyFile. */
+export function onDownloadStarted(listener: (download: { fileName: string; id: number }) => void): () => void {
+  downloadListeners.add(listener);
+  return () => downloadListeners.delete(listener);
+}
+
+/**
+ * A download turned away or failed. One that had started carries the number
+ * its start had (onDownloadStarted); one refused before it started has none.
+ */
+export function onDownloadRefused(listener: (download: { fileName: string; id?: number }) => void): () => void {
+  refusedListeners.add(listener);
+  return () => refusedListeners.delete(listener);
+}
 
 const CLOSED: BrowserState = { open: false, embedded: true, url: null, title: null, loading: false, blocked: null, refused: null };
 
@@ -119,10 +140,14 @@ function listen(): Promise<void> {
           break;
         case 'download-refused':
           update({ refused: { fileName: payload.fileName, reason: payload.reason, at: Date.now() } });
+          refusedListeners.forEach((listener) => listener({ fileName: payload.fileName, id: payload.id }));
+          break;
+        case 'download-started':
+          downloadListeners.forEach((listener) => listener({ fileName: payload.fileName, id: payload.id }));
           break;
         case 'key-file':
           keyFileListeners.forEach((listener) =>
-            listener({ kind: payload.kind, fileName: payload.fileName, content: payload.content })
+            listener({ kind: payload.kind, fileName: payload.fileName, content: payload.content, downloadId: payload.id })
           );
           break;
         case 'external':

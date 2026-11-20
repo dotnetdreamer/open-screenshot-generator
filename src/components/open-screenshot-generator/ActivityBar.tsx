@@ -7,7 +7,8 @@
 // a simulator or emulator, Remove background, where people and products are
 // cut out of photos for them, Growth, where their numbers come back, Store
 // compliance, what the stores reject apps for and the checks to make before
-// sending one, and Website, where the app's own site is made from them.
+// sending one, Website, where the app's own site is made from them, and SEO,
+// where that site is checked for Google and AI search.
 //
 // A new view is one entry in ACTIVITIES and one branch where the layout draws
 // the views (OpenScreenshotGeneratorLayout.tsx, `activity`). The editor stays
@@ -18,13 +19,13 @@
 // and at the bottom the account and the app's own settings, where VS Code
 // keeps Accounts and Manage. Those are `actions`: buttons with no view. A view
 // can also sit under the actions (`belowActions`): Website, the app's own
-// site, sits under Discover.
+// site, sits under Discover, and SEO under Website.
 
 import React from 'react';
-import { CameraIcon, GlobeIcon, PenToolIcon, ScissorsIcon, ShieldCheckIcon, TrendingUpIcon } from 'lucide-react';
+import { CameraIcon, GlobeIcon, PenToolIcon, ScissorsIcon, SearchCheckIcon, ShieldCheckIcon, TrendingUpIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type ActivityId = 'editor' | 'capture' | 'cutout' | 'growth' | 'compliance' | 'website';
+export type ActivityId = 'editor' | 'capture' | 'cutout' | 'growth' | 'compliance' | 'website' | 'seo';
 
 export interface Activity {
   id: ActivityId;
@@ -44,6 +45,7 @@ export const ACTIVITIES: Activity[] = [
   { id: 'growth', name: 'Growth', label: 'Growth: downloads, reviews and your store page', icon: TrendingUpIcon },
   { id: 'compliance', name: 'Store compliance', label: 'Store compliance: avoid App Store and Google Play rejections', icon: ShieldCheckIcon },
   { id: 'website', name: 'Website', label: "Website: your app's home, support and privacy pages", icon: GlobeIcon, belowActions: true },
+  { id: 'seo', name: 'SEO', label: "SEO: get your app's website found on Google and in AI answers", icon: SearchCheckIcon, belowActions: true },
 ];
 
 /**

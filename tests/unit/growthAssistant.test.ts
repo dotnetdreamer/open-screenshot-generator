@@ -9,13 +9,21 @@ import assert from 'node:assert/strict';
 import {
   addKeyFile,
   answerApproval,
+  askWhenReady,
+  assistantGoal,
   assistantSnapshot,
   configureAssistant,
+  configureSeoSetup,
   finishWaiting,
+  forgetHeldKeyFiles,
   MAX_STEPS,
   newConversation,
+  noteDownloadEnded,
+  noteDownloadStarted,
+  SEO_SETUP_MESSAGE,
   sendMessage,
   setAssistantBrowser,
+  startSeoSetup,
   statusText,
   stopAssistant,
   type AssistantEnv,
@@ -49,6 +57,14 @@ const SERVICE_ACCOUNT = JSON.stringify({
   private_key: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASC\n-----END PRIVATE KEY-----\n',
   client_email: 'osg-growth@osg-growth-test.iam.gserviceaccount.com',
 });
+
+/** A key file the browser downloads, as growth_browser.rs hands it over: its start, then the file with the same number. */
+let downloads = 500;
+function download(file: { kind: 'apple-key' | 'play-key'; fileName: string; content: string }): void {
+  downloads += 1;
+  noteDownloadStarted(downloads);
+  addKeyFile({ ...file, downloadId: downloads });
+}
 
 // --- the rules ------------------------------------------------------------------------
 
@@ -99,6 +115,24 @@ test('in a dialog the title counts, and a bare yes is asked about', () => {
   assert.equal(isBareAnswer('OK'), true);
   assert.equal(isBareAnswer('Continue'), true);
   assert.equal(isBareAnswer('Generate'), false);
+});
+
+test('the SEO job asks before every button but the ones that close, go back or open a menu, search or help', () => {
+  const strict = (name: string, role = 'button') => judgeClick(name, false, { role, strict: true }).kind;
+  for (const name of ['Done', 'Next', 'Copy', 'Copy to clipboard', 'Refresh', 'Keys', 'JSON', 'Continue', 'Finish', 'Owner', 'Grant', 'Start']) {
+    assert.equal(strict(name), 'ask', name);
+  }
+  for (const name of ['Close', 'Cancel', 'Back', 'Previous', 'Got it', 'More actions', 'Main menu', 'Search', 'Help', 'Learn more', 'Select a project']) {
+    assert.equal(strict(name), 'free', name);
+  }
+  // A link, a tab or a field moves around or fills a form, unless it finishes a step.
+  assert.equal(strict('IAM & Admin', 'link'), 'free');
+  assert.equal(strict('Keys', 'tab'), 'free');
+  assert.equal(strict('Service account name', 'textbox'), 'free');
+  for (const name of ['Done', 'Continue', 'Next', 'Finish']) assert.equal(strict(name, 'link'), 'ask', `${name} as a link`);
+  // And the store job keeps its own rules.
+  assert.equal(judgeClick('Next').kind, 'free');
+  assert.equal(judgeClick('Copy').kind, 'free');
 });
 
 test('a choice in a list follows the same words as a click', () => {
@@ -433,7 +467,7 @@ test('an App Store key is made, approved, caught and saved, and no key reaches t
                   name: 'Generate',
                   onClick: () =>
                     browser.show(ascUrl, `Issuer ID ${ISSUER}\nOpen Screenshot Generator | ${KEY_ID} | Admin [9] button "Download API Key"`, [
-                      [9, { ok: true, role: 'button', name: 'Download API Key', onClick: () => addKeyFile({ kind: 'apple-key', fileName: `AuthKey_${KEY_ID}.p8`, content: P8 }) }],
+                      [9, { ok: true, role: 'button', name: 'Download API Key', onClick: () => download({ kind: 'apple-key', fileName: `AuthKey_${KEY_ID}.p8`, content: P8 }) }],
                     ]),
                 },
               ],
@@ -672,6 +706,76 @@ test('the Key ID in a key file name counts as read', async () => {
   assert.deepEqual(growth.saved.apple, { issuerId: ISSUER, keyId: KEY_ID, privateKey: P8 });
 });
 
+test("an App Store key file is saved only under its own Key ID, a renamed one under the ID given, and one nobody asked for is kept nowhere", async () => {
+  const url = 'https://appstoreconnect.apple.com/access/integrations/api';
+  const OTHER = 'ZZ9R4HXF34';
+  const RENAMED_P8 = P8.replace('BHkwdwIBAQQg', 'BHkwdwIBAQQh');
+  const failures = (prompts: string[], what: string) => prompts.filter((prompt) => prompt.includes(what)).length;
+
+  // This key's file is held, the page lists another key too, and the model asks for that one.
+  forgetHeldKeyFiles();
+  const mismatched = await fresh([
+    () => {
+      addKeyFile({ kind: 'apple-key', fileName: `AuthKey_${KEY_ID}.p8`, content: P8 }, 'user');
+      mismatched.browser.show(url, `Issuer ID ${ISSUER}\nOld key | ${OTHER} | Admin\nNew key | ${KEY_ID} | Admin`);
+      return json({ actions: [{ do: 'open', url }], next: 'continue' });
+    },
+    json({ actions: [{ do: 'save_apple_key', issuerId: ISSUER, keyId: OTHER }], next: 'continue' }),
+    json({ say: 'That one is not here.', next: 'user' }),
+  ]);
+  sendMessage('Save my key');
+  await idle();
+  assert.equal(mismatched.growth.saved.apple, null, "another key's file was saved under this Key ID");
+  assert.equal(failures(mismatched.growth.prompts, `no key file matches Key ID ${OTHER}`), 1);
+
+  // A file renamed without its Key ID, the only one held: saved under the ID the model read on the page.
+  forgetHeldKeyFiles();
+  const renamed = await fresh([
+    () => {
+      addKeyFile({ kind: 'apple-key', fileName: 'key.p8', content: RENAMED_P8 }, 'user');
+      renamed.browser.show(url, `Issuer ID ${ISSUER}\nMy key | ${KEY_ID} | Admin`);
+      return json({ actions: [{ do: 'open', url }], next: 'continue' });
+    },
+    json({ actions: [{ do: 'save_apple_key', issuerId: ISSUER, keyId: KEY_ID }], next: 'continue' }),
+    json({ say: 'Saved.', next: 'user' }),
+  ]);
+  sendMessage('Save my key');
+  await idle();
+  assert.deepEqual(renamed.growth.saved.apple, { issuerId: ISSUER, keyId: KEY_ID, privateKey: RENAMED_P8 });
+
+  // Two renamed files: neither says which key it is, so neither is saved.
+  forgetHeldKeyFiles();
+  const two = await fresh([
+    () => {
+      addKeyFile({ kind: 'apple-key', fileName: 'key.p8', content: RENAMED_P8 }, 'user');
+      addKeyFile({ kind: 'apple-key', fileName: 'key (1).p8', content: P8 }, 'user');
+      two.browser.show(url, `Issuer ID ${ISSUER}\nMy key | ${KEY_ID} | Admin`);
+      return json({ actions: [{ do: 'open', url }], next: 'continue' });
+    },
+    json({ actions: [{ do: 'save_apple_key', issuerId: ISSUER, keyId: KEY_ID }], next: 'continue' }),
+    json({ say: 'Which file?', next: 'user' }),
+  ]);
+  sendMessage('Save my key');
+  await idle();
+  assert.equal(two.growth.saved.apple, null, 'a renamed file was guessed among two');
+  assert.equal(failures(two.growth.prompts, `no key file matches Key ID ${KEY_ID}`), 1);
+
+  // A download the app has no start for: kept nowhere, said so, and nothing to save afterwards.
+  // The model reads the page first, so a refusal can only be for the missing file.
+  forgetHeldKeyFiles();
+  const open = json({ actions: [{ do: 'open', url }], next: 'continue' });
+  const save = json({ actions: [{ do: 'save_apple_key', issuerId: ISSUER, keyId: KEY_ID }], next: 'continue' });
+  const stray = await fresh([open, save, json({ say: 'No file.', next: 'user' }), open, save, json({ say: 'Still no file.', next: 'user' })]);
+  stray.browser.show(url, `Issuer ID ${ISSUER}\nMy key | ${KEY_ID} | Admin`);
+  addKeyFile({ kind: 'apple-key', fileName: `AuthKey_${KEY_ID}.p8`, content: P8, downloadId: 424242 });
+  assert.ok(items().some((item) => item.kind === 'notice' && item.text.includes("wasn't kept: the app couldn't tell which setup asked for it")));
+  await idle();
+  sendMessage(`Open ${url} and save Issuer ID ${ISSUER}, Key ID ${KEY_ID}`);
+  await idle();
+  assert.equal(stray.growth.saved.apple, null, 'a key nobody asked for was saved');
+  assert.ok(failures(stray.growth.prompts, 'the app has no .p8 key file yet') >= 1, 'the stray file was kept');
+});
+
 test('refreshes that end and wake the assistant share the same MAX_STEPS', async () => {
   const refreshing: Script = Array.from({ length: MAX_STEPS }, () => json({ actions: [{ do: 'refresh' }], next: 'continue' }));
   const { growth } = await fresh([...refreshing, json({ say: 'Your numbers are in.', next: 'user' })]);
@@ -734,7 +838,7 @@ test('a Google Play key file waits for the package name', async () => {
   const { browser, growth } = await fresh([
     () => {
       browser.show('https://play.google.com/console', '# All apps\nLudo Wala com.dotnetdreamer.ludowala');
-      addKeyFile({ kind: 'play-key', fileName: 'osg-growth-test-1234.json', content: SERVICE_ACCOUNT });
+      download({ kind: 'play-key', fileName: 'osg-growth-test-1234.json', content: SERVICE_ACCOUNT });
       return json({ actions: [{ do: 'open', url: 'https://play.google.com/console' }], next: 'continue' });
     },
     json({ actions: [{ do: 'save_play_key', packageName: 'com.dotnetdreamer.ludowala' }], next: 'continue' }),
@@ -829,4 +933,342 @@ test('the status names what is saved and what is not', () => {
   assert.match(text, /Apps it can see: Ludo Wala/);
   assert.match(text, /Vendor number: not saved/);
   assert.match(text, /Last refresh of Ludo Wala: Sales and Trends: Not set up yet/);
+});
+
+// --- the SEO view's Google setup -------------------------------------------------------
+
+const SEO_KEY = SERVICE_ACCOUNT.replace('osg-growth@', 'osg-seo@');
+
+function seoPort() {
+  const saved = { keys: [] as string[], usedGrowthKey: 0, apiKeys: [] as string[] };
+  const port = {
+    facts: () => ({ siteUrl: 'https://pebble.example/', key: null, growthKey: { email: 'osg-growth@osg-growth-test.iam.gserviceaccount.com', projectId: 'osg-growth-test' }, apiKey: false }),
+    saveKey: (json: string) => void saved.keys.push(json),
+    useGrowthKey: () => void (saved.usedGrowthKey += 1),
+    saveApiKey: (value: string) => void saved.apiKeys.push(value),
+  };
+  return { port, saved };
+}
+
+test("SEO job: the store actions are refused, every button asks first, and the store job refuses SEO's", async () => {
+  const seo = seoPort();
+  const cloud = 'https://console.cloud.google.com/iam-admin/serviceaccounts/details/1?project=p';
+  const { browser, growth } = await fresh([
+    json({ say: 'One moment', actions: [{ do: 'save_play_key', packageName: 'com.example.app' }], next: 'continue' }),
+    json({ say: '', actions: [{ do: 'set_stores', stores: ['playstore'] }], next: 'continue' }),
+    json({ say: '', actions: [{ do: 'ask_for_key_file', kind: 'apple' }], next: 'continue' }),
+    json({ say: '', actions: [{ do: 'open', url: cloud }, { do: 'click', ref: 2 }, { do: 'click', ref: 4 }], next: 'continue' }),
+    json({ say: '', actions: [{ do: 'click', ref: 3 }], next: 'continue' }),
+    json({ say: 'Press Done when you are ready', next: 'user' }),
+    // New chat: a store conversation, where the SEO saves are refused.
+    json({ say: '', actions: [{ do: 'use_growth_key_for_seo' }], next: 'continue' }),
+    json({ say: '', actions: [{ do: 'save_seo_api_key', value: `AIza${'Q'.repeat(35)}` }], next: 'continue' }),
+    json({ say: 'Done', next: 'user' }),
+  ]);
+  growth.saved.play = { serviceAccountJson: SERVICE_ACCOUNT, packageName: 'com.example.app' };
+  browser.show(cloud, '[2] tab "Keys"\n[3] button "Done"\n[4] button "Close"', [
+    [2, { ok: true, role: 'tab', name: 'Keys' }],
+    [3, { ok: true, role: 'button', name: 'Done' }],
+    [4, { ok: true, role: 'button', name: 'Close' }],
+  ]);
+  configureSeoSetup(seo.port);
+  startSeoSetup();
+  // "Done" says nothing that changes anything, and still asks in this job.
+  await until(() => lastOf('approval')?.action === 'Done', 'the question about Done');
+  answerApproval(lastOf('approval')!.id, false);
+  await idle();
+  assert.deepEqual(browser.clicks, [2, 4], 'the tab and Close are pressed without asking, Done is not pressed');
+  assert.equal(items().filter((item) => item.kind === 'approval').length, 1);
+  assert.equal(growth.saved.play?.serviceAccountJson, SERVICE_ACCOUNT, 'the Google Play key is untouched');
+  for (const action of ['save_play_key', 'set_stores', 'ask_for_key_file']) {
+    assert.ok(growth.prompts.some((prompt) => prompt.includes(`${action}: refused. This job sets up Google for the SEO view`)), `${action} refused`);
+  }
+
+  newConversation();
+  await idle();
+  sendMessage('Use my Play key for SEO too');
+  await idle();
+  assert.equal(seo.saved.usedGrowthKey, 0);
+  assert.deepEqual(seo.saved.apiKeys, []);
+  assert.ok(growth.prompts.some((prompt) => prompt.includes("use_growth_key_for_seo: refused outside the SEO view's Google setup")));
+  assert.ok(growth.prompts.some((prompt) => prompt.includes("save_seo_api_key: refused outside the SEO view's Google setup")));
+  configureSeoSetup(null);
+});
+
+test('a key download that ends after New chat goes to the job that asked for it, never to Google Play', async () => {
+  const seo = seoPort();
+  const { growth } = await fresh([]);
+  growth.saved.play = { serviceAccountJson: SERVICE_ACCOUNT, packageName: 'com.example.app' };
+  configureSeoSetup(seo.port);
+
+  // Asked for by the SEO job, ended in a store conversation: SEO's.
+  startSeoSetup();
+  await idle();
+  noteDownloadStarted(41);
+  newConversation();
+  await idle();
+  addKeyFile({ kind: 'play-key', fileName: 'p-41.json', content: SEO_KEY, downloadId: 41 });
+  assert.deepEqual(seo.saved.keys, [SEO_KEY]);
+  assert.equal(growth.saved.play?.serviceAccountJson, SERVICE_ACCOUNT);
+
+  // Asked for by one store conversation, ended in the next: kept, not saved.
+  noteDownloadStarted(42);
+  newConversation();
+  await idle();
+  addKeyFile({ kind: 'play-key', fileName: 'p-42.json', content: SEO_KEY, downloadId: 42 });
+  assert.equal(growth.saved.play?.serviceAccountJson, SERVICE_ACCOUNT);
+  assert.equal(lastOf('key-file')?.fileName, 'p-42.json');
+
+  // Asked for and ended in the same store conversation: saved for Google Play, as before.
+  noteDownloadStarted(43);
+  addKeyFile({ kind: 'play-key', fileName: 'p-43.json', content: SEO_KEY, downloadId: 43 });
+  assert.deepEqual(growth.saved.play, { serviceAccountJson: SEO_KEY, packageName: 'com.example.app' });
+
+  // An App Store key that turns up in the SEO job is kept for the stores,
+  // through New chat, and isn't saved (it downloads only once).
+  startSeoSetup();
+  await idle();
+  addKeyFile({ kind: 'apple-key', fileName: `AuthKey_${KEY_ID}.p8`, content: P8 }, 'user');
+  assert.equal(growth.saved.apple, null);
+  newConversation();
+  await idle();
+  assert.match(statusText(growth.env.facts()), /AuthKey_2X9R4HXF34\.p8 \(Key ID 2X9R4HXF34\), not saved yet/);
+  forgetHeldKeyFiles();
+  configureSeoSetup(null);
+});
+
+test('a first message sent before the AI is found waits for it, rather than failing', async () => {
+  const { growth } = await fresh([json({ say: 'Downloads fell the week after 2.3 shipped', next: 'user' })]);
+  const finding = { ...growth.env, reason: 'Looking for Claude Code and Codex' };
+  configureAssistant(finding);
+  askWhenReady('Why did downloads drop?');
+  assert.equal(assistantSnapshot().pending, 'Why did downloads drop?');
+  assert.deepEqual(items(), [], 'no error for a reason that was about to clear');
+  configureAssistant(growth.env);
+  await until(() => items().some((item) => item.kind === 'assistant'), 'the answer');
+  assert.equal(assistantSnapshot().pending, null);
+  assert.match(growth.prompts[0], /Why did downloads drop\?/);
+
+  // The SEO setup waits as long as it takes, and New chat drops it.
+  const seo = seoPort();
+  configureSeoSetup(seo.port);
+  configureAssistant(finding);
+  startSeoSetup();
+  await new Promise((resolve) => setTimeout(resolve, 40));
+  assert.equal(assistantSnapshot().pending, SEO_SETUP_MESSAGE);
+  newConversation();
+  assert.equal(assistantSnapshot().pending, null);
+  startSeoSetup();
+  configureAssistant(growth.env);
+  await until(() => assistantGoal() === 'seo' && items().some((item) => item.kind === 'user' && item.text === SEO_SETUP_MESSAGE), 'the SEO setup');
+  await idle();
+  configureSeoSetup(null);
+});
+
+// --- key files, by random walks -----------------------------------------------------
+
+/** A small seeded generator, so a failing walk can be run again. */
+function seeded(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = (state + 0x6d2b79f5) >>> 0;
+    let x = Math.imul(state ^ (state >>> 15), 1 | state);
+    x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x;
+    return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+test('key files, by random walks: every save goes to the job its download started in, or the user added it to', async () => {
+  type Place = { job: 'stores' | 'seo'; conversation: number };
+  type Owner = (Place & { user?: boolean }) | 'unknown';
+  const WALKS = Number(process.env.KEY_WALKS ?? 250);
+  const STEPS = 30;
+  const KEPT = 64;
+  for (let walk = 0; walk < WALKS; walk++) {
+    const seed = 1000 + walk;
+    const random = seeded(seed);
+    const pick = <T,>(list: readonly T[]) => list[Math.floor(random() * list.length)];
+    const script: Script = [];
+    const { growth } = await fresh(script);
+    forgetHeldKeyFiles();
+    const seo = seoPort();
+    const withSeo = random() < 0.8;
+    configureSeoSetup(withSeo ? seo.port : null);
+    /** Whether the SEO view can take a key now (it can't before it first opens). */
+    let seoOpen = withSeo;
+    const ORIGINAL = SERVICE_ACCOUNT.replace('osg-growth@', 'original@');
+    growth.saved.play = random() < 0.7 ? { serviceAccountJson: ORIGINAL, packageName: 'com.example.app' } : null;
+    const playSaves: Array<{ content: string; in: Place }> = [];
+    const appleSaves: Array<{ content: string; keyId: string; in: Place }> = [];
+    // The model of the world: the conversation on screen, the downloads under way, whom each file is for.
+    let model: Place = { job: 'stores', conversation: 0 };
+    const savePlayKey = growth.env.savePlayKey;
+    growth.env.savePlayKey = (value) => {
+      playSaves.push({ content: value.serviceAccountJson, in: { ...model } });
+      savePlayKey(value);
+    };
+    const saveAppleKey = growth.env.saveAppleKey;
+    growth.env.saveAppleKey = (value) => {
+      appleSaves.push({ content: value.privateKey, keyId: value.keyId, in: { ...model } });
+      saveAppleKey(value);
+    };
+    /** Downloads under way, oldest first, as the app would remember them. */
+    const started = new Map<number, Place>();
+    const ledger = new Map<string, { owner: Owner; arrivedIn: Place; how: string }>();
+    const same = (a: Place, b: Place) => a.job === b.job && a.conversation === b.conversation;
+    let nextId = 1;
+    let files = 0;
+    /** The App Store key files the app holds, as the model sees them: three at most, the ones kept for later survive New chat. */
+    let heldApple: Array<{ content: string; kept: boolean }> = [];
+    const keyIdOf = (content: string) => `K${(content.match(/MIGTAgEA(\d+)x/)?.[1] ?? '0').padStart(9, '0')}`;
+    const holdApple = (content: string, owner: Place) => {
+      heldApple = [...heldApple, { content, kept: !same(owner, model) || model.job !== 'stores' }].slice(-3);
+    };
+    const trail: string[] = [];
+    const fail: (why: string) => never = (why) => assert.fail(`walk ${walk} (seed ${seed}): ${why}\n  steps: ${trail.join(' > ')}`);
+    const makeFile = (kind: 'play-key' | 'apple-key') => {
+      files += 1;
+      if (kind === 'play-key') return { kind, fileName: `key-${files}.json`, content: SERVICE_ACCOUNT.replace('osg-growth@', `file-${files}@`) };
+      return { kind, fileName: `AuthKey_K${String(files).padStart(9, '0')}.p8`, content: P8.replace('MIGTAgEA', `MIGTAgEA${files}x`) };
+    };
+    const startDownload = () => {
+      noteDownloadStarted(nextId);
+      started.set(nextId, { ...model });
+      // The app keeps the newest KEPT; an older one is nobody's when its file comes.
+      if (started.size > KEPT) started.delete(started.keys().next().value as number);
+      nextId += 1;
+    };
+    const check = () => {
+      for (const save of playSaves) {
+        const entry = ledger.get(save.content) ?? fail('a Google Play save of a key nobody added');
+        if (entry.owner === 'unknown') fail(`a key of unknown origin (${entry.how}) was saved for Google Play`);
+        if (entry.owner.job !== 'stores') fail(`a key made for SEO (${entry.how}) was saved for Google Play`);
+        if (save.in.job !== 'stores') fail('a Google Play save during the SEO job');
+      }
+      for (const content of seo.saved.keys) {
+        const entry = ledger.get(content) ?? fail('an SEO save of a key nobody added');
+        if (entry.owner === 'unknown') fail(`a key of unknown origin (${entry.how}) was saved for SEO`);
+        if (entry.owner.job !== 'seo') fail(`a key made for the stores (${entry.how}) was saved for SEO`);
+      }
+      for (const save of appleSaves) {
+        const entry = ledger.get(save.content) ?? fail('an App Store save of a key nobody added');
+        if (entry.owner === 'unknown') fail(`a key of unknown origin (${entry.how}) was saved for the App Store`);
+        if (save.keyId !== keyIdOf(save.content)) fail(`the key file of ${keyIdOf(save.content)} was saved under Key ID ${save.keyId}`);
+        if (save.in.job !== 'stores') fail('an App Store save during the SEO job');
+      }
+    };
+    for (let step = 0; step < STEPS; step++) {
+      const op = pick(['new chat', 'seo setup', 'seo view', 'start', 'start', 'burst', 'refuse', 'arrive', 'arrive', 'arrive', 'stray', 'user', 'save play', 'save apple'] as const);
+      trail.push(op);
+      const before = { play: playSaves.length, apple: appleSaves.length };
+      switch (op) {
+        case 'new chat':
+          newConversation();
+          await idle();
+          model = { job: 'stores', conversation: model.conversation + 1 };
+          heldApple = heldApple.filter((entry) => entry.kept);
+          break;
+        case 'seo setup':
+          if (!seoOpen) break;
+          startSeoSetup();
+          await until(() => assistantGoal() === 'seo', 'the SEO job');
+          await idle();
+          model = { job: 'seo', conversation: model.conversation + 1 };
+          heldApple = heldApple.filter((entry) => entry.kept);
+          break;
+        case 'seo view':
+          // The SEO side goes away and comes back: a key made for SEO meanwhile waits for it.
+          if (!withSeo) break;
+          seoOpen = !seoOpen;
+          configureSeoSetup(seoOpen ? seo.port : null);
+          break;
+        case 'start':
+          startDownload();
+          break;
+        case 'burst':
+          // More downloads at once than the app keeps track of: the oldest become nobody's.
+          for (let i = 0; i < 70; i++) startDownload();
+          break;
+        case 'refuse': {
+          const id = pick([...started.keys()]);
+          if (id === undefined) break;
+          noteDownloadEnded(id);
+          started.delete(id);
+          // A file that still comes for it is nobody's.
+          if (random() < 0.5) {
+            const file = makeFile(pick(['play-key', 'apple-key'] as const));
+            ledger.set(file.content, { owner: 'unknown', arrivedIn: { ...model }, how: 'after its refusal' });
+            addKeyFile({ ...file, kind: file.kind as 'play-key' | 'apple-key', downloadId: id });
+          }
+          break;
+        }
+        case 'arrive': {
+          // Late files come in any order, and some for downloads the app forgot.
+          const id = random() < 0.3 ? 1 + Math.floor(random() * nextId) : pick([...started.keys()]);
+          if (id === undefined) break;
+          const origin = started.get(id);
+          started.delete(id);
+          const file = makeFile(random() < 0.75 ? 'play-key' : 'apple-key');
+          ledger.set(file.content, { owner: origin ?? 'unknown', arrivedIn: { ...model }, how: origin ? 'a download' : 'a forgotten download' });
+          if (origin && file.kind === 'apple-key') holdApple(file.content, origin);
+          const hadPlayKey = growth.saved.play !== null;
+          const seoBefore = seo.saved.keys.length;
+          addKeyFile({ ...file, kind: file.kind as 'play-key' | 'apple-key', downloadId: id });
+          // And the other way: a file where it was asked for is saved at once.
+          if (origin && file.kind === 'play-key') {
+            if (origin.job === 'seo' && seoOpen && seo.saved.keys.length === seoBefore) fail("SEO's own key wasn't saved for SEO");
+            if (same(origin, model) && origin.job === 'stores' && hadPlayKey && playSaves.length === before.play) fail("the store setup's own key wasn't saved where it was asked for");
+          }
+          if (origin && file.kind === 'play-key' && playSaves.length > before.play && !same(origin, model)) {
+            fail('a late download was saved for Google Play at once, in a conversation that never asked for it');
+          }
+          if (origin && file.kind === 'apple-key' && appleSaves.length > before.apple && !same(origin, model)) {
+            fail('a late App Store key was saved at once, in a conversation that never asked for it');
+          }
+          break;
+        }
+        case 'stray': {
+          // A file whose start never came, or came without a number.
+          const file = makeFile(pick(['play-key', 'apple-key'] as const));
+          ledger.set(file.content, { owner: 'unknown', arrivedIn: { ...model }, how: 'a stray file' });
+          const kind = file.kind as 'play-key' | 'apple-key';
+          addKeyFile(random() < 0.5 ? { ...file, kind } : { ...file, kind, downloadId: 100000 + files });
+          if (playSaves.length > before.play || appleSaves.length > before.apple) fail('a stray file was saved at once');
+          break;
+        }
+        case 'user': {
+          const file = makeFile(random() < 0.6 ? 'play-key' : 'apple-key');
+          ledger.set(file.content, { owner: { ...model, user: true }, arrivedIn: { ...model }, how: 'added by the user' });
+          if (file.kind === 'apple-key') holdApple(file.content, model);
+          addKeyFile({ ...file, kind: file.kind as 'play-key' | 'apple-key' }, 'user');
+          break;
+        }
+        case 'save play':
+          script.push(json({ say: '', actions: [{ do: 'save_play_key', packageName: 'com.example.app' }], next: 'user' }));
+          sendMessage('Save the key for com.example.app');
+          await idle();
+          break;
+        case 'save apple': {
+          // The newest App Store key, or any of them: one the app doesn't hold, or holds as nobody's, must not be saved.
+          const apples = [...ledger.keys()].filter((content) => content.startsWith('-----BEGIN'));
+          const apple = random() < 0.5 ? apples[apples.length - 1] : pick(apples);
+          if (!apple) break;
+          const keyId = keyIdOf(apple);
+          const expected = model.job === 'stores' && heldApple.some((entry) => entry.content === apple);
+          script.push(json({ say: '', actions: [{ do: 'save_apple_key', issuerId: ISSUER, keyId }], next: 'user' }));
+          sendMessage(`Issuer ID ${ISSUER}, Key ID ${keyId}`);
+          await idle();
+          const saved = appleSaves.length > before.apple;
+          if (expected && !saved) fail(`the App Store key ${keyId} the app holds wasn't saved when the store setup asked`);
+          if (!expected && saved) fail(`the App Store key ${keyId} was saved though the app doesn't hold it for this setup`);
+          break;
+        }
+      }
+      // A saved key leaves the app's hands.
+      heldApple = heldApple.filter((entry) => !appleSaves.some((save) => save.content === entry.content));
+      check();
+    }
+    configureSeoSetup(null);
+    forgetHeldKeyFiles();
+  }
 });

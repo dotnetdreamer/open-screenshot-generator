@@ -39,7 +39,7 @@ Make your screenshots once and see them laid out again for the iPad, Android pho
 
 ### 15 November 2026: Growth, Capture and a website for your app
 
-See your App Store and Google Play downloads, ratings and reviews in [Growth](docs/GROWTH.md), keep an eye on competing apps and see where your app shows up in App Store search. In the desktop app, [Capture](docs/CAPTURE.md) takes screenshots of your app in every language, right from your computer or Android phone. [Website](docs/WEBSITE.md) makes your app's home, support and privacy pages and puts the pages online for free on GitHub.
+See your App Store and Google Play downloads, ratings and reviews in [Growth](docs/GROWTH.md), keep an eye on competing apps and see where your app shows up in App Store search. In the desktop app, [Capture](docs/CAPTURE.md) takes screenshots of your app in every language, right from your computer or Android phone. [Website](docs/WEBSITE.md) makes your app's home, support and privacy pages and puts the pages online for free on GitHub. [SEO](docs/SEO.md) checks that site, or any other, and tells you what keeps it off Google and out of AI answers, and how to fix it.
 
 ### 14 October 2026: Codex joins Claude Code in the desktop app
 
