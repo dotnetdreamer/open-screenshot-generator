@@ -73,6 +73,7 @@ import {
   type TranslationViewOptions,
 } from '@/lib/mcp/localeTools';
 import type { LocalizedTextResult } from '@/lib/mcp/localizedText';
+import { sizeWith } from '@/lib/mcp/geometry';
 import {
   ANIMATION_PRESETS,
   GESTURE_TYPES,
@@ -803,6 +804,11 @@ function exportResultContent(results: McpExportResult[]): ToolResult {
 // spread in updateElement drops off the element (and JSON.stringify then leaves
 // out of the saved project). That is the only way to take a shadow or a
 // gradient fill back off once it is set.
+//
+// `position` and `size` carry only the keys the call gave, and the editor puts
+// them over what the element has or would have had (src/lib/mcp/geometry.ts),
+// so a y alone keeps the x. A null x, y, width or height is ignored: a position
+// cannot be cleared.
 function collectElementProps(args: Record<string, any>): Record<string, unknown> {
   const {
     artboardId, elementId, type, subType, id, libraryId, // routing keys, not element props
@@ -813,12 +819,14 @@ function collectElementProps(args: Record<string, any>): Record<string, unknown>
   for (const [k, v] of Object.entries(rest)) {
     if (v !== undefined) props[k] = v === null ? undefined : v;
   }
-  if (x !== undefined || y !== undefined) {
-    props.position = { x: Number(x ?? 0), y: Number(y ?? 0) } as Point;
-  }
-  if (width !== undefined && height !== undefined) {
-    props.size = { width: Number(width), height: Number(height) } as Size;
-  }
+  const position: Partial<Point> = {};
+  if (x != null) position.x = Number(x);
+  if (y != null) position.y = Number(y);
+  if (Object.keys(position).length) props.position = position;
+  const size: Partial<Size> = {};
+  if (width != null) size.width = Number(width);
+  if (height != null) size.height = Number(height);
+  if (Object.keys(size).length) props.size = size;
   return props;
 }
 
@@ -924,10 +932,10 @@ function exportLocale(
 
 // Shared element-property schema fragment for add/update tools.
 const ELEMENT_PROP_SCHEMA: Record<string, unknown> = {
-  x: { type: 'number', description: 'X position in artboard pixels (top-left origin).' },
-  y: { type: 'number', description: 'Y position in artboard pixels (top-left origin).' },
-  width: { type: 'number', description: 'Element width in pixels.' },
-  height: { type: 'number', description: 'Element height in pixels.' },
+  x: { type: 'number', description: 'X position in artboard pixels (top-left origin). Without y, the element keeps its y (a new one is centred).' },
+  y: { type: 'number', description: 'Y position in artboard pixels (top-left origin). Without x, the element keeps its x (a new one is centred).' },
+  width: { type: 'number', description: 'Element width in pixels. Without height, the element keeps its height (a new one gets its default).' },
+  height: { type: 'number', description: 'Element height in pixels. Without width, the element keeps its width (a new one gets its default).' },
   rotation: { type: 'number', description: 'Rotation in degrees.' },
   scale: { type: 'number', description: 'Scale multiplier (1 = 100%).' },
   content: { type: 'string', description: 'Text content (text elements).' },
@@ -1100,10 +1108,7 @@ async function buildElementSpec(
     // Stamp the source tile on the element, exactly as a palette click does, so
     // the Properties panel names the library item behind an agent-made layer.
     libraryProps = { ...resolved.props, libraryId: String(args.libraryId).trim() };
-    // The asset's own size unless the caller gave explicit dimensions.
-    if (resolved.defaultSize && (args.width === undefined || args.height === undefined)) {
-      libraryProps.size = resolved.defaultSize;
-    }
+    if (resolved.defaultSize) libraryProps.size = resolved.defaultSize;
   }
   if (!type) {
     return { ok: false, message: `Pass either type (${ELEMENT_TYPES.join(', ')}) or libraryId.` };
@@ -1112,7 +1117,10 @@ async function buildElementSpec(
   const font = resolveFontFamily(own.fontFamily);
   if (font.error) return { ok: false, message: font.error };
   if (font.family) own.fontFamily = font.family;
-  const props = await validateAssetProps({ ...libraryProps, ...own });
+  // The library item's own size, with the width and height the call gave over
+  // it. One left out, null, zero or negative keeps the item's own.
+  const size = libraryProps.size ? { size: sizeWith(libraryProps.size as Size, own.size as Partial<Size> | undefined) } : {};
+  const props = await validateAssetProps({ ...libraryProps, ...own, ...size });
   return { ok: true, spec: { type, subType, props } };
 }
 

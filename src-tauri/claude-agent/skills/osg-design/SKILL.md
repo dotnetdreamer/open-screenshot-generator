@@ -32,8 +32,6 @@ One design tool call at a time, always: each call reads the canvas the previous 
 
 ## Rules that otherwise fail silently
 
-- Pairs. Pass x with y, and width with height. An x alone also moves the element to y 0, and a
-  width alone is dropped without an error.
 - null clears. An explicit null removes a property (shadow, fillGradient, an animation's enter
   or exit). Leaving a key out leaves it as it is.
 - Fonts. fontFamily must be a family list_fonts returns, or the call is rejected with the nearest
@@ -288,7 +286,7 @@ Change what the user asked about and keep the rest of the set consistent with it
   artboardId when you know it.
 - Bigger or smaller: transform_elements with elementIds and scale (about 1.15 or 0.87) resizes
   around the centre, and for text it scales fontSize and the box together. Measure and look.
-- Move: update_element with x and y together, or transform_elements with dx and dy.
+- Move: update_element with x, y or both, or transform_elements with dx and dy.
 - Darker, lighter, another colour: set_background on every board of the set unless one was named,
   then check the text contrast.
 - Another font: list_fonts, then update_element fontFamily on every headline and subline of the

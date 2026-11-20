@@ -85,6 +85,7 @@ import {
 } from '@/lib/i18n/engines';
 import { applyCsvImport, buildTranslationRows, planCsvImport, toCsv } from '@/lib/i18n/translationCsv';
 import { applyLocalizedText } from '@/lib/mcp/localizedText';
+import { positionWith, sizeWith } from '@/lib/mcp/geometry';
 // The language tools' pure half. Everything they do is a function of the base
 // document, so the layout only resolves ids, commits, and (for the ones that
 // call an engine or the canvas) drives the progress UI.
@@ -702,6 +703,8 @@ function calculateArtboardPositions(artboards: ArtboardState[]): ArtboardState[]
 // directly (no imperative ref) so a single tool call can create and precisely
 // place/style an element in one shot. Caller `props` (position, size, colours,
 // content, ...) win over the defaults; discriminant fields are asserted last.
+// An x, y, width or height the caller left out keeps its default: the default
+// size, and a place centred on the board.
 function buildMcpElement(
   type: ElementType,
   subType: string | undefined,
@@ -714,20 +717,21 @@ function buildMcpElement(
     x: Math.max(0, board.size.width / 2 - w / 2),
     y: Math.max(0, board.size.height / 2 - h / 2),
   });
-  const sizeOr = (w: number, h: number): Size => (props.size?.width && props.size?.height ? props.size : { width: w, height: h });
+  const sizeOr = (w: number, h: number): Size => sizeWith({ width: w, height: h }, props.size);
+  const placeFor = (size: Size): Point => positionWith(centered(size.width, size.height), props.position);
 
   if (type === 'text') {
     const size = sizeOr(400, 100);
     return {
       ...base, content: 'New Text', fontSize: 48, color: '#333333', fontFamily: 'Arial',
-      ...props, size, position: props.position ?? centered(size.width, size.height), type: 'text',
+      ...props, size, position: placeFor(size), type: 'text',
     } as TextElementProps;
   }
   if (type === 'image') {
     const size = sizeOr(400, 300);
     return {
       ...base, objectFit: 'cover', opacity: 1, borderRadius: 0,
-      ...props, size, position: props.position ?? centered(size.width, size.height), type: 'image',
+      ...props, size, position: placeFor(size), type: 'image',
     } as ImageElementProps;
   }
   if (type === 'shape') {
@@ -739,7 +743,7 @@ function buildMcpElement(
     if (subType === 'circle' || subType === 'diamond') shapeDefaults.innerRadius = 0;
     return {
       ...base, ...shapeDefaults,
-      ...props, size, position: props.position ?? centered(size.width, size.height),
+      ...props, size, position: placeFor(size),
       type: 'shape', shapeType: subType as ShapeType,
     } as ShapeElementProps;
   }
@@ -751,7 +755,7 @@ function buildMcpElement(
       : { left: 0, top: 0, width: 100, height: 100 };
     return {
       ...base, screenshotRect,
-      ...props, size, position: props.position ?? centered(size.width, size.height),
+      ...props, size, position: placeFor(size),
       type: 'device', deviceType: subType as DeviceType,
     } as DeviceFrameElementProps;
   }
@@ -763,7 +767,7 @@ function buildMcpElement(
     const size = sizeOr(600, 1200);
     return {
       ...base, objectFit: 'cover',
-      ...props, size, position: props.position ?? centered(size.width, size.height),
+      ...props, size, position: placeFor(size),
       type: 'video-device', deviceType: (subType as DeviceType) || 'iphone-15-pro',
     } as VideoDeviceElementProps;
   }
@@ -771,7 +775,7 @@ function buildMcpElement(
     const size = sizeOr(600, 1200);
     return {
       ...base, objectFit: 'cover', borderRadius: 0,
-      ...props, size, position: props.position ?? centered(size.width, size.height),
+      ...props, size, position: placeFor(size),
       type: 'video',
     } as VideoElementProps;
   }
@@ -787,7 +791,7 @@ function buildMcpElement(
     );
     return {
       ...base, color: '#4F46E5', triggerTime: 0.5, gestureDuration: 1.2,
-      ...props, size, position: props.position ?? centered(size.width, size.height),
+      ...props, size, position: placeFor(size),
       type: 'gesture', gestureType,
     } as GestureElementProps;
   }
@@ -11519,7 +11523,17 @@ const generateRandomProjectName = (): string => {
       const board = artboards.find((ab) => ab.id === boardId);
       if (!board || !board.elements.some((el) => el.id === elementId)) return false;
       const newElements = board.elements.map((el) =>
-        el.id === elementId ? ({ ...el, ...props, id: el.id, type: el.type } as ArtboardElement) : el
+        el.id === elementId
+          ? ({
+              ...el,
+              ...props,
+              // An x, y, width or height the call left out keeps the element's own.
+              position: positionWith(el.position, props.position as Partial<Point> | undefined),
+              size: sizeWith(el.size, props.size as Partial<Size> | undefined),
+              id: el.id,
+              type: el.type,
+            } as ArtboardElement)
+          : el
       );
       commitForTool(artboards.map((ab) => (ab.id === boardId ? { ...ab, elements: newElements } : ab)));
       return true;
