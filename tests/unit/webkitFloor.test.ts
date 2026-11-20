@@ -7,7 +7,11 @@
 // - nothing of the SEO view loads with the editor but its loader: its checks
 //   are ports of Python patterns, and the view loads on its own
 //   (LazySeoWorkspace), so whatever one web view can't read fails there, not
-//   in the editor.
+//   in the editor;
+// - every package the app bundles that WebKit 15 can't parse is in
+//   transpilePackages (next.config.ts). Next compiles the app's own code for
+//   older browsers but ships packages as they come, and three.js's class
+//   static blocks stopped every 3D device loading in WebKit 15.4.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -71,9 +75,11 @@ test('no regular expression in src/ has a lookbehind or the v flag, as a literal
   assert.ok(literals > 500, `only ${literals} literals found: the scan missed files`);
 });
 
-test("the editor loads nothing of the SEO view's at the start but its loader", async () => {
+/** The whole app as esbuild bundles it from the page, dynamic imports and all; built once for the tests below. */
+let built: Promise<import('esbuild').BuildResult<{ metafile: true; write: false }>> | null = null;
+function bundle() {
   const esbuild = load('esbuild') as typeof import('esbuild');
-  const result = await esbuild.build({
+  built ??= esbuild.build({
     entryPoints: [path.join(repo, 'src/app/page.tsx')],
     bundle: true,
     write: false,
@@ -89,8 +95,12 @@ test("the editor loads nothing of the SEO view's at the start but its loader", a
     define: { 'process.env.NODE_ENV': '"production"' },
     external: ['fs', 'path', 'crypto', 'child_process', 'os', 'url', 'stream', 'zlib', 'http', 'https', 'net', 'tls', 'worker_threads'],
   });
+  return built;
+}
+
+test("the editor loads nothing of the SEO view's at the start but its loader", async () => {
   // What the page reaches by static imports: a dynamic import() is a chunk loaded later.
-  const inputs = result.metafile.inputs;
+  const inputs = (await bundle()).metafile.inputs;
   const entry = Object.keys(inputs).find((file) => file.endsWith('src/app/page.tsx'))!;
   const reached = new Set([entry]);
   const queue = [entry];
@@ -104,4 +114,70 @@ test("the editor loads nothing of the SEO view's at the start but its loader", a
   const seo = [...reached].filter((file) => file.includes('src/lib/seo/') || file.includes('components/open-screenshot-generator/seo/'));
   assert.deepEqual(seo, ['src/components/open-screenshot-generator/seo/LazySeoWorkspace.tsx']);
   assert.ok(reached.size > 1000, `only ${reached.size} modules reached: the build missed the editor`);
+});
+
+/** The package a bundled file comes from: "three", "@scope/name". */
+function packageOf(file: string): string {
+  const parts = file.slice(file.lastIndexOf('node_modules/') + 'node_modules/'.length).split('/');
+  return parts[0].startsWith('@') ? `${parts[0]}/${parts[1]}` : parts[0];
+}
+
+/** What WebKit 15 can't parse in a file: a class static block (Safari 16.4), a pattern with a lookbehind (16.4) or the v flag (17). */
+function tooNewSyntax(text: string, acorn: typeof import('acorn')): string[] {
+  const options = { ecmaVersion: 'latest', allowHashBang: true, allowReturnOutsideFunction: true, allowAwaitOutsideFunction: true, allowImportExportEverywhere: true } as const;
+  let tree: unknown;
+  try {
+    tree = acorn.parse(text, { ...options, sourceType: 'module' });
+  } catch {
+    // Old CommonJS can be sloppy-mode code that a module can't be.
+    tree = acorn.parse(text, { ...options, sourceType: 'script' });
+  }
+  const found = new Set<string>();
+  const stack: unknown[] = [tree];
+  while (stack.length) {
+    const node = stack.pop();
+    if (!node || typeof node !== 'object') continue;
+    const { type, regex } = node as { type?: string; regex?: { pattern: string; flags: string } };
+    if (type === 'StaticBlock') found.add('a class static block');
+    if (type === 'Literal' && regex) {
+      if (hasLookbehind(regex.pattern)) found.add('a lookbehind');
+      if (regex.flags.includes('v')) found.add('the v flag');
+    }
+    for (const value of Object.values(node)) {
+      if (Array.isArray(value)) for (const child of value) stack.push(child);
+      else if (value && typeof value === 'object') stack.push(value);
+    }
+  }
+  return [...found];
+}
+
+/** The packages next.config.ts has Next compile like the app's own code. */
+function transpiled(): string[] {
+  const text = fs.readFileSync(path.join(repo, 'next.config.ts'), 'utf8');
+  const list = /transpilePackages:\s*\[([^\]]*)\]/.exec(text);
+  return list ? [...list[1].matchAll(/'([^']+)'|"([^"]+)"/g)].map((match) => match[1] ?? match[2]) : [];
+}
+
+test("every package the app bundles that WebKit 15 can't parse is compiled like the app's code (transpilePackages)", async () => {
+  const acorn = load('acorn') as typeof import('acorn');
+  // The scan finds each kind, or a package needing the list would pass unseen.
+  assert.deepEqual(tooNewSyntax('class A { static { A.x = 1; } }\nconst a = /(?<=a)b/;\nconst b = /[a]/v;\nconst c = /(?:a)[(?<=]/;', acorn).sort(), ['a class static block', 'a lookbehind', 'the v flag']);
+  const inputs = (await bundle()).metafile.inputs;
+  const needs = new Map<string, Set<string>>();
+  const scanned = new Set<string>();
+  for (const file of Object.keys(inputs)) {
+    if (!file.includes('node_modules/') || !/\.[cm]?js$/.test(file)) continue;
+    const name = packageOf(file);
+    scanned.add(name);
+    for (const what of tooNewSyntax(fs.readFileSync(path.resolve(repo, file), 'utf8'), acorn)) {
+      if (!needs.has(name)) needs.set(name, new Set());
+      needs.get(name)!.add(what);
+    }
+  }
+  const listed = transpiled();
+  const missing = [...needs].filter(([name]) => !listed.includes(name)).map(([name, what]) => `${name}: ${[...what].join(', ')}`);
+  assert.deepEqual(missing, []);
+  // three.js is reached only through the 3D devices' dynamic import, so this proves the scan follows those.
+  assert.ok(scanned.has('three'), 'the scan never reached three.js: it missed what loads later');
+  assert.ok(scanned.size > 50, `only ${scanned.size} packages scanned: the build missed most of the app`);
 });
