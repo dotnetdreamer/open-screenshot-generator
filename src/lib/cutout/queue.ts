@@ -5,10 +5,13 @@
 // window to open the background remover picks it up again, and a Web Lock per
 // picture keeps two windows from cutting the same one.
 
-import { getMediaAsset } from '@/lib/mediaStore';
 import { CutoutWorkerError, cutPicture, DEFAULT_RENDER, forgetPicture, openPicture, renderCutout, type CutStep } from './engine';
 import {
   getLibraryImage,
+  isOutOfRoom,
+  OUT_OF_ROOM,
+  photoOf,
+  PictureChangedError,
   saveLibraryCut,
   setLibraryImageState,
   unfinishedLibraryImages,
@@ -105,13 +108,24 @@ let draining = false;
 export async function drainLibraryQueue(): Promise<void> {
   if (draining) return;
   draining = true;
+  // Pictures this run could not get through, not even to being marked failed
+  // (their row would not take the write). They wait for the next run, rather
+  // than stopping the pictures after them or being tried again and again.
+  const skipped = new Set<string>();
   try {
     for (;;) {
-      const waiting = await unfinishedLibraryImages();
+      const waiting = (await unfinishedLibraryImages()).filter((row) => !skipped.has(row.id));
       let progressed = false;
       let paused = false;
       for (const row of waiting) {
-        const done = await withPictureLock(row.id, () => cutLibraryImage(row.id));
+        let done: boolean | 'paused' | null;
+        try {
+          done = await withPictureLock(row.id, () => cutLibraryImage(row.id));
+        } catch (error) {
+          console.error('A picture could not be cut or marked failed', row.id, error);
+          skipped.add(row.id);
+          continue;
+        }
         if (done === 'paused') {
           paused = true;
           break;
@@ -128,37 +142,58 @@ export async function drainLibraryQueue(): Promise<void> {
 async function cutLibraryImage(id: string): Promise<boolean | 'paused'> {
   const row = await getLibraryImage(id);
   if (!row || row.deletedAt || (row.state !== 'waiting' && row.state !== 'cutting')) return false;
-  const source = row.sourceMediaId ? await getMediaAsset(row.sourceMediaId) : undefined;
-  if (!source) {
-    await setLibraryImageState(id, 'failed', 'The photo is no longer on this device');
-    return true;
-  }
   await setLibraryImageState(id, 'cutting');
   stepListeners.forEach((listener) => listener(id, null, 'cutting'));
+  // Everything that can fail for this one picture is in the try, so the
+  // pictures after it are still cut. A write that fails here too goes to
+  // drainLibraryQueue, which moves on.
   try {
-    const files = await cutPictureFile(source.blob, {
-      settings: row.settings,
-      onStep: (step) => stepListeners.forEach((listener) => listener(id, step, 'cutting')),
-    });
-    await saveLibraryCut(id, {
-      mask: files.mask,
-      picture: files.picture,
-      width: files.width,
-      height: files.height,
-      thumb: files.thumb,
-      settings: files.settings,
-      rect: files.rect,
-      engine: files.engine,
-    });
+    // A picture restored without its photo is cut from the picture itself,
+    // with the settings photoOf leaves it (none of the edge ones). One whose
+    // photo changes while it is cut (a backup bringing the real photo down)
+    // is cut once more, from the new photo.
+    for (let round = 0; ; round++) {
+      const source = await photoOf(id);
+      if (!source) throw new Error('The photo is no longer on this device');
+      const files = await cutPictureFile(source.photo.blob, {
+        settings: source.row.settings,
+        onStep: (step) => stepListeners.forEach((listener) => listener(id, step, 'cutting')),
+      });
+      try {
+        await saveLibraryCut(id, {
+          mask: files.mask,
+          picture: files.picture,
+          width: files.width,
+          height: files.height,
+          thumb: files.thumb,
+          settings: files.settings,
+          rect: files.rect,
+          engine: files.engine,
+          photo: source.photo,
+        });
+        break;
+      } catch (error) {
+        if (!(error instanceof PictureChangedError) || round > 0) throw error;
+      }
+    }
     stepListeners.forEach((listener) => listener(id, null, 'done'));
   } catch (error) {
     if (error instanceof CutoutWorkerError && error.stopped) {
-      await setLibraryImageState(id, 'waiting');
+      // Stopped either way: a picture whose state did not go back to waiting
+      // is still `cutting`, which the next run picks up all the same.
+      await setLibraryImageState(id, 'waiting').catch((stateError) => console.error('Putting a picture back in line failed', stateError));
       return 'paused';
     }
     console.error('Cutting a picture failed', error);
-    await setLibraryImageState(id, 'failed', error instanceof Error ? error.message : 'The background could not be removed');
     stepListeners.forEach((listener) => listener(id, null, 'failed'));
+    const words = isOutOfRoom(error)
+      ? OUT_OF_ROOM
+      : error instanceof PictureChangedError
+        ? 'The picture changed while its background was being removed. Try again.'
+        : error instanceof Error
+          ? error.message
+          : 'The background could not be removed';
+    await setLibraryImageState(id, 'failed', words);
   }
   return true;
 }

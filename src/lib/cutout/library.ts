@@ -58,8 +58,14 @@ export interface LibraryImageRow {
   placed?: boolean;
   createdAt: number;
   updatedAt: number;
-  /** Deleted here, kept until a sync has told the account. */
+  /** Deleted here. The row is kept for as long as a backup remembers a deletion (backup.ts). */
   deletedAt?: number;
+  /**
+   * A deleted picture's files an account may still have, by account
+   * (`provider:account id`): written before a sync takes the picture out of
+   * that account's list, and cleared once its files are out.
+   */
+  leftThere?: Record<string, string[]>;
 }
 
 const newId = (prefix: string) => `${prefix}${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -211,13 +217,124 @@ export async function addLibraryImageFromMedia(input: {
   return row;
 }
 
+/** True when the browser's storage refused a write because the computer is out of room. */
+export function isOutOfRoom(error: unknown): boolean {
+  const names = [(error as { name?: string })?.name, (error as { inner?: { name?: string } })?.inner?.name];
+  return names.includes('QuotaExceededError');
+}
+
+export const OUT_OF_ROOM = 'This computer is out of room for more pictures. Delete some pictures or projects, then try again.';
+
+/** What a picture is cut and edited from. */
+export interface PictureSource {
+  /** The picture's row as it is now. */
+  row: LibraryImageRow;
+  photo: MediaAsset;
+  /** The saved mask over `photo`. Absent when there is none: the photo's own transparency is the mask then. */
+  mask?: MediaAsset;
+}
+
+/**
+ * The row of a picture that is its own photo. A mask such a row names was
+ * saved over an earlier version of the picture, which is gone, so it does not
+ * fit and goes, with the rect. The edge settings are in the picture already,
+ * so they start again from none.
+ */
+function asOwnPhoto(row: LibraryImageRow): LibraryImageRow {
+  return {
+    ...row,
+    maskMediaId: undefined,
+    rect: undefined,
+    settings: row.settings && { ...row.settings, edge: 0, softness: 0 },
+  };
+}
+
+/**
+ * The photo a picture is cut from, and the mask over it. A picture with no
+ * photo of its own gets a copy of itself as one: a gist keeps no photos, and
+ * Google Drive keeps none for a picture kept as it came, so pictures that came
+ * back from either have only the picture. With the copy they can be cut again,
+ * and a mask saved by a hand edit fits the same photo every time it opens. When
+ * the copy cannot be stored (no room), the picture itself is the photo this
+ * time and nothing is written; saveLibraryCut then keeps the copy with the
+ * mask, or fails for the same lack of room. Null when the picture is gone as
+ * well.
+ */
+export async function photoOf(id: string): Promise<PictureSource | null> {
+  // Another window can change the row while the copy is written: a new
+  // version of the picture (an edit, a backup bringing a newer one), or a photo
+  // of its own. The copy is then of a picture the row no longer shows, so it
+  // goes and the row is read again. The third read keeps what it finds.
+  for (let round = 0; ; round++) {
+    const row = await libraryDb.images.get(id);
+    if (!row || row.deletedAt) return null;
+    const kept = row.sourceMediaId ? await db.media.get(row.sourceMediaId) : undefined;
+    if (kept) {
+      const mask = row.maskMediaId ? await db.media.get(row.maskMediaId) : undefined;
+      return { row, photo: kept, mask };
+    }
+    const picture = row.mediaId ? await db.media.get(row.mediaId) : undefined;
+    if (!picture) return null;
+    const unkept = (error?: unknown): PictureSource => {
+      if (error) console.error('Keeping a copy of a picture as its photo failed', error);
+      return { row: asOwnPhoto(row), photo: picture };
+    };
+    if (round === 2) return unkept();
+    const width = picture.width ?? row.width;
+    const height = picture.height ?? row.height;
+    const sourceMediaId = newId('libsrc_');
+    // The media first, then the row.
+    try {
+      await putMedia(sourceMediaId, picture.blob, row.name, width && height ? { width, height } : undefined);
+    } catch (error) {
+      return unkept(error);
+    }
+    let outcome: { row: LibraryImageRow; staleMask?: string } | 'changed' | null;
+    try {
+      outcome = await libraryDb.transaction('rw', libraryDb.images, async () => {
+        const now = await libraryDb.images.get(id);
+        if (!now || now.deletedAt) return null;
+        if (now.mediaId !== row.mediaId || (now.sourceMediaId && now.sourceMediaId !== row.sourceMediaId)) return 'changed';
+        const next = { ...asOwnPhoto(now), sourceMediaId, sourceWidth: width, sourceHeight: height };
+        await libraryDb.images.put(next);
+        return { row: next, staleMask: now.maskMediaId };
+      });
+    } catch (error) {
+      await db.media.delete(sourceMediaId).catch(() => undefined);
+      return unkept(error);
+    }
+    if (outcome === 'changed' || !outcome) {
+      await db.media.delete(sourceMediaId);
+      if (!outcome) return null;
+      continue;
+    }
+    if (outcome.staleMask) await db.media.delete(outcome.staleMask).catch(() => undefined);
+    const photo = await db.media.get(sourceMediaId);
+    if (!photo) return null;
+    return { row: outcome.row, photo };
+  }
+}
+
+/** The picture changed while it was being cut or edited, so the mask made for it no longer fits its photo. */
+export class PictureChangedError extends Error {
+  constructor() {
+    super('The picture changed in the meantime. Try again.');
+    this.name = 'PictureChangedError';
+  }
+}
+
 export async function setLibraryImageState(id: string, state: LibraryImageState, error?: string): Promise<void> {
   await libraryDb.images.update(id, { state, error, updatedAt: Date.now() });
 }
 
 /**
  * Keeps a finished cut: the mask, the settings, and the picture they make.
- * The picture before it is let go unless an artboard may still show it.
+ * The mask fits the photo it was made over and no other, so that photo comes
+ * too: the row's own photo, or the picture itself when photoOf had no room to
+ * keep a copy, which is kept now (a save with no room for it fails, and
+ * nothing changes). A row that has another photo or another picture by now
+ * throws PictureChangedError, and nothing changes either. The picture before
+ * it is let go unless an artboard may still show it.
  */
 export async function saveLibraryCut(
   id: string,
@@ -231,32 +348,74 @@ export async function saveLibraryCut(
     rect: Rect;
     /** How the mask was made; left as it was when absent (a brush edit). */
     engine?: CutoutEngine;
+    /** The photo the mask is over, as photoOf gave it. */
+    photo: MediaAsset;
   }
 ): Promise<LibraryImageRow | null> {
   const row = await libraryDb.images.get(id);
   if (!row || row.deletedAt) return null;
+  const own = !!row.sourceMediaId && row.sourceMediaId === cut.photo.id;
+  // The picture as its own photo, the row having no photo kept yet.
+  const itself = !own && cut.photo.id === row.mediaId && !(row.sourceMediaId && (await db.media.get(row.sourceMediaId)));
+  if (!own && !itself) throw new PictureChangedError();
+  const photoSize = itself
+    ? { width: cut.photo.width ?? row.width, height: cut.photo.height ?? row.height }
+    : { width: row.sourceWidth, height: row.sourceHeight };
+  const size = photoSize.width && photoSize.height ? { width: photoSize.width, height: photoSize.height } : undefined;
+  const sourceMediaId = itself ? newId('libsrc_') : (row.sourceMediaId as string);
   const mediaId = newId('asset_');
   const maskMediaId = newId('libmask_');
-  await putMedia(mediaId, cut.picture, row.name, cut);
-  await putMedia(maskMediaId, cut.mask, `${row.name} mask`, row.sourceWidth && row.sourceHeight ? { width: row.sourceWidth, height: row.sourceHeight } : undefined);
-  const next: LibraryImageRow = {
-    ...row,
-    state: 'ready',
-    error: undefined,
-    mediaId,
-    width: cut.width,
-    height: cut.height,
-    thumb: cut.thumb,
-    maskMediaId,
-    settings: cut.settings,
-    rect: cut.rect,
-    engine: cut.engine ?? row.engine,
-    // A new picture: nothing has placed it yet.
-    placed: false,
-    updatedAt: Date.now(),
-  };
-  await libraryDb.images.put(next);
-  const stale = [row.maskMediaId, row.placed ? undefined : row.mediaId].filter((value): value is string => !!value && value !== mediaId && value !== maskMediaId);
+  const written: string[] = [];
+  const unwrite = () => (written.length ? db.media.bulkDelete(written).catch(() => undefined) : undefined);
+  let outcome: { next: LibraryImageRow; before: LibraryImageRow } | 'changed' | null;
+  try {
+    if (itself) {
+      await putMedia(sourceMediaId, cut.photo.blob, row.name, size);
+      written.push(sourceMediaId);
+    }
+    await putMedia(mediaId, cut.picture, row.name, cut);
+    written.push(mediaId);
+    await putMedia(maskMediaId, cut.mask, `${row.name} mask`, size);
+    written.push(maskMediaId);
+    // The row again, in the write: what it shows has to be what the mask was
+    // made for, and a rename since is kept.
+    outcome = await libraryDb.transaction('rw', libraryDb.images, async () => {
+      const now = await libraryDb.images.get(id);
+      if (!now || now.deletedAt) return null;
+      if (now.mediaId !== row.mediaId || now.sourceMediaId !== row.sourceMediaId) return 'changed';
+      const next: LibraryImageRow = {
+        ...now,
+        state: 'ready',
+        error: undefined,
+        mediaId,
+        width: cut.width,
+        height: cut.height,
+        thumb: cut.thumb,
+        ...(itself ? { sourceMediaId, sourceWidth: size?.width, sourceHeight: size?.height } : {}),
+        maskMediaId,
+        settings: cut.settings,
+        rect: cut.rect,
+        engine: cut.engine ?? now.engine,
+        // A new picture: nothing has placed it yet.
+        placed: false,
+        updatedAt: Date.now(),
+      };
+      await libraryDb.images.put(next);
+      return { next, before: now };
+    });
+  } catch (error) {
+    await unwrite();
+    throw error;
+  }
+  if (outcome === 'changed' || !outcome) {
+    await unwrite();
+    if (outcome === 'changed') throw new PictureChangedError();
+    return null;
+  }
+  const { next, before } = outcome;
+  const stale = [before.maskMediaId, before.placed ? undefined : before.mediaId].filter(
+    (value): value is string => !!value && value !== mediaId && value !== maskMediaId && value !== sourceMediaId
+  );
   if (stale.length) await db.media.bulkDelete(stale);
   notifyMediaChanged();
   return next;
@@ -281,7 +440,8 @@ export async function markLibraryImagePlaced(id: string): Promise<void> {
 /**
  * Deletes a picture from the library. Its photo and mask go now. The finished
  * picture stays when an artboard may show it, since a project references it
- * by id. The row stays, marked, until a sync has told the account.
+ * by id. The row stays, marked, for as long as a backup remembers a deletion,
+ * so every account this computer backs up to in that time hears of it.
  */
 export async function deleteLibraryImage(id: string): Promise<void> {
   const row = await libraryDb.images.get(id);
@@ -301,13 +461,13 @@ export async function deleteLibraryImage(id: string): Promise<void> {
   if (media.length) await db.media.bulkDelete(media);
 }
 
-/** Rows deleted here that the account has not heard about. */
+/** Rows deleted here and not forgotten yet. */
 export async function deletedLibraryImages(): Promise<LibraryImageRow[]> {
   const rows = await libraryDb.images.toArray();
   return rows.filter((row) => !!row.deletedAt);
 }
 
-/** Forgets deleted rows once the account knows. */
+/** Forgets deleted rows. */
 export async function purgeDeletedLibraryImages(ids: string[]): Promise<void> {
   if (ids.length) await libraryDb.images.bulkDelete(ids);
 }

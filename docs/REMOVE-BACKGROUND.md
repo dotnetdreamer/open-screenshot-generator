@@ -27,6 +27,7 @@ Most pictures come out right the first time. When one doesn't:
 
 - **Erase** and **Bring back**: paint over the parts you want gone, or the parts you want back. Press **X** to switch between the two, and **[** or **]** to make the brush smaller or bigger.
 - To move around the picture, hold **Alt** and drag, or use two fingers on a trackpad. To zoom, hold **Ctrl** or **Cmd** and scroll.
+- On a phone or tablet, tap **Erase** or **Bring back** first, then paint with your finger or pen. Tap it again to stop. Until you tap one, swiping over the picture scrolls the page instead of painting.
 - **Shrink or grow**: drag left to trim off a thin line of the old background. Drag right if the edge cuts into the person or product.
 - **Soften** makes the edges a little blurry. A little helps with hair and fur.
 - **Fix colored edges** takes leftover color from the old background out of the edges, so hair doesn't look outlined. It's on unless you turn it off.
@@ -55,10 +56,12 @@ The **Custom** tab at the top of the editor's left panel shows Your pictures:
 
 Your pictures are kept on this computer. To keep a copy in your own Google Drive or GitHub account, sign in under **Account**, then click **Back up to Google Drive** (or **Back up to GitHub**) at the top of Remove background.
 
-- **Google Drive** gets a folder called **Open Screenshot Generator images**. Your pictures are normal PNG files you can open in Drive. The original photos go too, so you can still fix the edges on another computer.
+- **Google Drive** gets a folder called **Open Screenshot Generator images**. Your pictures are normal PNG files you can open in Drive, each named after the picture. When you rename a picture, its files get the new name the next time you back up. The original photos go too, so you can still fix the edges on another computer. They have "(photo)" and "(mask)" at the end of their names.
 - **GitHub** gets one private gist with the finished pictures only. A gist holds up to 298 pictures, each up to 7.5 MB.
 
-The same button brings your pictures back on a new computer. When you delete a picture, the copy online goes too the next time you back up. Nothing gets backed up until you click the button.
+The same button brings your pictures back on a new computer. When you delete a picture, the copy online goes too the next time you back up, and so does the copy in any other account you back up to in the next four months. On Google Drive it goes to the trash, where Drive keeps it for 30 days. Nothing gets backed up until you click the button.
+
+If a picture can't be brought back, deleted or renamed online this time, the message after the backup says so, and the next backup tries again.
 
 ## With the AI assistant
 

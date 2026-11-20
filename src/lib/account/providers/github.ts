@@ -45,7 +45,7 @@ import {
   type RemoteLibraryState,
   type SignInOptions,
 } from '../types';
-import { bridgeFetch, formEncode, randomState, requestJson, throwIfSignInCancelled } from '../transport';
+import { bridgeFetch, formEncode, randomState, requestJson, throwConnectionFailure, throwIfSignInCancelled } from '../transport';
 import {
   base64ToBlob,
   blobToBase64,
@@ -448,9 +448,9 @@ async function readGistFile(file: GistFile): Promise<string> {
   const doFetch = await bridgeFetch();
   // Same reason requestJson sets it: a raw gist URL is served cacheable, and a
   // stale one here means opening the document as it was, not as it is.
-  const response = await doFetch(file.raw_url, { cache: 'no-store' });
+  const response = await doFetch(file.raw_url, { cache: 'no-store' }).catch(throwConnectionFailure(file.raw_url));
   if (!response.ok) throw new Error(`Could not read the gist contents (HTTP ${response.status}).`);
-  return response.text();
+  return response.text().catch(throwConnectionFailure(file.raw_url));
 }
 
 // --- provider ---------------------------------------------------------------
@@ -904,13 +904,21 @@ export const githubLibrary: LibraryRemote = {
   },
 
   async remove(session, state, mediaIds) {
-    if (!state.handle || mediaIds.length === 0) return;
+    if (!state.handle || mediaIds.length === 0) return [];
     const files: Record<string, null> = {};
     for (const id of mediaIds) files[mediaFileName(id)] = null;
-    await githubJson(session, `/gists/${state.handle}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ files }),
-    });
+    // One request takes them all out, so when it fails they are all still there.
+    try {
+      await githubJson(session, `/gists/${state.handle}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ files }),
+      });
+      return [];
+    } catch (error) {
+      if (error instanceof AccountAuthError) throw error;
+      console.error('Taking pictures out of the gist failed', error);
+      return mediaIds;
+    }
   },
 };

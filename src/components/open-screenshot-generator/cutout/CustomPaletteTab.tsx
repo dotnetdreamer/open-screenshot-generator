@@ -8,6 +8,7 @@
 import React, { useRef } from 'react';
 import { ImagePlusIcon, Loader2Icon, ScissorsIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useSidebar } from '@/components/ui/sidebar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { customLibraryId } from '@/lib/libraryIds';
@@ -120,10 +121,20 @@ export function CustomPaletteTab({
   const rows = useLibraryImages();
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
+  // On a phone this tab is in a sheet laid over the screen, which would stay
+  // over the background remover: it closes first.
+  const { setOpenMobile } = useSidebar();
+  const openCutout = (imageId?: string) => {
+    setOpenMobile(false);
+    onOpenCutout?.(imageId);
+  };
 
   const add = async (files: File[]) => {
     try {
-      await addPictureFiles(files, { cut: false });
+      const result = await addPictureFiles(files, { cut: false });
+      if (result.reason) {
+        toast({ title: `${result.notAdded} of the ${files.length} files ${result.notAdded === 1 ? "wasn't" : "weren't"} added`, description: result.reason });
+      }
     } catch (error) {
       toast({ title: "Those pictures couldn't be added", description: error instanceof Error ? error.message : 'Try again.' });
     }
@@ -136,7 +147,7 @@ export function CustomPaletteTab({
       await setLibraryImageState(row.id, 'waiting');
       void drainLibraryQueue();
     }
-    onOpenCutout?.(row.id);
+    openCutout(row.id);
   };
 
   return (
@@ -153,7 +164,7 @@ export function CustomPaletteTab({
             variant="outline"
             className="h-8 flex-1 gap-1.5 text-xs"
             title="Take the background out of your photos"
-            onClick={() => onOpenCutout()}
+            onClick={() => openCutout()}
           >
             <ScissorsIcon className="h-3.5 w-3.5" />
             Remove background
