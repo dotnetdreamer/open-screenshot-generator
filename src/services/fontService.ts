@@ -83,6 +83,8 @@ export const GOOGLE_FONTS: AppFont[] = [
   { family: 'Plus Jakarta Sans', variants: ['200', '300', '400', '500', '600', '700', '800'], category: 'sans-serif', fallback: 'sans-serif', script: 'latin' },
   { family: 'Space Grotesk', variants: ['300', '400', '500', '600', '700'], category: 'sans-serif', fallback: 'sans-serif', script: 'latin' },
   { family: 'Outfit', variants: ['300', '400', '500', '600', '700', '800', '900'], category: 'sans-serif', fallback: 'sans-serif', script: 'latin' },
+  // Inter cut with tighter spacing, for heavy headlines set close together.
+  { family: 'Inter Tight', variants: ['400', '500', '600', '700', '800', '900'], category: 'sans-serif', fallback: 'sans-serif', script: 'latin' },
 
   // Arabic fonts
   { family: 'Noto Sans Arabic', variants: ['100', '200', '300', '400', '500', '600', '700', '800', '900'], category: 'sans-serif', fallback: 'sans-serif', script: 'arabic' },

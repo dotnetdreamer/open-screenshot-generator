@@ -45,6 +45,9 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     previewFit: 'contain',
     gridClassName: 'grid-cols-1 lg:grid-cols-2',
     files: [
+      'parsnap-golf.json',
+      'tenpost-ai-photos.json',
+      'askadeck-questions.json',
       'umdo-voice-todo.json',
       'paylark-benefits.json',
       'signsy-asl.json',

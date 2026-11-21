@@ -8,6 +8,9 @@ const path = require('path');
 const { launch, startBlankProject, sleep, exportArtboards, clickTab, dismissTipsDialog, waitForProjectFonts, APP_URL } = require('./lib');
 
 const TEMPLATES = [
+  { slug: 'parsnap-golf', card: 'Parsnap Golf Scores', boards: 5 },
+  { slug: 'tenpost-ai-photos', card: 'Tenpost AI Photos', boards: 5 },
+  { slug: 'askadeck-questions', card: 'Askadeck Party Questions', boards: 5 },
   { slug: 'umdo-voice-todo', card: 'Umdo Voice To-Do', boards: 5 },
   { slug: 'paylark-benefits', card: 'Paylark Benefits', boards: 6 },
   { slug: 'signsy-asl', card: 'Signsy ASL', boards: 6 },

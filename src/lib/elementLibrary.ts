@@ -542,6 +542,18 @@ const checkerSub = (cells: number): string => {
   return d;
 };
 
+/** A checker of square cells, `cols` across and `rows` down, in a box 100 wide and as tall as the rows need. */
+const checkerGridSub = (cols: number, rows: number): string => {
+  const s = 100 / cols;
+  let d = '';
+  for (let ri = 0; ri < rows; ri++) {
+    for (let ci = 0; ci < cols; ci++) {
+      if ((ri + ci) % 2 === 0) d += rectSub(ci * s, ri * s, s, s);
+    }
+  }
+  return d;
+};
+
 const plusSub = (cx: number, cy: number, s: number): string => {
   const a = s / 3;
   return (
@@ -1271,6 +1283,7 @@ const icons: LibraryElementDef[] = [
     { evenodd: true }),
   el('icon-transcript', 'Transcript', 'M16 24 Q16 14 26 14 H74 Q84 14 84 24 V58 Q84 68 74 68 H46 L28 84 V68 H26 Q16 68 16 58 Z M32 34 H68 M32 48 H54', { stroke: 6 }),
   el('icon-checklist', 'Checklist', 'M12 22 Q12 12 22 12 H60 Q70 12 70 22 V56 Q70 66 60 66 H22 Q12 66 12 56 Z M24 30 H58 M24 46 H44 M54 72 A18 18 0 1 1 90 72 A18 18 0 1 1 54 72 M63 72 L70 79 L82 66', { stroke: 6 }),
+  el('icon-compare', 'Compare Arrows', 'M40 24 L16 50 L40 76 M60 24 L84 50 L60 76', { stroke: 8 }),
 ];
 
 const decor: LibraryElementDef[] = [
@@ -1326,6 +1339,12 @@ const decor: LibraryElementDef[] = [
   el('decor-check', 'Sketch Check', 'M50 10 C28 10 12 27 12 50 C12 73 29 90 52 90 C74 90 89 74 89 52 C89 34 78 18 60 12 M32 50 L46 64 L78 30', { stroke: 6 }),
   el('decor-wind', 'Wind', 'M6 36 H50 Q64 36 64 25 Q64 15 54 15 M6 52 H82 Q94 52 94 41 M6 68 H44 Q58 68 58 79 Q58 88 48 88', { stroke: 7 }),
   el('decor-voice-wave', 'Voice Wave', voiceWaveSub(36), { stroke: 3, size: { width: 440, height: 140 } }),
+  el('decor-ripple-rings', 'Ripple Rings', [47, 39, 31, 23, 15].map((r) => circleSub(50, 50, r)).join(' '), { stroke: 1.5, size: { width: 420, height: 420 } }),
+  el('decor-scan-frame', 'Scan Frame', 'M6 30 V14 Q6 6 14 6 H30 M70 6 H86 Q94 6 94 14 V30 M94 70 V86 Q94 94 86 94 H70 M30 94 H14 Q6 94 6 86 V70', { stroke: 4 }),
+  el('decor-progress-arc', 'Progress Arc', (() => {
+    const end = polar(50, 50, 44, -90 + 0.3 * 360);
+    return `M50 6 A44 44 0 0 1 ${fmt(end[0])} ${fmt(end[1])}`;
+  })(), { stroke: 8 }),
 ];
 
 const blobs: LibraryElementDef[] = [
@@ -1471,6 +1490,8 @@ const waves: LibraryElementDef[] = [
   el('wave-audio', 'Waveform Fill', polyPath([[0, 100], [0, 66], [5, 50], [10, 62], [15, 34], [20, 56], [25, 22], [30, 52], [35, 30], [40, 58], [45, 14], [50, 48], [55, 28], [60, 56], [65, 38], [70, 60], [75, 46], [82, 62], [100, 64], [100, 100]]), { size: { width: 420, height: 260 } }),
   el('wave-pulse', 'Sound Pulse', polyPath([...pulseTop, ...[...pulseTop].reverse().map(([x, y]): Pt => [x, 100 - y])]), { size: { width: 440, height: 240 } }),
   el('wave-spike-block', 'Spike Fill', roundedPolySub([[0, 100], [0, 30], [10, 14], [19, 24], [29, 4], [39, 17], [50, 0], [61, 17], [71, 4], [81, 24], [90, 14], [100, 30], [100, 100]], 2.5), { size: { width: 420, height: 280 } }),
+  el('wave-soft-zigzag', 'Soft Zigzag', 'M4 20 L24 70 Q28 80 34 70 L52 30 Q56 20 62 30 L80 70 Q84 80 90 70 L96 56', { stroke: 10, size: { width: 420, height: 220 } }),
+  el('wave-dip-block', 'Dip Fill', 'M0 8 Q50 52 100 8 V100 H0 Z', { size: { width: 420, height: 280 } }),
 
   /* calligraphic brush strokes */
   el('wave-brush', 'Brush Wave', brushStrokeSub([[4, 34], [28, 22], [52, 62], [76, 28], [96, 40]], t => 1.5 + 7 * Math.sin(Math.PI * t)), { size: { width: 420, height: 180 } }),
@@ -1614,6 +1635,7 @@ const lines: LibraryElementDef[] = [
   el('line-underline', 'Underline Swoosh', 'M4 58 C30 44 68 42 96 48 C70 50 34 56 10 68 Z', { size: { width: 420, height: 80 } }),
   el('line-flourish', 'Flourish', 'M8 52 C34 38 66 36 92 42 C66 44 36 50 14 60 Z M22 68 C42 60 62 58 82 62 C62 64 44 68 28 74 Z', { size: { width: 420, height: 90 } }),
   el('line-wavy-underline', 'Wavy Underline', sineStrokeSub(27, 1, 2.5), { stroke: 4, viewBox: '0 0 100 5', size: { width: 600, height: 30 } }),
+  el('line-arc', 'Arc Line', 'M6 94 C22 50 54 16 94 8', { stroke: 4, size: { width: 400, height: 400 } }),
 ];
 
 const patterns: LibraryElementDef[] = [
@@ -1627,6 +1649,7 @@ const patterns: LibraryElementDef[] = [
   el('pattern-dots-fine', 'Halftone Dots', dotGridSub(10, 10, 1.7, 6), { size: { width: 380, height: 380 } }),
   el('pattern-diamonds', 'Diamond Grid', diamondGridSub(5, 5, 3.6, 5), { size: { width: 380, height: 380 } }),
   el('pattern-checker', 'Checker', checkerSub(6), { size: { width: 380, height: 380 } }),
+  el('pattern-checker-screen', 'Screen Checker', checkerGridSub(6, 13), { viewBox: '0 0 100 216.67', size: { width: 300, height: 650 } }),
   el('pattern-plus', 'Plus Grid', plusGridSub(), { size: { width: 380, height: 380 } }),
   el('pattern-x', 'X Marks', xMarksSub(), { stroke: 3.5, size: { width: 380, height: 380 } }),
   el('pattern-asterisks', 'Asterisk Grid', asteriskGridSub(4, 7), { stroke: 2.2, size: { width: 380, height: 380 } }),

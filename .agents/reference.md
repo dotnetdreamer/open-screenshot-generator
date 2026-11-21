@@ -79,7 +79,7 @@ Three localStorage keys carry the `open-screenshot-generator.` prefix (`.account
 
 ## Template system
 
-Templates are plain JSON project files under [public/data/projects/](../public/data/projects/) (115 of them), fetched at runtime by the start dialog. There is **no glob and no manifest file**: a template is discovered only if its filename appears in the `files` array of a category in [templateCategories.ts](../src/lib/templateCategories.ts).
+Templates are plain JSON project files under [public/data/projects/](../public/data/projects/) (118 of them), fetched at runtime by the start dialog. There is **no glob and no manifest file**: a template is discovered only if its filename appears in the `files` array of a category in [templateCategories.ts](../src/lib/templateCategories.ts).
 
 ### Where things live
 
@@ -138,7 +138,7 @@ Each `TemplateCategory` is one tab. `defaultSize` is what "Start blank" produces
 
 | id | Tab label | Filename prefix | defaultSize | Files |
 |---|---|---|---|---|
-| `screenshots` | App Screenshots | none (`tunio-music.json`) | 1206 x 2622 | 76 |
+| `screenshots` | App Screenshots | none (`tunio-music.json`) | 1206 x 2622 | 79 |
 | `apple-watch` | Apple Watch | `watch-*` | 422 x 514 | 6 |
 | `mac` | Mac | `mac-*` | 2560 x 1600 | 12 |
 | `app-preview` | App Preview Videos | `pv-*` | 886 x 1920 | 6 |
@@ -822,7 +822,7 @@ Every palette tile calls one `handleDragStart(e, type, subType, styleProps, libr
 - Element tiles drop `type: 'shape'`, `subType: 'custom-svg'`; [ShapeElement.tsx](../src/components/open-screenshot-generator/elements/ShapeElement.tsx) renders `customPath` with `preserveAspectRatio="none"` and `vectorEffect="non-scaling-stroke"`.
 - `IMAGE_CATEGORIES: ImageCategory[]` with `LibraryImageDef { id, label, src, defaultSize }`. Tiles drop `type: 'image'` and `Artboard.addElement` forces `objectFit: 'contain'` whenever `imageSrc` is present.
 - Two categories live in ElementPalette.tsx rather than in `lib/`: `openCategoryId === 'basic'` (`BASIC_TILES`: text, image, rectangle/circle/triangle/star/hexagon/diamond/message/speech-bubble/pentagon) and `'app-preview'` (`PREVIEW_TILES`: `video-device`, `video`, `gesture`). Both are `IconTileDef[]` (`{ id, label, type, subType?, icon, styleProps?, keywords? }`), because the search box has to index them alongside the generated library.
-- **Elements tab search** filters all three sources at once. `ICON_TILE_INDEX` and `LIBRARY_ITEM_INDEX` are built once at module load, each row pre-lowercasing `label + libraryId + group + keywords` into a `haystack`, so a keystroke is a substring scan over 461 + 20 rows. A non-empty query replaces the category view without clearing `openCategoryId`, so clearing the box returns the user where they were. This tab uses a native `overflow-y-auto` div instead of a Radix `ScrollArea` (the search box makes the scroller a `flex-1` sibling, which stops a `ScrollArea` scrolling) and `data-[state=active]:flex` instead of a bare `flex`.
+- **Elements tab search** filters all three sources at once. `ICON_TILE_INDEX` and `LIBRARY_ITEM_INDEX` are built once at module load, each row pre-lowercasing `label + libraryId + group + keywords` into a `haystack`, so a keystroke is a substring scan over 481 + 20 rows. A non-empty query replaces the category view without clearing `openCategoryId`, so clearing the box returns the user where they were. This tab uses a native `overflow-y-auto` div instead of a Radix `ScrollArea` (the search box makes the scroller a `flex-1` sibling, which stops a `ScrollArea` scrolling) and `data-[state=active]:flex` instead of a bare `flex`.
 - **`ElementPalette` is `memo`ed and its `onAddElement` must stay referentially stable** (`handlePaletteAddElement`, a `useCallback` in the layout). It was an inline arrow, so the palette rebuilt every tile on every layout render, including each tick of a properties slider. Pass a fresh closure and the memo silently does nothing.
 - The active tab is persisted in `sessionStorage['palette-active-tab']`, restored in an effect (not in `useState`) to avoid an SSR hydration mismatch. The restore explicitly rejects a saved `'layers'` value: that tab moved to the floating layers card, and selecting it would blank the palette.
 

@@ -8,8 +8,9 @@
  * products, cards, drawings and line art: illustrations drawn for this
  * project's templates, which also use them, so a template and the palette
  * share one file. Three cards build on library photos, and every sketch is a
- * pencil or painted version of one (see the license record). Full license
- * record: docs/image-asset-licenses.md.
+ * pencil or painted version of one (see the license record). Emoji are Noto
+ * Color Emoji saved as pictures. Full license record:
+ * docs/image-asset-licenses.md.
  *
  * Each item becomes an image element with imageSrc pointing at the asset;
  * defaultSize preserves the asset's aspect ratio.
@@ -192,6 +193,7 @@ export const IMAGE_CATEGORIES: ImageCategory[] = [
       { id: 'object-app-globe', label: 'Globe app icon', src: '/elements/images/objects/object-app-globe.png', defaultSize: { width: 430, height: 429 } },
       { id: 'object-app-gallery', label: 'Gallery app icon', src: '/elements/images/objects/object-app-gallery.png', defaultSize: { width: 430, height: 429 } },
       { id: 'object-app-lens', label: 'Camera app icon', src: '/elements/images/objects/object-app-lens.png', defaultSize: { width: 415, height: 430 } },
+      { id: 'object-app-questions', label: 'Question cards app icon', src: '/elements/images/objects/object-app-questions.png', defaultSize: { width: 418, height: 430 } },
       { id: 'object-lightbulb', label: 'Lightbulb', src: '/elements/images/objects/object-lightbulb.png', defaultSize: { width: 394, height: 430 } },
       { id: 'object-brain', label: 'Brain', src: '/elements/images/objects/object-brain.png', defaultSize: { width: 430, height: 394 } },
       { id: 'object-puzzle', label: 'Puzzle pieces', src: '/elements/images/objects/object-puzzle.png', defaultSize: { width: 430, height: 341 } },
@@ -205,6 +207,15 @@ export const IMAGE_CATEGORIES: ImageCategory[] = [
       { id: 'object-burger', label: 'Burger', src: '/elements/images/objects/object-burger.png', defaultSize: { width: 430, height: 419 } },
       { id: 'object-notepad', label: 'Notepad and pencil', src: '/elements/images/objects/object-notepad.png', defaultSize: { width: 348, height: 430 } },
       { id: 'object-sponge', label: 'Sponge and plate', src: '/elements/images/objects/object-sponge.png', defaultSize: { width: 430, height: 419 } },
+      { id: 'object-golf-ball', label: 'Golf ball', src: '/elements/images/objects/object-golf-ball.png', defaultSize: { width: 430, height: 430 } },
+      { id: 'object-golf-tee', label: 'Golf ball on a tee', src: '/elements/images/objects/object-golf-tee.png', defaultSize: { width: 239, height: 430 } },
+      { id: 'object-grass-hill', label: 'Grass hill', src: '/elements/images/objects/object-grass-hill.png', defaultSize: { width: 430, height: 187 } },
+      { id: 'object-paper-plane-blue', label: 'Blue paper plane', src: '/elements/images/objects/object-paper-plane-blue.png', defaultSize: { width: 430, height: 333 } },
+      { id: 'object-star', label: 'Gold star', src: '/elements/images/objects/object-star.png', defaultSize: { width: 430, height: 420 } },
+      { id: 'object-heart', label: 'Glossy heart', src: '/elements/images/objects/object-heart.png', defaultSize: { width: 430, height: 419 } },
+      { id: 'object-ice-cube', label: 'Ice cube', src: '/elements/images/objects/object-ice-cube.png', defaultSize: { width: 407, height: 430 } },
+      { id: 'object-ice-chunk', label: 'Ice chunk', src: '/elements/images/objects/object-ice-chunk.png', defaultSize: { width: 377, height: 430 } },
+      { id: 'object-pizza', label: 'Pizza', src: '/elements/images/objects/object-pizza.png', defaultSize: { width: 430, height: 271 } },
     ],
   },
   {
@@ -226,6 +237,34 @@ export const IMAGE_CATEGORIES: ImageCategory[] = [
       { id: 'sticker-confetti', label: 'Confetti', src: '/elements/images/stickers/sticker-confetti.png', defaultSize: { width: 399, height: 430 } },
       { id: 'sticker-hand-pencil', label: 'Hand with pencil', src: '/elements/images/stickers/sticker-hand-pencil.png', defaultSize: { width: 430, height: 426 } },
       { id: 'sticker-confetti-strips', label: 'Confetti strips', src: '/elements/images/stickers/sticker-confetti-strips.png', defaultSize: { width: 261, height: 430 } },
+      { id: 'sticker-torn-paper', label: 'Torn paper', src: '/elements/images/stickers/sticker-torn-paper.png', defaultSize: { width: 430, height: 346 } },
+      { id: 'sticker-scorecard', label: 'Golf scorecard', src: '/elements/images/stickers/sticker-scorecard.png', defaultSize: { width: 308, height: 430 } },
+    ],
+  },
+  {
+    id: 'emoji',
+    label: 'Emoji',
+    items: [
+      { id: 'emoji-cheers', label: 'Cheers', src: '/elements/images/emoji/emoji-cheers.png', defaultSize: { width: 430, height: 403 } },
+      { id: 'emoji-cool', label: 'Cool face', src: '/elements/images/emoji/emoji-cool.png', defaultSize: { width: 430, height: 401 } },
+      { id: 'emoji-grimace', label: 'Grimacing face', src: '/elements/images/emoji/emoji-grimace.png', defaultSize: { width: 430, height: 414 } },
+      { id: 'emoji-zany', label: 'Zany face', src: '/elements/images/emoji/emoji-zany.png', defaultSize: { width: 421, height: 430 } },
+      { id: 'emoji-kiss', label: 'Blowing a kiss', src: '/elements/images/emoji/emoji-kiss.png', defaultSize: { width: 430, height: 414 } },
+      { id: 'emoji-tears', label: 'Holding back tears', src: '/elements/images/emoji/emoji-tears.png', defaultSize: { width: 430, height: 414 } },
+      { id: 'emoji-thinking', label: 'Thinking face', src: '/elements/images/emoji/emoji-thinking.png', defaultSize: { width: 425, height: 430 } },
+      { id: 'emoji-devil', label: 'Smiling devil', src: '/elements/images/emoji/emoji-devil.png', defaultSize: { width: 430, height: 411 } },
+      { id: 'emoji-heart', label: 'Red heart', src: '/elements/images/emoji/emoji-heart.png', defaultSize: { width: 430, height: 394 } },
+      { id: 'emoji-pink-heart', label: 'Growing heart', src: '/elements/images/emoji/emoji-pink-heart.png', defaultSize: { width: 430, height: 394 } },
+      { id: 'emoji-yellow-heart', label: 'Yellow heart', src: '/elements/images/emoji/emoji-yellow-heart.png', defaultSize: { width: 430, height: 394 } },
+      { id: 'emoji-fire', label: 'Fire', src: '/elements/images/emoji/emoji-fire.png', defaultSize: { width: 337, height: 430 } },
+      { id: 'emoji-party', label: 'Party popper', src: '/elements/images/emoji/emoji-party.png', defaultSize: { width: 421, height: 430 } },
+      { id: 'emoji-target', label: 'Bullseye', src: '/elements/images/emoji/emoji-target.png', defaultSize: { width: 430, height: 401 } },
+      { id: 'emoji-speech', label: 'Speech bubble', src: '/elements/images/emoji/emoji-speech.png', defaultSize: { width: 430, height: 407 } },
+      { id: 'emoji-people', label: 'Two people', src: '/elements/images/emoji/emoji-people.png', defaultSize: { width: 430, height: 348 } },
+      { id: 'emoji-crown', label: 'Crown', src: '/elements/images/emoji/emoji-crown.png', defaultSize: { width: 430, height: 404 } },
+      { id: 'emoji-dice', label: 'Dice', src: '/elements/images/emoji/emoji-dice.png', defaultSize: { width: 410, height: 430 } },
+      { id: 'emoji-flag', label: 'Red flag', src: '/elements/images/emoji/emoji-flag.png', defaultSize: { width: 422, height: 430 } },
+      { id: 'emoji-snowflake', label: 'Snowflake', src: '/elements/images/emoji/emoji-snowflake.png', defaultSize: { width: 377, height: 430 } },
     ],
   },
   {

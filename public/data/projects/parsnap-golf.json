@@ -1,0 +1,1586 @@
+{
+  "id": "template_parsnap_golf",
+  "name": "Parsnap Golf Scores",
+  "description": "App Store & Play Store screenshots for a golf scorecard, stats or handicap tracker app. Condensed Bebas Neue headlines over a golf course, then deep green, charcoal and white artboards. A torn paper note and a scanned scorecard open the set, a golf ball on a red tee runs across the first two screenshots, a pin and a ball flight line cross the fairway, stat cards and progress rings pop out of the phones, and a tilted phone shows where strokes are lost. Every part sits in named, editable layer groups.",
+  "previewImage": "/data/projects/previews/parsnap-golf.png",
+  "timestamp": "2026-11-21T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "pn-board-1",
+      "name": "Snap Your Scorecard, Skip The Math",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#4E8A3A",
+      "backgroundType": "solid",
+      "backgroundImage": "/data/projects/parsnap-course.png",
+      "backgroundImageFit": "cover",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "pn-b1-paper",
+          "type": "image",
+          "name": "Torn paper",
+          "position": {
+            "x": -10,
+            "y": 87
+          },
+          "size": {
+            "width": 1300,
+            "height": 1250
+          },
+          "rotation": 7,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-torn-paper.png",
+          "objectFit": "fill",
+          "shadow": {
+            "x": 0,
+            "y": 28,
+            "blur": 56,
+            "color": "rgba(0,0,0,0.30)"
+          },
+          "spanArtboards": true,
+          "groupId": "pn-b1-g-paper",
+          "groupName": "Headline on paper"
+        },
+        {
+          "id": "pn-b1-head-1",
+          "type": "text",
+          "name": "Snap your scorecard",
+          "position": {
+            "x": 331.14,
+            "y": 293.33
+          },
+          "size": {
+            "width": 638,
+            "height": 344
+          },
+          "rotation": 7,
+          "scale": 1,
+          "content": "SNAP YOUR\nSCORECARD",
+          "fontSize": 49,
+          "color": "#2A2A2A",
+          "fontFamily": "Bebas Neue",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 0.96,
+          "groupId": "pn-b1-g-paper",
+          "groupName": "Headline on paper"
+        },
+        {
+          "id": "pn-b1-head-2",
+          "type": "text",
+          "name": "Skip the math",
+          "position": {
+            "x": 184.75,
+            "y": 667.82
+          },
+          "size": {
+            "width": 821,
+            "height": 489
+          },
+          "rotation": 7,
+          "scale": 1,
+          "content": "SKIP THE\nMATH",
+          "fontSize": 85,
+          "color": "#2A2A2A",
+          "fontFamily": "Bebas Neue",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 0.775,
+          "groupId": "pn-b1-g-paper",
+          "groupName": "Headline on paper"
+        },
+        {
+          "id": "pn-b1-scorecard",
+          "type": "image",
+          "name": "Scorecard",
+          "position": {
+            "x": 85,
+            "y": 1569.5
+          },
+          "size": {
+            "width": 940,
+            "height": 1311
+          },
+          "rotation": -4,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-scorecard.png",
+          "objectFit": "contain",
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 50,
+            "color": "rgba(0,0,0,0.34)"
+          },
+          "groupId": "pn-b1-g-scorecard",
+          "groupName": "Scorecard"
+        },
+        {
+          "id": "pn-b1-scan",
+          "type": "shape",
+          "name": "Scan corners",
+          "position": {
+            "x": 9.5,
+            "y": 1468.5
+          },
+          "size": {
+            "width": 1091,
+            "height": 1513
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#E5281F",
+          "strokeColor": "transparent",
+          "strokeWidth": 12,
+          "customPath": "M6 30 V14 Q6 6 14 6 H30 M70 6 H86 Q94 6 94 14 V30 M94 70 V86 Q94 94 86 94 H70 M30 94 H14 Q6 94 6 86 V70",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4
+          },
+          "groupId": "pn-b1-g-scorecard",
+          "groupName": "Scorecard"
+        },
+        {
+          "id": "pn-b1-ball",
+          "type": "image",
+          "name": "Ball on tee",
+          "position": {
+            "x": 710,
+            "y": 1175
+          },
+          "size": {
+            "width": 860,
+            "height": 1548
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-golf-tee.png",
+          "objectFit": "contain",
+          "shadow": {
+            "x": -18,
+            "y": 30,
+            "blur": 50,
+            "color": "rgba(0,0,0,0.38)"
+          },
+          "spanArtboards": true,
+          "groupId": "pn-b1-g-ball",
+          "groupName": "Ball on tee"
+        }
+      ]
+    },
+    {
+      "id": "pn-board-2",
+      "name": "Your Game In Numbers",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#062A16",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#03160B",
+        "color2": "#0C4424",
+        "angle": 165
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "pn-b2-hill",
+          "type": "image",
+          "name": "Grass hill",
+          "position": {
+            "x": -300,
+            "y": 1824
+          },
+          "size": {
+            "width": 1836,
+            "height": 798
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-grass-hill.png",
+          "objectFit": "contain",
+          "groupId": "pn-b2-g-fairway",
+          "groupName": "Fairway"
+        },
+        {
+          "id": "pn-b2-fairway-line",
+          "type": "shape",
+          "name": "Dashed line",
+          "position": {
+            "x": 156,
+            "y": 2066
+          },
+          "size": {
+            "width": 1008,
+            "height": 608
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "rgba(236,246,226,0.62)",
+          "strokeColor": "transparent",
+          "strokeWidth": 7,
+          "customPath": "M14 594 L36.37 580.76 M55.31 569.55 L77.68 556.31 M96.62 545.11 L118.99 531.86 M137.92 520.66 L160.3 507.42 M179.23 496.21 L201.61 482.97 M220.54 471.76 L242.91 458.52 M261.85 447.32 L284.22 434.07 M303.15 422.87 L325.53 409.63 M344.46 398.42 L366.84 385.18 M385.77 373.97 L408.14 360.73 M427.08 349.53 L449.45 336.28 M468.38 325.08 L490.76 311.84 M509.69 300.63 L532.07 287.39 M551 276.18 L573.37 262.94 M592.31 251.74 L614.68 238.49 M633.62 227.29 L655.99 214.05 M674.92 202.84 L697.3 189.6 M716.23 178.39 L738.61 165.15 M757.54 153.95 L779.91 140.7 M798.85 129.5 L821.22 116.26 M840.15 105.05 L862.53 91.81 M881.46 80.6 L903.84 67.36 M922.77 56.16 L945.14 42.91 M964.08 31.71 L986.45 18.47",
+          "specialProps": {
+            "viewBox": "0 0 1008 608",
+            "strokeOnly": true,
+            "baseStrokeWidth": 7
+          },
+          "groupId": "pn-b2-g-fairway",
+          "groupName": "Fairway"
+        },
+        {
+          "id": "pn-b2-flight",
+          "type": "shape",
+          "name": "Ball flight",
+          "position": {
+            "x": 159.3,
+            "y": 1533
+          },
+          "size": {
+            "width": 511,
+            "height": 1211.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#1FE0C9",
+          "strokeColor": "transparent",
+          "strokeWidth": 9,
+          "customPath": "M6 94 C22 50 54 16 94 8",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 4
+          },
+          "groupId": "pn-b2-g-shot",
+          "groupName": "Shot line"
+        },
+        {
+          "id": "pn-b2-aim",
+          "type": "shape",
+          "name": "Aim line",
+          "position": {
+            "x": 700,
+            "y": 1338
+          },
+          "size": {
+            "width": 280,
+            "height": 227
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "rgba(214,228,218,0.6)",
+          "strokeColor": "transparent",
+          "strokeWidth": 7,
+          "customPath": "M14 213 L32.84 198.13 M48.53 185.73 L67.37 170.86 M83.06 158.46 L101.9 143.59 M117.59 131.19 L136.43 116.32 M152.13 103.92 L170.96 89.05 M186.66 76.66 L205.49 61.78 M221.19 49.39 L240.02 34.51 M255.72 22.12 L266 14",
+          "specialProps": {
+            "viewBox": "0 0 280 227",
+            "strokeOnly": true,
+            "baseStrokeWidth": 7
+          },
+          "groupId": "pn-b2-g-shot",
+          "groupName": "Shot line"
+        },
+        {
+          "id": "pn-b2-pin",
+          "type": "shape",
+          "name": "Pin",
+          "position": {
+            "x": 607,
+            "y": 1522
+          },
+          "size": {
+            "width": 126,
+            "height": 126
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#E5281F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 24,
+            "color": "rgba(0,0,0,0.35)"
+          },
+          "groupId": "pn-b2-g-shot",
+          "groupName": "Shot line"
+        },
+        {
+          "id": "pn-b2-pin-flag",
+          "type": "shape",
+          "name": "Flag icon",
+          "position": {
+            "x": 641,
+            "y": 1554
+          },
+          "size": {
+            "width": 60,
+            "height": 62
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M18 6 H26 V94 H18 Z M26 12 C40 4 56 22 84 10 V52 C56 64 40 46 26 54 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "pn-b2-g-shot",
+          "groupName": "Shot line"
+        },
+        {
+          "id": "pn-b2-yards",
+          "type": "text",
+          "name": "Yards",
+          "position": {
+            "x": 758,
+            "y": 1544.33
+          },
+          "size": {
+            "width": 247,
+            "height": 83
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "136 yds",
+          "fontSize": 19,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "pn-b2-g-shot",
+          "groupName": "Shot line"
+        },
+        {
+          "id": "pn-b2-ring",
+          "type": "shape",
+          "name": "Ring",
+          "position": {
+            "x": 916,
+            "y": 978
+          },
+          "size": {
+            "width": 464,
+            "height": 464
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#1FE0C9",
+          "strokeWidth": 13,
+          "shadow": {
+            "x": 0,
+            "y": 0,
+            "blur": 36,
+            "color": "rgba(31,224,201,0.6)"
+          },
+          "spanArtboards": true,
+          "groupId": "pn-b2-g-target",
+          "groupName": "Target ball"
+        },
+        {
+          "id": "pn-b2-ball",
+          "type": "image",
+          "name": "Golf ball",
+          "position": {
+            "x": 976,
+            "y": 1038
+          },
+          "size": {
+            "width": 344,
+            "height": 344
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-golf-ball.png",
+          "objectFit": "contain",
+          "shadow": {
+            "x": -10,
+            "y": 18,
+            "blur": 30,
+            "color": "rgba(0,0,0,0.4)"
+          },
+          "spanArtboards": true,
+          "groupId": "pn-b2-g-target",
+          "groupName": "Target ball"
+        },
+        {
+          "id": "pn-b2-title",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 270,
+            "y": 160.93
+          },
+          "size": {
+            "width": 666,
+            "height": 344
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "YOUR GAME\nIN NUMBERS",
+          "fontSize": 49,
+          "color": "#C9D4CA",
+          "fontFamily": "Bebas Neue",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 0.96,
+          "groupId": "pn-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "pn-b2-sub",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 154,
+            "y": 525
+          },
+          "size": {
+            "width": 898,
+            "height": 369
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Putts per round,\nscoring averages,\nfairways hit",
+          "fontSize": 33,
+          "color": "#E6ECE7",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.05,
+          "groupId": "pn-b2-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    },
+    {
+      "id": "pn-board-3",
+      "name": "AI That Reads Your Rounds",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#262626",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "pn-b3-hill",
+          "type": "image",
+          "name": "Grass hill",
+          "position": {
+            "x": -1506,
+            "y": 1824
+          },
+          "size": {
+            "width": 1836,
+            "height": 798
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-grass-hill.png",
+          "objectFit": "contain",
+          "groupId": "pn-b3-g-fairway",
+          "groupName": "Fairway"
+        },
+        {
+          "id": "pn-b3-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 78,
+            "y": 786
+          },
+          "size": {
+            "width": 1050,
+            "height": 2198.39
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#2C2C2E",
+          "screenshotSrc": "/data/projects/parsnap-screen-analysis.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "shadow": {
+            "x": 0,
+            "y": 40,
+            "blur": 90,
+            "color": "rgba(0,0,0,0.5)"
+          },
+          "groupId": "pn-b3-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "pn-b3-par3-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 87,
+            "y": 1456.29
+          },
+          "size": {
+            "width": 330,
+            "height": 330
+          },
+          "rotation": -7,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#2C2C2E",
+          "strokeColor": "#3A3A3C",
+          "strokeWidth": 3,
+          "borderRadius": 56,
+          "shadow": {
+            "x": 0,
+            "y": 34,
+            "blur": 70,
+            "color": "rgba(0,0,0,0.55)"
+          },
+          "groupId": "pn-b3-g-par3",
+          "groupName": "Par 3 card"
+        },
+        {
+          "id": "pn-b3-par3-pill",
+          "type": "shape",
+          "name": "Par pill",
+          "position": {
+            "x": 162.54,
+            "y": 1500.99
+          },
+          "size": {
+            "width": 156,
+            "height": 54
+          },
+          "rotation": -7,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3A3A3C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 27,
+          "groupId": "pn-b3-g-par3",
+          "groupName": "Par 3 card"
+        },
+        {
+          "id": "pn-b3-par3-par",
+          "type": "text",
+          "name": "Par",
+          "position": {
+            "x": 169.7,
+            "y": 1503.78
+          },
+          "size": {
+            "width": 142,
+            "height": 51
+          },
+          "rotation": -7,
+          "scale": 1,
+          "content": "PAR 3",
+          "fontSize": 12,
+          "color": "#A1A1A6",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": 0.6,
+          "groupId": "pn-b3-g-par3",
+          "groupName": "Par 3 card"
+        },
+        {
+          "id": "pn-b3-par3-value",
+          "type": "text",
+          "name": "Value",
+          "position": {
+            "x": 134.69,
+            "y": 1555.52
+          },
+          "size": {
+            "width": 238,
+            "height": 159
+          },
+          "rotation": -7,
+          "scale": 1,
+          "content": "3.9",
+          "fontSize": 40,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "pn-b3-g-par3",
+          "groupName": "Par 3 card"
+        },
+        {
+          "id": "pn-b3-par3-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 175.54,
+            "y": 1700.02
+          },
+          "size": {
+            "width": 179,
+            "height": 55
+          },
+          "rotation": -7,
+          "scale": 1,
+          "content": "Strokes",
+          "fontSize": 13,
+          "color": "#8E8E93",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "pn-b3-g-par3",
+          "groupName": "Par 3 card"
+        },
+        {
+          "id": "pn-b3-par4-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 438,
+            "y": 1434.29
+          },
+          "size": {
+            "width": 330,
+            "height": 330
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#2C2C2E",
+          "strokeColor": "#3A3A3C",
+          "strokeWidth": 3,
+          "borderRadius": 56,
+          "shadow": {
+            "x": 0,
+            "y": 34,
+            "blur": 70,
+            "color": "rgba(0,0,0,0.55)"
+          },
+          "groupId": "pn-b3-g-par4",
+          "groupName": "Par 4 card"
+        },
+        {
+          "id": "pn-b3-par4-pill",
+          "type": "shape",
+          "name": "Par pill",
+          "position": {
+            "x": 529.92,
+            "y": 1478.42
+          },
+          "size": {
+            "width": 156,
+            "height": 54
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3A3A3C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 27,
+          "groupId": "pn-b3-g-par4",
+          "groupName": "Par 4 card"
+        },
+        {
+          "id": "pn-b3-par4-par",
+          "type": "text",
+          "name": "Par",
+          "position": {
+            "x": 536.35,
+            "y": 1481.22
+          },
+          "size": {
+            "width": 143,
+            "height": 51
+          },
+          "rotation": 3,
+          "scale": 1,
+          "content": "PAR 4",
+          "fontSize": 12,
+          "color": "#A1A1A6",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": 0.6,
+          "groupId": "pn-b3-g-par4",
+          "groupName": "Par 4 card"
+        },
+        {
+          "id": "pn-b3-par4-value",
+          "type": "text",
+          "name": "Value",
+          "position": {
+            "x": 479.78,
+            "y": 1533.6
+          },
+          "size": {
+            "width": 245,
+            "height": 159
+          },
+          "rotation": 3,
+          "scale": 1,
+          "content": "4.4",
+          "fontSize": 40,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "pn-b3-g-par4",
+          "groupName": "Par 4 card"
+        },
+        {
+          "id": "pn-b3-par4-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 507.9,
+            "y": 1678.67
+          },
+          "size": {
+            "width": 179,
+            "height": 55
+          },
+          "rotation": 3,
+          "scale": 1,
+          "content": "Strokes",
+          "fontSize": 13,
+          "color": "#8E8E93",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "pn-b3-g-par4",
+          "groupName": "Par 4 card"
+        },
+        {
+          "id": "pn-b3-par5-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 789,
+            "y": 1460.29
+          },
+          "size": {
+            "width": 330,
+            "height": 330
+          },
+          "rotation": 8,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#2C2C2E",
+          "strokeColor": "#3A3A3C",
+          "strokeWidth": 3,
+          "borderRadius": 56,
+          "shadow": {
+            "x": 0,
+            "y": 34,
+            "blur": 70,
+            "color": "rgba(0,0,0,0.55)"
+          },
+          "groupId": "pn-b3-g-par5",
+          "groupName": "Par 5 card"
+        },
+        {
+          "id": "pn-b3-par5-pill",
+          "type": "shape",
+          "name": "Par pill",
+          "position": {
+            "x": 889.08,
+            "y": 1505.2
+          },
+          "size": {
+            "width": 156,
+            "height": 54
+          },
+          "rotation": 8,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3A3A3C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 27,
+          "groupId": "pn-b3-g-par5",
+          "groupName": "Par 5 card"
+        },
+        {
+          "id": "pn-b3-par5-par",
+          "type": "text",
+          "name": "Par",
+          "position": {
+            "x": 895.9,
+            "y": 1507.99
+          },
+          "size": {
+            "width": 142,
+            "height": 51
+          },
+          "rotation": 8,
+          "scale": 1,
+          "content": "PAR 5",
+          "fontSize": 12,
+          "color": "#A1A1A6",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": 0.6,
+          "groupId": "pn-b3-g-par5",
+          "groupName": "Par 5 card"
+        },
+        {
+          "id": "pn-b3-par5-value",
+          "type": "text",
+          "name": "Value",
+          "position": {
+            "x": 833.57,
+            "y": 1559.49
+          },
+          "size": {
+            "width": 237,
+            "height": 159
+          },
+          "rotation": 8,
+          "scale": 1,
+          "content": "5.0",
+          "fontSize": 40,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "pn-b3-g-par5",
+          "groupName": "Par 5 card"
+        },
+        {
+          "id": "pn-b3-par5-label",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 849.6,
+            "y": 1703.78
+          },
+          "size": {
+            "width": 179,
+            "height": 55
+          },
+          "rotation": 8,
+          "scale": 1,
+          "content": "Strokes",
+          "fontSize": 13,
+          "color": "#8E8E93",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "pn-b3-g-par5",
+          "groupName": "Par 5 card"
+        },
+        {
+          "id": "pn-b3-title",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 270,
+            "y": 160.93
+          },
+          "size": {
+            "width": 666,
+            "height": 501
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "AI THAT\nREADS YOUR\nROUNDS",
+          "fontSize": 49,
+          "color": "#D9D9D9",
+          "fontFamily": "Bebas Neue",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 0.96,
+          "groupId": "pn-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "pn-b3-sparkle",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 807.23,
+            "y": 210
+          },
+          "size": {
+            "width": 66,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#D9D9D9",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "pn-b3-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    },
+    {
+      "id": "pn-board-4",
+      "name": "A Handicap That Updates Every Round",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "pn-b4-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 78,
+            "y": 786
+          },
+          "size": {
+            "width": 1050,
+            "height": 2198.39
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#F1F1F3",
+          "screenshotSrc": "/data/projects/parsnap-screen-history.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "shadow": {
+            "x": 0,
+            "y": 30,
+            "blur": 80,
+            "color": "rgba(0,0,0,0.16)"
+          },
+          "groupId": "pn-b4-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "pn-b4-ring-rounds-disc",
+          "type": "shape",
+          "name": "Disc",
+          "position": {
+            "x": 36,
+            "y": 1272
+          },
+          "size": {
+            "width": 400,
+            "height": 400
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "shadow": {
+            "x": 0,
+            "y": 24,
+            "blur": 60,
+            "color": "rgba(17,24,39,0.16)"
+          },
+          "groupId": "pn-b4-g-rounds-ring",
+          "groupName": "Rounds ring"
+        },
+        {
+          "id": "pn-b4-ring-rounds-track",
+          "type": "shape",
+          "name": "Track",
+          "position": {
+            "x": 72,
+            "y": 1308
+          },
+          "size": {
+            "width": 328,
+            "height": 328
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#EEF0F3",
+          "strokeWidth": 18,
+          "groupId": "pn-b4-g-rounds-ring",
+          "groupName": "Rounds ring"
+        },
+        {
+          "id": "pn-b4-ring-rounds-arc",
+          "type": "shape",
+          "name": "Progress",
+          "position": {
+            "x": 59.86,
+            "y": 1295.86
+          },
+          "size": {
+            "width": 352.27,
+            "height": 352.27
+          },
+          "rotation": 240,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#F7A12B",
+          "strokeColor": "transparent",
+          "strokeWidth": 18,
+          "customPath": "M50 6 A44 44 0 0 1 91.85 63.6",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 8
+          },
+          "groupId": "pn-b4-g-rounds-ring",
+          "groupName": "Rounds ring"
+        },
+        {
+          "id": "pn-b4-ring-rounds-value",
+          "type": "text",
+          "name": "Value",
+          "position": {
+            "x": 172.5,
+            "y": 1381.73
+          },
+          "size": {
+            "width": 127,
+            "height": 182
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "3",
+          "fontSize": 46,
+          "color": "#111111",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "pn-b4-g-rounds-ring",
+          "groupName": "Rounds ring"
+        },
+        {
+          "id": "pn-b4-ring-points-disc",
+          "type": "shape",
+          "name": "Disc",
+          "position": {
+            "x": 910,
+            "y": 1730
+          },
+          "size": {
+            "width": 400,
+            "height": 400
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "shadow": {
+            "x": 0,
+            "y": 24,
+            "blur": 60,
+            "color": "rgba(17,24,39,0.16)"
+          },
+          "spanArtboards": true,
+          "groupId": "pn-b4-g-points-ring",
+          "groupName": "Points ring"
+        },
+        {
+          "id": "pn-b4-ring-points-track",
+          "type": "shape",
+          "name": "Track",
+          "position": {
+            "x": 946,
+            "y": 1766
+          },
+          "size": {
+            "width": 328,
+            "height": 328
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#EEF0F3",
+          "strokeWidth": 18,
+          "spanArtboards": true,
+          "groupId": "pn-b4-g-points-ring",
+          "groupName": "Points ring"
+        },
+        {
+          "id": "pn-b4-ring-points-arc",
+          "type": "shape",
+          "name": "Progress",
+          "position": {
+            "x": 941.52,
+            "y": 1761.52
+          },
+          "size": {
+            "width": 336.96,
+            "height": 336.96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#2FBF71",
+          "strokeColor": "transparent",
+          "strokeWidth": 18,
+          "customPath": "M50 4 A46 46 0 1 1 14.76 79.57",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 18
+          },
+          "spanArtboards": true,
+          "groupId": "pn-b4-g-points-ring",
+          "groupName": "Points ring"
+        },
+        {
+          "id": "pn-b4-ring-points-value",
+          "type": "text",
+          "name": "Value",
+          "position": {
+            "x": 1003.5,
+            "y": 1839.73
+          },
+          "size": {
+            "width": 213,
+            "height": 182
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "24",
+          "fontSize": 46,
+          "color": "#111111",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "spanArtboards": true,
+          "groupId": "pn-b4-g-points-ring",
+          "groupName": "Points ring"
+        },
+        {
+          "id": "pn-b4-title",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 247.5,
+            "y": 168
+          },
+          "size": {
+            "width": 711,
+            "height": 478
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "A HANDICAP\nTHAT UPDATES\nEVERY ROUND",
+          "fontSize": 45,
+          "color": "#161616",
+          "fontFamily": "Bebas Neue",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "pn-b4-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    },
+    {
+      "id": "pn-board-5",
+      "name": "Play The Course Smarter",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#262626",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "pn-b5-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": -61.38,
+            "y": 1206.27
+          },
+          "size": {
+            "width": 960,
+            "height": 2009.95
+          },
+          "rotation": 14,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#F1F1F3",
+          "screenshotSrc": "/data/projects/parsnap-screen-courses.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "shadow": {
+            "x": 0,
+            "y": 40,
+            "blur": 90,
+            "color": "rgba(0,0,0,0.5)"
+          },
+          "groupId": "pn-b5-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "pn-b5-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 140,
+            "y": 2128
+          },
+          "size": {
+            "width": 840,
+            "height": 380
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 48,
+          "shadow": {
+            "x": 0,
+            "y": 34,
+            "blur": 80,
+            "color": "rgba(0,0,0,0.5)"
+          },
+          "groupId": "pn-b5-g-insight",
+          "groupName": "Insight card"
+        },
+        {
+          "id": "pn-b5-card-title",
+          "type": "text",
+          "name": "Card title",
+          "position": {
+            "x": 184.03,
+            "y": 2164.63
+          },
+          "size": {
+            "width": 640,
+            "height": 82
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Where you drop shots",
+          "fontSize": 18,
+          "color": "#111111",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "pn-b5-g-insight",
+          "groupName": "Insight card"
+        },
+        {
+          "id": "pn-b5-row1",
+          "type": "text",
+          "name": "Approach shots",
+          "position": {
+            "x": 190.2,
+            "y": 2263.42
+          },
+          "size": {
+            "width": 382,
+            "height": 70
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Approach shots",
+          "fontSize": 15,
+          "color": "#3A3A3C",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "pn-b5-g-insight",
+          "groupName": "Insight card"
+        },
+        {
+          "id": "pn-b5-row1-value",
+          "type": "text",
+          "name": "Approach value",
+          "position": {
+            "x": 804.02,
+            "y": 2233.63
+          },
+          "size": {
+            "width": 121,
+            "height": 62
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "72%",
+          "fontSize": 15,
+          "color": "#8E8E93",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "600",
+          "textAlign": "right",
+          "lineHeight": 1,
+          "groupId": "pn-b5-g-insight",
+          "groupName": "Insight card"
+        },
+        {
+          "id": "pn-b5-row1-track",
+          "type": "shape",
+          "name": "Approach track",
+          "position": {
+            "x": 195.74,
+            "y": 2329.94
+          },
+          "size": {
+            "width": 732,
+            "height": 26
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#EEF0F3",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 13,
+          "groupId": "pn-b5-g-insight",
+          "groupName": "Insight card"
+        },
+        {
+          "id": "pn-b5-row1-bar",
+          "type": "shape",
+          "name": "Approach bar",
+          "position": {
+            "x": 195.99,
+            "y": 2337.09
+          },
+          "size": {
+            "width": 527.04,
+            "height": 26
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#EF4444",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 13,
+          "groupId": "pn-b5-g-insight",
+          "groupName": "Insight card"
+        },
+        {
+          "id": "pn-b5-row2",
+          "type": "text",
+          "name": "Putting",
+          "position": {
+            "x": 198.38,
+            "y": 2383.77
+          },
+          "size": {
+            "width": 192,
+            "height": 70
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Putting",
+          "fontSize": 15,
+          "color": "#3A3A3C",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "pn-b5-g-insight",
+          "groupName": "Insight card"
+        },
+        {
+          "id": "pn-b5-row2-value",
+          "type": "text",
+          "name": "Putting value",
+          "position": {
+            "x": 805.98,
+            "y": 2347.56
+          },
+          "size": {
+            "width": 127,
+            "height": 62
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "48%",
+          "fontSize": 15,
+          "color": "#8E8E93",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "600",
+          "textAlign": "right",
+          "lineHeight": 1,
+          "groupId": "pn-b5-g-insight",
+          "groupName": "Insight card"
+        },
+        {
+          "id": "pn-b5-row2-track",
+          "type": "shape",
+          "name": "Putting track",
+          "position": {
+            "x": 203.7,
+            "y": 2443.66
+          },
+          "size": {
+            "width": 732,
+            "height": 26
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#EEF0F3",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 13,
+          "groupId": "pn-b5-g-insight",
+          "groupName": "Insight card"
+        },
+        {
+          "id": "pn-b5-row2-bar",
+          "type": "shape",
+          "name": "Putting bar",
+          "position": {
+            "x": 204.16,
+            "y": 2456.94
+          },
+          "size": {
+            "width": 351.36,
+            "height": 26
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#F59E0B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 13,
+          "groupId": "pn-b5-g-insight",
+          "groupName": "Insight card"
+        },
+        {
+          "id": "pn-b5-title",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 339,
+            "y": 160.93
+          },
+          "size": {
+            "width": 528,
+            "height": 501
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "PLAY THE\nCOURSE\nSMARTER",
+          "fontSize": 49,
+          "color": "#D9D9D9",
+          "fontFamily": "Bebas Neue",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 0.96,
+          "groupId": "pn-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "pn-b5-sub",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 62.5,
+            "y": 669.6
+          },
+          "size": {
+            "width": 1081,
+            "height": 241
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Helping golfers see\nwhere they lose strokes",
+          "fontSize": 30,
+          "color": "#E3E3E3",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "pn-b5-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    }
+  ]
+}

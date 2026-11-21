@@ -1,0 +1,2788 @@
+{
+  "id": "template_askadeck_questions",
+  "name": "Askadeck Party Questions",
+  "description": "App Store & Play Store screenshots for a party game, conversation starter or couples question app. Rounded Plus Jakarta Sans headlines on purple, coral red, light and dark artboards with a soft checker. Two slanted photo bands show a pizza night and a couple on a sofa, a lightning bolt crosses into an ice breaker card with emoji on an arc and 3D ice, a phone lists game modes above emoji mood chips, a date photo curves into the app icon, and a chat panel, app card and laurels close the set. Every part sits in named, editable layer groups.",
+  "previewImage": "/data/projects/previews/askadeck-questions.png",
+  "timestamp": "2026-11-21T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "ak-board-1",
+      "name": "Every Hangout Needs A Spark",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#8964FF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "ak-b1-checker",
+          "type": "shape",
+          "name": "Checker",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1206,
+            "height": 2613.04
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 0 H16.67 V16.67 H0 ZM33.33 0 H50 V16.67 H33.33 ZM66.67 0 H83.33 V16.67 H66.67 ZM16.67 16.67 H33.33 V33.33 H16.67 ZM50 16.67 H66.67 V33.33 H50 ZM83.33 16.67 H100 V33.33 H83.33 ZM0 33.33 H16.67 V50 H0 ZM33.33 33.33 H50 V50 H33.33 ZM66.67 33.33 H83.33 V50 H66.67 ZM16.67 50 H33.33 V66.67 H16.67 ZM50 50 H66.67 V66.67 H50 ZM83.33 50 H100 V66.67 H83.33 ZM0 66.67 H16.67 V83.33 H0 ZM33.33 66.67 H50 V83.33 H33.33 ZM66.67 66.67 H83.33 V83.33 H66.67 ZM16.67 83.33 H33.33 V100 H16.67 ZM50 83.33 H66.67 V100 H50 ZM83.33 83.33 H100 V100 H83.33 ZM0 100 H16.67 V116.67 H0 ZM33.33 100 H50 V116.67 H33.33 ZM66.67 100 H83.33 V116.67 H66.67 ZM16.67 116.67 H33.33 V133.33 H16.67 ZM50 116.67 H66.67 V133.33 H50 ZM83.33 116.67 H100 V133.33 H83.33 ZM0 133.33 H16.67 V150 H0 ZM33.33 133.33 H50 V150 H33.33 ZM66.67 133.33 H83.33 V150 H66.67 ZM16.67 150 H33.33 V166.67 H16.67 ZM50 150 H66.67 V166.67 H50 ZM83.33 150 H100 V166.67 H83.33 ZM0 166.67 H16.67 V183.33 H0 ZM33.33 166.67 H50 V183.33 H33.33 ZM66.67 166.67 H83.33 V183.33 H66.67 ZM16.67 183.33 H33.33 V200 H16.67 ZM50 183.33 H66.67 V200 H50 ZM83.33 183.33 H100 V200 H83.33 ZM0 200 H16.67 V216.67 H0 ZM33.33 200 H50 V216.67 H33.33 ZM66.67 200 H83.33 V216.67 H66.67 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 216.67"
+          },
+          "opacity": 0.05,
+          "groupId": "ak-b1-g-checker",
+          "groupName": "Checker"
+        },
+        {
+          "id": "ak-b1-friends-backdrop",
+          "type": "image",
+          "name": "Backdrop",
+          "position": {
+            "x": -197,
+            "y": 767.5
+          },
+          "size": {
+            "width": 1600,
+            "height": 847
+          },
+          "rotation": 7,
+          "scale": 1,
+          "imageSrc": "/data/projects/askadeck-backdrop-pizza.png",
+          "objectFit": "cover",
+          "groupId": "ak-b1-g-friends",
+          "groupName": "Friends photo"
+        },
+        {
+          "id": "ak-b1-friends",
+          "type": "image",
+          "name": "Friends",
+          "position": {
+            "x": -197,
+            "y": 767.5
+          },
+          "size": {
+            "width": 1600,
+            "height": 847
+          },
+          "rotation": 7,
+          "scale": 1,
+          "imageSrc": "/data/projects/askadeck-friends-pizza.png",
+          "objectFit": "cover",
+          "groupId": "ak-b1-g-friends",
+          "groupName": "Friends photo",
+          "tintColor": "#DB7017",
+          "tintOpacity": 0.128
+        },
+        {
+          "id": "ak-b1-friends-front",
+          "type": "image",
+          "name": "Table and pizza",
+          "position": {
+            "x": -197,
+            "y": 767.5
+          },
+          "size": {
+            "width": 1600,
+            "height": 847
+          },
+          "rotation": 7,
+          "scale": 1,
+          "imageSrc": "/data/projects/askadeck-pizza-table.png",
+          "objectFit": "cover",
+          "groupId": "ak-b1-g-friends",
+          "groupName": "Friends photo"
+        },
+        {
+          "id": "ak-b1-friends-line",
+          "type": "shape",
+          "name": "Edge",
+          "position": {
+            "x": -195.39,
+            "y": 765.66
+          },
+          "size": {
+            "width": 1700,
+            "height": 10
+          },
+          "rotation": 7,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ak-b1-g-friends",
+          "groupName": "Friends photo"
+        },
+        {
+          "id": "ak-b1-stripe",
+          "type": "shape",
+          "name": "Stripe",
+          "position": {
+            "x": -301.41,
+            "y": 1611.17
+          },
+          "size": {
+            "width": 1700,
+            "height": 46
+          },
+          "rotation": 7,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#6C47F5",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ak-b1-g-stripe",
+          "groupName": "Stripe"
+        },
+        {
+          "id": "ak-b1-couples-backdrop",
+          "type": "image",
+          "name": "Backdrop",
+          "position": {
+            "x": -324.29,
+            "y": 1652.71
+          },
+          "size": {
+            "width": 1600,
+            "height": 1150
+          },
+          "rotation": 7,
+          "scale": 1,
+          "imageSrc": "/data/projects/askadeck-backdrop-sofa.png",
+          "objectFit": "cover",
+          "groupId": "ak-b1-g-couples",
+          "groupName": "Couples photo"
+        },
+        {
+          "id": "ak-b1-couples",
+          "type": "image",
+          "name": "Couple",
+          "position": {
+            "x": -324.29,
+            "y": 1652.71
+          },
+          "size": {
+            "width": 1600,
+            "height": 1150
+          },
+          "rotation": 7,
+          "scale": 1,
+          "imageSrc": "/data/projects/askadeck-couple-sofa.png",
+          "objectFit": "cover",
+          "groupId": "ak-b1-g-couples",
+          "groupName": "Couples photo",
+          "tintColor": "#BA6566",
+          "tintOpacity": 0.14
+        },
+        {
+          "id": "ak-b1-couples-front",
+          "type": "image",
+          "name": "Sofa seat",
+          "position": {
+            "x": -324.29,
+            "y": 1652.71
+          },
+          "size": {
+            "width": 1600,
+            "height": 1150
+          },
+          "rotation": 7,
+          "scale": 1,
+          "imageSrc": "/data/projects/askadeck-sofa-front.png",
+          "objectFit": "cover",
+          "groupId": "ak-b1-g-couples",
+          "groupName": "Couples photo"
+        },
+        {
+          "id": "ak-b1-couples-line",
+          "type": "shape",
+          "name": "Edge",
+          "position": {
+            "x": -304.22,
+            "y": 1652
+          },
+          "size": {
+            "width": 1700,
+            "height": 10
+          },
+          "rotation": 7,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ak-b1-g-couples",
+          "groupName": "Couples photo"
+        },
+        {
+          "id": "ak-b1-friends-label-pill",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 64,
+            "y": 760
+          },
+          "size": {
+            "width": 503,
+            "height": 112
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 56,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 32,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "groupId": "ak-b1-g-friends-label",
+          "groupName": "Friends label"
+        },
+        {
+          "id": "ak-b1-friends-label-tail",
+          "type": "shape",
+          "name": "Tail",
+          "position": {
+            "x": 128,
+            "y": 862
+          },
+          "size": {
+            "width": 56,
+            "height": 50
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 0 L100 0 L8 100 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ak-b1-g-friends-label",
+          "groupName": "Friends label"
+        },
+        {
+          "id": "ak-b1-friends-label-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": 98,
+            "y": 789
+          },
+          "size": {
+            "width": 54,
+            "height": 54
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/emoji/emoji-people.png",
+          "objectFit": "contain",
+          "groupId": "ak-b1-g-friends-label",
+          "groupName": "Friends label"
+        },
+        {
+          "id": "ak-b1-friends-label-text",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 162,
+            "y": 775.33
+          },
+          "size": {
+            "width": 381,
+            "height": 79
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Friends group",
+          "fontSize": 16,
+          "color": "#1C1C1E",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "ak-b1-g-friends-label",
+          "groupName": "Friends label"
+        },
+        {
+          "id": "ak-b1-couples-label-pill",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 700,
+            "y": 1790
+          },
+          "size": {
+            "width": 362.47,
+            "height": 112
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 56,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 32,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "groupId": "ak-b1-g-couples-label",
+          "groupName": "Couples label"
+        },
+        {
+          "id": "ak-b1-couples-label-tail",
+          "type": "shape",
+          "name": "Tail",
+          "position": {
+            "x": 942.47,
+            "y": 1892
+          },
+          "size": {
+            "width": 56,
+            "height": 50
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 0 L100 0 L92 100 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ak-b1-g-couples-label",
+          "groupName": "Couples label"
+        },
+        {
+          "id": "ak-b1-couples-label-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": 734,
+            "y": 1819
+          },
+          "size": {
+            "width": 54,
+            "height": 54
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/emoji/emoji-pink-heart.png",
+          "objectFit": "contain",
+          "groupId": "ak-b1-g-couples-label",
+          "groupName": "Couples label"
+        },
+        {
+          "id": "ak-b1-couples-label-text",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 798,
+            "y": 1806.33
+          },
+          "size": {
+            "width": 241,
+            "height": 77
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Couples",
+          "fontSize": 16,
+          "color": "#1C1C1E",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "ak-b1-g-couples-label",
+          "groupName": "Couples label"
+        },
+        {
+          "id": "ak-b1-bolt",
+          "type": "image",
+          "name": "Lightning bolt",
+          "position": {
+            "x": 930,
+            "y": 1000
+          },
+          "size": {
+            "width": 363,
+            "height": 534
+          },
+          "rotation": 12,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-bolt.png",
+          "objectFit": "contain",
+          "shadow": {
+            "x": 0,
+            "y": 24,
+            "blur": 40,
+            "color": "rgba(60,20,0,0.35)"
+          },
+          "spanArtboards": true,
+          "groupId": "ak-b1-g-bolt",
+          "groupName": "Lightning bolt"
+        },
+        {
+          "id": "ak-b1-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 94,
+            "y": 2170
+          },
+          "size": {
+            "width": 1018,
+            "height": 300
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 64,
+          "shadow": {
+            "x": 0,
+            "y": 30,
+            "blur": 70,
+            "color": "rgba(40,10,120,0.30)"
+          },
+          "groupId": "ak-b1-g-card",
+          "groupName": "App card"
+        },
+        {
+          "id": "ak-b1-card-icon",
+          "type": "image",
+          "name": "App icon",
+          "position": {
+            "x": 134,
+            "y": 2214.05
+          },
+          "size": {
+            "width": 206,
+            "height": 211.89
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-app-questions.png",
+          "objectFit": "contain",
+          "groupId": "ak-b1-g-card",
+          "groupName": "App card"
+        },
+        {
+          "id": "ak-b1-card-name",
+          "type": "text",
+          "name": "App name",
+          "position": {
+            "x": 372,
+            "y": 2239.4
+          },
+          "size": {
+            "width": 378,
+            "height": 86
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Askadeck",
+          "fontSize": 21,
+          "color": "#111111",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "ak-b1-g-card",
+          "groupName": "App card"
+        },
+        {
+          "id": "ak-b1-card-tagline",
+          "type": "text",
+          "name": "Tagline",
+          "position": {
+            "x": 372,
+            "y": 2322.8
+          },
+          "size": {
+            "width": 439,
+            "height": 111
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Questions for friends\nand couples",
+          "fontSize": 12,
+          "color": "#6B6B72",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.25,
+          "groupId": "ak-b1-g-card",
+          "groupName": "App card"
+        },
+        {
+          "id": "ak-b1-card-get",
+          "type": "shape",
+          "name": "Get button",
+          "position": {
+            "x": 886,
+            "y": 2272
+          },
+          "size": {
+            "width": 186,
+            "height": 96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0A84FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 48,
+          "groupId": "ak-b1-g-card",
+          "groupName": "App card"
+        },
+        {
+          "id": "ak-b1-card-get-label",
+          "type": "text",
+          "name": "Get",
+          "position": {
+            "x": 913,
+            "y": 2284.73
+          },
+          "size": {
+            "width": 132,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Get",
+          "fontSize": 16,
+          "color": "#FFFFFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "ak-b1-g-card",
+          "groupName": "App card"
+        },
+        {
+          "id": "ak-b1-title",
+          "type": "text",
+          "name": "Every hangout needs",
+          "position": {
+            "x": 129.5,
+            "y": 135.67
+          },
+          "size": {
+            "width": 947,
+            "height": 296
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Every\nHangout Needs",
+          "fontSize": 35,
+          "color": "#E6DAFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.17,
+          "groupId": "ak-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ak-b1-title-a",
+          "type": "text",
+          "name": "a",
+          "position": {
+            "x": 320.09,
+            "y": 438.67
+          },
+          "size": {
+            "width": 97,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "a",
+          "fontSize": 35,
+          "color": "#E6DAFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "ak-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ak-b1-title-game",
+          "type": "text",
+          "name": "Spark",
+          "position": {
+            "x": 413.1,
+            "y": 395.23
+          },
+          "size": {
+            "width": 469,
+            "height": 195
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Spark",
+          "fontSize": 46,
+          "color": "#E6DAFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "ak-b1-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    },
+    {
+      "id": "ak-board-2",
+      "name": "Melt The Silence",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#F8463A",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#F67B53",
+        "color2": "#FA0001",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "ak-b2-checker",
+          "type": "shape",
+          "name": "Checker",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1206,
+            "height": 2613.04
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 0 H16.67 V16.67 H0 ZM33.33 0 H50 V16.67 H33.33 ZM66.67 0 H83.33 V16.67 H66.67 ZM16.67 16.67 H33.33 V33.33 H16.67 ZM50 16.67 H66.67 V33.33 H50 ZM83.33 16.67 H100 V33.33 H83.33 ZM0 33.33 H16.67 V50 H0 ZM33.33 33.33 H50 V50 H33.33 ZM66.67 33.33 H83.33 V50 H66.67 ZM16.67 50 H33.33 V66.67 H16.67 ZM50 50 H66.67 V66.67 H50 ZM83.33 50 H100 V66.67 H83.33 ZM0 66.67 H16.67 V83.33 H0 ZM33.33 66.67 H50 V83.33 H33.33 ZM66.67 66.67 H83.33 V83.33 H66.67 ZM16.67 83.33 H33.33 V100 H16.67 ZM50 83.33 H66.67 V100 H50 ZM83.33 83.33 H100 V100 H83.33 ZM0 100 H16.67 V116.67 H0 ZM33.33 100 H50 V116.67 H33.33 ZM66.67 100 H83.33 V116.67 H66.67 ZM16.67 116.67 H33.33 V133.33 H16.67 ZM50 116.67 H66.67 V133.33 H50 ZM83.33 116.67 H100 V133.33 H83.33 ZM0 133.33 H16.67 V150 H0 ZM33.33 133.33 H50 V150 H33.33 ZM66.67 133.33 H83.33 V150 H66.67 ZM16.67 150 H33.33 V166.67 H16.67 ZM50 150 H66.67 V166.67 H50 ZM83.33 150 H100 V166.67 H83.33 ZM0 166.67 H16.67 V183.33 H0 ZM33.33 166.67 H50 V183.33 H33.33 ZM66.67 166.67 H83.33 V183.33 H66.67 ZM16.67 183.33 H33.33 V200 H16.67 ZM50 183.33 H66.67 V200 H50 ZM83.33 183.33 H100 V200 H83.33 ZM0 200 H16.67 V216.67 H0 ZM33.33 200 H50 V216.67 H33.33 ZM66.67 200 H83.33 V216.67 H66.67 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 216.67"
+          },
+          "opacity": 0.06,
+          "groupId": "ak-b2-g-checker",
+          "groupName": "Checker"
+        },
+        {
+          "id": "ak-b2-arc",
+          "type": "shape",
+          "name": "Arc",
+          "position": {
+            "x": -293.09,
+            "y": 721.91
+          },
+          "size": {
+            "width": 1802.17,
+            "height": 1802.17
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "rgba(255,255,255,0.55)",
+          "strokeColor": "transparent",
+          "strokeWidth": 6,
+          "customPath": "M5.57 38.09 A46 46 0 0 1 94.43 38.09",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 6
+          },
+          "groupId": "ak-b2-g-arc",
+          "groupName": "Emoji arc"
+        },
+        {
+          "id": "ak-b2-dot-cool",
+          "type": "shape",
+          "name": "Cool dot",
+          "position": {
+            "x": 40.7,
+            "y": 791.97
+          },
+          "size": {
+            "width": 256,
+            "height": 256
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 36,
+            "color": "rgba(120,0,0,0.30)"
+          },
+          "groupId": "ak-b2-g-arc",
+          "groupName": "Emoji arc"
+        },
+        {
+          "id": "ak-b2-dot-cool-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": 94.46,
+            "y": 845.73
+          },
+          "size": {
+            "width": 148.48,
+            "height": 148.48
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/emoji/emoji-cool.png",
+          "objectFit": "contain",
+          "groupId": "ak-b2-g-arc",
+          "groupName": "Emoji arc"
+        },
+        {
+          "id": "ak-b2-dot-grimace",
+          "type": "shape",
+          "name": "Grimace dot",
+          "position": {
+            "x": 504,
+            "y": 690
+          },
+          "size": {
+            "width": 208,
+            "height": 208
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 36,
+            "color": "rgba(120,0,0,0.30)"
+          },
+          "groupId": "ak-b2-g-arc",
+          "groupName": "Emoji arc"
+        },
+        {
+          "id": "ak-b2-dot-grimace-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": 547.68,
+            "y": 733.68
+          },
+          "size": {
+            "width": 120.64,
+            "height": 120.64
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/emoji/emoji-grimace.png",
+          "objectFit": "contain",
+          "groupId": "ak-b2-g-arc",
+          "groupName": "Emoji arc"
+        },
+        {
+          "id": "ak-b2-dot-heart",
+          "type": "shape",
+          "name": "Heart dot",
+          "position": {
+            "x": 1114.19,
+            "y": 956.81
+          },
+          "size": {
+            "width": 160,
+            "height": 160
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "rgba(255,255,255,0.45)",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 36,
+            "color": "rgba(120,0,0,0.30)"
+          },
+          "groupId": "ak-b2-g-arc",
+          "groupName": "Emoji arc"
+        },
+        {
+          "id": "ak-b2-dot-heart-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": 1147.79,
+            "y": 990.41
+          },
+          "size": {
+            "width": 92.8,
+            "height": 92.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/emoji/emoji-heart.png",
+          "objectFit": "contain",
+          "opacity": 0.85,
+          "groupId": "ak-b2-g-arc",
+          "groupName": "Emoji arc"
+        },
+        {
+          "id": "ak-b2-card-back",
+          "type": "shape",
+          "name": "Back card",
+          "position": {
+            "x": 214,
+            "y": 1090
+          },
+          "size": {
+            "width": 798,
+            "height": 1110
+          },
+          "rotation": -6,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF8A6E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 84,
+          "groupId": "ak-b2-g-card",
+          "groupName": "Question card"
+        },
+        {
+          "id": "ak-b2-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 204,
+            "y": 1060
+          },
+          "size": {
+            "width": 798,
+            "height": 1110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 84,
+          "shadow": {
+            "x": 0,
+            "y": 30,
+            "blur": 70,
+            "color": "rgba(120,0,0,0.35)"
+          },
+          "groupId": "ak-b2-g-card",
+          "groupName": "Question card"
+        },
+        {
+          "id": "ak-b2-card-mode",
+          "type": "text",
+          "name": "Mode",
+          "position": {
+            "x": 443.5,
+            "y": 1155.73
+          },
+          "size": {
+            "width": 319,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "COUPLES",
+          "fontSize": 16,
+          "color": "#111111",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": 1.2,
+          "textDecoration": "underline",
+          "groupId": "ak-b2-g-card",
+          "groupName": "Question card"
+        },
+        {
+          "id": "ak-b2-card-question",
+          "type": "text",
+          "name": "Question",
+          "position": {
+            "x": 229.5,
+            "y": 1347.33
+          },
+          "size": {
+            "width": 747,
+            "height": 445
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "What's a\ncompliment from\nme that stuck\nwith you?",
+          "fontSize": 25,
+          "color": "#2B2B2B",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.28,
+          "groupId": "ak-b2-g-card",
+          "groupName": "Question card"
+        },
+        {
+          "id": "ak-b2-ice-cube",
+          "type": "image",
+          "name": "Ice cube",
+          "position": {
+            "x": -40,
+            "y": 1975
+          },
+          "size": {
+            "width": 640,
+            "height": 676
+          },
+          "rotation": -8,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-ice-cube.png",
+          "objectFit": "contain",
+          "shadow": {
+            "x": 0,
+            "y": 20,
+            "blur": 40,
+            "color": "rgba(90,0,0,0.30)"
+          },
+          "groupId": "ak-b2-g-ice",
+          "groupName": "Ice"
+        },
+        {
+          "id": "ak-b2-ice-chunk",
+          "type": "image",
+          "name": "Ice chunk",
+          "position": {
+            "x": 640,
+            "y": 2030
+          },
+          "size": {
+            "width": 580,
+            "height": 662
+          },
+          "rotation": 10,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-ice-chunk.png",
+          "objectFit": "contain",
+          "shadow": {
+            "x": 0,
+            "y": 20,
+            "blur": 40,
+            "color": "rgba(90,0,0,0.30)"
+          },
+          "groupId": "ak-b2-g-ice",
+          "groupName": "Ice"
+        },
+        {
+          "id": "ak-b2-title-1",
+          "type": "text",
+          "name": "Melt the",
+          "position": {
+            "x": 330,
+            "y": 179.4
+          },
+          "size": {
+            "width": 546,
+            "height": 144
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Melt the",
+          "fontSize": 36,
+          "color": "#FFFFFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "ak-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ak-b2-title-2",
+          "type": "text",
+          "name": "Silence",
+          "position": {
+            "x": 235,
+            "y": 297.67
+          },
+          "size": {
+            "width": 736,
+            "height": 246
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Silence",
+          "fontSize": 56,
+          "color": "#FFFFFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "ak-b2-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    },
+    {
+      "id": "ak-board-3",
+      "name": "Pick A Mode, Set The Mood",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#F5F5F7",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "ak-b3-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 68,
+            "y": -412.26
+          },
+          "size": {
+            "width": 1070,
+            "height": 2240.26
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#1C1C1E",
+          "screenshotSrc": "/data/projects/askadeck-screen-modes.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "shadow": {
+            "x": 0,
+            "y": 40,
+            "blur": 90,
+            "color": "rgba(40,20,90,0.30)"
+          },
+          "groupId": "ak-b3-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "ak-b3-title",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 166.5,
+            "y": 1892.13
+          },
+          "size": {
+            "width": 873,
+            "height": 306
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Pick a Mode,\nSet the Mood",
+          "fontSize": 37,
+          "color": "#2C2C2E",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.12,
+          "groupId": "ak-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ak-b3-chip-romantic",
+          "type": "shape",
+          "name": "Romantic chip",
+          "position": {
+            "x": -50,
+            "y": 2278
+          },
+          "size": {
+            "width": 370.66,
+            "height": 104
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 52,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 28,
+            "color": "rgba(20,20,40,0.10)"
+          },
+          "groupId": "ak-b3-g-moods-1",
+          "groupName": "Moods, row 1"
+        },
+        {
+          "id": "ak-b3-chip-romantic-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": -20,
+            "y": 2302
+          },
+          "size": {
+            "width": 56,
+            "height": 56
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/emoji/emoji-pink-heart.png",
+          "objectFit": "contain",
+          "groupId": "ak-b3-g-moods-1",
+          "groupName": "Moods, row 1"
+        },
+        {
+          "id": "ak-b3-chip-romantic-text",
+          "type": "text",
+          "name": "Romantic",
+          "position": {
+            "x": 50,
+            "y": 2297
+          },
+          "size": {
+            "width": 257,
+            "height": 62
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Romantic",
+          "fontSize": 15,
+          "color": "#1C1C1E",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "ak-b3-g-moods-1",
+          "groupName": "Moods, row 1"
+        },
+        {
+          "id": "ak-b3-chip-friendship",
+          "type": "shape",
+          "name": "Friendship chip",
+          "position": {
+            "x": 342.66,
+            "y": 2278
+          },
+          "size": {
+            "width": 392.5,
+            "height": 104
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#8B5CF6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 52,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 34,
+            "color": "rgba(139,92,246,0.45)"
+          },
+          "groupId": "ak-b3-g-moods-1",
+          "groupName": "Moods, row 1"
+        },
+        {
+          "id": "ak-b3-chip-friendship-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": 372.66,
+            "y": 2302
+          },
+          "size": {
+            "width": 56,
+            "height": 56
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/emoji/emoji-yellow-heart.png",
+          "objectFit": "contain",
+          "groupId": "ak-b3-g-moods-1",
+          "groupName": "Moods, row 1"
+        },
+        {
+          "id": "ak-b3-chip-friendship-text",
+          "type": "text",
+          "name": "Friendship",
+          "position": {
+            "x": 442.66,
+            "y": 2292
+          },
+          "size": {
+            "width": 279,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Friendship",
+          "fontSize": 15,
+          "color": "#FFFFFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "ak-b3-g-moods-1",
+          "groupName": "Moods, row 1"
+        },
+        {
+          "id": "ak-b3-chip-wild",
+          "type": "shape",
+          "name": "Wild chip",
+          "position": {
+            "x": 757.16,
+            "y": 2278
+          },
+          "size": {
+            "width": 247.81,
+            "height": 104
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 52,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 28,
+            "color": "rgba(20,20,40,0.10)"
+          },
+          "groupId": "ak-b3-g-moods-1",
+          "groupName": "Moods, row 1"
+        },
+        {
+          "id": "ak-b3-chip-wild-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": 787.16,
+            "y": 2302
+          },
+          "size": {
+            "width": 56,
+            "height": 56
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/emoji/emoji-devil.png",
+          "objectFit": "contain",
+          "groupId": "ak-b3-g-moods-1",
+          "groupName": "Moods, row 1"
+        },
+        {
+          "id": "ak-b3-chip-wild-text",
+          "type": "text",
+          "name": "Wild",
+          "position": {
+            "x": 857.16,
+            "y": 2297
+          },
+          "size": {
+            "width": 134,
+            "height": 62
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Wild",
+          "fontSize": 15,
+          "color": "#1C1C1E",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "ak-b3-g-moods-1",
+          "groupName": "Moods, row 1"
+        },
+        {
+          "id": "ak-b3-chip-flirty",
+          "type": "shape",
+          "name": "Flirty chip",
+          "position": {
+            "x": 1026.97,
+            "y": 2278
+          },
+          "size": {
+            "width": 261.91,
+            "height": 104
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 52,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 28,
+            "color": "rgba(20,20,40,0.10)"
+          },
+          "groupId": "ak-b3-g-moods-1",
+          "groupName": "Moods, row 1"
+        },
+        {
+          "id": "ak-b3-chip-flirty-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": 1056.97,
+            "y": 2302
+          },
+          "size": {
+            "width": 56,
+            "height": 56
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/emoji/emoji-kiss.png",
+          "objectFit": "contain",
+          "groupId": "ak-b3-g-moods-1",
+          "groupName": "Moods, row 1"
+        },
+        {
+          "id": "ak-b3-chip-flirty-text",
+          "type": "text",
+          "name": "Flirty",
+          "position": {
+            "x": 1126.97,
+            "y": 2291
+          },
+          "size": {
+            "width": 148,
+            "height": 74
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Flirty",
+          "fontSize": 15,
+          "color": "#1C1C1E",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "ak-b3-g-moods-1",
+          "groupName": "Moods, row 1"
+        },
+        {
+          "id": "ak-b3-chip-spicy",
+          "type": "shape",
+          "name": "Spicy chip",
+          "position": {
+            "x": -60,
+            "y": 2430
+          },
+          "size": {
+            "width": 276.25,
+            "height": 104
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 52,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 28,
+            "color": "rgba(20,20,40,0.10)"
+          },
+          "groupId": "ak-b3-g-moods-2",
+          "groupName": "Moods, row 2"
+        },
+        {
+          "id": "ak-b3-chip-spicy-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": -30,
+            "y": 2454
+          },
+          "size": {
+            "width": 56,
+            "height": 56
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/emoji/emoji-fire.png",
+          "objectFit": "contain",
+          "groupId": "ak-b3-g-moods-2",
+          "groupName": "Moods, row 2"
+        },
+        {
+          "id": "ak-b3-chip-spicy-text",
+          "type": "text",
+          "name": "Spicy",
+          "position": {
+            "x": 40,
+            "y": 2443
+          },
+          "size": {
+            "width": 163,
+            "height": 74
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Spicy",
+          "fontSize": 15,
+          "color": "#1C1C1E",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "ak-b3-g-moods-2",
+          "groupName": "Moods, row 2"
+        },
+        {
+          "id": "ak-b3-chip-challenge",
+          "type": "shape",
+          "name": "Challenge chip",
+          "position": {
+            "x": 238.25,
+            "y": 2430
+          },
+          "size": {
+            "width": 384,
+            "height": 104
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 52,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 28,
+            "color": "rgba(20,20,40,0.10)"
+          },
+          "groupId": "ak-b3-g-moods-2",
+          "groupName": "Moods, row 2"
+        },
+        {
+          "id": "ak-b3-chip-challenge-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": 268.25,
+            "y": 2454
+          },
+          "size": {
+            "width": 56,
+            "height": 56
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/emoji/emoji-target.png",
+          "objectFit": "contain",
+          "groupId": "ak-b3-g-moods-2",
+          "groupName": "Moods, row 2"
+        },
+        {
+          "id": "ak-b3-chip-challenge-text",
+          "type": "text",
+          "name": "Challenge",
+          "position": {
+            "x": 338.25,
+            "y": 2443
+          },
+          "size": {
+            "width": 270,
+            "height": 74
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Challenge",
+          "fontSize": 15,
+          "color": "#1C1C1E",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "ak-b3-g-moods-2",
+          "groupName": "Moods, row 2"
+        },
+        {
+          "id": "ak-b3-chip-deep",
+          "type": "shape",
+          "name": "Deep talk chip",
+          "position": {
+            "x": 644.25,
+            "y": 2430
+          },
+          "size": {
+            "width": 369.69,
+            "height": 104
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#8B5CF6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 52,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 34,
+            "color": "rgba(139,92,246,0.45)"
+          },
+          "groupId": "ak-b3-g-moods-2",
+          "groupName": "Moods, row 2"
+        },
+        {
+          "id": "ak-b3-chip-deep-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": 674.25,
+            "y": 2454
+          },
+          "size": {
+            "width": 56,
+            "height": 56
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/emoji/emoji-speech.png",
+          "objectFit": "contain",
+          "groupId": "ak-b3-g-moods-2",
+          "groupName": "Moods, row 2"
+        },
+        {
+          "id": "ak-b3-chip-deep-text",
+          "type": "text",
+          "name": "Deep talk",
+          "position": {
+            "x": 744.25,
+            "y": 2444
+          },
+          "size": {
+            "width": 256,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Deep talk",
+          "fontSize": 15,
+          "color": "#FFFFFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "ak-b3-g-moods-2",
+          "groupName": "Moods, row 2"
+        },
+        {
+          "id": "ak-b3-chip-emotional",
+          "type": "shape",
+          "name": "Emotional chip",
+          "position": {
+            "x": 1035.94,
+            "y": 2430
+          },
+          "size": {
+            "width": 383.16,
+            "height": 104
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 52,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 28,
+            "color": "rgba(20,20,40,0.10)"
+          },
+          "groupId": "ak-b3-g-moods-2",
+          "groupName": "Moods, row 2"
+        },
+        {
+          "id": "ak-b3-chip-emotional-emoji",
+          "type": "image",
+          "name": "Emoji",
+          "position": {
+            "x": 1065.94,
+            "y": 2454
+          },
+          "size": {
+            "width": 56,
+            "height": 56
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/emoji/emoji-tears.png",
+          "objectFit": "contain",
+          "groupId": "ak-b3-g-moods-2",
+          "groupName": "Moods, row 2"
+        },
+        {
+          "id": "ak-b3-chip-emotional-text",
+          "type": "text",
+          "name": "Emotional",
+          "position": {
+            "x": 1135.94,
+            "y": 2449
+          },
+          "size": {
+            "width": 270,
+            "height": 62
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Emotional",
+          "fontSize": 15,
+          "color": "#1C1C1E",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "ak-b3-g-moods-2",
+          "groupName": "Moods, row 2"
+        }
+      ]
+    },
+    {
+      "id": "ak-board-4",
+      "name": "Date Night Just Got Deeper",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#1E2128",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "ak-b4-photo-backdrop",
+          "type": "image",
+          "name": "Backdrop",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1206,
+            "height": 1720
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/askadeck-backdrop-sea.png",
+          "objectFit": "cover",
+          "groupId": "ak-b4-g-photo",
+          "groupName": "Photo"
+        },
+        {
+          "id": "ak-b4-photo",
+          "type": "image",
+          "name": "Couple",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1206,
+            "height": 1720
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/askadeck-couple-sea.png",
+          "objectFit": "cover",
+          "groupId": "ak-b4-g-photo",
+          "groupName": "Photo"
+        },
+        {
+          "id": "ak-b4-panel",
+          "type": "shape",
+          "name": "Panel",
+          "position": {
+            "x": 0,
+            "y": 1236
+          },
+          "size": {
+            "width": 1206,
+            "height": 1386
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#1E2128",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 8 Q50 52 100 8 V100 H0 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ak-b4-g-panel",
+          "groupName": "Dark panel"
+        },
+        {
+          "id": "ak-b4-checker",
+          "type": "shape",
+          "name": "Checker",
+          "position": {
+            "x": 0,
+            "y": 1660
+          },
+          "size": {
+            "width": 1206,
+            "height": 1206
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 0 H16.67 V16.67 H0 ZM33.33 0 H50 V16.67 H33.33 ZM66.67 0 H83.33 V16.67 H66.67 ZM16.67 16.67 H33.33 V33.33 H16.67 ZM50 16.67 H66.67 V33.33 H50 ZM83.33 16.67 H100 V33.33 H83.33 ZM0 33.33 H16.67 V50 H0 ZM33.33 33.33 H50 V50 H33.33 ZM66.67 33.33 H83.33 V50 H66.67 ZM16.67 50 H33.33 V66.67 H16.67 ZM50 50 H66.67 V66.67 H50 ZM83.33 50 H100 V66.67 H83.33 ZM0 66.67 H16.67 V83.33 H0 ZM33.33 66.67 H50 V83.33 H33.33 ZM66.67 66.67 H83.33 V83.33 H66.67 ZM16.67 83.33 H33.33 V100 H16.67 ZM50 83.33 H66.67 V100 H50 ZM83.33 83.33 H100 V100 H83.33 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "opacity": 0.04,
+          "groupId": "ak-b4-g-panel",
+          "groupName": "Dark panel"
+        },
+        {
+          "id": "ak-b4-icon-ring",
+          "type": "shape",
+          "name": "Ring",
+          "position": {
+            "x": 417,
+            "y": 1465.8
+          },
+          "size": {
+            "width": 372,
+            "height": 372
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "shadow": {
+            "x": 0,
+            "y": 20,
+            "blur": 50,
+            "color": "rgba(0,0,0,0.45)"
+          },
+          "groupId": "ak-b4-g-icon",
+          "groupName": "App icon"
+        },
+        {
+          "id": "ak-b4-icon-disc",
+          "type": "shape",
+          "name": "Disc",
+          "position": {
+            "x": 437,
+            "y": 1485.8
+          },
+          "size": {
+            "width": 332,
+            "height": 332
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#7B5CFA",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ak-b4-g-icon",
+          "groupName": "App icon"
+        },
+        {
+          "id": "ak-b4-icon",
+          "type": "image",
+          "name": "App icon",
+          "position": {
+            "x": 478,
+            "y": 1523.2
+          },
+          "size": {
+            "width": 250,
+            "height": 257.2
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-app-questions.png",
+          "objectFit": "contain",
+          "groupId": "ak-b4-g-icon",
+          "groupName": "App icon"
+        },
+        {
+          "id": "ak-b4-heart",
+          "type": "image",
+          "name": "Heart",
+          "position": {
+            "x": 948,
+            "y": 1742
+          },
+          "size": {
+            "width": 205,
+            "height": 200
+          },
+          "rotation": 14,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-heart.png",
+          "objectFit": "contain",
+          "shadow": {
+            "x": 0,
+            "y": 20,
+            "blur": 36,
+            "color": "rgba(0,0,0,0.4)"
+          },
+          "groupId": "ak-b4-g-heart",
+          "groupName": "Heart"
+        },
+        {
+          "id": "ak-b4-title-1",
+          "type": "text",
+          "name": "Date night just got",
+          "position": {
+            "x": 242,
+            "y": 1951.87
+          },
+          "size": {
+            "width": 722,
+            "height": 308
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Date Night\nJust Got",
+          "fontSize": 38,
+          "color": "#FFFFFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.12,
+          "groupId": "ak-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ak-b4-title-2",
+          "type": "text",
+          "name": "Deeper",
+          "position": {
+            "x": 220,
+            "y": 2210.9
+          },
+          "size": {
+            "width": 766,
+            "height": 244
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Deeper",
+          "fontSize": 58,
+          "color": "#FFFFFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "ak-b4-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    },
+    {
+      "id": "ak-board-5",
+      "name": "Bring Everyone A Little Closer",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#6E40F5",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#8156FF",
+        "color2": "#5A2BE2",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "ak-b5-checker",
+          "type": "shape",
+          "name": "Checker",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1206,
+            "height": 2613.04
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 0 H16.67 V16.67 H0 ZM33.33 0 H50 V16.67 H33.33 ZM66.67 0 H83.33 V16.67 H66.67 ZM16.67 16.67 H33.33 V33.33 H16.67 ZM50 16.67 H66.67 V33.33 H50 ZM83.33 16.67 H100 V33.33 H83.33 ZM0 33.33 H16.67 V50 H0 ZM33.33 33.33 H50 V50 H33.33 ZM66.67 33.33 H83.33 V50 H66.67 ZM16.67 50 H33.33 V66.67 H16.67 ZM50 50 H66.67 V66.67 H50 ZM83.33 50 H100 V66.67 H83.33 ZM0 66.67 H16.67 V83.33 H0 ZM33.33 66.67 H50 V83.33 H33.33 ZM66.67 66.67 H83.33 V83.33 H66.67 ZM16.67 83.33 H33.33 V100 H16.67 ZM50 83.33 H66.67 V100 H50 ZM83.33 83.33 H100 V100 H83.33 ZM0 100 H16.67 V116.67 H0 ZM33.33 100 H50 V116.67 H33.33 ZM66.67 100 H83.33 V116.67 H66.67 ZM16.67 116.67 H33.33 V133.33 H16.67 ZM50 116.67 H66.67 V133.33 H50 ZM83.33 116.67 H100 V133.33 H83.33 ZM0 133.33 H16.67 V150 H0 ZM33.33 133.33 H50 V150 H33.33 ZM66.67 133.33 H83.33 V150 H66.67 ZM16.67 150 H33.33 V166.67 H16.67 ZM50 150 H66.67 V166.67 H50 ZM83.33 150 H100 V166.67 H83.33 ZM0 166.67 H16.67 V183.33 H0 ZM33.33 166.67 H50 V183.33 H33.33 ZM66.67 166.67 H83.33 V183.33 H66.67 ZM16.67 183.33 H33.33 V200 H16.67 ZM50 183.33 H66.67 V200 H50 ZM83.33 183.33 H100 V200 H83.33 ZM0 200 H16.67 V216.67 H0 ZM33.33 200 H50 V216.67 H33.33 ZM66.67 200 H83.33 V216.67 H66.67 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 216.67"
+          },
+          "opacity": 0.05,
+          "groupId": "ak-b5-g-checker",
+          "groupName": "Checker"
+        },
+        {
+          "id": "ak-b5-panel",
+          "type": "shape",
+          "name": "Panel",
+          "position": {
+            "x": 60,
+            "y": 858.67
+          },
+          "size": {
+            "width": 1086,
+            "height": 990
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "rgba(255,255,255,0.14)",
+          "strokeColor": "rgba(255,255,255,0.30)",
+          "strokeWidth": 3,
+          "borderRadius": 72,
+          "groupId": "ak-b5-g-chat",
+          "groupName": "Chat"
+        },
+        {
+          "id": "ak-b5-avatar-ground",
+          "type": "shape",
+          "name": "Avatar backdrop",
+          "position": {
+            "x": 116,
+            "y": 910.67
+          },
+          "size": {
+            "width": 150,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFD2E2",
+          "fillGradient": {
+            "color1": "#FFD2E2",
+            "color2": "#FF9DBE",
+            "angle": 160
+          },
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ak-b5-g-chat",
+          "groupName": "Chat"
+        },
+        {
+          "id": "ak-b5-avatar",
+          "type": "image",
+          "name": "Avatar",
+          "position": {
+            "x": 116,
+            "y": 910.67
+          },
+          "size": {
+            "width": 150,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/askadeck-avatar.png",
+          "objectFit": "cover",
+          "borderRadius": 75,
+          "groupId": "ak-b5-g-chat",
+          "groupName": "Chat"
+        },
+        {
+          "id": "ak-b5-online",
+          "type": "shape",
+          "name": "Online dot",
+          "position": {
+            "x": 226,
+            "y": 1020.67
+          },
+          "size": {
+            "width": 36,
+            "height": 36
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#34C759",
+          "strokeColor": "#FFFFFF",
+          "strokeWidth": 5,
+          "groupId": "ak-b5-g-chat",
+          "groupName": "Chat"
+        },
+        {
+          "id": "ak-b5-name",
+          "type": "text",
+          "name": "Name",
+          "position": {
+            "x": 294,
+            "y": 900
+          },
+          "size": {
+            "width": 193,
+            "height": 91
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Maya",
+          "fontSize": 19,
+          "color": "#FFFFFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "ak-b5-g-chat",
+          "groupName": "Chat"
+        },
+        {
+          "id": "ak-b5-name-heart",
+          "type": "image",
+          "name": "Heart emoji",
+          "position": {
+            "x": 480.47,
+            "y": 924.67
+          },
+          "size": {
+            "width": 50,
+            "height": 46
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/emoji/emoji-heart.png",
+          "objectFit": "contain",
+          "groupId": "ak-b5-g-chat",
+          "groupName": "Chat"
+        },
+        {
+          "id": "ak-b5-status",
+          "type": "text",
+          "name": "Status",
+          "position": {
+            "x": 294,
+            "y": 982.2
+          },
+          "size": {
+            "width": 161,
+            "height": 55
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Online",
+          "fontSize": 13,
+          "color": "#D9F7E3",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "ak-b5-g-chat",
+          "groupName": "Chat"
+        },
+        {
+          "id": "ak-b5-bubble",
+          "type": "shape",
+          "name": "Question bubble",
+          "position": {
+            "x": 438.88,
+            "y": 1094.67
+          },
+          "size": {
+            "width": 651.13,
+            "height": 300
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 52,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 34,
+            "color": "rgba(30,0,90,0.25)"
+          },
+          "groupId": "ak-b5-g-chat",
+          "groupName": "Chat"
+        },
+        {
+          "id": "ak-b5-question",
+          "type": "text",
+          "name": "Question",
+          "position": {
+            "x": 488.875,
+            "y": 1134.1666666666667
+          },
+          "size": {
+            "width": 572,
+            "height": 221
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "What's a compliment\nfrom me that stuck\nwith you?",
+          "fontSize": 16,
+          "color": "#1C1C1E",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.3,
+          "groupId": "ak-b5-g-chat",
+          "groupName": "Chat"
+        },
+        {
+          "id": "ak-b5-typing",
+          "type": "shape",
+          "name": "Typing bubble",
+          "position": {
+            "x": 116,
+            "y": 1440.67
+          },
+          "size": {
+            "width": 232,
+            "height": 104
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "rgba(255,255,255,0.22)",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 52,
+          "groupId": "ak-b5-g-chat",
+          "groupName": "Chat"
+        },
+        {
+          "id": "ak-b5-typing-dot1",
+          "type": "shape",
+          "name": "Dot",
+          "position": {
+            "x": 165,
+            "y": 1479.67
+          },
+          "size": {
+            "width": 26,
+            "height": 26
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ak-b5-g-chat",
+          "groupName": "Chat"
+        },
+        {
+          "id": "ak-b5-typing-dot2",
+          "type": "shape",
+          "name": "Dot",
+          "position": {
+            "x": 219,
+            "y": 1479.67
+          },
+          "size": {
+            "width": 26,
+            "height": 26
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "rgba(255,255,255,0.75)",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ak-b5-g-chat",
+          "groupName": "Chat"
+        },
+        {
+          "id": "ak-b5-typing-dot3",
+          "type": "shape",
+          "name": "Dot",
+          "position": {
+            "x": 273,
+            "y": 1479.67
+          },
+          "size": {
+            "width": 26,
+            "height": 26
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ak-b5-g-chat",
+          "groupName": "Chat"
+        },
+        {
+          "id": "ak-b5-input",
+          "type": "shape",
+          "name": "Input",
+          "position": {
+            "x": 116,
+            "y": 1674.67
+          },
+          "size": {
+            "width": 974,
+            "height": 118
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "rgba(255,255,255,0.18)",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 59,
+          "groupId": "ak-b5-g-chat",
+          "groupName": "Chat"
+        },
+        {
+          "id": "ak-b5-input-text",
+          "type": "text",
+          "name": "Placeholder",
+          "position": {
+            "x": 162,
+            "y": 1694.67
+          },
+          "size": {
+            "width": 441,
+            "height": 74
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Type your answer",
+          "fontSize": 15,
+          "color": "rgba(255,255,255,0.72)",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "ak-b5-g-chat",
+          "groupName": "Chat"
+        },
+        {
+          "id": "ak-b5-send",
+          "type": "shape",
+          "name": "Send button",
+          "position": {
+            "x": 988,
+            "y": 1690.67
+          },
+          "size": {
+            "width": 86,
+            "height": 86
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ak-b5-g-chat",
+          "groupName": "Chat"
+        },
+        {
+          "id": "ak-b5-send-icon",
+          "type": "shape",
+          "name": "Send icon",
+          "position": {
+            "x": 1007,
+            "y": 1709.67
+          },
+          "size": {
+            "width": 48,
+            "height": 48
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#7C4DFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M92 8 L8 44 L38 56 L82 20 L46 62 L58 90 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ak-b5-g-chat",
+          "groupName": "Chat"
+        },
+        {
+          "id": "ak-b5-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 94,
+            "y": 1918.67
+          },
+          "size": {
+            "width": 1018,
+            "height": 300
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 64,
+          "shadow": {
+            "x": 0,
+            "y": 30,
+            "blur": 70,
+            "color": "rgba(40,10,120,0.30)"
+          },
+          "groupId": "ak-b5-g-card",
+          "groupName": "App card"
+        },
+        {
+          "id": "ak-b5-card-icon",
+          "type": "image",
+          "name": "App icon",
+          "position": {
+            "x": 134,
+            "y": 1962.72
+          },
+          "size": {
+            "width": 206,
+            "height": 211.89
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-app-questions.png",
+          "objectFit": "contain",
+          "groupId": "ak-b5-g-card",
+          "groupName": "App card"
+        },
+        {
+          "id": "ak-b5-card-name",
+          "type": "text",
+          "name": "App name",
+          "position": {
+            "x": 372,
+            "y": 1988.07
+          },
+          "size": {
+            "width": 378,
+            "height": 86
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Askadeck",
+          "fontSize": 21,
+          "color": "#111111",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "ak-b5-g-card",
+          "groupName": "App card"
+        },
+        {
+          "id": "ak-b5-card-tagline",
+          "type": "text",
+          "name": "Tagline",
+          "position": {
+            "x": 372,
+            "y": 2071.47
+          },
+          "size": {
+            "width": 439,
+            "height": 111
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Questions for friends\nand couples",
+          "fontSize": 12,
+          "color": "#6B6B72",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.25,
+          "groupId": "ak-b5-g-card",
+          "groupName": "App card"
+        },
+        {
+          "id": "ak-b5-card-get",
+          "type": "shape",
+          "name": "Get button",
+          "position": {
+            "x": 886,
+            "y": 2020.67
+          },
+          "size": {
+            "width": 186,
+            "height": 96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0A84FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 48,
+          "groupId": "ak-b5-g-card",
+          "groupName": "App card"
+        },
+        {
+          "id": "ak-b5-card-get-label",
+          "type": "text",
+          "name": "Get",
+          "position": {
+            "x": 913,
+            "y": 2033.4
+          },
+          "size": {
+            "width": 132,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Get",
+          "fontSize": 16,
+          "color": "#FFFFFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "ak-b5-g-card",
+          "groupName": "App card"
+        },
+        {
+          "id": "ak-b5-laurel-left",
+          "type": "shape",
+          "name": "Laurel",
+          "position": {
+            "x": 203,
+            "y": 2288.67
+          },
+          "size": {
+            "width": 250,
+            "height": 250
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFE9A8",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M57.27 99.57 L53.84 96.68 L50.62 93.55 L47.62 90.2 L44.88 86.65 L42.4 82.91 L40.18 79 L38.26 74.94 L36.63 70.76 L35.3 66.47 L34.27 62.1 L33.57 57.67 L33.18 53.19 L33.11 48.7 L33.37 44.22 L33.94 39.77 L34.83 35.36 L36.03 31.04 L37.53 26.81 L39.34 22.7 L41.43 18.72 L43.8 14.91 L46.43 11.27 L47.85 12.38 L45.29 15.91 L42.99 19.62 L40.96 23.48 L39.2 27.47 L37.74 31.58 L36.58 35.78 L35.71 40.06 L35.16 44.39 L34.91 48.74 L34.98 53.1 L35.36 57.45 L36.04 61.75 L37.03 66 L38.32 70.17 L39.91 74.23 L41.78 78.17 L43.93 81.97 L46.34 85.6 L49.01 89.05 L51.91 92.3 L55.04 95.34 L58.38 98.15 Z M54.56 96.12 Q57.42 89.38 53.21 83.39 Q50.34 90.13 54.56 96.12 Z M49.13 90.58 Q43.39 86.35 36.78 89.04 Q42.52 93.27 49.13 90.58 Z M44.43 84.41 Q48.68 78.93 46.17 72.46 Q41.92 77.94 44.43 84.41 Z M40.53 77.7 Q36.31 72.45 29.63 73.42 Q33.86 78.68 40.53 77.7 Z M37.51 70.56 Q42.71 66.59 41.88 60.09 Q36.67 64.07 37.51 70.56 Z M35.4 63.1 Q32.82 57.29 26.49 56.67 Q29.07 62.48 35.4 63.1 Z M34.24 55.43 Q39.93 53.07 40.63 46.94 Q34.93 49.31 34.24 55.43 Z M34.04 47.68 Q33.1 41.78 27.47 39.8 Q28.41 45.7 34.04 47.68 Z M34.82 39.96 Q40.55 39.2 42.55 33.78 Q36.81 34.54 34.82 39.96 Z M36.55 32.41 Q37.13 26.85 32.44 23.8 Q31.86 29.36 36.55 32.41 Z M39.21 25.12 Q44.56 25.82 47.57 21.34 Q42.22 20.64 39.21 25.12 Z M42.76 18.23 Q44.63 13.37 41.05 9.58 Q39.19 14.44 42.76 18.23 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ak-b5-g-rating",
+          "groupName": "Laurels"
+        },
+        {
+          "id": "ak-b5-laurel-right",
+          "type": "shape",
+          "name": "Laurel",
+          "position": {
+            "x": 753,
+            "y": 2288.67
+          },
+          "size": {
+            "width": 250,
+            "height": 250
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFE9A8",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M42.73 99.57 L46.16 96.68 L49.38 93.55 L52.38 90.2 L55.12 86.65 L57.6 82.91 L59.82 79 L61.74 74.94 L63.37 70.76 L64.7 66.47 L65.73 62.1 L66.43 57.67 L66.82 53.19 L66.89 48.7 L66.63 44.22 L66.06 39.77 L65.17 35.36 L63.97 31.04 L62.47 26.81 L60.66 22.7 L58.57 18.72 L56.2 14.91 L53.57 11.27 L52.15 12.38 L54.71 15.91 L57.01 19.62 L59.04 23.48 L60.8 27.47 L62.26 31.58 L63.42 35.78 L64.29 40.06 L64.84 44.39 L65.09 48.74 L65.02 53.1 L64.64 57.45 L63.96 61.75 L62.97 66 L61.68 70.17 L60.09 74.23 L58.22 78.17 L56.07 81.97 L53.66 85.6 L50.99 89.05 L48.09 92.3 L44.96 95.34 L41.62 98.15 Z M45.44 96.12 Q51.84 99.68 58.24 96.13 Q51.84 92.56 45.44 96.12 Z M50.87 90.58 Q54.24 84.3 50.63 78.15 Q47.26 84.43 50.87 90.58 Z M55.57 84.41 Q62.27 86.23 67.28 81.43 Q60.58 79.61 55.57 84.41 Z M59.47 77.7 Q61.13 71.17 56.34 66.42 Q54.68 72.95 59.47 77.7 Z M62.49 70.56 Q69.04 70.72 72.45 65.13 Q65.9 64.97 62.49 70.56 Z M64.6 63.1 Q64.65 56.74 59.14 53.57 Q59.09 59.93 64.6 63.1 Z M65.76 55.43 Q71.78 54.1 73.54 48.19 Q67.51 49.52 65.76 55.43 Z M65.96 47.68 Q64.58 41.87 58.81 40.32 Q60.19 46.13 65.96 47.68 Z M65.18 39.96 Q70.37 37.41 70.53 31.63 Q65.34 34.19 65.18 39.96 Z M63.45 32.41 Q60.91 27.43 55.32 27.42 Q57.86 32.4 63.45 32.41 Z M60.79 25.12 Q64.93 21.66 63.68 16.41 Q59.53 19.87 60.79 25.12 Z M57.24 18.23 Q53.85 14.28 48.82 15.62 Q52.21 19.57 57.24 18.23 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ak-b5-g-rating",
+          "groupName": "Laurels"
+        },
+        {
+          "id": "ak-b5-star1",
+          "type": "shape",
+          "name": "Star",
+          "position": {
+            "x": 448,
+            "y": 2328.67
+          },
+          "size": {
+            "width": 54,
+            "height": 54
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFD54A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ak-b5-g-rating",
+          "groupName": "Laurels"
+        },
+        {
+          "id": "ak-b5-star2",
+          "type": "shape",
+          "name": "Star",
+          "position": {
+            "x": 512,
+            "y": 2328.67
+          },
+          "size": {
+            "width": 54,
+            "height": 54
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFD54A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ak-b5-g-rating",
+          "groupName": "Laurels"
+        },
+        {
+          "id": "ak-b5-star3",
+          "type": "shape",
+          "name": "Star",
+          "position": {
+            "x": 576,
+            "y": 2328.67
+          },
+          "size": {
+            "width": 54,
+            "height": 54
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFD54A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ak-b5-g-rating",
+          "groupName": "Laurels"
+        },
+        {
+          "id": "ak-b5-star4",
+          "type": "shape",
+          "name": "Star",
+          "position": {
+            "x": 640,
+            "y": 2328.67
+          },
+          "size": {
+            "width": 54,
+            "height": 54
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFD54A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ak-b5-g-rating",
+          "groupName": "Laurels"
+        },
+        {
+          "id": "ak-b5-star5",
+          "type": "shape",
+          "name": "Star",
+          "position": {
+            "x": 704,
+            "y": 2328.67
+          },
+          "size": {
+            "width": 54,
+            "height": 54
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFD54A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ak-b5-g-rating",
+          "groupName": "Laurels"
+        },
+        {
+          "id": "ak-b5-rating-text",
+          "type": "text",
+          "name": "Line",
+          "position": {
+            "x": 368,
+            "y": 2394
+          },
+          "size": {
+            "width": 470,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Never run out of\nthings to talk about",
+          "fontSize": 14,
+          "color": "#FFFFFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.25,
+          "groupId": "ak-b5-g-rating",
+          "groupName": "Laurels"
+        },
+        {
+          "id": "ak-b5-title-1",
+          "type": "text",
+          "name": "Bring everyone a little",
+          "position": {
+            "x": 79.5,
+            "y": 129.33
+          },
+          "size": {
+            "width": 1047,
+            "height": 319
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Bring Everyone\na Little",
+          "fontSize": 40,
+          "color": "#FFFFFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "ak-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ak-b5-title-2",
+          "type": "text",
+          "name": "Closer",
+          "position": {
+            "x": 60,
+            "y": 362.67
+          },
+          "size": {
+            "width": 1086,
+            "height": 412
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Closer",
+          "fontSize": 96,
+          "color": "#FFFFFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "ak-b5-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    }
+  ]
+}

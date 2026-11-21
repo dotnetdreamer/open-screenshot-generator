@@ -1,0 +1,1808 @@
+{
+  "id": "template_tenpost_ai_photos",
+  "name": "Tenpost AI Photos",
+  "description": "App Store & Play Store screenshots for an AI photo generator, selfie editor or social media content app. Heavy Inter Tight headlines that mix big and small words, on bright blue, white and midnight artboards with faint ripple rings. A tilted white phone crosses the first two screenshots, a collage of six portraits and a blue paper plane fly into a phone in a blue case, a real looking portrait carries detail chips and a prompt card, and a before and after phone has a compare handle and a gold star. Every part sits in named, editable layer groups.",
+  "previewImage": "/data/projects/previews/tenpost-ai-photos.png",
+  "timestamp": "2026-11-21T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "tp-board-1",
+      "name": "Make Viral Posts In Seconds",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#1A8CFF",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#2A9BFF",
+        "color2": "#0A78EE",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tp-b1-rings",
+          "type": "shape",
+          "name": "Ripple rings",
+          "position": {
+            "x": -897,
+            "y": 640
+          },
+          "size": {
+            "width": 3000,
+            "height": 3000
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 3,
+          "customPath": "M3 50 A47 47 0 1 0 97 50 A47 47 0 1 0 3 50 Z M11 50 A39 39 0 1 0 89 50 A39 39 0 1 0 11 50 Z M19 50 A31 31 0 1 0 81 50 A31 31 0 1 0 19 50 Z M27 50 A23 23 0 1 0 73 50 A23 23 0 1 0 27 50 Z M35 50 A15 15 0 1 0 65 50 A15 15 0 1 0 35 50 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 1.5
+          },
+          "opacity": 0.12,
+          "groupId": "tp-b1-g-rings",
+          "groupName": "Rings"
+        },
+        {
+          "id": "tp-b1-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 425.52,
+            "y": -395.96
+          },
+          "size": {
+            "width": 960,
+            "height": 2009.95
+          },
+          "rotation": 22,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#FFFFFF",
+          "screenshotSrc": "/data/projects/tenpost-screen-pick.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "shadow": {
+            "x": 0,
+            "y": 40,
+            "blur": 90,
+            "color": "rgba(0,40,120,0.40)"
+          },
+          "spanArtboards": true,
+          "groupId": "tp-b1-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "tp-b1-head-1a",
+          "type": "text",
+          "name": "Make",
+          "position": {
+            "x": 252.7,
+            "y": 1851.67
+          },
+          "size": {
+            "width": 442,
+            "height": 198
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Make",
+          "fontSize": 50,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": -1.2,
+          "groupId": "tp-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "tp-b1-head-1b",
+          "type": "text",
+          "name": "Viral",
+          "position": {
+            "x": 686.93,
+            "y": 1892.13
+          },
+          "size": {
+            "width": 267,
+            "height": 148
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "viral",
+          "fontSize": 37,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": -0.6,
+          "groupId": "tp-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "tp-b1-head-2a",
+          "type": "text",
+          "name": "Posts",
+          "position": {
+            "x": 366.08,
+            "y": 1994.67
+          },
+          "size": {
+            "width": 372,
+            "height": 166
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "posts",
+          "fontSize": 41,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": -1.2,
+          "groupId": "tp-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "tp-b1-head-2b",
+          "type": "text",
+          "name": "In",
+          "position": {
+            "x": 726.61,
+            "y": 2026.73
+          },
+          "size": {
+            "width": 114,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "in",
+          "fontSize": 31,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": -0.6,
+          "groupId": "tp-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "tp-b1-head-3a",
+          "type": "text",
+          "name": "Seconds",
+          "position": {
+            "x": 89.2,
+            "y": 2119.79
+          },
+          "size": {
+            "width": 1028,
+            "height": 307
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "seconds",
+          "fontSize": 78.3,
+          "color": "#CFE6FF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": -2.4,
+          "groupId": "tp-b1-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    },
+    {
+      "id": "tp-board-2",
+      "name": "Add One Photo, Get 10+ Posts",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0D85F8",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#1C93FF",
+        "color2": "#0A7AEF",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tp-b2-rings",
+          "type": "shape",
+          "name": "Ripple rings",
+          "position": {
+            "x": -897,
+            "y": 900
+          },
+          "size": {
+            "width": 3000,
+            "height": 3000
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 3,
+          "customPath": "M3 50 A47 47 0 1 0 97 50 A47 47 0 1 0 3 50 Z M11 50 A39 39 0 1 0 89 50 A39 39 0 1 0 11 50 Z M19 50 A31 31 0 1 0 81 50 A31 31 0 1 0 19 50 Z M27 50 A23 23 0 1 0 73 50 A23 23 0 1 0 27 50 Z M35 50 A15 15 0 1 0 65 50 A15 15 0 1 0 35 50 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 1.5
+          },
+          "opacity": 0.1,
+          "groupId": "tp-b2-g-rings",
+          "groupName": "Rings"
+        },
+        {
+          "id": "tp-b2-tile1-frame",
+          "type": "shape",
+          "name": "Frame",
+          "position": {
+            "x": -115,
+            "y": 1260
+          },
+          "size": {
+            "width": 470,
+            "height": 560
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 46,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 44,
+            "color": "rgba(0,40,120,0.30)"
+          },
+          "groupId": "tp-b2-g-tile1",
+          "groupName": "Photo 1"
+        },
+        {
+          "id": "tp-b2-tile1-ground",
+          "type": "shape",
+          "name": "Backdrop",
+          "position": {
+            "x": -99,
+            "y": 1276
+          },
+          "size": {
+            "width": 438,
+            "height": 528
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF985D",
+          "fillGradient": {
+            "color1": "#FF985D",
+            "color2": "#FF517A",
+            "angle": 160
+          },
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "groupId": "tp-b2-g-tile1",
+          "groupName": "Photo 1"
+        },
+        {
+          "id": "tp-b2-tile1-photo",
+          "type": "image",
+          "name": "Person",
+          "position": {
+            "x": -99,
+            "y": 1276
+          },
+          "size": {
+            "width": 438,
+            "height": 528
+          },
+          "rotation": -5,
+          "scale": 1,
+          "imageSrc": "/data/projects/tenpost-portrait-coral.png",
+          "objectFit": "cover",
+          "borderRadius": 32,
+          "groupId": "tp-b2-g-tile1",
+          "groupName": "Photo 1"
+        },
+        {
+          "id": "tp-b2-tile2-frame",
+          "type": "shape",
+          "name": "Frame",
+          "position": {
+            "x": 355,
+            "y": 1220
+          },
+          "size": {
+            "width": 470,
+            "height": 560
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 46,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 44,
+            "color": "rgba(0,40,120,0.30)"
+          },
+          "groupId": "tp-b2-g-tile2",
+          "groupName": "Photo 2"
+        },
+        {
+          "id": "tp-b2-tile2-ground",
+          "type": "shape",
+          "name": "Backdrop",
+          "position": {
+            "x": 371,
+            "y": 1236
+          },
+          "size": {
+            "width": 438,
+            "height": 528
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#6CCAFF",
+          "fillGradient": {
+            "color1": "#6CCAFF",
+            "color2": "#2380FF",
+            "angle": 190
+          },
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "groupId": "tp-b2-g-tile2",
+          "groupName": "Photo 2"
+        },
+        {
+          "id": "tp-b2-tile2-photo",
+          "type": "image",
+          "name": "Person",
+          "position": {
+            "x": 371,
+            "y": 1236
+          },
+          "size": {
+            "width": 438,
+            "height": 528
+          },
+          "rotation": 3,
+          "scale": 1,
+          "imageSrc": "/data/projects/tenpost-portrait-blue.png",
+          "objectFit": "cover",
+          "borderRadius": 32,
+          "groupId": "tp-b2-g-tile2",
+          "groupName": "Photo 2"
+        },
+        {
+          "id": "tp-b2-tile3-frame",
+          "type": "shape",
+          "name": "Frame",
+          "position": {
+            "x": 835,
+            "y": 1280
+          },
+          "size": {
+            "width": 470,
+            "height": 560
+          },
+          "rotation": -3,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 46,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 44,
+            "color": "rgba(0,40,120,0.30)"
+          },
+          "groupId": "tp-b2-g-tile3",
+          "groupName": "Photo 3"
+        },
+        {
+          "id": "tp-b2-tile3-ground",
+          "type": "shape",
+          "name": "Backdrop",
+          "position": {
+            "x": 851,
+            "y": 1296
+          },
+          "size": {
+            "width": 438,
+            "height": 528
+          },
+          "rotation": -3,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFE266",
+          "fillGradient": {
+            "color1": "#FFE266",
+            "color2": "#FFB114",
+            "angle": 160
+          },
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "groupId": "tp-b2-g-tile3",
+          "groupName": "Photo 3"
+        },
+        {
+          "id": "tp-b2-tile3-photo",
+          "type": "image",
+          "name": "Person",
+          "position": {
+            "x": 851,
+            "y": 1296
+          },
+          "size": {
+            "width": 438,
+            "height": 528
+          },
+          "rotation": -3,
+          "scale": 1,
+          "imageSrc": "/data/projects/tenpost-portrait-yellow.png",
+          "objectFit": "cover",
+          "borderRadius": 32,
+          "groupId": "tp-b2-g-tile3",
+          "groupName": "Photo 3"
+        },
+        {
+          "id": "tp-b2-tile4-frame",
+          "type": "shape",
+          "name": "Frame",
+          "position": {
+            "x": 95,
+            "y": 1840
+          },
+          "size": {
+            "width": 470,
+            "height": 560
+          },
+          "rotation": 4,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 46,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 44,
+            "color": "rgba(0,40,120,0.30)"
+          },
+          "groupId": "tp-b2-g-tile4",
+          "groupName": "Photo 4"
+        },
+        {
+          "id": "tp-b2-tile4-ground",
+          "type": "shape",
+          "name": "Backdrop",
+          "position": {
+            "x": 111,
+            "y": 1856
+          },
+          "size": {
+            "width": 438,
+            "height": 528
+          },
+          "rotation": 4,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#BE94FF",
+          "fillGradient": {
+            "color1": "#BE94FF",
+            "color2": "#7543FF",
+            "angle": 154
+          },
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "groupId": "tp-b2-g-tile4",
+          "groupName": "Photo 4"
+        },
+        {
+          "id": "tp-b2-tile4-photo",
+          "type": "image",
+          "name": "Person",
+          "position": {
+            "x": 111,
+            "y": 1856
+          },
+          "size": {
+            "width": 438,
+            "height": 528
+          },
+          "rotation": 4,
+          "scale": 1,
+          "imageSrc": "/data/projects/tenpost-portrait-purple.png",
+          "objectFit": "cover",
+          "borderRadius": 32,
+          "groupId": "tp-b2-g-tile4",
+          "groupName": "Photo 4"
+        },
+        {
+          "id": "tp-b2-tile5-frame",
+          "type": "shape",
+          "name": "Frame",
+          "position": {
+            "x": 575,
+            "y": 1820
+          },
+          "size": {
+            "width": 470,
+            "height": 560
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 46,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 44,
+            "color": "rgba(0,40,120,0.30)"
+          },
+          "groupId": "tp-b2-g-tile5",
+          "groupName": "Photo 5"
+        },
+        {
+          "id": "tp-b2-tile5-ground",
+          "type": "shape",
+          "name": "Backdrop",
+          "position": {
+            "x": 591,
+            "y": 1836
+          },
+          "size": {
+            "width": 438,
+            "height": 528
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#7DE4B8",
+          "fillGradient": {
+            "color1": "#7DE4B8",
+            "color2": "#15B275",
+            "angle": 192
+          },
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "groupId": "tp-b2-g-tile5",
+          "groupName": "Photo 5"
+        },
+        {
+          "id": "tp-b2-tile5-photo",
+          "type": "image",
+          "name": "Person",
+          "position": {
+            "x": 591,
+            "y": 1836
+          },
+          "size": {
+            "width": 438,
+            "height": 528
+          },
+          "rotation": -4,
+          "scale": 1,
+          "imageSrc": "/data/projects/tenpost-portrait-green.png",
+          "objectFit": "cover",
+          "borderRadius": 32,
+          "groupId": "tp-b2-g-tile5",
+          "groupName": "Photo 5"
+        },
+        {
+          "id": "tp-b2-tile6-frame",
+          "type": "shape",
+          "name": "Frame",
+          "position": {
+            "x": 1045,
+            "y": 1860
+          },
+          "size": {
+            "width": 470,
+            "height": 560
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 46,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 44,
+            "color": "rgba(0,40,120,0.30)"
+          },
+          "groupId": "tp-b2-g-tile6",
+          "groupName": "Photo 6"
+        },
+        {
+          "id": "tp-b2-tile6-ground",
+          "type": "shape",
+          "name": "Backdrop",
+          "position": {
+            "x": 1061,
+            "y": 1876
+          },
+          "size": {
+            "width": 438,
+            "height": 528
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF94CA",
+          "fillGradient": {
+            "color1": "#FF94CA",
+            "color2": "#E2499C",
+            "angle": 146
+          },
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "groupId": "tp-b2-g-tile6",
+          "groupName": "Photo 6"
+        },
+        {
+          "id": "tp-b2-tile6-photo",
+          "type": "image",
+          "name": "Person",
+          "position": {
+            "x": 1061,
+            "y": 1876
+          },
+          "size": {
+            "width": 438,
+            "height": 528
+          },
+          "rotation": 3,
+          "scale": 1,
+          "imageSrc": "/data/projects/tenpost-portrait-pink.png",
+          "objectFit": "cover",
+          "borderRadius": 32,
+          "groupId": "tp-b2-g-tile6",
+          "groupName": "Photo 6"
+        },
+        {
+          "id": "tp-b2-plane",
+          "type": "image",
+          "name": "Paper plane",
+          "position": {
+            "x": 520,
+            "y": 760
+          },
+          "size": {
+            "width": 1300,
+            "height": 1006
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-paper-plane-blue.png",
+          "objectFit": "contain",
+          "shadow": {
+            "x": 0,
+            "y": 40,
+            "blur": 60,
+            "color": "rgba(0,30,90,0.35)"
+          },
+          "spanArtboards": true,
+          "groupId": "tp-b2-g-plane",
+          "groupName": "Paper plane"
+        },
+        {
+          "id": "tp-b2-title",
+          "type": "text",
+          "name": "Add one photo, get",
+          "position": {
+            "x": 228.5,
+            "y": 387.27
+          },
+          "size": {
+            "width": 749,
+            "height": 327
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Add One\nPhoto, Get",
+          "fontSize": 44,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.02,
+          "letterSpacing": -1.2,
+          "groupId": "tp-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "tp-b2-ten",
+          "type": "text",
+          "name": "10+",
+          "position": {
+            "x": 176.91,
+            "y": 680.13
+          },
+          "size": {
+            "width": 513,
+            "height": 345
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "10+",
+          "fontSize": 88,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": -3,
+          "groupId": "tp-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "tp-b2-posts",
+          "type": "text",
+          "name": "Posts",
+          "position": {
+            "x": 684.76,
+            "y": 818.87
+          },
+          "size": {
+            "width": 399,
+            "height": 175
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Posts",
+          "fontSize": 44,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": -1.2,
+          "groupId": "tp-b2-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    },
+    {
+      "id": "tp-board-3",
+      "name": "Endless Looks From One Selfie",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tp-b3-rings",
+          "type": "shape",
+          "name": "Ripple rings",
+          "position": {
+            "x": -897,
+            "y": 700
+          },
+          "size": {
+            "width": 3000,
+            "height": 3000
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#8E8E93",
+          "strokeColor": "transparent",
+          "strokeWidth": 3,
+          "customPath": "M3 50 A47 47 0 1 0 97 50 A47 47 0 1 0 3 50 Z M11 50 A39 39 0 1 0 89 50 A39 39 0 1 0 11 50 Z M19 50 A31 31 0 1 0 81 50 A31 31 0 1 0 19 50 Z M27 50 A23 23 0 1 0 73 50 A23 23 0 1 0 27 50 Z M35 50 A15 15 0 1 0 65 50 A15 15 0 1 0 35 50 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 1.5
+          },
+          "opacity": 0.14,
+          "groupId": "tp-b3-g-rings",
+          "groupName": "Rings"
+        },
+        {
+          "id": "tp-b3-case",
+          "type": "shape",
+          "name": "Blue case",
+          "position": {
+            "x": 61,
+            "y": -490.7
+          },
+          "size": {
+            "width": 1084,
+            "height": 2177.7
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0A84FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 168,
+          "shadow": {
+            "x": 0,
+            "y": 40,
+            "blur": 80,
+            "color": "rgba(10,132,255,0.35)"
+          },
+          "groupId": "tp-b3-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "tp-b3-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 103,
+            "y": -448.7
+          },
+          "size": {
+            "width": 1000,
+            "height": 2093.7
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#0778E8",
+          "screenshotSrc": "/data/projects/tenpost-screen-gallery.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "tp-b3-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "tp-b3-head-1a",
+          "type": "text",
+          "name": "Endless",
+          "position": {
+            "x": 129.29,
+            "y": 1767.67
+          },
+          "size": {
+            "width": 622,
+            "height": 198
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Endless",
+          "fontSize": 50,
+          "color": "#0B0B0C",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": -1.2,
+          "groupId": "tp-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "tp-b3-head-1b",
+          "type": "text",
+          "name": "Looks",
+          "position": {
+            "x": 744.05,
+            "y": 1808.13
+          },
+          "size": {
+            "width": 333,
+            "height": 148
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "looks",
+          "fontSize": 37,
+          "color": "#0B0B0C",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": -0.6,
+          "groupId": "tp-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "tp-b3-head-2a",
+          "type": "text",
+          "name": "From",
+          "position": {
+            "x": 347.63,
+            "y": 1910.07
+          },
+          "size": {
+            "width": 317,
+            "height": 163
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "from",
+          "fontSize": 41,
+          "color": "#0B0B0C",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": -1.2,
+          "groupId": "tp-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "tp-b3-head-2b",
+          "type": "text",
+          "name": "One",
+          "position": {
+            "x": 653.16,
+            "y": 1940.73
+          },
+          "size": {
+            "width": 206,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "one",
+          "fontSize": 31,
+          "color": "#0B0B0C",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": -0.6,
+          "groupId": "tp-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "tp-b3-head-3a",
+          "type": "text",
+          "name": "Selfie",
+          "position": {
+            "x": 219.14,
+            "y": 2020.58
+          },
+          "size": {
+            "width": 768,
+            "height": 359
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "selfie",
+          "fontSize": 91.8,
+          "color": "#5E5E63",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": -2.4,
+          "groupId": "tp-b3-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    },
+    {
+      "id": "tp-board-4",
+      "name": "Looks Like A Real Photoshoot",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tp-b4-rings",
+          "type": "shape",
+          "name": "Ripple rings",
+          "position": {
+            "x": -897,
+            "y": -100
+          },
+          "size": {
+            "width": 3000,
+            "height": 3000
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#8E8E93",
+          "strokeColor": "transparent",
+          "strokeWidth": 3,
+          "customPath": "M3 50 A47 47 0 1 0 97 50 A47 47 0 1 0 3 50 Z M11 50 A39 39 0 1 0 89 50 A39 39 0 1 0 11 50 Z M19 50 A31 31 0 1 0 81 50 A31 31 0 1 0 19 50 Z M27 50 A23 23 0 1 0 73 50 A23 23 0 1 0 27 50 Z M35 50 A15 15 0 1 0 65 50 A15 15 0 1 0 35 50 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 1.5
+          },
+          "opacity": 0.12,
+          "groupId": "tp-b4-g-rings",
+          "groupName": "Rings"
+        },
+        {
+          "id": "tp-b4-photo-backdrop",
+          "type": "image",
+          "name": "Backdrop",
+          "position": {
+            "x": 119,
+            "y": 858
+          },
+          "size": {
+            "width": 968,
+            "height": 1092
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/tenpost-backdrop-park.png",
+          "objectFit": "cover",
+          "borderRadius": 48,
+          "shadow": {
+            "x": 0,
+            "y": 30,
+            "blur": 70,
+            "color": "rgba(0,0,0,0.18)"
+          },
+          "groupId": "tp-b4-g-photo",
+          "groupName": "Photo"
+        },
+        {
+          "id": "tp-b4-photo",
+          "type": "image",
+          "name": "Person",
+          "position": {
+            "x": 119,
+            "y": 858
+          },
+          "size": {
+            "width": 968,
+            "height": 1092
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/tenpost-person-park.png",
+          "objectFit": "cover",
+          "borderRadius": 48,
+          "shadow": {
+            "x": 0,
+            "y": 30,
+            "blur": 70,
+            "color": "rgba(0,0,0,0.18)"
+          },
+          "groupId": "tp-b4-g-photo",
+          "groupName": "Photo"
+        },
+        {
+          "id": "tp-b4-chip-hair-lens",
+          "type": "shape",
+          "name": "Lens",
+          "position": {
+            "x": 606,
+            "y": 920
+          },
+          "size": {
+            "width": 168,
+            "height": 168
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "rgba(255,255,255,0.14)",
+          "strokeColor": "rgba(255,255,255,0.95)",
+          "strokeWidth": 5,
+          "shadow": {
+            "x": 0,
+            "y": 6,
+            "blur": 18,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "groupId": "tp-b4-g-hair",
+          "groupName": "Hair chip"
+        },
+        {
+          "id": "tp-b4-chip-hair-pill",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 70,
+            "y": 960
+          },
+          "size": {
+            "width": 594.19,
+            "height": 96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 48,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 34,
+            "color": "rgba(0,0,0,0.22)"
+          },
+          "groupId": "tp-b4-g-hair",
+          "groupName": "Hair chip"
+        },
+        {
+          "id": "tp-b4-chip-hair-icon",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 104,
+            "y": 986
+          },
+          "size": {
+            "width": 44,
+            "height": 44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#0A84FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "tp-b4-g-hair",
+          "groupName": "Hair chip"
+        },
+        {
+          "id": "tp-b4-chip-hair-text",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 160,
+            "y": 977
+          },
+          "size": {
+            "width": 487,
+            "height": 62
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Detailed hair strands",
+          "fontSize": 15,
+          "color": "#1C1C1E",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "tp-b4-g-hair",
+          "groupName": "Hair chip"
+        },
+        {
+          "id": "tp-b4-chip-skin-lens",
+          "type": "shape",
+          "name": "Lens",
+          "position": {
+            "x": 656,
+            "y": 1166
+          },
+          "size": {
+            "width": 168,
+            "height": 168
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "rgba(255,255,255,0.14)",
+          "strokeColor": "rgba(255,255,255,0.95)",
+          "strokeWidth": 5,
+          "shadow": {
+            "x": 0,
+            "y": 6,
+            "blur": 18,
+            "color": "rgba(0,0,0,0.25)"
+          },
+          "groupId": "tp-b4-g-skin",
+          "groupName": "Skin chip"
+        },
+        {
+          "id": "tp-b4-chip-skin-pill",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 430,
+            "y": 1390
+          },
+          "size": {
+            "width": 524.14,
+            "height": 96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 48,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 34,
+            "color": "rgba(0,0,0,0.22)"
+          },
+          "groupId": "tp-b4-g-skin",
+          "groupName": "Skin chip"
+        },
+        {
+          "id": "tp-b4-chip-skin-icon",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 464,
+            "y": 1416
+          },
+          "size": {
+            "width": 44,
+            "height": 44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#0A84FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "tp-b4-g-skin",
+          "groupName": "Skin chip"
+        },
+        {
+          "id": "tp-b4-chip-skin-text",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 520,
+            "y": 1407
+          },
+          "size": {
+            "width": 417,
+            "height": 62
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Clear skin texture",
+          "fontSize": 15,
+          "color": "#1C1C1E",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "tp-b4-g-skin",
+          "groupName": "Skin chip"
+        },
+        {
+          "id": "tp-b4-zigzag",
+          "type": "shape",
+          "name": "Zigzag",
+          "position": {
+            "x": 700,
+            "y": 700
+          },
+          "size": {
+            "width": 860,
+            "height": 300
+          },
+          "rotation": 8,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#1F8BFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 24,
+          "customPath": "M4 20 L24 70 Q28 80 34 70 L52 30 Q56 20 62 30 L80 70 Q84 80 90 70 L96 56",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 10
+          },
+          "spanArtboards": true,
+          "groupId": "tp-b4-g-zigzag",
+          "groupName": "Zigzag"
+        },
+        {
+          "id": "tp-b4-prompt",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 119,
+            "y": 2030
+          },
+          "size": {
+            "width": 968,
+            "height": 400
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#F3F4F6",
+          "strokeColor": "#E5E7EB",
+          "strokeWidth": 2,
+          "borderRadius": 44,
+          "groupId": "tp-b4-g-prompt",
+          "groupName": "Prompt card"
+        },
+        {
+          "id": "tp-b4-prompt-text",
+          "type": "text",
+          "name": "Prompt",
+          "position": {
+            "x": 165,
+            "y": 2057.13
+          },
+          "size": {
+            "width": 794,
+            "height": 208
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "A man on a phone call in a park, soft\nnatural light, shallow depth of field,\nultra realistic, 8K quality",
+          "fontSize": 14.5,
+          "color": "#3C3C43",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.35,
+          "groupId": "tp-b4-g-prompt",
+          "groupName": "Prompt card"
+        },
+        {
+          "id": "tp-b4-generate",
+          "type": "shape",
+          "name": "Button",
+          "position": {
+            "x": 663.28,
+            "y": 2282
+          },
+          "size": {
+            "width": 379.72,
+            "height": 104
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1E8BFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 52,
+          "groupId": "tp-b4-g-prompt",
+          "groupName": "Prompt card"
+        },
+        {
+          "id": "tp-b4-generate-text",
+          "type": "text",
+          "name": "Button label",
+          "position": {
+            "x": 711.28,
+            "y": 2300.73
+          },
+          "size": {
+            "width": 252,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Generate",
+          "fontSize": 16,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "tp-b4-g-prompt",
+          "groupName": "Prompt card"
+        },
+        {
+          "id": "tp-b4-generate-icon",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 957,
+            "y": 2314
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "tp-b4-g-prompt",
+          "groupName": "Prompt card"
+        },
+        {
+          "id": "tp-b4-title",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 226,
+            "y": 268.33
+          },
+          "size": {
+            "width": 754,
+            "height": 434
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Looks like\na real\nphotoshoot",
+          "fontSize": 40,
+          "color": "#0B0B0C",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.02,
+          "letterSpacing": -1.2,
+          "groupId": "tp-b4-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    },
+    {
+      "id": "tp-board-5",
+      "name": "Keep Your Face, Change The Scene",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#081A2E",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#0F2C4D",
+        "color2": "#03070D",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "tp-b5-rings",
+          "type": "shape",
+          "name": "Ripple rings",
+          "position": {
+            "x": -897,
+            "y": -400
+          },
+          "size": {
+            "width": 3000,
+            "height": 3000
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 3,
+          "customPath": "M3 50 A47 47 0 1 0 97 50 A47 47 0 1 0 3 50 Z M11 50 A39 39 0 1 0 89 50 A39 39 0 1 0 11 50 Z M19 50 A31 31 0 1 0 81 50 A31 31 0 1 0 19 50 Z M27 50 A23 23 0 1 0 73 50 A23 23 0 1 0 27 50 Z M35 50 A15 15 0 1 0 65 50 A15 15 0 1 0 35 50 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 1.5
+          },
+          "opacity": 0.07,
+          "groupId": "tp-b5-g-rings",
+          "groupName": "Rings"
+        },
+        {
+          "id": "tp-b5-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 193,
+            "y": 300
+          },
+          "size": {
+            "width": 820,
+            "height": 1716.83
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#1C1C1E",
+          "screenshotSrc": "/data/projects/tenpost-screen-compare.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "shadow": {
+            "x": 0,
+            "y": 40,
+            "blur": 90,
+            "color": "rgba(0,0,0,0.55)"
+          },
+          "groupId": "tp-b5-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "tp-b5-handle",
+          "type": "shape",
+          "name": "Handle",
+          "position": {
+            "x": 525,
+            "y": 996.04
+          },
+          "size": {
+            "width": 156,
+            "height": 156
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 30,
+            "color": "rgba(0,0,0,0.35)"
+          },
+          "groupId": "tp-b5-g-handle",
+          "groupName": "Compare handle"
+        },
+        {
+          "id": "tp-b5-handle-icon",
+          "type": "shape",
+          "name": "Arrows",
+          "position": {
+            "x": 567,
+            "y": 1038.04
+          },
+          "size": {
+            "width": 72,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#111111",
+          "strokeColor": "transparent",
+          "strokeWidth": 7,
+          "customPath": "M40 24 L16 50 L40 76 M60 24 L84 50 L60 76",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 8
+          },
+          "groupId": "tp-b5-g-handle",
+          "groupName": "Compare handle"
+        },
+        {
+          "id": "tp-b5-sparkle-1",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 300,
+            "y": 640
+          },
+          "size": {
+            "width": 70,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "shadow": {
+            "x": 0,
+            "y": 0,
+            "blur": 16,
+            "color": "rgba(255,255,255,0.8)"
+          },
+          "groupId": "tp-b5-g-sparkles",
+          "groupName": "Sparkles"
+        },
+        {
+          "id": "tp-b5-sparkle-2",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 440,
+            "y": 860
+          },
+          "size": {
+            "width": 44,
+            "height": 44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "shadow": {
+            "x": 0,
+            "y": 0,
+            "blur": 12,
+            "color": "rgba(255,255,255,0.8)"
+          },
+          "groupId": "tp-b5-g-sparkles",
+          "groupName": "Sparkles"
+        },
+        {
+          "id": "tp-b5-sparkle-3",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 280,
+            "y": 1180
+          },
+          "size": {
+            "width": 54,
+            "height": 54
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "shadow": {
+            "x": 0,
+            "y": 0,
+            "blur": 14,
+            "color": "rgba(255,255,255,0.8)"
+          },
+          "groupId": "tp-b5-g-sparkles",
+          "groupName": "Sparkles"
+        },
+        {
+          "id": "tp-b5-star",
+          "type": "image",
+          "name": "Gold star",
+          "position": {
+            "x": 860,
+            "y": 1560
+          },
+          "size": {
+            "width": 330,
+            "height": 322
+          },
+          "rotation": 14,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-star.png",
+          "objectFit": "contain",
+          "shadow": {
+            "x": 0,
+            "y": 24,
+            "blur": 40,
+            "color": "rgba(0,0,0,0.45)"
+          },
+          "groupId": "tp-b5-g-star",
+          "groupName": "Gold star"
+        },
+        {
+          "id": "tp-b5-title",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 90.5,
+            "y": 2060.8
+          },
+          "size": {
+            "width": 1025,
+            "height": 464
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Keep your face.\nChange the\nwhole scene.",
+          "fontSize": 42,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -1.2,
+          "groupId": "tp-b5-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    }
+  ]
+}

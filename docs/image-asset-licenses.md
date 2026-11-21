@@ -200,16 +200,31 @@ in editable templates, not standalone downloads.
 | traceberry-screen-upload.png | 479330034, 211660510, 299117684 | Painted head crops of those library photos, the same pictures as sketches/sketch-painted-1 to -3 (section 1) | traceberry-drawing.json |
 | traceberry-screen-share.png | 616151886, 176708273, 262780760, 622285813, 488088494 | Round head crops of those library photos as contact pictures (section 1) | traceberry-drawing.json |
 | paylark-screen-wellbeing.png | 616151886, 176708273, 622285813 | Those library photos on soft colour cards under "Need help?" (section 1) | paylark-benefits.json |
+| tenpost-screen-pick.png | 488088494 | App screen with guys-as488088494.png in a drawn elevator (section 1) | tenpost-ai-photos.json |
+| tenpost-screen-gallery.png | 568605361, 295798026, 405130341, 616151886, 298905292, 176708273 | App screen with those library photos as portraits on colour tiles (section 1) | tenpost-ai-photos.json |
+| tenpost-screen-compare.png | 479330034 | App screen with girls-as479330034.png in two drawn rooms, before and after (section 1) | tenpost-ai-photos.json |
+| tenpost-portrait-coral.png, -blue, -yellow, -purple, -green, -pink | 568605361, 295798026, 405130341, 616151886, 298905292, 176708273 | Those library photos, still cut out, framed for the six collage tiles, one per file in that order; each tile's colour is its own shape layer (section 1) | tenpost-ai-photos.json |
+| tenpost-person-park.png | 299117684 | guys-as299117684.png, still cut out, placed for the drawn park behind it (section 1) | tenpost-ai-photos.json |
+| askadeck-friends-pizza.png | 244073395 | group-as244073395.png, still cut out; the warm colour on it is the layer's own tint setting (section 1) | askadeck-questions.json |
+| askadeck-couple-sofa.png | 262780760 | couples-as262780760.png, still cut out; the warm colour on it is the layer's own tint setting (section 1) | askadeck-questions.json |
+| askadeck-couple-sea.png | 470959149 | couples-as470959149.png, still cut out (section 1) | askadeck-questions.json |
+| askadeck-pizza-table.png, askadeck-sofa-front.png | 244073395, 262780760 | The drawn table with the pizza and the drawn sofa seat that sit in front of those people; along the edges where the people meet them they keep a few pixels of those photos (section 1) | askadeck-questions.json |
+| askadeck-avatar.png | 622285813 | Head and shoulders of girls-as622285813.png, still cut out; the pink behind it is its own shape layer (section 1) | askadeck-questions.json |
 
 The `fg-screens/*.png` skeleton screens in that folder are original in-house
-artwork (generated placeholders), not licensed stock.
+artwork (generated placeholders), not licensed stock. So are parsnap-course.png,
+a drawn golf course, and the backdrops askadeck-backdrop-sea.png,
+askadeck-backdrop-sofa.png, askadeck-backdrop-pizza.png and
+tenpost-backdrop-park.png, drawn settings with no photo in them: where a person
+stood, the setting is filled in from its own colours either side.
 
-## 5. Original illustrations (`mascots/`, `objects/`, `stickers/`, `products/`, `cards/`, `drawings/`, `sketches/`, `line-art/`)
+## 5. Original illustrations (`mascots/`, `objects/`, `stickers/`, `products/`, `cards/`, `drawings/`, `sketches/`, `line-art/`, `emoji/`)
 
 The Mascots, 3D objects, Stickers, Products, Cards, Drawings and Line art
 groups are original artwork drawn for this project (SVG and HTML written for
 the Hoppi, Expertly, Roamo, Formpal, Sunup, Wishmint, Lavish, Postie, Hummi,
-Signsy, Traceberry, Paylark and Umdo templates, rendered to PNG and trimmed).
+Signsy, Traceberry, Paylark, Umdo, Parsnap, Tenpost and Askadeck templates,
+rendered to PNG and trimmed).
 The Signsy signer and the people in Line art are invented cartoon people, not
 likenesses of anyone, and the Umdo box robot is an invented character. None of
 it is stock or traced. The app icons in 3D objects
@@ -224,9 +239,11 @@ and sketch-painted-1 to -3 are painted versions of girls-as479330034,
 guys-as211660510 and guys-as299117684. Lettering in the cards and stickers
 uses Google Fonts under the SIL Open Font License (Anton, Bangers, Caveat,
 Luckiest Guy, Permanent Marker, Playfair Display, Shrikhand, Alfa Slab One,
-Abril Fatface, Pacifico, Inter), which allows pictures made with the fonts. The
-emoji in the template screens are Noto Color Emoji, also under the SIL Open Font
-License. The
+Abril Fatface, Pacifico, Inter, Inter Tight), which allows pictures made with
+the fonts. The emoji in the template screens and the Emoji group are Noto
+Color Emoji, saved as PNG. The font is under the SIL Open Font License, and
+the same artwork is published under the Apache License 2.0 in Google's
+noto-emoji repository. The
 Dollar sign is the "$" of Outfit, a Google Font under the SIL Open Font
 License, which allows pictures made with the font. The flag stickers draw the
 public national flag designs of the United States, the United Kingdom and
