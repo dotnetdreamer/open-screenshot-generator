@@ -1,0 +1,2741 @@
+{
+  "id": "template_gabwise_skills",
+  "name": "Gabwise Skills",
+  "description": "App Store & Play Store screenshots for a communication skills, public speaking, soft skills, coaching or microlearning app. Near black plum artboards with soft color glows and big Bricolage Grotesque headlines whose last line takes an accent color. An original cast was drawn for the set: three bright heads in profile and a speech bubble coach with a headset. A rating laurel sits under the first headline, a hand holds the phone among six skill bubbles, a speaker leans in toward a voice practice screen, two characters talk across a role play chat, three tilted review bubbles carry star ratings, and a streak badge and a level up card float over a progress screen. Bubbles, sparkles, laurels, stars and cards are native shapes you can recolor, and every part sits in a named layer group.",
+  "previewImage": "/data/projects/previews/gabwise-skills.png",
+  "timestamp": "2026-11-21T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "gw-board-1",
+      "name": "Level Up Your People Skills",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0F0D14",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#0F0D14",
+        "color2": "#2A2236",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "gw-b1-glow-1",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 41,
+            "y": 1351
+          },
+          "size": {
+            "width": 858,
+            "height": 858
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.51,
+          "blur": 165,
+          "shapeType": "circle",
+          "fillColor": "#7B61FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "gw-b1-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "gw-b1-glow-2",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 724,
+            "y": 2074
+          },
+          "size": {
+            "width": 572,
+            "height": 572
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.33,
+          "blur": 110,
+          "shapeType": "circle",
+          "fillColor": "#FF6A4D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "gw-b1-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "gw-b1-glow-3",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": -88,
+            "y": 972
+          },
+          "size": {
+            "width": 416,
+            "height": 416
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.23,
+          "blur": 80,
+          "shapeType": "circle",
+          "fillColor": "#4CC3FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "gw-b1-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "gw-b1-headline-main",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 73.53,
+            "y": 147.6
+          },
+          "size": {
+            "width": 1082,
+            "height": 317.44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Level up your\npeople skills in",
+          "fontSize": 38.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.06,
+          "letterSpacing": -0.77,
+          "groupId": "gw-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "gw-b1-headline-accent",
+          "type": "text",
+          "name": "Headline accent",
+          "position": {
+            "x": 75.96,
+            "y": 418.96
+          },
+          "size": {
+            "width": 1082,
+            "height": 181.76
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "5 minutes a day",
+          "fontSize": 38.4,
+          "color": "#C6F04D",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.06,
+          "letterSpacing": -0.77,
+          "groupId": "gw-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "gw-b1-trust-laurel-left",
+          "type": "shape",
+          "name": "Laurel",
+          "position": {
+            "x": 268,
+            "y": 668
+          },
+          "size": {
+            "width": 104,
+            "height": 208
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC53D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M62.63 171.96 Q42.43 159.26 22.63 172.56 Q42.83 185.26 62.63 171.96 Z M43.19 152.18 Q28.98 134.53 7.08 140.36 Q21.29 158 43.19 152.18 Z M43.19 152.18 Q50.26 138.04 40.32 125.74 Q33.26 139.88 43.19 152.18 Z M31.25 127.15 Q23.97 106.96 2.55 105.42 Q9.84 125.62 31.25 127.15 Z M31.25 127.15 Q41.95 116.66 36.84 102.58 Q26.15 113.07 31.25 127.15 Z M28.12 99.6 Q27.82 79.33 9.17 71.37 Q9.47 91.65 28.12 99.6 Z M28.12 99.6 Q40.89 93.52 40.66 79.38 Q27.89 85.46 28.12 99.6 Z M34.12 72.53 Q40.06 54.4 25.9 41.6 Q19.96 59.74 34.12 72.53 Z M34.12 72.53 Q47.35 71.04 51.48 58.38 Q38.25 59.88 34.12 72.53 Z M48.6 48.89 Q59.41 34.63 50.77 18.97 Q39.96 33.23 48.6 48.89 Z M77.83 180.74 L67.49 175.24 L58.01 168.35 L49.58 160.21 L42.36 150.97 L36.5 140.82 L32.11 129.96 L29.28 118.59 L28.05 106.93 L28.46 95.22 L30.5 83.68 L34.12 72.53 L39.25 62 L45.81 52.28 L53.65 43.58 L62.63 36.04 L72.56 29.83 L74.34 33.17 L64.85 39.1 L56.27 46.29 L48.79 54.61 L42.53 63.89 L37.62 73.95 L34.16 84.59 L32.22 95.61 L31.83 106.8 L33 117.93 L35.71 128.79 L39.9 139.17 L45.49 148.86 L52.38 157.68 L60.44 165.45 L69.49 172.03 L79.37 177.28 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 200"
+          },
+          "groupId": "gw-b1-g-trust",
+          "groupName": "Rating badge"
+        },
+        {
+          "id": "gw-b1-trust-laurel-right",
+          "type": "shape",
+          "name": "Laurel",
+          "position": {
+            "x": 834,
+            "y": 668
+          },
+          "size": {
+            "width": 104,
+            "height": 208
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC53D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M37.37 171.96 Q57.57 159.26 77.37 172.56 Q57.17 185.26 37.37 171.96 Z M56.81 152.18 Q71.02 134.53 92.92 140.36 Q78.71 158 56.81 152.18 Z M56.81 152.18 Q49.74 138.04 59.68 125.74 Q66.74 139.88 56.81 152.18 Z M68.75 127.15 Q76.03 106.96 97.45 105.42 Q90.16 125.62 68.75 127.15 Z M68.75 127.15 Q58.05 116.66 63.16 102.58 Q73.85 113.07 68.75 127.15 Z M71.88 99.6 Q72.18 79.33 90.83 71.37 Q90.53 91.65 71.88 99.6 Z M71.88 99.6 Q59.11 93.52 59.34 79.38 Q72.11 85.46 71.88 99.6 Z M65.88 72.53 Q59.94 54.4 74.1 41.6 Q80.04 59.74 65.88 72.53 Z M65.88 72.53 Q52.65 71.04 48.52 58.38 Q61.75 59.88 65.88 72.53 Z M51.4 48.89 Q40.59 34.63 49.23 18.97 Q60.04 33.23 51.4 48.89 Z M22.17 180.74 L32.51 175.24 L41.99 168.35 L50.42 160.21 L57.64 150.97 L63.5 140.82 L67.89 129.96 L70.72 118.59 L71.95 106.93 L71.54 95.22 L69.5 83.68 L65.88 72.53 L60.75 62 L54.19 52.28 L46.35 43.58 L37.37 36.04 L27.44 29.83 L25.66 33.17 L35.15 39.1 L43.73 46.29 L51.21 54.61 L57.47 63.89 L62.38 73.95 L65.84 84.59 L67.78 95.61 L68.17 106.8 L67 117.93 L64.29 128.79 L60.1 139.17 L54.51 148.86 L47.62 157.68 L39.56 165.45 L30.51 172.03 L20.63 177.28 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 200"
+          },
+          "groupId": "gw-b1-g-trust",
+          "groupName": "Rating badge"
+        },
+        {
+          "id": "gw-b1-trust-top",
+          "type": "text",
+          "name": "Rated",
+          "position": {
+            "x": 531.32,
+            "y": 677.47
+          },
+          "size": {
+            "width": 143,
+            "height": 55.4
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Rated",
+          "fontSize": 10.2,
+          "color": "#B8B2C4",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "gw-b1-g-trust",
+          "groupName": "Rating badge"
+        },
+        {
+          "id": "gw-b1-trust-number",
+          "type": "text",
+          "name": "4.8 out of 5",
+          "position": {
+            "x": 382.11,
+            "y": 718.5
+          },
+          "size": {
+            "width": 442,
+            "height": 107.16
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "4.8 out of 5",
+          "fontSize": 22.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.05,
+          "letterSpacing": -0.46,
+          "groupId": "gw-b1-g-trust",
+          "groupName": "Rating badge"
+        },
+        {
+          "id": "gw-b1-trust-bottom",
+          "type": "text",
+          "name": "by 120,000 learners",
+          "position": {
+            "x": 416.65,
+            "y": 813.47
+          },
+          "size": {
+            "width": 372,
+            "height": 55.4
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "by 120,000 learners",
+          "fontSize": 10.2,
+          "color": "#B8B2C4",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "gw-b1-g-trust",
+          "groupName": "Rating badge"
+        },
+        {
+          "id": "gw-b1-hand-back",
+          "type": "image",
+          "name": "Hand, behind the phone",
+          "position": {
+            "x": 135.5,
+            "y": 1634.5
+          },
+          "size": {
+            "width": 714.5,
+            "height": 987.5
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-gab-hand-back.png",
+          "objectFit": "contain",
+          "groupId": "gw-b1-g-hand",
+          "groupName": "Phone in hand"
+        },
+        {
+          "id": "gw-b1-phone-edge",
+          "type": "shape",
+          "name": "Phone edge",
+          "position": {
+            "x": 213,
+            "y": 1250.64
+          },
+          "size": {
+            "width": 530,
+            "height": 1098.72
+          },
+          "rotation": -9,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 44,
+            "blur": 100,
+            "color": "rgba(0,0,0,0.6)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#4D4660",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 77.8,
+          "groupId": "gw-b1-g-hand",
+          "groupName": "Phone in hand"
+        },
+        {
+          "id": "gw-b1-phone-device",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 218,
+            "y": 1255.64
+          },
+          "size": {
+            "width": 520,
+            "height": 1088.72
+          },
+          "rotation": -9,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#0B0A0F",
+          "screenshotSrc": "/data/projects/gabwise-screen-today.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "gw-b1-g-hand",
+          "groupName": "Phone in hand"
+        },
+        {
+          "id": "gw-b1-hand-front",
+          "type": "image",
+          "name": "Fingers, over the phone",
+          "position": {
+            "x": 144,
+            "y": 1658
+          },
+          "size": {
+            "width": 687.5,
+            "height": 543.5
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-gab-hand-front.png",
+          "objectFit": "contain",
+          "groupId": "gw-b1-g-hand",
+          "groupName": "Phone in hand"
+        },
+        {
+          "id": "gw-b1-skill-smalltalk-shape",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 44,
+            "y": 986
+          },
+          "size": {
+            "width": 430,
+            "height": 252
+          },
+          "rotation": -7,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 44,
+            "color": "rgba(0,0,0,0.38)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#4CC3FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M215 26 A41.7 41.7 0 0 1 286.8 31.4 A41.4 41.4 0 0 1 355.7 49.9 A39.5 39.5 0 0 1 404 98 A39.7 39.7 0 0 1 355.5 146.2 A41.5 41.5 0 0 1 286.4 164.7 A41.5 41.5 0 0 1 215 170 A41.7 41.7 0 0 1 143.2 164.6 A41.4 41.4 0 0 1 74.3 146.1 A39.5 39.5 0 0 1 26 98 A39.7 39.7 0 0 1 74.5 49.8 A41.5 41.5 0 0 1 143.6 31.3 A41.5 41.5 0 0 1 215 26 Z M240.8 157 L310.8 157 Q300.2 224 301.8 252 Q262.6 221.2 240.8 157 Z",
+          "specialProps": {
+            "viewBox": "0 0 430 252"
+          },
+          "groupId": "gw-b1-g-skill-smalltalk",
+          "groupName": "Small talk bubble"
+        },
+        {
+          "id": "gw-b1-skill-smalltalk-text",
+          "type": "text",
+          "name": "Small talk",
+          "position": {
+            "x": 98.04,
+            "y": 1042.14
+          },
+          "size": {
+            "width": 313,
+            "height": 84.68
+          },
+          "rotation": -7,
+          "scale": 1,
+          "content": "Small talk",
+          "fontSize": 17.4,
+          "color": "#0B2638",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.17,
+          "groupId": "gw-b1-g-skill-smalltalk",
+          "groupName": "Small talk bubble"
+        },
+        {
+          "id": "gw-b1-skill-persuasion-shape",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 630,
+            "y": 1010
+          },
+          "size": {
+            "width": 500,
+            "height": 200
+          },
+          "rotation": 5,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 44,
+            "color": "rgba(0,0,0,0.38)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#7B61FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M70 0 L430 0 A70 70 0 0 1 500 70 L500 70 A70 70 0 0 1 430 140 L148 140 Q108.2 176 69 200 Q73.6 170 70 140 L70 140 A70 70 0 0 1 0 70 L0 70 A70 70 0 0 1 70 0 Z",
+          "specialProps": {
+            "viewBox": "0 0 500 200"
+          },
+          "groupId": "gw-b1-g-skill-persuasion",
+          "groupName": "Persuasion bubble"
+        },
+        {
+          "id": "gw-b1-skill-persuasion-text",
+          "type": "text",
+          "name": "Persuasion",
+          "position": {
+            "x": 705.88,
+            "y": 1037.85
+          },
+          "size": {
+            "width": 352,
+            "height": 84.68
+          },
+          "rotation": 5,
+          "scale": 1,
+          "content": "Persuasion",
+          "fontSize": 17.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.17,
+          "groupId": "gw-b1-g-skill-persuasion",
+          "groupName": "Persuasion bubble"
+        },
+        {
+          "id": "gw-b1-skill-listening-shape",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 760,
+            "y": 1330
+          },
+          "size": {
+            "width": 400,
+            "height": 200
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 44,
+            "color": "rgba(0,0,0,0.38)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#F6F1E7",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M52 0 L348 0 A52 52 0 0 1 400 52 L400 88 A52 52 0 0 1 348 140 L138 140 Q98.2 176 59 200 Q63.6 170 60 140 L52 140 A52 52 0 0 1 0 88 L0 52 A52 52 0 0 1 52 0 Z",
+          "specialProps": {
+            "viewBox": "0 0 400 200"
+          },
+          "groupId": "gw-b1-g-skill-listening",
+          "groupName": "Listening bubble"
+        },
+        {
+          "id": "gw-b1-skill-listening-text",
+          "type": "text",
+          "name": "Listening",
+          "position": {
+            "x": 809.26,
+            "y": 1358.06
+          },
+          "size": {
+            "width": 293,
+            "height": 84.68
+          },
+          "rotation": -5,
+          "scale": 1,
+          "content": "Listening",
+          "fontSize": 17.4,
+          "color": "#17131F",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.17,
+          "groupId": "gw-b1-g-skill-listening",
+          "groupName": "Listening bubble"
+        },
+        {
+          "id": "gw-b1-skill-humor-shape",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 846,
+            "y": 1640
+          },
+          "size": {
+            "width": 310,
+            "height": 244
+          },
+          "rotation": 8,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 44,
+            "color": "rgba(0,0,0,0.38)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#FF7EB6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M316.6 95 C316.9 117 299.6 145.6 280.2 161.5 C260.8 177.3 236.5 187.4 200.2 190.1 C163.9 192.8 93.6 186.8 62.5 177.8 C31.4 168.8 20.3 156.3 13.7 136.1 C7.2 115.9 13.9 76.3 23.1 56.6 C32.3 36.9 39.3 28 69 18.1 C98.8 8.2 166.6 -4.7 201.5 -2.8 C236.4 -0.9 259.3 13.1 278.4 29.4 C297.6 45.7 316.3 73 316.6 95 Z M62 160 L128 160 Q98 217 65 244 Q69.5 214.3 62 160 Z",
+          "specialProps": {
+            "viewBox": "0 0 310 244"
+          },
+          "groupId": "gw-b1-g-skill-humor",
+          "groupName": "Humor bubble"
+        },
+        {
+          "id": "gw-b1-skill-humor-text",
+          "type": "text",
+          "name": "Humor",
+          "position": {
+            "x": 886.74,
+            "y": 1692.78
+          },
+          "size": {
+            "width": 232,
+            "height": 84.68
+          },
+          "rotation": 8,
+          "scale": 1,
+          "content": "Humor",
+          "fontSize": 17.4,
+          "color": "#3B0F24",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.17,
+          "groupId": "gw-b1-g-skill-humor",
+          "groupName": "Humor bubble"
+        },
+        {
+          "id": "gw-b1-skill-confidence-shape",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 716,
+            "y": 1960
+          },
+          "size": {
+            "width": 440,
+            "height": 198
+          },
+          "rotation": -6,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 44,
+            "color": "rgba(0,0,0,0.38)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#C6F04D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M70 0 L370 0 A70 70 0 0 1 440 70 L440 70 A70 70 0 0 1 370 140 L138 140 Q100 174.8 63 198 Q64.8 169 60 140 L70 140 A70 70 0 0 1 0 70 L0 70 A70 70 0 0 1 70 0 Z",
+          "specialProps": {
+            "viewBox": "0 0 440 198"
+          },
+          "groupId": "gw-b1-g-skill-confidence",
+          "groupName": "Confidence bubble"
+        },
+        {
+          "id": "gw-b1-skill-confidence-text",
+          "type": "text",
+          "name": "Confidence",
+          "position": {
+            "x": 752.73,
+            "y": 1988.04
+          },
+          "size": {
+            "width": 359,
+            "height": 84.68
+          },
+          "rotation": -6,
+          "scale": 1,
+          "content": "Confidence",
+          "fontSize": 17.4,
+          "color": "#17131F",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.17,
+          "groupId": "gw-b1-g-skill-confidence",
+          "groupName": "Confidence bubble"
+        },
+        {
+          "id": "gw-b1-skill-speaking-shape",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 560,
+            "y": 2270
+          },
+          "size": {
+            "width": 600,
+            "height": 260
+          },
+          "rotation": 4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 44,
+            "color": "rgba(0,0,0,0.38)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC53D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M289.2 5 Q300 0 310.8 5 L338.3 17.9 Q349.2 22.9 363.6 20 L400.4 12.8 Q414.8 9.9 420.3 16.3 L434.5 32.8 Q440 39.2 455.9 39 L496.3 38.3 Q512.1 38.1 511.6 45 L510.1 62.5 Q509.5 69.3 524.4 71.7 L562.3 77.8 Q577.2 80.3 570.6 86.5 L553.8 102.4 Q547.2 108.7 558.8 113.4 L588.4 125.3 Q600 130 588.4 134.7 L558.8 146.6 Q547.2 151.3 553.8 157.6 L570.6 173.5 Q577.2 179.7 562.3 182.2 L524.4 188.3 Q509.5 190.7 510.1 197.5 L511.6 215 Q512.1 221.9 496.3 221.7 L455.9 221 Q440 220.8 434.5 227.2 L420.3 243.7 Q414.8 250.1 400.4 247.2 L363.6 240 Q349.2 237.1 338.3 242.1 L310.8 255 Q300 260 289.2 255 L261.7 242.1 Q250.8 237.1 236.4 240 L199.6 247.2 Q185.2 250.1 179.7 243.7 L165.5 227.2 Q160 220.8 144.1 221 L103.7 221.7 Q87.9 221.9 88.4 215 L89.9 197.5 Q90.5 190.7 75.6 188.3 L37.7 182.2 Q22.8 179.7 29.4 173.5 L46.2 157.6 Q52.8 151.3 41.2 146.6 L11.6 134.7 Q0 130 11.6 125.3 L41.2 113.4 Q52.8 108.7 46.2 102.4 L29.4 86.5 Q22.8 80.3 37.7 77.8 L75.6 71.7 Q90.5 69.3 89.9 62.5 L88.4 45 Q87.9 38.1 103.7 38.3 L144.1 39 Q160 39.2 165.5 32.8 L179.7 16.3 Q185.2 9.9 199.6 12.8 L236.4 20 Q250.8 22.9 261.7 17.9 Z",
+          "specialProps": {
+            "viewBox": "0 0 600 260"
+          },
+          "groupId": "gw-b1-g-skill-speaking",
+          "groupName": "Public speaking bubble"
+        },
+        {
+          "id": "gw-b1-skill-speaking-text",
+          "type": "text",
+          "name": "Public speaking",
+          "position": {
+            "x": 635.45,
+            "y": 2360.79
+          },
+          "size": {
+            "width": 446,
+            "height": 78.84
+          },
+          "rotation": 4,
+          "scale": 1,
+          "content": "Public speaking",
+          "fontSize": 16.2,
+          "color": "#17131F",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.16,
+          "groupId": "gw-b1-g-skill-speaking",
+          "groupName": "Public speaking bubble"
+        },
+        {
+          "id": "gw-b1-spark-1",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 1046,
+            "y": 880
+          },
+          "size": {
+            "width": 96,
+            "height": 96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "gw-b1-g-sparkles",
+          "groupName": "Sparkles"
+        },
+        {
+          "id": "gw-b1-spark-2",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 1002,
+            "y": 990
+          },
+          "size": {
+            "width": 44,
+            "height": 44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.8,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "gw-b1-g-sparkles",
+          "groupName": "Sparkles"
+        },
+        {
+          "id": "gw-b1-spark-3",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 36,
+            "y": 2360
+          },
+          "size": {
+            "width": 120,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC53D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q58.15 41.85 98 50 Q58.15 58.15 50 98 Q41.85 58.15 2 50 Q41.85 41.85 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "gw-b1-g-sparkles",
+          "groupName": "Sparkles"
+        }
+      ]
+    },
+    {
+      "id": "gw-board-2",
+      "name": "Practice Out Loud With Your AI Voice Coach",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0F0D14",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#0F0D14",
+        "color2": "#2A2236",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "gw-b2-glow-1",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": -47,
+            "y": 1803
+          },
+          "size": {
+            "width": 754,
+            "height": 754
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.41,
+          "blur": 145,
+          "shapeType": "circle",
+          "fillColor": "#FF6A4D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "gw-b2-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "gw-b2-glow-2",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 523,
+            "y": 923
+          },
+          "size": {
+            "width": 754,
+            "height": 754
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.45,
+          "blur": 145,
+          "shapeType": "circle",
+          "fillColor": "#7B61FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "gw-b2-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "gw-b2-headline-main",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 80.04,
+            "y": 147.6
+          },
+          "size": {
+            "width": 1082,
+            "height": 317.44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Practice out loud\nwith your AI",
+          "fontSize": 38.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.06,
+          "letterSpacing": -0.77,
+          "groupId": "gw-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "gw-b2-headline-accent",
+          "type": "text",
+          "name": "Headline accent",
+          "position": {
+            "x": 80.61,
+            "y": 418.96
+          },
+          "size": {
+            "width": 1082,
+            "height": 181.76
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "voice coach",
+          "fontSize": 38.4,
+          "color": "#FF8D75",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.06,
+          "letterSpacing": -0.77,
+          "groupId": "gw-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "gw-b2-phone-edge",
+          "type": "shape",
+          "name": "Phone edge",
+          "position": {
+            "x": 339,
+            "y": 945.4
+          },
+          "size": {
+            "width": 770,
+            "height": 1601.21
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 44,
+            "blur": 100,
+            "color": "rgba(0,0,0,0.6)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#4D4660",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 111.4,
+          "groupId": "gw-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "gw-b2-phone-device",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 344,
+            "y": 950.4
+          },
+          "size": {
+            "width": 760,
+            "height": 1591.21
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#0B0A0F",
+          "screenshotSrc": "/data/projects/gabwise-screen-voice.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "gw-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "gw-b2-coach-gab",
+          "type": "image",
+          "name": "Coach",
+          "position": {
+            "x": 864.59,
+            "y": 678.8
+          },
+          "size": {
+            "width": 257.14,
+            "height": 261.86
+          },
+          "rotation": 8,
+          "scale": 1,
+          "imageSrc": "/elements/images/mascots/mascot-gab-coach.png",
+          "objectFit": "contain",
+          "groupId": "gw-b2-g-coach",
+          "groupName": "Coach on the phone"
+        },
+        {
+          "id": "gw-b2-coach-bubble",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 398,
+            "y": 706
+          },
+          "size": {
+            "width": 430,
+            "height": 158
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 44,
+            "color": "rgba(0,0,0,0.38)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#F6F1E7",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M56 0 L374 0 A56 56 0 0 1 430 56 L430 56 A56 56 0 0 1 374 112 L370 112 Q368.5 139.6 374 158 Q332.2 135 310 112 L56 112 A56 56 0 0 1 0 56 L0 56 A56 56 0 0 1 56 0 Z",
+          "specialProps": {
+            "viewBox": "0 0 430 158"
+          },
+          "groupId": "gw-b2-g-coach",
+          "groupName": "Coach on the phone"
+        },
+        {
+          "id": "gw-b2-coach-text",
+          "type": "text",
+          "name": "Great energy!",
+          "position": {
+            "x": 415.15,
+            "y": 722.97
+          },
+          "size": {
+            "width": 392,
+            "height": 78.84
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Great energy!",
+          "fontSize": 16.2,
+          "color": "#17131F",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.16,
+          "groupId": "gw-b2-g-coach",
+          "groupName": "Coach on the phone"
+        },
+        {
+          "id": "gw-b2-speaker-head",
+          "type": "image",
+          "name": "Speaker",
+          "position": {
+            "x": -279.1,
+            "y": 1611.78
+          },
+          "size": {
+            "width": 716.78,
+            "height": 1080.63
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 30,
+            "blur": 70,
+            "color": "rgba(0,0,0,0.45)"
+          },
+          "imageSrc": "/elements/images/mascots/mascot-gab-momo.png",
+          "objectFit": "contain",
+          "groupId": "gw-b2-g-speaker",
+          "groupName": "Speaker"
+        },
+        {
+          "id": "gw-b2-speaker-sound",
+          "type": "shape",
+          "name": "Sound waves",
+          "position": {
+            "x": 410,
+            "y": 2126
+          },
+          "size": {
+            "width": 120,
+            "height": 160
+          },
+          "rotation": 10,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF8D75",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M14 52 Q34 80 14 108 M46 30 Q84 80 46 130 M80 8 Q134 80 80 152",
+          "specialProps": {
+            "viewBox": "0 0 120 160",
+            "strokeOnly": true,
+            "baseStrokeWidth": 13
+          },
+          "groupId": "gw-b2-g-speaker",
+          "groupName": "Speaker"
+        },
+        {
+          "id": "gw-b2-spark-1",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 68,
+            "y": 1250
+          },
+          "size": {
+            "width": 130,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "gw-b2-g-sparkles",
+          "groupName": "Sparkles"
+        },
+        {
+          "id": "gw-b2-spark-2",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 196,
+            "y": 1410
+          },
+          "size": {
+            "width": 56,
+            "height": 56
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.8,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "gw-b2-g-sparkles",
+          "groupName": "Sparkles"
+        },
+        {
+          "id": "gw-b2-spark-3",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 1090,
+            "y": 2470
+          },
+          "size": {
+            "width": 90,
+            "height": 90
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC53D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q58.15 41.85 98 50 Q58.15 58.15 50 98 Q41.85 58.15 2 50 Q41.85 41.85 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "gw-b2-g-sparkles",
+          "groupName": "Sparkles"
+        }
+      ]
+    },
+    {
+      "id": "gw-board-3",
+      "name": "Rehearse Tough Talks With AI Role Plays",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0F0D14",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#0F0D14",
+        "color2": "#2A2236",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "gw-b3-glow-1",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 636,
+            "y": 1586
+          },
+          "size": {
+            "width": 728,
+            "height": 728
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.49,
+          "blur": 140,
+          "shapeType": "circle",
+          "fillColor": "#3D6BFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "gw-b3-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "gw-b3-glow-2",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": -145,
+            "y": 825
+          },
+          "size": {
+            "width": 650,
+            "height": 650
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.34,
+          "blur": 125,
+          "shapeType": "circle",
+          "fillColor": "#B9A2FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "gw-b3-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "gw-b3-headline-main",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 80.19,
+            "y": 147.6
+          },
+          "size": {
+            "width": 1082,
+            "height": 317.44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Rehearse tough\ntalks with AI",
+          "fontSize": 38.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.06,
+          "letterSpacing": -0.77,
+          "groupId": "gw-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "gw-b3-headline-accent",
+          "type": "text",
+          "name": "Headline accent",
+          "position": {
+            "x": 73.53,
+            "y": 418.96
+          },
+          "size": {
+            "width": 1082,
+            "height": 181.76
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "role plays",
+          "fontSize": 38.4,
+          "color": "#4CC3FF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.06,
+          "letterSpacing": -0.77,
+          "groupId": "gw-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "gw-b3-phone-edge",
+          "type": "shape",
+          "name": "Phone edge",
+          "position": {
+            "x": 238,
+            "y": 1041.27
+          },
+          "size": {
+            "width": 730,
+            "height": 1517.46
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 44,
+            "blur": 100,
+            "color": "rgba(0,0,0,0.6)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#4D4660",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 105.8,
+          "groupId": "gw-b3-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "gw-b3-phone-device",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 243,
+            "y": 1046.27
+          },
+          "size": {
+            "width": 720,
+            "height": 1507.46
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#0B0A0F",
+          "screenshotSrc": "/data/projects/gabwise-screen-roleplay.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "gw-b3-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "gw-b3-left-head",
+          "type": "image",
+          "name": "Talker",
+          "position": {
+            "x": -176,
+            "y": 807.4
+          },
+          "size": {
+            "width": 502.83,
+            "height": 837.68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 60,
+            "color": "rgba(0,0,0,0.45)"
+          },
+          "imageSrc": "/elements/images/mascots/mascot-gab-bea.png",
+          "objectFit": "contain",
+          "groupId": "gw-b3-g-left-talker",
+          "groupName": "Talker on the left"
+        },
+        {
+          "id": "gw-b3-left-bubble",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 420,
+            "y": 800
+          },
+          "size": {
+            "width": 430,
+            "height": 168
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 44,
+            "color": "rgba(0,0,0,0.38)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#F6F1E7",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M59 0 L371 0 A59 59 0 0 1 430 59 L430 59 A59 59 0 0 1 371 118 L122 118 Q88.4 148 55 168 Q61.6 143 60 118 L59 118 A59 59 0 0 1 0 59 L0 59 A59 59 0 0 1 59 0 Z",
+          "specialProps": {
+            "viewBox": "0 0 430 168"
+          },
+          "groupId": "gw-b3-g-left-talker",
+          "groupName": "Talker on the left"
+        },
+        {
+          "id": "gw-b3-left-text",
+          "type": "text",
+          "name": "Got a minute?",
+          "position": {
+            "x": 443.17,
+            "y": 821.34
+          },
+          "size": {
+            "width": 378,
+            "height": 75.92
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Got a minute?",
+          "fontSize": 15.6,
+          "color": "#17131F",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.16,
+          "groupId": "gw-b3-g-left-talker",
+          "groupName": "Talker on the left"
+        },
+        {
+          "id": "gw-b3-right-head",
+          "type": "image",
+          "name": "Talker",
+          "position": {
+            "x": 718,
+            "y": 1627.2
+          },
+          "size": {
+            "width": 551.2,
+            "height": 846.4
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 60,
+            "color": "rgba(0,0,0,0.45)"
+          },
+          "imageSrc": "/elements/images/mascots/mascot-gab-otto.png",
+          "objectFit": "contain",
+          "groupId": "gw-b3-g-right-talker",
+          "groupName": "Talker on the right"
+        },
+        {
+          "id": "gw-b3-right-bubble",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 300,
+            "y": 1850
+          },
+          "size": {
+            "width": 400,
+            "height": 168
+          },
+          "rotation": 4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 44,
+            "color": "rgba(0,0,0,0.38)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#7B61FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M59 0 L341 0 A59 59 0 0 1 400 59 L400 59 A59 59 0 0 1 341 118 L312 118 Q310.8 148 317 168 Q273.2 143 250 118 L59 118 A59 59 0 0 1 0 59 L0 59 A59 59 0 0 1 59 0 Z",
+          "specialProps": {
+            "viewBox": "0 0 400 168"
+          },
+          "groupId": "gw-b3-g-right-talker",
+          "groupName": "Talker on the right"
+        },
+        {
+          "id": "gw-b3-right-text",
+          "type": "text",
+          "name": "Sure, go on.",
+          "position": {
+            "x": 337.84,
+            "y": 1871.2
+          },
+          "size": {
+            "width": 326,
+            "height": 75.92
+          },
+          "rotation": 4,
+          "scale": 1,
+          "content": "Sure, go on.",
+          "fontSize": 15.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.16,
+          "groupId": "gw-b3-g-right-talker",
+          "groupName": "Talker on the right"
+        },
+        {
+          "id": "gw-b3-spark-1",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 1010,
+            "y": 860
+          },
+          "size": {
+            "width": 110,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "gw-b3-g-sparkles",
+          "groupName": "Sparkles"
+        },
+        {
+          "id": "gw-b3-spark-2",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 950,
+            "y": 1010
+          },
+          "size": {
+            "width": 48,
+            "height": 48
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.8,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "gw-b3-g-sparkles",
+          "groupName": "Sparkles"
+        },
+        {
+          "id": "gw-b3-spark-3",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 60,
+            "y": 2380
+          },
+          "size": {
+            "width": 100,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC53D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q58.15 41.85 98 50 Q58.15 58.15 50 98 Q41.85 58.15 2 50 Q41.85 41.85 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "gw-b3-g-sparkles",
+          "groupName": "Sparkles"
+        }
+      ]
+    },
+    {
+      "id": "gw-board-4",
+      "name": "Loved By People Who Used To Hate Small Talk",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0F0D14",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#0F0D14",
+        "color2": "#2A2236",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "gw-b4-glow-1",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 714,
+            "y": 614
+          },
+          "size": {
+            "width": 572,
+            "height": 572
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.21,
+          "blur": 110,
+          "shapeType": "circle",
+          "fillColor": "#FFC53D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "gw-b4-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "gw-b4-glow-2",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": -143,
+            "y": 1297
+          },
+          "size": {
+            "width": 806,
+            "height": 806
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.41,
+          "blur": 155,
+          "shapeType": "circle",
+          "fillColor": "#7B61FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "gw-b4-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "gw-b4-glow-3",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 651,
+            "y": 2101
+          },
+          "size": {
+            "width": 598,
+            "height": 598
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.26,
+          "blur": 115,
+          "shapeType": "circle",
+          "fillColor": "#FF6A4D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "gw-b4-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "gw-b4-headline-main",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 80.04,
+            "y": 147.6
+          },
+          "size": {
+            "width": 1082,
+            "height": 317.44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Loved by people\nwho used to hate",
+          "fontSize": 38.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.06,
+          "letterSpacing": -0.77,
+          "groupId": "gw-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "gw-b4-headline-accent",
+          "type": "text",
+          "name": "Headline accent",
+          "position": {
+            "x": 78.01,
+            "y": 418.96
+          },
+          "size": {
+            "width": 1082,
+            "height": 181.76
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "small talk",
+          "fontSize": 38.4,
+          "color": "#FFC53D",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.06,
+          "letterSpacing": -0.77,
+          "groupId": "gw-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "gw-b4-review-1-bubble",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 84,
+            "y": 756
+          },
+          "size": {
+            "width": 930,
+            "height": 494
+          },
+          "rotation": -3,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 60,
+            "color": "rgba(0,0,0,0.45)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#F6F1E7",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M66 0 L864 0 A66 66 0 0 1 930 66 L930 344 A66 66 0 0 1 864 410 L200 410 Q146.7 460.4 95 494 Q97 452 90 410 L66 410 A66 66 0 0 1 0 344 L0 66 A66 66 0 0 1 66 0 Z",
+          "specialProps": {
+            "viewBox": "0 0 930 494"
+          },
+          "groupId": "gw-b4-g-review-1",
+          "groupName": "Review 1"
+        },
+        {
+          "id": "gw-b4-review-1-stars",
+          "type": "shape",
+          "name": "Stars",
+          "position": {
+            "x": 133.57,
+            "y": 823.94
+          },
+          "size": {
+            "width": 290,
+            "height": 50
+          },
+          "rotation": -3,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#F2A31B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M25 0 L31.61 15.9 L48.78 17.27 L35.7 28.48 L39.69 45.23 L25 36.25 L10.31 45.23 L14.3 28.48 L1.22 17.27 L18.39 15.9 Z M85 0 L91.61 15.9 L108.78 17.27 L95.7 28.48 L99.69 45.23 L85 36.25 L70.31 45.23 L74.3 28.48 L61.22 17.27 L78.39 15.9 Z M145 0 L151.61 15.9 L168.78 17.27 L155.7 28.48 L159.69 45.23 L145 36.25 L130.31 45.23 L134.3 28.48 L121.22 17.27 L138.39 15.9 Z M205 0 L211.61 15.9 L228.78 17.27 L215.7 28.48 L219.69 45.23 L205 36.25 L190.31 45.23 L194.3 28.48 L181.22 17.27 L198.39 15.9 Z M265 0 L271.61 15.9 L288.78 17.27 L275.7 28.48 L279.69 45.23 L265 36.25 L250.31 45.23 L254.3 28.48 L241.22 17.27 L258.39 15.9 Z",
+          "specialProps": {
+            "viewBox": "0 0 290 50"
+          },
+          "groupId": "gw-b4-g-review-1",
+          "groupName": "Review 1"
+        },
+        {
+          "id": "gw-b4-review-1-text",
+          "type": "text",
+          "name": "Review",
+          "position": {
+            "x": 137.6,
+            "y": 872.41
+          },
+          "size": {
+            "width": 830,
+            "height": 186.84
+          },
+          "rotation": -3,
+          "scale": 1,
+          "content": "I used to dread networking nights.\nTwo weeks of five minute drills\nand I started three chats myself.",
+          "fontSize": 12.6,
+          "color": "#17131F",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.34,
+          "groupId": "gw-b4-g-review-1",
+          "groupName": "Review 1"
+        },
+        {
+          "id": "gw-b4-review-1-who",
+          "type": "text",
+          "name": "Reviewer",
+          "position": {
+            "x": 142.7,
+            "y": 1078.49
+          },
+          "size": {
+            "width": 135,
+            "height": 55.4
+          },
+          "rotation": -3,
+          "scale": 1,
+          "content": "Maya",
+          "fontSize": 10.2,
+          "color": "#17131F",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "gw-b4-g-review-1",
+          "groupName": "Review 1"
+        },
+        {
+          "id": "gw-b4-review-1-role",
+          "type": "text",
+          "name": "Reviewer detail",
+          "position": {
+            "x": 250.07,
+            "y": 1071.03
+          },
+          "size": {
+            "width": 205,
+            "height": 55.4
+          },
+          "rotation": -3,
+          "scale": 1,
+          "opacity": 0.6,
+          "content": "sales lead",
+          "fontSize": 10.2,
+          "color": "#17131F",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "gw-b4-g-review-1",
+          "groupName": "Review 1"
+        },
+        {
+          "id": "gw-b4-review-2-bubble",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 192,
+            "y": 1362
+          },
+          "size": {
+            "width": 930,
+            "height": 494
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 60,
+            "color": "rgba(0,0,0,0.45)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#7B61FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M864 0 L66 0 A66 66 0 0 0 0 66 L0 344 A66 66 0 0 0 66 410 L730 410 Q783.3 460.4 835 494 Q833 452 840 410 L864 410 A66 66 0 0 0 930 344 L930 66 A66 66 0 0 0 864 0 Z",
+          "specialProps": {
+            "viewBox": "0 0 930 494"
+          },
+          "groupId": "gw-b4-g-review-2",
+          "groupName": "Review 2"
+        },
+        {
+          "id": "gw-b4-review-2-stars",
+          "type": "shape",
+          "name": "Stars",
+          "position": {
+            "x": 259.15,
+            "y": 1402.52
+          },
+          "size": {
+            "width": 290,
+            "height": 50
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC53D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M25 0 L31.61 15.9 L48.78 17.27 L35.7 28.48 L39.69 45.23 L25 36.25 L10.31 45.23 L14.3 28.48 L1.22 17.27 L18.39 15.9 Z M85 0 L91.61 15.9 L108.78 17.27 L95.7 28.48 L99.69 45.23 L85 36.25 L70.31 45.23 L74.3 28.48 L61.22 17.27 L78.39 15.9 Z M145 0 L151.61 15.9 L168.78 17.27 L155.7 28.48 L159.69 45.23 L145 36.25 L130.31 45.23 L134.3 28.48 L121.22 17.27 L138.39 15.9 Z M205 0 L211.61 15.9 L228.78 17.27 L215.7 28.48 L219.69 45.23 L205 36.25 L190.31 45.23 L194.3 28.48 L181.22 17.27 L198.39 15.9 Z M265 0 L271.61 15.9 L288.78 17.27 L275.7 28.48 L279.69 45.23 L265 36.25 L250.31 45.23 L254.3 28.48 L241.22 17.27 L258.39 15.9 Z",
+          "specialProps": {
+            "viewBox": "0 0 290 50"
+          },
+          "groupId": "gw-b4-g-review-2",
+          "groupName": "Review 2"
+        },
+        {
+          "id": "gw-b4-review-2-text",
+          "type": "text",
+          "name": "Review",
+          "position": {
+            "x": 248.86,
+            "y": 1478.96
+          },
+          "size": {
+            "width": 830,
+            "height": 186.84
+          },
+          "rotation": 3,
+          "scale": 1,
+          "content": "I rehearsed my raise talk four\ntimes with the AI. Walked in\ncalm, walked out with a yes.",
+          "fontSize": 12.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.34,
+          "groupId": "gw-b4-g-review-2",
+          "groupName": "Review 2"
+        },
+        {
+          "id": "gw-b4-review-2-who",
+          "type": "text",
+          "name": "Reviewer",
+          "position": {
+            "x": 242.88,
+            "y": 1648.65
+          },
+          "size": {
+            "width": 138,
+            "height": 55.4
+          },
+          "rotation": 3,
+          "scale": 1,
+          "content": "Jonas",
+          "fontSize": 10.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "gw-b4-g-review-2",
+          "groupName": "Review 2"
+        },
+        {
+          "id": "gw-b4-review-2-role",
+          "type": "text",
+          "name": "Reviewer detail",
+          "position": {
+            "x": 351.62,
+            "y": 1655.71
+          },
+          "size": {
+            "width": 190,
+            "height": 55.4
+          },
+          "rotation": 3,
+          "scale": 1,
+          "opacity": 0.6,
+          "content": "engineer",
+          "fontSize": 10.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "gw-b4-g-review-2",
+          "groupName": "Review 2"
+        },
+        {
+          "id": "gw-b4-review-3-bubble",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 84,
+            "y": 1972
+          },
+          "size": {
+            "width": 930,
+            "height": 494
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 60,
+            "color": "rgba(0,0,0,0.45)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#2E2839",
+          "strokeColor": "#514962",
+          "strokeWidth": 3,
+          "customPath": "M66 0 L864 0 A66 66 0 0 1 930 66 L930 344 A66 66 0 0 1 864 410 L200 410 Q146.7 460.4 95 494 Q97 452 90 410 L66 410 A66 66 0 0 1 0 344 L0 66 A66 66 0 0 1 66 0 Z",
+          "specialProps": {
+            "viewBox": "0 0 930 494"
+          },
+          "groupId": "gw-b4-g-review-3",
+          "groupName": "Review 3"
+        },
+        {
+          "id": "gw-b4-review-3-stars",
+          "type": "shape",
+          "name": "Stars",
+          "position": {
+            "x": 134.92,
+            "y": 2037.59
+          },
+          "size": {
+            "width": 290,
+            "height": 50
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#C6F04D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M25 0 L31.61 15.9 L48.78 17.27 L35.7 28.48 L39.69 45.23 L25 36.25 L10.31 45.23 L14.3 28.48 L1.22 17.27 L18.39 15.9 Z M85 0 L91.61 15.9 L108.78 17.27 L95.7 28.48 L99.69 45.23 L85 36.25 L70.31 45.23 L74.3 28.48 L61.22 17.27 L78.39 15.9 Z M145 0 L151.61 15.9 L168.78 17.27 L155.7 28.48 L159.69 45.23 L145 36.25 L130.31 45.23 L134.3 28.48 L121.22 17.27 L138.39 15.9 Z M205 0 L211.61 15.9 L228.78 17.27 L215.7 28.48 L219.69 45.23 L205 36.25 L190.31 45.23 L194.3 28.48 L181.22 17.27 L198.39 15.9 Z M265 0 L271.61 15.9 L288.78 17.27 L275.7 28.48 L279.69 45.23 L265 36.25 L250.31 45.23 L254.3 28.48 L241.22 17.27 L258.39 15.9 Z",
+          "specialProps": {
+            "viewBox": "0 0 290 50"
+          },
+          "groupId": "gw-b4-g-review-3",
+          "groupName": "Review 3"
+        },
+        {
+          "id": "gw-b4-review-3-text",
+          "type": "text",
+          "name": "Review",
+          "position": {
+            "x": 136.99,
+            "y": 2088.48
+          },
+          "size": {
+            "width": 830,
+            "height": 186.84
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "content": "Short, fun and oddly addictive.\nMy team noticed my talks got\nsharper within a month.",
+          "fontSize": 12.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.34,
+          "groupId": "gw-b4-g-review-3",
+          "groupName": "Review 3"
+        },
+        {
+          "id": "gw-b4-review-3-who",
+          "type": "text",
+          "name": "Reviewer",
+          "position": {
+            "x": 141.81,
+            "y": 2291.69
+          },
+          "size": {
+            "width": 128,
+            "height": 55.4
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "content": "Priya",
+          "fontSize": 10.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "gw-b4-g-review-3",
+          "groupName": "Review 3"
+        },
+        {
+          "id": "gw-b4-review-3-role",
+          "type": "text",
+          "name": "Reviewer detail",
+          "position": {
+            "x": 242.69,
+            "y": 2285.56
+          },
+          "size": {
+            "width": 207,
+            "height": 55.4
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "opacity": 0.6,
+          "content": "team lead",
+          "fontSize": 10.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "gw-b4-g-review-3",
+          "groupName": "Review 3"
+        },
+        {
+          "id": "gw-b4-mascot-coach",
+          "type": "image",
+          "name": "Coach",
+          "position": {
+            "x": 903.17,
+            "y": 586.9
+          },
+          "size": {
+            "width": 257.14,
+            "height": 261.86
+          },
+          "rotation": 12,
+          "scale": 1,
+          "imageSrc": "/elements/images/mascots/mascot-gab-coach.png",
+          "objectFit": "contain",
+          "groupId": "gw-b4-g-mascots",
+          "groupName": "Mascots"
+        },
+        {
+          "id": "gw-b4-mascot-wink",
+          "type": "image",
+          "name": "Winking bubble",
+          "position": {
+            "x": -7.51,
+            "y": 1778.15
+          },
+          "size": {
+            "width": 225.37,
+            "height": 235.31
+          },
+          "rotation": -12,
+          "scale": 1,
+          "imageSrc": "/elements/images/mascots/mascot-gab-wink.png",
+          "objectFit": "contain",
+          "groupId": "gw-b4-g-mascots",
+          "groupName": "Mascots"
+        },
+        {
+          "id": "gw-b4-spark-1",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 1050,
+            "y": 1262
+          },
+          "size": {
+            "width": 110,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "gw-b4-g-sparkles",
+          "groupName": "Sparkles"
+        },
+        {
+          "id": "gw-b4-spark-2",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 1010,
+            "y": 1900
+          },
+          "size": {
+            "width": 60,
+            "height": 60
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.8,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "gw-b4-g-sparkles",
+          "groupName": "Sparkles"
+        },
+        {
+          "id": "gw-b4-spark-3",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 1064,
+            "y": 2478
+          },
+          "size": {
+            "width": 96,
+            "height": 96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC53D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q58.15 41.85 98 50 Q58.15 58.15 50 98 Q41.85 58.15 2 50 Q41.85 41.85 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "gw-b4-g-sparkles",
+          "groupName": "Sparkles"
+        }
+      ]
+    },
+    {
+      "id": "gw-board-5",
+      "name": "Small Daily Wins Big Confidence",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0F0D14",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#0F0D14",
+        "color2": "#2A2236",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "gw-b5-glow-1",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 251,
+            "y": 1371
+          },
+          "size": {
+            "width": 858,
+            "height": 858
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.45,
+          "blur": 165,
+          "shapeType": "circle",
+          "fillColor": "#7B61FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "gw-b5-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "gw-b5-glow-2",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": -100,
+            "y": 740
+          },
+          "size": {
+            "width": 520,
+            "height": 520
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.2,
+          "blur": 100,
+          "shapeType": "circle",
+          "fillColor": "#C6F04D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "gw-b5-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "gw-b5-glow-3",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 714,
+            "y": 2114
+          },
+          "size": {
+            "width": 572,
+            "height": 572
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.26,
+          "blur": 110,
+          "shapeType": "circle",
+          "fillColor": "#FF6A4D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "gw-b5-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "gw-b5-headline-main",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 76.47,
+            "y": 147.6
+          },
+          "size": {
+            "width": 1082,
+            "height": 181.76
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Small daily wins,",
+          "fontSize": 38.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.06,
+          "letterSpacing": -0.77,
+          "groupId": "gw-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "gw-b5-headline-accent",
+          "type": "text",
+          "name": "Headline accent",
+          "position": {
+            "x": 73.53,
+            "y": 283.28
+          },
+          "size": {
+            "width": 1082,
+            "height": 181.76
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "big confidence",
+          "fontSize": 38.4,
+          "color": "#C6F04D",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.06,
+          "letterSpacing": -0.77,
+          "groupId": "gw-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "gw-b5-headline-sub",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 81.82,
+            "y": 484.74
+          },
+          "size": {
+            "width": 1000,
+            "height": 134.16
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Streaks, levels and weekly stats\nkeep you coming back.",
+          "fontSize": 13.2,
+          "color": "#B8B2C4",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.32,
+          "groupId": "gw-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "gw-b5-phone-edge",
+          "type": "shape",
+          "name": "Phone edge",
+          "position": {
+            "x": 295,
+            "y": 1121.27
+          },
+          "size": {
+            "width": 730,
+            "height": 1517.46
+          },
+          "rotation": 5,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 44,
+            "blur": 100,
+            "color": "rgba(0,0,0,0.6)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#4D4660",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 105.8,
+          "groupId": "gw-b5-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "gw-b5-phone-device",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 300,
+            "y": 1126.27
+          },
+          "size": {
+            "width": 720,
+            "height": 1507.46
+          },
+          "rotation": 5,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#0B0A0F",
+          "screenshotSrc": "/data/projects/gabwise-screen-progress.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "gw-b5-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "gw-b5-streak-burst",
+          "type": "shape",
+          "name": "Burst",
+          "position": {
+            "x": 40,
+            "y": 820
+          },
+          "size": {
+            "width": 380,
+            "height": 380
+          },
+          "rotation": -10,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 44,
+            "color": "rgba(0,0,0,0.38)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#C6F04D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 L56.38 9.7 L64.83 4.35 L68.52 13.65 L78.21 11.17 L78.85 21.15 L88.83 21.79 L86.35 31.48 L95.65 35.17 L90.3 43.62 L98 50 L90.3 56.38 L95.65 64.83 L86.35 68.52 L88.83 78.21 L78.85 78.85 L78.21 88.83 L68.52 86.35 L64.83 95.65 L56.38 90.3 L50 98 L43.62 90.3 L35.17 95.65 L31.48 86.35 L21.79 88.83 L21.15 78.85 L11.17 78.21 L13.65 68.52 L4.35 64.83 L9.7 56.38 L2 50 L9.7 43.62 L4.35 35.17 L13.65 31.48 L11.17 21.79 L21.15 21.15 L21.79 11.17 L31.48 13.65 L35.17 4.35 L43.62 9.7 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "gw-b5-g-streak",
+          "groupName": "Streak badge"
+        },
+        {
+          "id": "gw-b5-streak-number",
+          "type": "text",
+          "name": "12",
+          "position": {
+            "x": 135.79,
+            "y": 885.06
+          },
+          "size": {
+            "width": 178,
+            "height": 204
+          },
+          "rotation": -10,
+          "scale": 1,
+          "content": "12",
+          "fontSize": 45,
+          "color": "#17131F",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": -1.35,
+          "groupId": "gw-b5-g-streak",
+          "groupName": "Streak badge"
+        },
+        {
+          "id": "gw-b5-streak-label",
+          "type": "text",
+          "name": "day streak",
+          "position": {
+            "x": 128.32,
+            "y": 1058.98
+          },
+          "size": {
+            "width": 230,
+            "height": 57.6
+          },
+          "rotation": -10,
+          "scale": 1,
+          "content": "day streak",
+          "fontSize": 10.8,
+          "color": "#17131F",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "gw-b5-g-streak",
+          "groupName": "Streak badge"
+        },
+        {
+          "id": "gw-b5-level-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 60,
+            "y": 2130
+          },
+          "size": {
+            "width": 520,
+            "height": 176
+          },
+          "rotation": -6,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 60,
+            "color": "rgba(0,0,0,0.5)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#F6F1E7",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 48,
+          "groupId": "gw-b5-g-level",
+          "groupName": "Level up card"
+        },
+        {
+          "id": "gw-b5-level-dot",
+          "type": "shape",
+          "name": "Icon ground",
+          "position": {
+            "x": 86.94,
+            "y": 2173.98
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": -6,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#7B61FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "gw-b5-g-level",
+          "groupName": "Level up card"
+        },
+        {
+          "id": "gw-b5-level-icon",
+          "type": "shape",
+          "name": "Trophy",
+          "position": {
+            "x": 116.94,
+            "y": 2203.98
+          },
+          "size": {
+            "width": 64,
+            "height": 64
+          },
+          "rotation": -6,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M30 8 H70 V12 H88 V22 C88 36 78 46 66 48 C62 54 57 58 54 60 V70 H68 V80 H32 V70 H46 V60 C43 58 38 54 34 48 C22 46 12 36 12 22 V12 H30 Z M20 20 V22 C20 31 26 37 32 39 L31 20 Z M80 20 H69 L68 39 C74 37 80 31 80 22 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "gw-b5-g-level",
+          "groupName": "Level up card"
+        },
+        {
+          "id": "gw-b5-level-title",
+          "type": "text",
+          "name": "Level up!",
+          "position": {
+            "x": 228.67,
+            "y": 2143.91
+          },
+          "size": {
+            "width": 271,
+            "height": 78.84
+          },
+          "rotation": -6,
+          "scale": 1,
+          "content": "Level up!",
+          "fontSize": 16.2,
+          "color": "#17131F",
+          "fontFamily": "Bricolage Grotesque",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.16,
+          "groupId": "gw-b5-g-level",
+          "groupName": "Level up card"
+        },
+        {
+          "id": "gw-b5-level-text",
+          "type": "text",
+          "name": "Storytelling, level 4",
+          "position": {
+            "x": 237.32,
+            "y": 2212.29
+          },
+          "size": {
+            "width": 356,
+            "height": 55.4
+          },
+          "rotation": -6,
+          "scale": 1,
+          "content": "Storytelling, level 4",
+          "fontSize": 10.2,
+          "color": "#6B6478",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "gw-b5-g-level",
+          "groupName": "Level up card"
+        },
+        {
+          "id": "gw-b5-mascot-wink",
+          "type": "image",
+          "name": "Winking bubble",
+          "position": {
+            "x": 842.15,
+            "y": 2226.9
+          },
+          "size": {
+            "width": 295.31,
+            "height": 308.34
+          },
+          "rotation": 10,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 50,
+            "color": "rgba(0,0,0,0.4)"
+          },
+          "imageSrc": "/elements/images/mascots/mascot-gab-wink.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "gw-b5-spark-1",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 1040,
+            "y": 790
+          },
+          "size": {
+            "width": 110,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "gw-b5-g-sparkles",
+          "groupName": "Sparkles"
+        },
+        {
+          "id": "gw-b5-spark-2",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 980,
+            "y": 930
+          },
+          "size": {
+            "width": 50,
+            "height": 50
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.8,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "gw-b5-g-sparkles",
+          "groupName": "Sparkles"
+        },
+        {
+          "id": "gw-b5-spark-3",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 70,
+            "y": 1420
+          },
+          "size": {
+            "width": 84,
+            "height": 84
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC53D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q58.15 41.85 98 50 Q58.15 58.15 50 98 Q41.85 58.15 2 50 Q41.85 41.85 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "gw-b5-g-sparkles",
+          "groupName": "Sparkles"
+        }
+      ]
+    }
+  ]
+}

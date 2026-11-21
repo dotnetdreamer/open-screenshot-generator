@@ -1,0 +1,3310 @@
+{
+  "id": "template_owedly_settlements",
+  "name": "Owedly Settlements",
+  "description": "App Store & Play Store screenshots for a class action settlement, refund finder, cash back or money claim app. A deep green first screenshot with a pile of 3D gold coins and four enamel emblem coins, three light mint screenshots with emerald coins, a settlement card that pops out of the phone, a matches screen and a three-step screen with a 3D receipt, a party popper, flying cash and a money bag, and a closing screenshot of payout cards over gold. Bold Plus Jakarta Sans headlines with gold and emerald accents. Every coin, object, card and phone sits in named, editable layers.",
+  "previewImage": "/data/projects/previews/owedly-settlements.png",
+  "timestamp": "2026-11-21T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "ow-board-1",
+      "name": "Big Companies Owe You Money",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#03120B",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#03120B",
+        "color2": "#0C432A",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "ow-b1-glow-1",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 96,
+            "y": 993
+          },
+          "size": {
+            "width": 1014,
+            "height": 1014
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.31,
+          "blur": 195,
+          "shapeType": "circle",
+          "fillColor": "#1FD17B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ow-b1-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "ow-b1-glow-2",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 187,
+            "y": 284
+          },
+          "size": {
+            "width": 832,
+            "height": 832
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.26,
+          "blur": 160,
+          "shapeType": "circle",
+          "fillColor": "#0E7A4A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ow-b1-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "ow-b1-bokeh-1",
+          "type": "shape",
+          "name": "Blurred coin",
+          "position": {
+            "x": 40,
+            "y": 250
+          },
+          "size": {
+            "width": 190,
+            "height": 190
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.4,
+          "blur": 34,
+          "shapeType": "circle",
+          "fillColor": "#F3B02A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ow-b1-g-bokeh",
+          "groupName": "Blurred coins"
+        },
+        {
+          "id": "ow-b1-bokeh-2",
+          "type": "shape",
+          "name": "Blurred coin",
+          "position": {
+            "x": 1010,
+            "y": 150
+          },
+          "size": {
+            "width": 150,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.34,
+          "blur": 30,
+          "shapeType": "circle",
+          "fillColor": "#F7C64B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ow-b1-g-bokeh",
+          "groupName": "Blurred coins"
+        },
+        {
+          "id": "ow-b1-bokeh-3",
+          "type": "shape",
+          "name": "Blurred coin",
+          "position": {
+            "x": 1040,
+            "y": 1130
+          },
+          "size": {
+            "width": 120,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.3,
+          "blur": 26,
+          "shapeType": "circle",
+          "fillColor": "#F3B02A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ow-b1-g-bokeh",
+          "groupName": "Blurred coins"
+        },
+        {
+          "id": "ow-b1-stat-laurel-l",
+          "type": "shape",
+          "name": "Laurel left",
+          "position": {
+            "x": 246,
+            "y": 136
+          },
+          "size": {
+            "width": 140,
+            "height": 280
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#F5C24A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M62.63 171.96 Q42.43 159.26 22.63 172.56 Q42.83 185.26 62.63 171.96 Z M43.19 152.18 Q28.98 134.53 7.08 140.36 Q21.29 158 43.19 152.18 Z M43.19 152.18 Q50.26 138.04 40.32 125.74 Q33.26 139.88 43.19 152.18 Z M31.25 127.15 Q23.97 106.96 2.55 105.42 Q9.84 125.62 31.25 127.15 Z M31.25 127.15 Q41.95 116.66 36.84 102.58 Q26.15 113.07 31.25 127.15 Z M28.12 99.6 Q27.82 79.33 9.17 71.37 Q9.47 91.65 28.12 99.6 Z M28.12 99.6 Q40.89 93.52 40.66 79.38 Q27.89 85.46 28.12 99.6 Z M34.12 72.53 Q40.06 54.4 25.9 41.6 Q19.96 59.74 34.12 72.53 Z M34.12 72.53 Q47.35 71.04 51.48 58.38 Q38.25 59.88 34.12 72.53 Z M48.6 48.89 Q59.41 34.63 50.77 18.97 Q39.96 33.23 48.6 48.89 Z M77.83 180.74 L67.49 175.24 L58.01 168.35 L49.58 160.21 L42.36 150.97 L36.5 140.82 L32.11 129.96 L29.28 118.59 L28.05 106.93 L28.46 95.22 L30.5 83.68 L34.12 72.53 L39.25 62 L45.81 52.28 L53.65 43.58 L62.63 36.04 L72.56 29.83 L74.34 33.17 L64.85 39.1 L56.27 46.29 L48.79 54.61 L42.53 63.89 L37.62 73.95 L34.16 84.59 L32.22 95.61 L31.83 106.8 L33 117.93 L35.71 128.79 L39.9 139.17 L45.49 148.86 L52.38 157.68 L60.44 165.45 L69.49 172.03 L79.37 177.28 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 200"
+          },
+          "groupId": "ow-b1-g-stat",
+          "groupName": "Stat"
+        },
+        {
+          "id": "ow-b1-stat-laurel-r",
+          "type": "shape",
+          "name": "Laurel right",
+          "position": {
+            "x": 820,
+            "y": 136
+          },
+          "size": {
+            "width": 140,
+            "height": 280
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#F5C24A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M37.37 171.96 Q57.57 159.26 77.37 172.56 Q57.17 185.26 37.37 171.96 Z M56.81 152.18 Q71.02 134.53 92.92 140.36 Q78.71 158 56.81 152.18 Z M56.81 152.18 Q49.74 138.04 59.68 125.74 Q66.74 139.88 56.81 152.18 Z M68.75 127.15 Q76.03 106.96 97.45 105.42 Q90.16 125.62 68.75 127.15 Z M68.75 127.15 Q58.05 116.66 63.16 102.58 Q73.85 113.07 68.75 127.15 Z M71.88 99.6 Q72.18 79.33 90.83 71.37 Q90.53 91.65 71.88 99.6 Z M71.88 99.6 Q59.11 93.52 59.34 79.38 Q72.11 85.46 71.88 99.6 Z M65.88 72.53 Q59.94 54.4 74.1 41.6 Q80.04 59.74 65.88 72.53 Z M65.88 72.53 Q52.65 71.04 48.52 58.38 Q61.75 59.88 65.88 72.53 Z M51.4 48.89 Q40.59 34.63 49.23 18.97 Q60.04 33.23 51.4 48.89 Z M22.17 180.74 L32.51 175.24 L41.99 168.35 L50.42 160.21 L57.64 150.97 L63.5 140.82 L67.89 129.96 L70.72 118.59 L71.95 106.93 L71.54 95.22 L69.5 83.68 L65.88 72.53 L60.75 62 L54.19 52.28 L46.35 43.58 L37.37 36.04 L27.44 29.83 L25.66 33.17 L35.15 39.1 L43.73 46.29 L51.21 54.61 L57.47 63.89 L62.38 73.95 L65.84 84.59 L67.78 95.61 L68.17 106.8 L67 117.93 L64.29 128.79 L60.1 139.17 L54.51 148.86 L47.62 157.68 L39.56 165.45 L30.51 172.03 L20.63 177.28 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 200"
+          },
+          "groupId": "ow-b1-g-stat",
+          "groupName": "Stat"
+        },
+        {
+          "id": "ow-b1-stat-number",
+          "type": "text",
+          "name": "Stat number",
+          "position": {
+            "x": 421.76,
+            "y": 140.18
+          },
+          "size": {
+            "width": 358,
+            "height": 163.52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "$2.4B",
+          "fontSize": 33.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.34,
+          "groupId": "ow-b1-g-stat",
+          "groupName": "Stat"
+        },
+        {
+          "id": "ow-b1-stat-label",
+          "type": "text",
+          "name": "Stat label",
+          "position": {
+            "x": 431.78,
+            "y": 299.58
+          },
+          "size": {
+            "width": 342,
+            "height": 66.4
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "left unclaimed",
+          "fontSize": 13.2,
+          "color": "#9FE3BF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.13,
+          "groupId": "ow-b1-g-stat",
+          "groupName": "Stat"
+        },
+        {
+          "id": "ow-b1-headline-1",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 141.26,
+            "y": 514.95
+          },
+          "size": {
+            "width": 914,
+            "height": 189.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Big companies",
+          "fontSize": 39,
+          "color": "#FFFFFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.56,
+          "groupId": "ow-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ow-b1-headline-2-1",
+          "type": "text",
+          "name": "Headline, line 2",
+          "position": {
+            "x": 109.85,
+            "y": 670.95
+          },
+          "size": {
+            "width": 551,
+            "height": 189.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "owe you",
+          "fontSize": 39,
+          "color": "#FFFFFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.56,
+          "groupId": "ow-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ow-b1-headline-2-2",
+          "type": "text",
+          "name": "Headline accent",
+          "position": {
+            "x": 634.54,
+            "y": 670.95
+          },
+          "size": {
+            "width": 502,
+            "height": 189.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "money.",
+          "fontSize": 39,
+          "color": "#F8C948",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.56,
+          "fillGradient": {
+            "color1": "#FFE9A6",
+            "color2": "#F3B02A",
+            "angle": 180
+          },
+          "groupId": "ow-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ow-b1-pill-bg",
+          "type": "shape",
+          "name": "Pill text pill",
+          "position": {
+            "x": 269.15,
+            "y": 932
+          },
+          "size": {
+            "width": 667.7,
+            "height": 92
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "rgba(46,224,138,0.10)",
+          "strokeColor": "#2BD67F",
+          "strokeWidth": 3,
+          "borderRadius": 46,
+          "groupId": "ow-b1-g-pill",
+          "groupName": "Pill"
+        },
+        {
+          "id": "ow-b1-pill-dot",
+          "type": "shape",
+          "name": "Pill text dot",
+          "position": {
+            "x": 313.15,
+            "y": 969
+          },
+          "size": {
+            "width": 18,
+            "height": 18
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#2EE08A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ow-b1-g-pill",
+          "groupName": "Pill"
+        },
+        {
+          "id": "ow-b1-pill-text",
+          "type": "text",
+          "name": "Pill text",
+          "position": {
+            "x": 346.07,
+            "y": 945.4
+          },
+          "size": {
+            "width": 589,
+            "height": 62
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "New settlements every week",
+          "fontSize": 12,
+          "color": "#D6F7E5",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.12,
+          "groupId": "ow-b1-g-pill",
+          "groupName": "Pill"
+        },
+        {
+          "id": "ow-b1-pile",
+          "type": "image",
+          "name": "Gold coin pile",
+          "position": {
+            "x": -247,
+            "y": 1436.22
+          },
+          "size": {
+            "width": 1700,
+            "height": 1215.06
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-coins-gold-pile.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "ow-b1-fly-1",
+          "type": "image",
+          "name": "Flying coin",
+          "position": {
+            "x": 982,
+            "y": 1180.08
+          },
+          "size": {
+            "width": 176,
+            "height": 203.85
+          },
+          "rotation": 14,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 34,
+            "color": "rgba(40,22,0,0.55)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-spin-2.png",
+          "objectFit": "contain",
+          "groupId": "ow-b1-g-flying",
+          "groupName": "Flying coins"
+        },
+        {
+          "id": "ow-b1-fly-2",
+          "type": "image",
+          "name": "Flying coin",
+          "position": {
+            "x": 40,
+            "y": 1274.73
+          },
+          "size": {
+            "width": 176,
+            "height": 110.55
+          },
+          "rotation": -24,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 34,
+            "color": "rgba(40,22,0,0.55)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-dollar-tilt.png",
+          "objectFit": "contain",
+          "groupId": "ow-b1-g-flying",
+          "groupName": "Flying coins"
+        },
+        {
+          "id": "ow-b1-fly-3",
+          "type": "image",
+          "name": "Flying coin",
+          "position": {
+            "x": 829,
+            "y": 1096.97
+          },
+          "size": {
+            "width": 118,
+            "height": 142.07
+          },
+          "rotation": -16,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-coin-spin-1.png",
+          "objectFit": "contain",
+          "groupId": "ow-b1-g-flying",
+          "groupName": "Flying coins"
+        },
+        {
+          "id": "ow-b1-coin-justice",
+          "type": "image",
+          "name": "Scales coin",
+          "position": {
+            "x": 658,
+            "y": 1379.6
+          },
+          "size": {
+            "width": 452,
+            "height": 448.79
+          },
+          "rotation": 9,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 34,
+            "color": "rgba(40,22,0,0.55)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-justice.png",
+          "objectFit": "contain",
+          "groupId": "ow-b1-g-emblems",
+          "groupName": "Coins on the pile"
+        },
+        {
+          "id": "ow-b1-coin-claim",
+          "type": "image",
+          "name": "Check mark coin",
+          "position": {
+            "x": 56,
+            "y": 1445.77
+          },
+          "size": {
+            "width": 500,
+            "height": 496.46
+          },
+          "rotation": -8,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 34,
+            "color": "rgba(40,22,0,0.55)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-claim.png",
+          "objectFit": "contain",
+          "groupId": "ow-b1-g-emblems",
+          "groupName": "Coins on the pile"
+        },
+        {
+          "id": "ow-b1-loose-1",
+          "type": "image",
+          "name": "Loose coin",
+          "position": {
+            "x": 473,
+            "y": 1801.05
+          },
+          "size": {
+            "width": 310,
+            "height": 221.89
+          },
+          "rotation": 6,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 34,
+            "color": "rgba(40,22,0,0.55)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-flat-1.png",
+          "objectFit": "contain",
+          "groupId": "ow-b1-g-emblems",
+          "groupName": "Coins on the pile"
+        },
+        {
+          "id": "ow-b1-coin-shield",
+          "type": "image",
+          "name": "Shield coin",
+          "position": {
+            "x": 713,
+            "y": 1841.35
+          },
+          "size": {
+            "width": 490,
+            "height": 489.31
+          },
+          "rotation": -6,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 34,
+            "color": "rgba(40,22,0,0.55)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-shield.png",
+          "objectFit": "contain",
+          "groupId": "ow-b1-g-emblems",
+          "groupName": "Coins on the pile"
+        },
+        {
+          "id": "ow-b1-coin-receipt",
+          "type": "image",
+          "name": "Receipt coin",
+          "position": {
+            "x": 154,
+            "y": 1936.05
+          },
+          "size": {
+            "width": 484,
+            "height": 479.89
+          },
+          "rotation": 7,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 34,
+            "color": "rgba(40,22,0,0.55)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-receipt.png",
+          "objectFit": "contain",
+          "groupId": "ow-b1-g-emblems",
+          "groupName": "Coins on the pile"
+        },
+        {
+          "id": "ow-b1-loose-2",
+          "type": "image",
+          "name": "Loose coin",
+          "position": {
+            "x": -34,
+            "y": 1912.5
+          },
+          "size": {
+            "width": 300,
+            "height": 195
+          },
+          "rotation": -12,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 34,
+            "color": "rgba(40,22,0,0.55)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-flat-2.png",
+          "objectFit": "contain",
+          "groupId": "ow-b1-g-emblems",
+          "groupName": "Coins on the pile"
+        },
+        {
+          "id": "ow-b1-loose-3",
+          "type": "image",
+          "name": "Loose coin",
+          "position": {
+            "x": 540,
+            "y": 2237.22
+          },
+          "size": {
+            "width": 320,
+            "height": 277.56
+          },
+          "rotation": 10,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 34,
+            "color": "rgba(40,22,0,0.55)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-flat-3.png",
+          "objectFit": "contain",
+          "groupId": "ow-b1-g-emblems",
+          "groupName": "Coins on the pile"
+        },
+        {
+          "id": "ow-b1-loose-4",
+          "type": "image",
+          "name": "Loose coin",
+          "position": {
+            "x": 965,
+            "y": 2261.05
+          },
+          "size": {
+            "width": 310,
+            "height": 221.89
+          },
+          "rotation": 24,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 34,
+            "color": "rgba(40,22,0,0.55)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-flat-1.png",
+          "objectFit": "contain",
+          "groupId": "ow-b1-g-emblems",
+          "groupName": "Coins on the pile"
+        },
+        {
+          "id": "ow-b1-loose-5",
+          "type": "image",
+          "name": "Loose coin",
+          "position": {
+            "x": -15,
+            "y": 2320.75
+          },
+          "size": {
+            "width": 330,
+            "height": 214.5
+          },
+          "rotation": 14,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 34,
+            "color": "rgba(40,22,0,0.55)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-flat-2.png",
+          "objectFit": "contain",
+          "groupId": "ow-b1-g-emblems",
+          "groupName": "Coins on the pile"
+        },
+        {
+          "id": "ow-b1-loose-6",
+          "type": "image",
+          "name": "Loose coin",
+          "position": {
+            "x": 765,
+            "y": 2441.89
+          },
+          "size": {
+            "width": 330,
+            "height": 236.21
+          },
+          "rotation": -10,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 34,
+            "color": "rgba(40,22,0,0.55)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-flat-1.png",
+          "objectFit": "contain",
+          "groupId": "ow-b1-g-emblems",
+          "groupName": "Coins on the pile"
+        },
+        {
+          "id": "ow-b1-loose-7",
+          "type": "image",
+          "name": "Loose coin",
+          "position": {
+            "x": 310,
+            "y": 2441.22
+          },
+          "size": {
+            "width": 320,
+            "height": 277.56
+          },
+          "rotation": -18,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 34,
+            "color": "rgba(40,22,0,0.55)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-flat-3.png",
+          "objectFit": "contain",
+          "groupId": "ow-b1-g-emblems",
+          "groupName": "Coins on the pile"
+        },
+        {
+          "id": "ow-b1-sparkle-1",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 470,
+            "y": 1494
+          },
+          "size": {
+            "width": 54,
+            "height": 54
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 0,
+            "blur": 22,
+            "color": "rgba(255,240,190,0.9)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ow-b1-g-sparkles",
+          "groupName": "Sparkles"
+        },
+        {
+          "id": "ow-b1-sparkle-2",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 1100,
+            "y": 1816
+          },
+          "size": {
+            "width": 44,
+            "height": 44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 0,
+            "blur": 22,
+            "color": "rgba(255,240,190,0.9)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ow-b1-g-sparkles",
+          "groupName": "Sparkles"
+        },
+        {
+          "id": "ow-b1-sparkle-3",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 232,
+            "y": 1930
+          },
+          "size": {
+            "width": 34,
+            "height": 34
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 0,
+            "blur": 22,
+            "color": "rgba(255,240,190,0.9)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ow-b1-g-sparkles",
+          "groupName": "Sparkles"
+        },
+        {
+          "id": "ow-b1-sparkle-4",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 742,
+            "y": 2020
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 0,
+            "blur": 22,
+            "color": "rgba(255,240,190,0.9)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ow-b1-g-sparkles",
+          "groupName": "Sparkles"
+        }
+      ]
+    },
+    {
+      "id": "ow-board-2",
+      "name": "From Brands You Already Use",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#F3F7F5",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "ow-b2-glow-1",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": -223,
+            "y": -43
+          },
+          "size": {
+            "width": 806,
+            "height": 806
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.57,
+          "blur": 155,
+          "shapeType": "circle",
+          "fillColor": "#BDF0D5",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ow-b2-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "ow-b2-glow-2",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 676,
+            "y": 636
+          },
+          "size": {
+            "width": 728,
+            "height": 728
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.62,
+          "blur": 140,
+          "shapeType": "circle",
+          "fillColor": "#D2F5E2",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ow-b2-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "ow-b2-em-5",
+          "type": "image",
+          "name": "Emerald coin",
+          "position": {
+            "x": -9,
+            "y": 468.91
+          },
+          "size": {
+            "width": 210,
+            "height": 158.17
+          },
+          "rotation": -32,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 34,
+            "color": "rgba(8,80,45,0.26)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-emerald-tilt.png",
+          "objectFit": "contain",
+          "groupId": "ow-b2-g-coins",
+          "groupName": "Emerald coins"
+        },
+        {
+          "id": "ow-b2-em-6",
+          "type": "image",
+          "name": "Emerald coin",
+          "position": {
+            "x": 932,
+            "y": 376.46
+          },
+          "size": {
+            "width": 216,
+            "height": 219.08
+          },
+          "rotation": 28,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 34,
+            "color": "rgba(8,80,45,0.26)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-emerald.png",
+          "objectFit": "contain",
+          "groupId": "ow-b2-g-coins",
+          "groupName": "Emerald coins"
+        },
+        {
+          "id": "ow-b2-em-4",
+          "type": "image",
+          "name": "Emerald coin",
+          "position": {
+            "x": 906,
+            "y": -28.39
+          },
+          "size": {
+            "width": 340,
+            "height": 320.78
+          },
+          "rotation": 22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 34,
+            "color": "rgba(8,80,45,0.26)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-emerald-edge.png",
+          "objectFit": "contain",
+          "groupId": "ow-b2-g-coins",
+          "groupName": "Emerald coins"
+        },
+        {
+          "id": "ow-b2-em-2",
+          "type": "image",
+          "name": "Emerald coin",
+          "position": {
+            "x": 370,
+            "y": 9.9
+          },
+          "size": {
+            "width": 372,
+            "height": 280.19
+          },
+          "rotation": 12,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 34,
+            "color": "rgba(8,80,45,0.26)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-emerald-tilt.png",
+          "objectFit": "contain",
+          "groupId": "ow-b2-g-coins",
+          "groupName": "Emerald coins"
+        },
+        {
+          "id": "ow-b2-em-3",
+          "type": "image",
+          "name": "Emerald coin",
+          "position": {
+            "x": 642,
+            "y": 130.85
+          },
+          "size": {
+            "width": 384,
+            "height": 262.31
+          },
+          "rotation": -10,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 34,
+            "color": "rgba(8,80,45,0.26)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-emerald-flat.png",
+          "objectFit": "contain",
+          "groupId": "ow-b2-g-coins",
+          "groupName": "Emerald coins"
+        },
+        {
+          "id": "ow-b2-em-1",
+          "type": "image",
+          "name": "Emerald coin",
+          "position": {
+            "x": 41,
+            "y": 6.08
+          },
+          "size": {
+            "width": 410,
+            "height": 415.85
+          },
+          "rotation": -16,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 34,
+            "color": "rgba(8,80,45,0.26)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-emerald.png",
+          "objectFit": "contain",
+          "groupId": "ow-b2-g-coins",
+          "groupName": "Emerald coins"
+        },
+        {
+          "id": "ow-b2-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 213,
+            "y": 610
+          },
+          "size": {
+            "width": 780,
+            "height": 1633.09
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 30,
+            "blur": 80,
+            "color": "rgba(10,60,35,0.16)"
+          },
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#D5DCD8",
+          "screenshotSrc": "/data/projects/owedly-screen-feed.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "ow-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "ow-b2-phone-fade",
+          "type": "shape",
+          "name": "Fade",
+          "position": {
+            "x": 0,
+            "y": 1270
+          },
+          "size": {
+            "width": 1206,
+            "height": 330
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#F3F7F5",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 0,
+          "fillGradient": {
+            "color1": "rgba(243,247,245,0)",
+            "color2": "#F3F7F5",
+            "angle": 180
+          },
+          "groupId": "ow-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "ow-b2-phone-cover",
+          "type": "shape",
+          "name": "Fade end",
+          "position": {
+            "x": 0,
+            "y": 1598
+          },
+          "size": {
+            "width": 1206,
+            "height": 1024
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#F3F7F5",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 0,
+          "groupId": "ow-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "ow-b2-card-back-2",
+          "type": "shape",
+          "name": "Card behind",
+          "position": {
+            "x": 208,
+            "y": 1002
+          },
+          "size": {
+            "width": 790,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.55,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 56,
+          "groupId": "ow-b2-g-card",
+          "groupName": "Settlement card"
+        },
+        {
+          "id": "ow-b2-card-back-1",
+          "type": "shape",
+          "name": "Card behind",
+          "position": {
+            "x": 152,
+            "y": 1030
+          },
+          "size": {
+            "width": 902,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.8,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 60,
+          "groupId": "ow-b2-g-card",
+          "groupName": "Settlement card"
+        },
+        {
+          "id": "ow-b2-card-bg",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 98,
+            "y": 1064
+          },
+          "size": {
+            "width": 1010,
+            "height": 560
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 44,
+            "blur": 90,
+            "color": "rgba(8,60,34,0.22)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 68,
+          "groupId": "ow-b2-g-card",
+          "groupName": "Settlement card"
+        },
+        {
+          "id": "ow-b2-card-brand",
+          "type": "image",
+          "name": "Brand tile",
+          "position": {
+            "x": 152,
+            "y": 1118
+          },
+          "size": {
+            "width": 150,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/owedly-brand-popreel.png",
+          "objectFit": "contain",
+          "groupId": "ow-b2-g-card",
+          "groupName": "Settlement card"
+        },
+        {
+          "id": "ow-b2-card-name",
+          "type": "text",
+          "name": "Brand name",
+          "position": {
+            "x": 331.91,
+            "y": 1115.93
+          },
+          "size": {
+            "width": 268,
+            "height": 90.52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Popreel",
+          "fontSize": 18.6,
+          "color": "#0B120E",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.56,
+          "groupId": "ow-b2-g-card",
+          "groupName": "Settlement card"
+        },
+        {
+          "id": "ow-b2-card-kind",
+          "type": "text",
+          "name": "Settlement type",
+          "position": {
+            "x": 332.7,
+            "y": 1198.3
+          },
+          "size": {
+            "width": 394,
+            "height": 62
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Privacy settlement",
+          "fontSize": 12,
+          "color": "#5F6E66",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.12,
+          "groupId": "ow-b2-g-card",
+          "groupName": "Settlement card"
+        },
+        {
+          "id": "ow-b2-card-amount",
+          "type": "text",
+          "name": "Amount",
+          "position": {
+            "x": 144.76,
+            "y": 1289.88
+          },
+          "size": {
+            "width": 494,
+            "height": 134.32
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Up to $100",
+          "fontSize": 27.6,
+          "color": "#0FAE62",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.1,
+          "groupId": "ow-b2-g-card",
+          "groupName": "Settlement card"
+        },
+        {
+          "id": "ow-b2-card-chip-1-bg",
+          "type": "shape",
+          "name": "Chip",
+          "position": {
+            "x": 152,
+            "y": 1432
+          },
+          "size": {
+            "width": 383.24,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#DFF6E9",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 36,
+          "groupId": "ow-b2-g-card",
+          "groupName": "Settlement card"
+        },
+        {
+          "id": "ow-b2-card-chip-1-text",
+          "type": "text",
+          "name": "Chip text",
+          "position": {
+            "x": 177.6,
+            "y": 1438.11
+          },
+          "size": {
+            "width": 374,
+            "height": 57.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "About $100 a claim",
+          "fontSize": 10.8,
+          "color": "#0A7A45",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.05,
+          "groupId": "ow-b2-g-card",
+          "groupName": "Settlement card"
+        },
+        {
+          "id": "ow-b2-card-chip-2-bg",
+          "type": "shape",
+          "name": "Chip",
+          "position": {
+            "x": 551.24,
+            "y": 1432
+          },
+          "size": {
+            "width": 297.91,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#EEF2F0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 36,
+          "groupId": "ow-b2-g-card",
+          "groupName": "Settlement card"
+        },
+        {
+          "id": "ow-b2-card-chip-2-icon",
+          "type": "shape",
+          "name": "Chip icon",
+          "position": {
+            "x": 577.24,
+            "y": 1452
+          },
+          "size": {
+            "width": 32,
+            "height": 32
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#5F6E66",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M6 50 A44 44 0 1 0 94 50 A44 44 0 1 0 6 50 ZM14 50 A36 36 0 1 0 86 50 A36 36 0 1 0 14 50 ZM47 26 H53 V53 H47 ZM47 47 H69 V53 H47 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "fillRule": "evenodd"
+          },
+          "groupId": "ow-b2-g-card",
+          "groupName": "Settlement card"
+        },
+        {
+          "id": "ow-b2-card-chip-2-text",
+          "type": "text",
+          "name": "Chip text",
+          "position": {
+            "x": 617.96,
+            "y": 1438.11
+          },
+          "size": {
+            "width": 247,
+            "height": 57.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "45 days left",
+          "fontSize": 10.8,
+          "color": "#5F6E66",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.05,
+          "groupId": "ow-b2-g-card",
+          "groupName": "Settlement card"
+        },
+        {
+          "id": "ow-b2-card-chip-3-bg",
+          "type": "shape",
+          "name": "Chip",
+          "position": {
+            "x": 152,
+            "y": 1518
+          },
+          "size": {
+            "width": 388.15,
+            "height": 72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#DFF6E9",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 36,
+          "groupId": "ow-b2-g-card",
+          "groupName": "Settlement card"
+        },
+        {
+          "id": "ow-b2-card-chip-3-icon",
+          "type": "shape",
+          "name": "Chip icon",
+          "position": {
+            "x": 178,
+            "y": 1538
+          },
+          "size": {
+            "width": 32,
+            "height": 32
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#0A7A45",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M8 56 L20 44 L38 62 L80 16 L92 27 L38 86 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ow-b2-g-card",
+          "groupName": "Settlement card"
+        },
+        {
+          "id": "ow-b2-card-chip-3-text",
+          "type": "text",
+          "name": "Chip text",
+          "position": {
+            "x": 217.43,
+            "y": 1524.11
+          },
+          "size": {
+            "width": 339,
+            "height": 57.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "No proof needed",
+          "fontSize": 10.8,
+          "color": "#0A7A45",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.05,
+          "groupId": "ow-b2-g-card",
+          "groupName": "Settlement card"
+        },
+        {
+          "id": "ow-b2-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 28,
+            "y": 1750.12
+          },
+          "size": {
+            "width": 1150,
+            "height": 322.4
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "From brands\nyou already use.",
+          "fontSize": 37.2,
+          "color": "#0B120E",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.12,
+          "letterSpacing": -1.49,
+          "groupId": "ow-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ow-b2-sub",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 53,
+            "y": 2093.25
+          },
+          "size": {
+            "width": 1100,
+            "height": 148
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Find class action settlements\nyou can still claim.",
+          "fontSize": 15,
+          "color": "#5F6E66",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.3,
+          "letterSpacing": -0.22,
+          "groupId": "ow-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ow-b2-brands-glow",
+          "type": "shape",
+          "name": "Glow",
+          "position": {
+            "x": 153,
+            "y": 2190
+          },
+          "size": {
+            "width": 900,
+            "height": 900
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.6,
+          "blur": 150,
+          "shapeType": "circle",
+          "fillColor": "#CDF3DE",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ow-b2-g-brands",
+          "groupName": "Brand tiles"
+        },
+        {
+          "id": "ow-b2-brand-sprintu",
+          "type": "image",
+          "name": "Brand tile",
+          "position": {
+            "x": 206,
+            "y": 2356
+          },
+          "size": {
+            "width": 130,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(10,40,25,0.16)"
+          },
+          "imageSrc": "/data/projects/owedly-brand-sprintu.png",
+          "objectFit": "contain",
+          "groupId": "ow-b2-g-brands",
+          "groupName": "Brand tiles"
+        },
+        {
+          "id": "ow-b2-brand-grocera",
+          "type": "image",
+          "name": "Brand tile",
+          "position": {
+            "x": 372,
+            "y": 2356
+          },
+          "size": {
+            "width": 130,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(10,40,25,0.16)"
+          },
+          "imageSrc": "/data/projects/owedly-brand-grocera.png",
+          "objectFit": "contain",
+          "groupId": "ow-b2-g-brands",
+          "groupName": "Brand tiles"
+        },
+        {
+          "id": "ow-b2-brand-storella",
+          "type": "image",
+          "name": "Brand tile",
+          "position": {
+            "x": 538,
+            "y": 2356
+          },
+          "size": {
+            "width": 130,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(10,40,25,0.16)"
+          },
+          "imageSrc": "/data/projects/owedly-brand-storella.png",
+          "objectFit": "contain",
+          "groupId": "ow-b2-g-brands",
+          "groupName": "Brand tiles"
+        },
+        {
+          "id": "ow-b2-brand-brimly",
+          "type": "image",
+          "name": "Brand tile",
+          "position": {
+            "x": 704,
+            "y": 2356
+          },
+          "size": {
+            "width": 130,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(10,40,25,0.16)"
+          },
+          "imageSrc": "/data/projects/owedly-brand-brimly.png",
+          "objectFit": "contain",
+          "groupId": "ow-b2-g-brands",
+          "groupName": "Brand tiles"
+        },
+        {
+          "id": "ow-b2-brand-kelda",
+          "type": "image",
+          "name": "Brand tile",
+          "position": {
+            "x": 870,
+            "y": 2356
+          },
+          "size": {
+            "width": 130,
+            "height": 130
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 24,
+            "color": "rgba(10,40,25,0.16)"
+          },
+          "imageSrc": "/data/projects/owedly-brand-kelda.png",
+          "objectFit": "contain",
+          "groupId": "ow-b2-g-brands",
+          "groupName": "Brand tiles"
+        }
+      ]
+    },
+    {
+      "id": "ow-board-3",
+      "name": "11 Matches Up To 634",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#F3F7F5",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "ow-b3-glow-1",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 630,
+            "y": -130
+          },
+          "size": {
+            "width": 780,
+            "height": 780
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.57,
+          "blur": 150,
+          "shapeType": "circle",
+          "fillColor": "#BDF0D5",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ow-b3-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "ow-b3-glow-2",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": -283,
+            "y": 1097
+          },
+          "size": {
+            "width": 806,
+            "height": 806
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.57,
+          "blur": 155,
+          "shapeType": "circle",
+          "fillColor": "#D2F5E2",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ow-b3-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "ow-b3-headline-1",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 244.66,
+            "y": 124.95
+          },
+          "size": {
+            "width": 725,
+            "height": 189.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "11 matches.",
+          "fontSize": 39,
+          "color": "#0B120E",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.56,
+          "groupId": "ow-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ow-b3-headline-2",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 234.43,
+            "y": 300.95
+          },
+          "size": {
+            "width": 363,
+            "height": 189.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Up to",
+          "fontSize": 39,
+          "color": "#0B120E",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.56,
+          "groupId": "ow-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ow-b3-headline-pill",
+          "type": "shape",
+          "name": "Amount pill",
+          "position": {
+            "x": 589.7,
+            "y": 322
+          },
+          "size": {
+            "width": 372.46,
+            "height": 156.85
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0B120E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 44,
+          "groupId": "ow-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ow-b3-headline-amount",
+          "type": "text",
+          "name": "Amount",
+          "position": {
+            "x": 617.41,
+            "y": 300.95
+          },
+          "size": {
+            "width": 352,
+            "height": 189.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "$634",
+          "fontSize": 39,
+          "color": "#7CF2B4",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.56,
+          "groupId": "ow-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ow-b3-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 123,
+            "y": 640
+          },
+          "size": {
+            "width": 960,
+            "height": 2009.95
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 40,
+            "blur": 90,
+            "color": "rgba(10,60,35,0.22)"
+          },
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#101613",
+          "screenshotSrc": "/data/projects/owedly-screen-matches.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "ow-b3-obj-scales",
+          "type": "image",
+          "name": "Scales coin",
+          "position": {
+            "x": -76,
+            "y": 513.13
+          },
+          "size": {
+            "width": 320,
+            "height": 317.73
+          },
+          "rotation": -12,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 34,
+            "color": "rgba(8,80,45,0.26)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-justice.png",
+          "objectFit": "contain",
+          "groupId": "ow-b3-g-objects",
+          "groupName": "3D objects"
+        },
+        {
+          "id": "ow-b3-obj-receipt",
+          "type": "image",
+          "name": "Receipt",
+          "position": {
+            "x": 990,
+            "y": 402.81
+          },
+          "size": {
+            "width": 236,
+            "height": 326.38
+          },
+          "rotation": 12,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 34,
+            "color": "rgba(8,80,45,0.26)"
+          },
+          "imageSrc": "/elements/images/objects/object-receipt.png",
+          "objectFit": "contain",
+          "groupId": "ow-b3-g-objects",
+          "groupName": "3D objects"
+        },
+        {
+          "id": "ow-b3-obj-coin",
+          "type": "image",
+          "name": "Gold coin",
+          "position": {
+            "x": 1,
+            "y": 2219.97
+          },
+          "size": {
+            "width": 190,
+            "height": 220.06
+          },
+          "rotation": -14,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 34,
+            "color": "rgba(8,80,45,0.26)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-spin-2.png",
+          "objectFit": "contain",
+          "groupId": "ow-b3-g-objects",
+          "groupName": "3D objects"
+        }
+      ]
+    },
+    {
+      "id": "ow-board-4",
+      "name": "Search Match Get Paid",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#F3F7F5",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "ow-b4-glow-1",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": -230,
+            "y": -90
+          },
+          "size": {
+            "width": 780,
+            "height": 780
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.57,
+          "blur": 150,
+          "shapeType": "circle",
+          "fillColor": "#BDF0D5",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ow-b4-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "ow-b4-glow-2",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 677,
+            "y": 1297
+          },
+          "size": {
+            "width": 806,
+            "height": 806
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.57,
+          "blur": 155,
+          "shapeType": "circle",
+          "fillColor": "#D2F5E2",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ow-b4-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "ow-b4-headline-1",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 130.14,
+            "y": 124.95
+          },
+          "size": {
+            "width": 953,
+            "height": 189.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Search. Match.",
+          "fontSize": 39,
+          "color": "#0B120E",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.56,
+          "groupId": "ow-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ow-b4-headline-2",
+          "type": "text",
+          "name": "Headline accent",
+          "position": {
+            "x": 307.43,
+            "y": 292.95
+          },
+          "size": {
+            "width": 597,
+            "height": 189.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Get paid.",
+          "fontSize": 39,
+          "color": "#0FAE62",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.56,
+          "groupId": "ow-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ow-b4-phone",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 123,
+            "y": 640
+          },
+          "size": {
+            "width": 960,
+            "height": 2009.95
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 40,
+            "blur": 90,
+            "color": "rgba(10,60,35,0.22)"
+          },
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#101613",
+          "screenshotSrc": "/data/projects/owedly-screen-steps.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          }
+        },
+        {
+          "id": "ow-b4-obj-popper",
+          "type": "image",
+          "name": "Party popper",
+          "position": {
+            "x": -27,
+            "y": 415.12
+          },
+          "size": {
+            "width": 330,
+            "height": 349.76
+          },
+          "rotation": -8,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 34,
+            "color": "rgba(8,80,45,0.26)"
+          },
+          "imageSrc": "/elements/images/objects/object-party-popper.png",
+          "objectFit": "contain",
+          "groupId": "ow-b4-g-objects",
+          "groupName": "3D objects"
+        },
+        {
+          "id": "ow-b4-obj-cash",
+          "type": "image",
+          "name": "Flying cash",
+          "position": {
+            "x": 891,
+            "y": 475.98
+          },
+          "size": {
+            "width": 330,
+            "height": 180.05
+          },
+          "rotation": 10,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 34,
+            "color": "rgba(8,80,45,0.26)"
+          },
+          "imageSrc": "/elements/images/objects/object-winged-cash.png",
+          "objectFit": "contain",
+          "groupId": "ow-b4-g-objects",
+          "groupName": "3D objects"
+        },
+        {
+          "id": "ow-b4-obj-bag",
+          "type": "image",
+          "name": "Money bag",
+          "position": {
+            "x": 942,
+            "y": 2207.39
+          },
+          "size": {
+            "width": 340,
+            "height": 409.22
+          },
+          "rotation": 8,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 34,
+            "color": "rgba(8,80,45,0.26)"
+          },
+          "imageSrc": "/elements/images/objects/object-money-bag.png",
+          "objectFit": "contain",
+          "groupId": "ow-b4-g-objects",
+          "groupName": "3D objects"
+        },
+        {
+          "id": "ow-b4-em-2",
+          "type": "image",
+          "name": "Emerald coin",
+          "position": {
+            "x": 128,
+            "y": 2511.12
+          },
+          "size": {
+            "width": 236,
+            "height": 177.76
+          },
+          "rotation": 24,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 34,
+            "color": "rgba(8,80,45,0.26)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-emerald-tilt.png",
+          "objectFit": "contain",
+          "groupId": "ow-b4-g-coins",
+          "groupName": "Emerald coins"
+        },
+        {
+          "id": "ow-b4-em-1",
+          "type": "image",
+          "name": "Emerald coin",
+          "position": {
+            "x": -104,
+            "y": 2399.87
+          },
+          "size": {
+            "width": 340,
+            "height": 232.25
+          },
+          "rotation": -10,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 34,
+            "color": "rgba(8,80,45,0.26)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-emerald-flat.png",
+          "objectFit": "contain",
+          "groupId": "ow-b4-g-coins",
+          "groupName": "Emerald coins"
+        }
+      ]
+    },
+    {
+      "id": "ow-board-5",
+      "name": "Payouts Land In Your Bank",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#03120B",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#03120B",
+        "color2": "#0C432A",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "ow-b5-glow-1",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 109,
+            "y": 1506
+          },
+          "size": {
+            "width": 988,
+            "height": 988
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.3,
+          "blur": 190,
+          "shapeType": "circle",
+          "fillColor": "#1FD17B",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ow-b5-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "ow-b5-glow-2",
+          "type": "shape",
+          "name": "Background glow",
+          "position": {
+            "x": 200,
+            "y": -23
+          },
+          "size": {
+            "width": 806,
+            "height": 806
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.26,
+          "blur": 155,
+          "shapeType": "circle",
+          "fillColor": "#0E7A4A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "ow-b5-g-glows",
+          "groupName": "Background glows"
+        },
+        {
+          "id": "ow-b5-headline-1",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 200.69,
+            "y": 138.95
+          },
+          "size": {
+            "width": 798,
+            "height": 189.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Payouts land",
+          "fontSize": 39,
+          "color": "#FFFFFF",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.56,
+          "groupId": "ow-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ow-b5-headline-2",
+          "type": "text",
+          "name": "Headline accent",
+          "position": {
+            "x": 207.72,
+            "y": 294.95
+          },
+          "size": {
+            "width": 795,
+            "height": 189.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "in your bank.",
+          "fontSize": 39,
+          "color": "#F8C948",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -1.56,
+          "fillGradient": {
+            "color1": "#FFE9A6",
+            "color2": "#F3B02A",
+            "angle": 180
+          },
+          "groupId": "ow-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ow-b5-sub",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 194.5,
+            "y": 520.86
+          },
+          "size": {
+            "width": 821,
+            "height": 70.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Track every claim from filed to paid.",
+          "fontSize": 14.4,
+          "color": "#A9E5C6",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.22,
+          "groupId": "ow-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "ow-b5-pile",
+          "type": "image",
+          "name": "Gold coin pile",
+          "position": {
+            "x": -280,
+            "y": 2060
+          },
+          "size": {
+            "width": 1560,
+            "height": 1115
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-coins-gold-pile.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "ow-b5-pay-1-bg",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 110,
+            "y": 774
+          },
+          "size": {
+            "width": 960,
+            "height": 212
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 30,
+            "blur": 60,
+            "color": "rgba(0,0,0,0.38)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 58,
+          "groupId": "ow-b5-g-pay-1",
+          "groupName": "Payout card 1"
+        },
+        {
+          "id": "ow-b5-pay-1-brand",
+          "type": "image",
+          "name": "Brand tile",
+          "position": {
+            "x": 146.91,
+            "y": 836.09
+          },
+          "size": {
+            "width": 140,
+            "height": 140
+          },
+          "rotation": -4,
+          "scale": 1,
+          "imageSrc": "/data/projects/owedly-brand-sprintu.png",
+          "objectFit": "contain",
+          "groupId": "ow-b5-g-pay-1",
+          "groupName": "Payout card 1"
+        },
+        {
+          "id": "ow-b5-pay-1-name",
+          "type": "text",
+          "name": "Brand name",
+          "position": {
+            "x": 314.57,
+            "y": 823.27
+          },
+          "size": {
+            "width": 220,
+            "height": 75.92
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Sprintu",
+          "fontSize": 15.6,
+          "color": "#0B120E",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.47,
+          "groupId": "ow-b5-g-pay-1",
+          "groupName": "Payout card 1"
+        },
+        {
+          "id": "ow-b5-pay-1-kind",
+          "type": "text",
+          "name": "Settlement type",
+          "position": {
+            "x": 317.51,
+            "y": 890
+          },
+          "size": {
+            "width": 362,
+            "height": 57.6
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Delivery fee refund",
+          "fontSize": 10.8,
+          "color": "#5F6E66",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.11,
+          "groupId": "ow-b5-g-pay-1",
+          "groupName": "Payout card 1"
+        },
+        {
+          "id": "ow-b5-pay-1-amount",
+          "type": "text",
+          "name": "Amount",
+          "position": {
+            "x": 722.37,
+            "y": 787.98
+          },
+          "size": {
+            "width": 304,
+            "height": 90.52
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "+$48.00",
+          "fontSize": 18.6,
+          "color": "#0FAE62",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "right",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.65,
+          "groupId": "ow-b5-g-pay-1",
+          "groupName": "Payout card 1"
+        },
+        {
+          "id": "ow-b5-pay-1-paid-bg",
+          "type": "shape",
+          "name": "Paid chip",
+          "position": {
+            "x": 890.43,
+            "y": 870.28
+          },
+          "size": {
+            "width": 137.61,
+            "height": 52
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#DFF6E9",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 26,
+          "groupId": "ow-b5-g-pay-1",
+          "groupName": "Payout card 1"
+        },
+        {
+          "id": "ow-b5-pay-1-paid-icon",
+          "type": "shape",
+          "name": "Paid tick",
+          "position": {
+            "x": 908.52,
+            "y": 885.92
+          },
+          "size": {
+            "width": 26,
+            "height": 26
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#0A7A45",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M8 56 L20 44 L38 62 L80 16 L92 27 L38 86 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ow-b5-g-pay-1",
+          "groupName": "Payout card 1"
+        },
+        {
+          "id": "ow-b5-pay-1-paid-text",
+          "type": "text",
+          "name": "Paid",
+          "position": {
+            "x": 938.15,
+            "y": 867.66
+          },
+          "size": {
+            "width": 108,
+            "height": 51
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Paid",
+          "fontSize": 9,
+          "color": "#0A7A45",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "ow-b5-g-pay-1",
+          "groupName": "Payout card 1"
+        },
+        {
+          "id": "ow-b5-pay-2-bg",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 144,
+            "y": 1024
+          },
+          "size": {
+            "width": 960,
+            "height": 212
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 30,
+            "blur": 60,
+            "color": "rgba(0,0,0,0.38)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 58,
+          "groupId": "ow-b5-g-pay-2",
+          "groupName": "Payout card 2"
+        },
+        {
+          "id": "ow-b5-pay-2-brand",
+          "type": "image",
+          "name": "Brand tile",
+          "position": {
+            "x": 180.51,
+            "y": 1040.43
+          },
+          "size": {
+            "width": 140,
+            "height": 140
+          },
+          "rotation": 3,
+          "scale": 1,
+          "imageSrc": "/data/projects/owedly-brand-grocera.png",
+          "objectFit": "contain",
+          "groupId": "ow-b5-g-pay-2",
+          "groupName": "Payout card 2"
+        },
+        {
+          "id": "ow-b5-pay-2-name",
+          "type": "text",
+          "name": "Brand name",
+          "position": {
+            "x": 351.5,
+            "y": 1053.83
+          },
+          "size": {
+            "width": 243,
+            "height": 75.92
+          },
+          "rotation": 3,
+          "scale": 1,
+          "content": "Grocera",
+          "fontSize": 15.6,
+          "color": "#0B120E",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.47,
+          "groupId": "ow-b5-g-pay-2",
+          "groupName": "Payout card 2"
+        },
+        {
+          "id": "ow-b5-pay-2-kind",
+          "type": "text",
+          "name": "Settlement type",
+          "position": {
+            "x": 347.47,
+            "y": 1128.32
+          },
+          "size": {
+            "width": 353,
+            "height": 57.6
+          },
+          "rotation": 3,
+          "scale": 1,
+          "content": "Pricing settlement",
+          "fontSize": 10.8,
+          "color": "#5F6E66",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.11,
+          "groupId": "ow-b5-g-pay-2",
+          "groupName": "Payout card 2"
+        },
+        {
+          "id": "ow-b5-pay-2-amount",
+          "type": "text",
+          "name": "Amount",
+          "position": {
+            "x": 736.98,
+            "y": 1072.38
+          },
+          "size": {
+            "width": 327,
+            "height": 90.52
+          },
+          "rotation": 3,
+          "scale": 1,
+          "content": "+$120.00",
+          "fontSize": 18.6,
+          "color": "#0FAE62",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "right",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.65,
+          "groupId": "ow-b5-g-pay-2",
+          "groupName": "Payout card 2"
+        },
+        {
+          "id": "ow-b5-pay-2-paid-bg",
+          "type": "shape",
+          "name": "Paid chip",
+          "position": {
+            "x": 919.69,
+            "y": 1165.16
+          },
+          "size": {
+            "width": 137.61,
+            "height": 52
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#DFF6E9",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 26,
+          "groupId": "ow-b5-g-pay-2",
+          "groupName": "Payout card 2"
+        },
+        {
+          "id": "ow-b5-pay-2-paid-icon",
+          "type": "shape",
+          "name": "Paid tick",
+          "position": {
+            "x": 937.74,
+            "y": 1176.18
+          },
+          "size": {
+            "width": 26,
+            "height": 26
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#0A7A45",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M8 56 L20 44 L38 62 L80 16 L92 27 L38 86 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ow-b5-g-pay-2",
+          "groupName": "Payout card 2"
+        },
+        {
+          "id": "ow-b5-pay-2-paid-text",
+          "type": "text",
+          "name": "Paid",
+          "position": {
+            "x": 967.55,
+            "y": 1166.57
+          },
+          "size": {
+            "width": 108,
+            "height": 51
+          },
+          "rotation": 3,
+          "scale": 1,
+          "content": "Paid",
+          "fontSize": 9,
+          "color": "#0A7A45",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "ow-b5-g-pay-2",
+          "groupName": "Payout card 2"
+        },
+        {
+          "id": "ow-b5-pay-3-bg",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 112,
+            "y": 1278
+          },
+          "size": {
+            "width": 960,
+            "height": 212
+          },
+          "rotation": -2,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 30,
+            "blur": 60,
+            "color": "rgba(0,0,0,0.38)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 58,
+          "groupId": "ow-b5-g-pay-3",
+          "groupName": "Payout card 3"
+        },
+        {
+          "id": "ow-b5-pay-3-brand",
+          "type": "image",
+          "name": "Brand tile",
+          "position": {
+            "x": 148.23,
+            "y": 1327.05
+          },
+          "size": {
+            "width": 140,
+            "height": 140
+          },
+          "rotation": -2,
+          "scale": 1,
+          "imageSrc": "/data/projects/owedly-brand-popreel.png",
+          "objectFit": "contain",
+          "groupId": "ow-b5-g-pay-3",
+          "groupName": "Payout card 3"
+        },
+        {
+          "id": "ow-b5-pay-3-name",
+          "type": "text",
+          "name": "Brand name",
+          "position": {
+            "x": 315.61,
+            "y": 1321.36
+          },
+          "size": {
+            "width": 232,
+            "height": 75.92
+          },
+          "rotation": -2,
+          "scale": 1,
+          "content": "Popreel",
+          "fontSize": 15.6,
+          "color": "#0B120E",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.47,
+          "groupId": "ow-b5-g-pay-3",
+          "groupName": "Payout card 3"
+        },
+        {
+          "id": "ow-b5-pay-3-kind",
+          "type": "text",
+          "name": "Settlement type",
+          "position": {
+            "x": 318.22,
+            "y": 1390.83
+          },
+          "size": {
+            "width": 359,
+            "height": 57.6
+          },
+          "rotation": -2,
+          "scale": 1,
+          "content": "Privacy settlement",
+          "fontSize": 10.8,
+          "color": "#5F6E66",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.11,
+          "groupId": "ow-b5-g-pay-3",
+          "groupName": "Payout card 3"
+        },
+        {
+          "id": "ow-b5-pay-3-amount",
+          "type": "text",
+          "name": "Amount",
+          "position": {
+            "x": 695.83,
+            "y": 1302.46
+          },
+          "size": {
+            "width": 334,
+            "height": 90.52
+          },
+          "rotation": -2,
+          "scale": 1,
+          "content": "+$100.00",
+          "fontSize": 18.6,
+          "color": "#0FAE62",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "right",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.65,
+          "groupId": "ow-b5-g-pay-3",
+          "groupName": "Payout card 3"
+        },
+        {
+          "id": "ow-b5-pay-3-paid-bg",
+          "type": "shape",
+          "name": "Paid chip",
+          "position": {
+            "x": 891.63,
+            "y": 1387.16
+          },
+          "size": {
+            "width": 137.61,
+            "height": 52
+          },
+          "rotation": -2,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#DFF6E9",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 26,
+          "groupId": "ow-b5-g-pay-3",
+          "groupName": "Payout card 3"
+        },
+        {
+          "id": "ow-b5-pay-3-paid-icon",
+          "type": "shape",
+          "name": "Paid tick",
+          "position": {
+            "x": 909.66,
+            "y": 1401.48
+          },
+          "size": {
+            "width": 26,
+            "height": 26
+          },
+          "rotation": -2,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#0A7A45",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M8 56 L20 44 L38 62 L80 16 L92 27 L38 86 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ow-b5-g-pay-3",
+          "groupName": "Payout card 3"
+        },
+        {
+          "id": "ow-b5-pay-3-paid-text",
+          "type": "text",
+          "name": "Paid",
+          "position": {
+            "x": 939.44,
+            "y": 1385.69
+          },
+          "size": {
+            "width": 108,
+            "height": 51
+          },
+          "rotation": -2,
+          "scale": 1,
+          "content": "Paid",
+          "fontSize": 9,
+          "color": "#0A7A45",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "ow-b5-g-pay-3",
+          "groupName": "Payout card 3"
+        },
+        {
+          "id": "ow-b5-total-bg",
+          "type": "shape",
+          "name": "Total pill",
+          "position": {
+            "x": 292.08,
+            "y": 1584
+          },
+          "size": {
+            "width": 621.83,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 18,
+            "blur": 40,
+            "color": "rgba(0,0,0,0.35)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFD25A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 50,
+          "fillGradient": {
+            "color1": "#FFE38A",
+            "color2": "#F7BC3A",
+            "angle": 180
+          },
+          "groupId": "ow-b5-g-total",
+          "groupName": "Total"
+        },
+        {
+          "id": "ow-b5-total-label",
+          "type": "text",
+          "name": "Total label",
+          "position": {
+            "x": 335,
+            "y": 1601.4
+          },
+          "size": {
+            "width": 362,
+            "height": 62
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Paid out this year",
+          "fontSize": 12,
+          "color": "#3A2C00",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.12,
+          "groupId": "ow-b5-g-total",
+          "groupName": "Total"
+        },
+        {
+          "id": "ow-b5-total-amount",
+          "type": "text",
+          "name": "Total amount",
+          "position": {
+            "x": 677.25,
+            "y": 1597.84
+          },
+          "size": {
+            "width": 232,
+            "height": 68.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "$268.00",
+          "fontSize": 13.8,
+          "color": "#0B120E",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.41,
+          "groupId": "ow-b5-g-total",
+          "groupName": "Total"
+        },
+        {
+          "id": "ow-b5-hero",
+          "type": "image",
+          "name": "Dollar coin",
+          "position": {
+            "x": 323,
+            "y": 1723.49
+          },
+          "size": {
+            "width": 560,
+            "height": 573.02
+          },
+          "rotation": -8,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 34,
+            "color": "rgba(40,22,0,0.55)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-dollar.png",
+          "objectFit": "contain",
+          "groupId": "ow-b5-g-coins",
+          "groupName": "Coins"
+        },
+        {
+          "id": "ow-b5-fly-1",
+          "type": "image",
+          "name": "Flying coin",
+          "position": {
+            "x": 971,
+            "y": 1664.05
+          },
+          "size": {
+            "width": 210,
+            "height": 131.9
+          },
+          "rotation": 22,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 34,
+            "color": "rgba(40,22,0,0.55)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-dollar-tilt.png",
+          "objectFit": "contain",
+          "groupId": "ow-b5-g-coins",
+          "groupName": "Coins"
+        },
+        {
+          "id": "ow-b5-fly-2",
+          "type": "image",
+          "name": "Flying coin",
+          "position": {
+            "x": 28,
+            "y": 1685.76
+          },
+          "size": {
+            "width": 180,
+            "height": 208.48
+          },
+          "rotation": -16,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 34,
+            "color": "rgba(40,22,0,0.55)"
+          },
+          "imageSrc": "/elements/images/objects/object-coin-spin-2.png",
+          "objectFit": "contain",
+          "groupId": "ow-b5-g-coins",
+          "groupName": "Coins"
+        },
+        {
+          "id": "ow-b5-fly-3",
+          "type": "image",
+          "name": "Flying coin",
+          "position": {
+            "x": 991,
+            "y": 652.89
+          },
+          "size": {
+            "width": 150,
+            "height": 94.21
+          },
+          "rotation": 20,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-coin-dollar-tilt.png",
+          "objectFit": "contain",
+          "groupId": "ow-b5-g-coins",
+          "groupName": "Coins"
+        },
+        {
+          "id": "ow-b5-fly-4",
+          "type": "image",
+          "name": "Flying coin",
+          "position": {
+            "x": 21,
+            "y": 986.32
+          },
+          "size": {
+            "width": 150,
+            "height": 107.37
+          },
+          "rotation": -24,
+          "scale": 1,
+          "opacity": 0.95,
+          "imageSrc": "/elements/images/objects/object-coin-flat-1.png",
+          "objectFit": "contain",
+          "groupId": "ow-b5-g-coins",
+          "groupName": "Coins"
+        },
+        {
+          "id": "ow-b5-sparkle-1",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 838,
+            "y": 1806
+          },
+          "size": {
+            "width": 52,
+            "height": 52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 0,
+            "blur": 22,
+            "color": "rgba(255,240,190,0.9)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ow-b5-g-sparkles",
+          "groupName": "Sparkles"
+        },
+        {
+          "id": "ow-b5-sparkle-2",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 300,
+            "y": 2150
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 0,
+            "blur": 22,
+            "color": "rgba(255,240,190,0.9)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ow-b5-g-sparkles",
+          "groupName": "Sparkles"
+        },
+        {
+          "id": "ow-b5-sparkle-3",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 1010,
+            "y": 2300
+          },
+          "size": {
+            "width": 34,
+            "height": 34
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 0,
+            "blur": 22,
+            "color": "rgba(255,240,190,0.9)"
+          },
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "ow-b5-g-sparkles",
+          "groupName": "Sparkles"
+        }
+      ]
+    }
+  ]
+}

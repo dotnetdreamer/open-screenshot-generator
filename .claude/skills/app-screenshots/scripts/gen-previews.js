@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer-core');
-const { launch, exportArtboards, sleep, clickTab, dismissTipsDialog, APP_URL } = require('./lib');
+const { launch, exportArtboards, sleep, clickTab, dismissTipsDialog, projectFontsLoaded, APP_URL } = require('./lib');
 const { renderOnPage, EDGE, CW, CH } = require('./compose-preview');
 
 const REPO = path.resolve(__dirname, '../../../..');
@@ -27,6 +27,7 @@ const MAX_SCREENS = 6;
 
 // The App Screenshots category, in gallery order.
 const SLUGS = [
+  'gabwise-skills', 'owedly-settlements', 'kinloom-family', 'kanapon-japanese',
   'umdo-voice-todo', 'paylark-benefits', 'signsy-asl', 'traceberry-drawing',
   'wishmint-wishlist', 'lavish-creator-wishlist', 'postie-cards', 'hummi-cash-gifts',
   'hoppi-screen-time', 'roamo-esim', 'expertly-ai', 'formpal-forms',
@@ -114,20 +115,7 @@ async function openTemplate(page, cardTitle, tab) {
   // Wait for the webfonts the project actually uses. A fixed sleep is not
   // enough: if Google Fonts is slow, the export captures a serif fallback,
   // whose wider glyphs wrap the headlines and wreck the layout.
-  await page.waitForFunction(
-    () => {
-      const specs = new Set();
-      for (const el of document.querySelectorAll('[data-element-id]')) {
-        for (const n of el.querySelectorAll('*')) {
-          if (!n.textContent || !n.textContent.trim()) continue;
-          const cs = getComputedStyle(n);
-          specs.add(`${cs.fontStyle} ${cs.fontWeight} 40px ${cs.fontFamily}`);
-        }
-      }
-      return document.fonts.status === 'loaded' && [...specs].every((s) => document.fonts.check(s));
-    },
-    { timeout: 60000, polling: 500 }
-  );
+  await page.waitForFunction(projectFontsLoaded, { timeout: 60000, polling: 500 });
   await sleep(4000); // skeleton images + first paint settle
 }
 

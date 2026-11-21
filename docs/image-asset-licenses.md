@@ -209,10 +209,20 @@ artwork (generated placeholders), not licensed stock.
 The Mascots, 3D objects, Stickers, Products, Cards, Drawings and Line art
 groups are original artwork drawn for this project (SVG and HTML written for
 the Hoppi, Expertly, Roamo, Formpal, Sunup, Wishmint, Lavish, Postie, Hummi,
-Signsy, Traceberry, Paylark and Umdo templates, rendered to PNG and trimmed).
-The Signsy signer and the people in Line art are invented cartoon people, not
-likenesses of anyone, and the Umdo box robot is an invented character. None of
-it is stock or traced. The app icons in 3D objects
+Signsy, Traceberry, Paylark, Umdo, Gabwise, Kinloom and Kanapon templates,
+rendered to PNG and trimmed, and 3D scenes written for the Owedly template).
+The Signsy signer, the people in Line art, the Gabwise heads and the Kinloom
+avatars are invented cartoon people, not likenesses of anyone. The Umdo box
+robot, the Gabwise chat bubbles and the Kanapon daruma are invented characters;
+the daruma is drawn after the traditional Japanese doll of that name. None of
+it is stock or traced. The Owedly coins, coin pile, scales, money bag, receipt,
+party popper and flying cash (object-coin-claim to object-coin-emerald-edge,
+object-coins-gold-pile, object-scales-gold, object-money-bag, object-receipt,
+object-party-popper and object-winged-cash) are 3D models built in code and
+rendered with three.js (MIT License); the pile's coins were dropped and settled
+with the Rapier physics engine (Apache License 2.0), which is not part of this
+repository. Their "$" is the glyph of Outfit, and the banknote is an invented
+design, not real currency. The app icons in 3D objects
 are invented designs, not the icons of real apps. Three cards build on library
 photos from section 1: card-person.png is girls-as622285813 in black and white,
 and card-dance.png and card-yourself.png use guys-as211660510 and

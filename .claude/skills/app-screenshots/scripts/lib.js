@@ -326,6 +326,28 @@ async function shot(page, file) {
 }
 
 /**
+ * Runs in the page: true once every face the artboards' text is set in has
+ * loaded. Each font is asked about the text drawn in it. Google serves a
+ * Chinese, Japanese or Korean family as about 120 faces split by
+ * unicode-range, and a check without text asks about the face that holds a
+ * space. A page that sets only kana in that family never loads that face, so
+ * the answer would stay false.
+ */
+function projectFontsLoaded() {
+  const drawn = new Map();
+  for (const el of document.querySelectorAll('[data-element-id]')) {
+    for (const n of el.querySelectorAll('*')) {
+      const own = [...n.childNodes].filter((c) => c.nodeType === 3).map((c) => c.textContent).join('').trim();
+      if (!own) continue;
+      const cs = getComputedStyle(n);
+      const spec = `${cs.fontStyle} ${cs.fontWeight} 40px ${cs.fontFamily}`;
+      drawn.set(spec, (drawn.get(spec) || '') + own);
+    }
+  }
+  return document.fonts.status === 'loaded' && [...drawn].every(([spec, text]) => document.fonts.check(spec, text));
+}
+
+/**
  * Wait until every font spec the mounted artboard elements actually use passes
  * document.fonts.check. A fixed sleep is not enough: if Google Fonts is slow
  * (Unbounded is a heavy family), the export captures a fallback whose different
@@ -335,20 +357,7 @@ async function shot(page, file) {
  */
 async function waitForProjectFonts(page, { timeout = 60000 } = {}) {
   try {
-    await page.waitForFunction(
-      () => {
-        const specs = new Set();
-        for (const el of document.querySelectorAll('[data-element-id]')) {
-          for (const n of el.querySelectorAll('*')) {
-            if (!n.textContent || !n.textContent.trim()) continue;
-            const cs = getComputedStyle(n);
-            specs.add(`${cs.fontStyle} ${cs.fontWeight} 40px ${cs.fontFamily}`);
-          }
-        }
-        return document.fonts.status === 'loaded' && [...specs].every((s) => document.fonts.check(s));
-      },
-      { timeout, polling: 500 }
-    );
+    await page.waitForFunction(projectFontsLoaded, { timeout, polling: 500 });
   } catch {
     // Timed out; the export proceeds with whatever is loaded.
   }
@@ -396,4 +405,5 @@ module.exports = {
   shot,
   dismissTipsDialog,
   waitForProjectFonts,
+  projectFontsLoaded,
 };

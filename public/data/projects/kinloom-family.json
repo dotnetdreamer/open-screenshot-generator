@@ -1,0 +1,3844 @@
+{
+  "id": "template_kinloom_family",
+  "name": "Kinloom Family",
+  "description": "App Store & Play Store screenshots for a shared family calendar, family organizer, chores or grocery list app. Pale sky boards with chunky Fredoka headlines, paper-cut blobs and die-cut stickers. One big tilted phone with a colorful week view runs across the first two screenshots, with event cards pinned over it; then a tilted grid of twelve tool cards, a grocery list with ticked items popping out of the phone, and a chores screen with stars and a pizza night reward. Cards, pills and phones are named layer groups, and every blob and sticker is its own layer.",
+  "previewImage": "/data/projects/previews/kinloom-family.png",
+  "timestamp": "2026-11-21T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "kl-board-1",
+      "name": "The Whole Family In Sync",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#E6F0FC",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#EFF6FF",
+        "color2": "#DBE8FA",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "kl-b1-blob",
+          "type": "shape",
+          "name": "Coral blob",
+          "position": {
+            "x": -250,
+            "y": 2130
+          },
+          "size": {
+            "width": 820,
+            "height": 700
+          },
+          "rotation": 24,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF6B5E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 5 C62.99 4.83 87.24 18 89.84 27 C92.44 36 72.23 47.67 65.59 59 C58.95 70.33 59.24 92.67 50 95 C40.76 97.33 16.51 84.17 10.16 73 C3.81 61.83 5.26 39.33 11.89 28 C18.53 16.67 37.01 5.17 50 5 Z",
+          "specialProps": {
+            "viewBox": "6.09 5 83.98 90.27"
+          }
+        },
+        {
+          "id": "kl-b1-heart-rays",
+          "type": "shape",
+          "name": "Burst lines",
+          "position": {
+            "x": 768,
+            "y": 356
+          },
+          "size": {
+            "width": 164,
+            "height": 74
+          },
+          "rotation": 20,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#14161F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M27.04 69.79 L5.85 58.53 M32.83 62.48 L16.98 44.46 M40.82 57.67 L32.35 35.22 M50 56 L50 32 M59.18 57.67 L67.65 35.22 M67.17 62.48 L83.02 44.46 M72.96 69.79 L94.15 58.53",
+          "specialProps": {
+            "viewBox": "5.85 32 88.3 37.79",
+            "strokeOnly": true,
+            "baseStrokeWidth": 11
+          },
+          "groupId": "kl-b1-g-heart",
+          "groupName": "Heart"
+        },
+        {
+          "id": "kl-b1-heart-shape",
+          "type": "shape",
+          "name": "Heart",
+          "position": {
+            "x": 722,
+            "y": 440
+          },
+          "size": {
+            "width": 156,
+            "height": 140
+          },
+          "rotation": 14,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF6B5E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
+          "specialProps": {
+            "viewBox": "8 8 84 80"
+          },
+          "groupId": "kl-b1-g-heart",
+          "groupName": "Heart"
+        },
+        {
+          "id": "kl-b1-headline",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 81.15,
+            "y": 116.57
+          },
+          "size": {
+            "width": 821,
+            "height": 561
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "The whole\nfamily,\nin sync",
+          "fontSize": 51,
+          "color": "#14161F",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 0.98,
+          "letterSpacing": -0.61
+        },
+        {
+          "id": "kl-b1-sub",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 82.49,
+            "y": 716.15
+          },
+          "size": {
+            "width": 619,
+            "height": 169.36
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "One shared calendar\nfor everyone's plans",
+          "fontSize": 17.4,
+          "color": "#2B3242",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.28
+        },
+        {
+          "id": "kl-b1-soccer-body",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 226,
+            "y": 1024
+          },
+          "size": {
+            "width": 700,
+            "height": 292
+          },
+          "rotation": -3,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 46,
+            "color": "rgba(24,44,98,0.22)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#C7E4FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 38,
+          "groupId": "kl-b1-g-soccer",
+          "groupName": "Soccer practice card"
+        },
+        {
+          "id": "kl-b1-soccer-top",
+          "type": "shape",
+          "name": "Card top",
+          "position": {
+            "x": 219.62,
+            "y": 1024.17
+          },
+          "size": {
+            "width": 700,
+            "height": 48
+          },
+          "rotation": -3,
+          "scale": 1,
+          "borderRadiusType": "individual",
+          "borderRadiusTopLeft": 38,
+          "borderRadiusTopRight": 38,
+          "borderRadiusBottomRight": 0,
+          "borderRadiusBottomLeft": 0,
+          "shapeType": "rectangle",
+          "fillColor": "#4BA3F5",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 0,
+          "groupId": "kl-b1-g-soccer",
+          "groupName": "Soccer practice card"
+        },
+        {
+          "id": "kl-b1-soccer-box",
+          "type": "shape",
+          "name": "Tick box",
+          "position": {
+            "x": 269.17,
+            "y": 1128.32
+          },
+          "size": {
+            "width": 66,
+            "height": 66
+          },
+          "rotation": -3,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#4BA3F5",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 19,
+          "groupId": "kl-b1-g-soccer",
+          "groupName": "Soccer practice card"
+        },
+        {
+          "id": "kl-b1-soccer-tick",
+          "type": "shape",
+          "name": "Tick",
+          "position": {
+            "x": 278.17,
+            "y": 1137.32
+          },
+          "size": {
+            "width": 48,
+            "height": 48
+          },
+          "rotation": -3,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M5 12.5l4.5 4.5L19 7.5",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 7.6
+          },
+          "groupId": "kl-b1-g-soccer",
+          "groupName": "Soccer practice card"
+        },
+        {
+          "id": "kl-b1-soccer-title",
+          "type": "text",
+          "name": "Event",
+          "position": {
+            "x": 358.48,
+            "y": 1098.03
+          },
+          "size": {
+            "width": 415,
+            "height": 71.9
+          },
+          "rotation": -3,
+          "scale": 1,
+          "content": "Soccer practice",
+          "fontSize": 14.7,
+          "color": "#0F2B4A",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.29,
+          "groupId": "kl-b1-g-soccer",
+          "groupName": "Soccer practice card"
+        },
+        {
+          "id": "kl-b1-soccer-time",
+          "type": "text",
+          "name": "Time",
+          "position": {
+            "x": 361.78,
+            "y": 1168.1
+          },
+          "size": {
+            "width": 343,
+            "height": 56.5
+          },
+          "rotation": -3,
+          "scale": 1,
+          "content": "Sat 10:00 to 11:30",
+          "fontSize": 10.5,
+          "color": "#41658F",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "kl-b1-g-soccer",
+          "groupName": "Soccer practice card"
+        },
+        {
+          "id": "kl-b1-soccer-face-dad",
+          "type": "image",
+          "name": "Dad avatar",
+          "position": {
+            "x": 366.91,
+            "y": 1241.66
+          },
+          "size": {
+            "width": 54,
+            "height": 54
+          },
+          "rotation": -3,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-avatar-dad.png",
+          "objectFit": "contain",
+          "groupId": "kl-b1-g-soccer",
+          "groupName": "Soccer practice card"
+        },
+        {
+          "id": "kl-b1-soccer-who-dad",
+          "type": "text",
+          "name": "Dad",
+          "position": {
+            "x": 426.5,
+            "y": 1237.37
+          },
+          "size": {
+            "width": 108,
+            "height": 53.2
+          },
+          "rotation": -3,
+          "scale": 1,
+          "content": "Dad",
+          "fontSize": 9.6,
+          "color": "#0F2B4A",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "kl-b1-g-soccer",
+          "groupName": "Soccer practice card"
+        },
+        {
+          "id": "kl-b1-soccer-face-boy",
+          "type": "image",
+          "name": "Leo avatar",
+          "position": {
+            "x": 520.12,
+            "y": 1233.64
+          },
+          "size": {
+            "width": 54,
+            "height": 54
+          },
+          "rotation": -3,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-avatar-boy.png",
+          "objectFit": "contain",
+          "groupId": "kl-b1-g-soccer",
+          "groupName": "Soccer practice card"
+        },
+        {
+          "id": "kl-b1-soccer-who-boy",
+          "type": "text",
+          "name": "Leo",
+          "position": {
+            "x": 579.72,
+            "y": 1229.49
+          },
+          "size": {
+            "width": 102,
+            "height": 53.2
+          },
+          "rotation": -3,
+          "scale": 1,
+          "content": "Leo",
+          "fontSize": 9.6,
+          "color": "#0F2B4A",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "kl-b1-g-soccer",
+          "groupName": "Soccer practice card"
+        },
+        {
+          "id": "kl-b1-soccer-pin",
+          "type": "image",
+          "name": "Push pin",
+          "position": {
+            "x": 260,
+            "y": 950.77
+          },
+          "size": {
+            "width": 104,
+            "height": 134.45
+          },
+          "rotation": -8,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 26,
+            "color": "rgba(24,44,98,0.24)"
+          },
+          "imageSrc": "/elements/images/stickers/sticker-push-pin.png",
+          "objectFit": "contain",
+          "groupId": "kl-b1-g-soccer",
+          "groupName": "Soccer practice card"
+        },
+        {
+          "id": "kl-b1-soccer-ball",
+          "type": "image",
+          "name": "Soccer ball",
+          "position": {
+            "x": 784,
+            "y": 887.84
+          },
+          "size": {
+            "width": 236,
+            "height": 236.33
+          },
+          "rotation": 10,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 26,
+            "color": "rgba(24,44,98,0.24)"
+          },
+          "imageSrc": "/elements/images/stickers/sticker-soccer-ball.png",
+          "objectFit": "contain",
+          "groupId": "kl-b1-g-soccer",
+          "groupName": "Soccer practice card"
+        },
+        {
+          "id": "kl-b1-calendar",
+          "type": "image",
+          "name": "Calendar pad",
+          "position": {
+            "x": 72,
+            "y": 1390.4
+          },
+          "size": {
+            "width": 392,
+            "height": 379.21
+          },
+          "rotation": -3,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 26,
+            "color": "rgba(24,44,98,0.24)"
+          },
+          "imageSrc": "/elements/images/stickers/sticker-calendar-pad.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "kl-b1-grocery-body",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 140,
+            "y": 1930
+          },
+          "size": {
+            "width": 700,
+            "height": 292
+          },
+          "rotation": 2.5,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 46,
+            "color": "rgba(24,44,98,0.22)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFDCAF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 38,
+          "groupId": "kl-b1-g-grocery",
+          "groupName": "Grocery run card"
+        },
+        {
+          "id": "kl-b1-grocery-top",
+          "type": "shape",
+          "name": "Card top",
+          "position": {
+            "x": 145.32,
+            "y": 1930.12
+          },
+          "size": {
+            "width": 700,
+            "height": 48
+          },
+          "rotation": 2.5,
+          "scale": 1,
+          "borderRadiusType": "individual",
+          "borderRadiusTopLeft": 38,
+          "borderRadiusTopRight": 38,
+          "borderRadiusBottomRight": 0,
+          "borderRadiusBottomLeft": 0,
+          "shapeType": "rectangle",
+          "fillColor": "#FF9A2E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 0,
+          "groupId": "kl-b1-g-grocery",
+          "groupName": "Grocery run card"
+        },
+        {
+          "id": "kl-b1-grocery-box",
+          "type": "shape",
+          "name": "Tick box",
+          "position": {
+            "x": 185.26,
+            "y": 2008.11
+          },
+          "size": {
+            "width": 66,
+            "height": 66
+          },
+          "rotation": 2.5,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF9A2E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 19,
+          "groupId": "kl-b1-g-grocery",
+          "groupName": "Grocery run card"
+        },
+        {
+          "id": "kl-b1-grocery-tick",
+          "type": "shape",
+          "name": "Tick",
+          "position": {
+            "x": 194.26,
+            "y": 2017.11
+          },
+          "size": {
+            "width": 48,
+            "height": 48
+          },
+          "rotation": 2.5,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M5 12.5l4.5 4.5L19 7.5",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 7.6
+          },
+          "groupId": "kl-b1-g-grocery",
+          "groupName": "Grocery run card"
+        },
+        {
+          "id": "kl-b1-grocery-title",
+          "type": "text",
+          "name": "Event",
+          "position": {
+            "x": 275.49,
+            "y": 2001.12
+          },
+          "size": {
+            "width": 319,
+            "height": 71.9
+          },
+          "rotation": 2.5,
+          "scale": 1,
+          "content": "Grocery run",
+          "fontSize": 14.7,
+          "color": "#4A2A00",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.29,
+          "groupId": "kl-b1-g-grocery",
+          "groupName": "Grocery run card"
+        },
+        {
+          "id": "kl-b1-grocery-time",
+          "type": "text",
+          "name": "Time",
+          "position": {
+            "x": 273.45,
+            "y": 2070.04
+          },
+          "size": {
+            "width": 350,
+            "height": 56.5
+          },
+          "rotation": 2.5,
+          "scale": 1,
+          "content": "Sun 11:00 to 12:00",
+          "fontSize": 10.5,
+          "color": "#8F6226",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "kl-b1-g-grocery",
+          "groupName": "Grocery run card"
+        },
+        {
+          "id": "kl-b1-grocery-face-mom",
+          "type": "image",
+          "name": "Mom avatar",
+          "position": {
+            "x": 272.3,
+            "y": 2129.76
+          },
+          "size": {
+            "width": 54,
+            "height": 54
+          },
+          "rotation": 2.5,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-avatar-mom.png",
+          "objectFit": "contain",
+          "groupId": "kl-b1-g-grocery",
+          "groupName": "Grocery run card"
+        },
+        {
+          "id": "kl-b1-grocery-who-mom",
+          "type": "text",
+          "name": "Mom",
+          "position": {
+            "x": 331.92,
+            "y": 2134.11
+          },
+          "size": {
+            "width": 123,
+            "height": 53.2
+          },
+          "rotation": 2.5,
+          "scale": 1,
+          "content": "Mom",
+          "fontSize": 9.6,
+          "color": "#4A2A00",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "kl-b1-g-grocery",
+          "groupName": "Grocery run card"
+        },
+        {
+          "id": "kl-b1-grocery-face-girl",
+          "type": "image",
+          "name": "Mia avatar",
+          "position": {
+            "x": 441.26,
+            "y": 2137.14
+          },
+          "size": {
+            "width": 54,
+            "height": 54
+          },
+          "rotation": 2.5,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-avatar-girl.png",
+          "objectFit": "contain",
+          "groupId": "kl-b1-g-grocery",
+          "groupName": "Grocery run card"
+        },
+        {
+          "id": "kl-b1-grocery-who-girl",
+          "type": "text",
+          "name": "Mia",
+          "position": {
+            "x": 500.9,
+            "y": 2140.98
+          },
+          "size": {
+            "width": 100,
+            "height": 53.2
+          },
+          "rotation": 2.5,
+          "scale": 1,
+          "content": "Mia",
+          "fontSize": 9.6,
+          "color": "#4A2A00",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "kl-b1-g-grocery",
+          "groupName": "Grocery run card"
+        },
+        {
+          "id": "kl-b1-grocery-pin",
+          "type": "image",
+          "name": "Push pin",
+          "position": {
+            "x": 174,
+            "y": 1850.77
+          },
+          "size": {
+            "width": 104,
+            "height": 134.45
+          },
+          "rotation": -6,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 26,
+            "color": "rgba(24,44,98,0.24)"
+          },
+          "imageSrc": "/elements/images/stickers/sticker-push-pin-blue.png",
+          "objectFit": "contain",
+          "groupId": "kl-b1-g-grocery",
+          "groupName": "Grocery run card"
+        },
+        {
+          "id": "kl-b1-grocery-bag",
+          "type": "image",
+          "name": "Grocery bag",
+          "position": {
+            "x": 676,
+            "y": 2045.87
+          },
+          "size": {
+            "width": 232,
+            "height": 320.25
+          },
+          "rotation": 9,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 26,
+            "color": "rgba(24,44,98,0.24)"
+          },
+          "imageSrc": "/elements/images/stickers/sticker-grocery-bag.png",
+          "objectFit": "contain",
+          "groupId": "kl-b1-g-grocery",
+          "groupName": "Grocery run card"
+        }
+      ]
+    },
+    {
+      "id": "kl-board-2",
+      "name": "Every Plan In One Week",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#E6F0FC",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#EFF6FF",
+        "color2": "#DBE8FA",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "kl-b2-splat",
+          "type": "shape",
+          "name": "Violet splat",
+          "position": {
+            "x": 610,
+            "y": -190
+          },
+          "size": {
+            "width": 760,
+            "height": 760
+          },
+          "rotation": 18,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#8B7CF6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 6 C54.41 2.5 65.17 4.92 67.9 9.8 C70.62 14.68 62.67 30.74 66.35 35.28 C70.02 39.82 85.54 33.82 89.94 37.02 C94.35 40.22 96.39 50.58 92.76 54.49 C89.14 58.41 70.91 55.18 68.19 60.5 C65.47 65.82 77.92 80.82 76.45 86.41 C74.98 91.99 64.56 96.33 59.36 94.02 C54.15 91.7 50.79 74.31 45.22 72.5 C39.64 70.69 31.31 83.34 25.9 83.17 C20.49 83 12.39 76.65 12.76 71.5 C13.13 66.35 28.89 58.15 28.12 52.3 C27.35 46.45 9.96 41.69 8.15 36.4 C6.35 31.11 11.75 21.49 17.3 20.56 C22.85 19.63 36.01 33.24 41.46 30.82 C46.91 28.39 45.59 9.5 50 6 Z",
+          "specialProps": {
+            "viewBox": "7.8 4.34 86.83 90.31"
+          }
+        },
+        {
+          "id": "kl-b2-phone-side",
+          "type": "shape",
+          "name": "Phone side",
+          "position": {
+            "x": -350.7,
+            "y": 210.15
+          },
+          "size": {
+            "width": 1140,
+            "height": 2364.92
+          },
+          "rotation": 8,
+          "scale": 1,
+          "spanArtboards": true,
+          "spanBehind": true,
+          "shapeType": "rectangle",
+          "fillColor": "#14161F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 166.8,
+          "groupId": "kl-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kl-b2-phone-outline",
+          "type": "shape",
+          "name": "Phone outline",
+          "position": {
+            "x": -368,
+            "y": 189.54
+          },
+          "size": {
+            "width": 1140,
+            "height": 2364.92
+          },
+          "rotation": 8,
+          "scale": 1,
+          "spanArtboards": true,
+          "spanBehind": true,
+          "shapeType": "rectangle",
+          "fillColor": "#14161F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 166.8,
+          "groupId": "kl-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kl-b2-phone-device",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": -358,
+            "y": 199.54
+          },
+          "size": {
+            "width": 1120,
+            "height": 2344.92
+          },
+          "rotation": 8,
+          "scale": 1,
+          "spanArtboards": true,
+          "spanBehind": true,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#F3F6FB",
+          "screenshotSrc": "/data/projects/kinloom-screen-week.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "kl-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kl-b2-tidy-body",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 466,
+            "y": 838
+          },
+          "size": {
+            "width": 660,
+            "height": 292
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 46,
+            "color": "rgba(24,44,98,0.22)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFCBC5",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 38,
+          "groupId": "kl-b2-g-tidy",
+          "groupName": "House tidy-up card"
+        },
+        {
+          "id": "kl-b2-tidy-top",
+          "type": "shape",
+          "name": "Card top",
+          "position": {
+            "x": 472.38,
+            "y": 838.17
+          },
+          "size": {
+            "width": 660,
+            "height": 48
+          },
+          "rotation": 3,
+          "scale": 1,
+          "borderRadiusType": "individual",
+          "borderRadiusTopLeft": 38,
+          "borderRadiusTopRight": 38,
+          "borderRadiusBottomRight": 0,
+          "borderRadiusBottomLeft": 0,
+          "shapeType": "rectangle",
+          "fillColor": "#FF6B5E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 0,
+          "groupId": "kl-b2-g-tidy",
+          "groupName": "House tidy-up card"
+        },
+        {
+          "id": "kl-b2-tidy-box",
+          "type": "shape",
+          "name": "Tick box",
+          "position": {
+            "x": 511.55,
+            "y": 914.79
+          },
+          "size": {
+            "width": 66,
+            "height": 66
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF6B5E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 19,
+          "groupId": "kl-b2-g-tidy",
+          "groupName": "House tidy-up card"
+        },
+        {
+          "id": "kl-b2-tidy-tick",
+          "type": "shape",
+          "name": "Tick",
+          "position": {
+            "x": 520.55,
+            "y": 923.79
+          },
+          "size": {
+            "width": 48,
+            "height": 48
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M5 12.5l4.5 4.5L19 7.5",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 7.6
+          },
+          "groupId": "kl-b2-g-tidy",
+          "groupName": "House tidy-up card"
+        },
+        {
+          "id": "kl-b2-tidy-title",
+          "type": "text",
+          "name": "Event",
+          "position": {
+            "x": 600.69,
+            "y": 911.28
+          },
+          "size": {
+            "width": 382,
+            "height": 71.9
+          },
+          "rotation": 3,
+          "scale": 1,
+          "content": "House tidy-up",
+          "fontSize": 14.7,
+          "color": "#4A150F",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.29,
+          "groupId": "kl-b2-g-tidy",
+          "groupName": "House tidy-up card"
+        },
+        {
+          "id": "kl-b2-tidy-time",
+          "type": "text",
+          "name": "Time",
+          "position": {
+            "x": 599.21,
+            "y": 979.43
+          },
+          "size": {
+            "width": 377,
+            "height": 56.5
+          },
+          "rotation": 3,
+          "scale": 1,
+          "content": "Sat 1:00 to 3:00 pm",
+          "fontSize": 10.5,
+          "color": "#9A5048",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "kl-b2-g-tidy",
+          "groupName": "House tidy-up card"
+        },
+        {
+          "id": "kl-b2-tidy-face-dad",
+          "type": "image",
+          "name": "Dad avatar",
+          "position": {
+            "x": 597.57,
+            "y": 1037.14
+          },
+          "size": {
+            "width": 54,
+            "height": 54
+          },
+          "rotation": 3,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-avatar-dad.png",
+          "objectFit": "contain",
+          "groupId": "kl-b2-g-tidy",
+          "groupName": "House tidy-up card"
+        },
+        {
+          "id": "kl-b2-tidy-who-dad",
+          "type": "text",
+          "name": "Dad",
+          "position": {
+            "x": 657.17,
+            "y": 1041.92
+          },
+          "size": {
+            "width": 108,
+            "height": 53.2
+          },
+          "rotation": 3,
+          "scale": 1,
+          "content": "Dad",
+          "fontSize": 9.6,
+          "color": "#4A150F",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "kl-b2-g-tidy",
+          "groupName": "House tidy-up card"
+        },
+        {
+          "id": "kl-b2-tidy-face-mom",
+          "type": "image",
+          "name": "Mom avatar",
+          "position": {
+            "x": 750.78,
+            "y": 1045.17
+          },
+          "size": {
+            "width": 54,
+            "height": 54
+          },
+          "rotation": 3,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-avatar-mom.png",
+          "objectFit": "contain",
+          "groupId": "kl-b2-g-tidy",
+          "groupName": "House tidy-up card"
+        },
+        {
+          "id": "kl-b2-tidy-who-mom",
+          "type": "text",
+          "name": "Mom",
+          "position": {
+            "x": 810.38,
+            "y": 1050.34
+          },
+          "size": {
+            "width": 123,
+            "height": 53.2
+          },
+          "rotation": 3,
+          "scale": 1,
+          "content": "Mom",
+          "fontSize": 9.6,
+          "color": "#4A150F",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "kl-b2-g-tidy",
+          "groupName": "House tidy-up card"
+        },
+        {
+          "id": "kl-b2-tidy-pin",
+          "type": "image",
+          "name": "Push pin",
+          "position": {
+            "x": 498,
+            "y": 766.77
+          },
+          "size": {
+            "width": 104,
+            "height": 134.45
+          },
+          "rotation": -6,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 26,
+            "color": "rgba(24,44,98,0.24)"
+          },
+          "imageSrc": "/elements/images/stickers/sticker-push-pin-yellow.png",
+          "objectFit": "contain",
+          "groupId": "kl-b2-g-tidy",
+          "groupName": "House tidy-up card"
+        },
+        {
+          "id": "kl-b2-tidy-spray",
+          "type": "image",
+          "name": "Spray bottle",
+          "position": {
+            "x": 925,
+            "y": 669.01
+          },
+          "size": {
+            "width": 206,
+            "height": 253.99
+          },
+          "rotation": 14,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 26,
+            "color": "rgba(24,44,98,0.24)"
+          },
+          "imageSrc": "/elements/images/stickers/sticker-spray-bottle.png",
+          "objectFit": "contain",
+          "groupId": "kl-b2-g-tidy",
+          "groupName": "House tidy-up card"
+        },
+        {
+          "id": "kl-b2-game-body",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 300,
+            "y": 2096
+          },
+          "size": {
+            "width": 700,
+            "height": 292
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 46,
+            "color": "rgba(24,44,98,0.22)"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#DCD4FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 38,
+          "groupId": "kl-b2-g-game",
+          "groupName": "Friday game night card"
+        },
+        {
+          "id": "kl-b2-game-top",
+          "type": "shape",
+          "name": "Card top",
+          "position": {
+            "x": 294.68,
+            "y": 2096.12
+          },
+          "size": {
+            "width": 700,
+            "height": 48
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "borderRadiusType": "individual",
+          "borderRadiusTopLeft": 38,
+          "borderRadiusTopRight": 38,
+          "borderRadiusBottomRight": 0,
+          "borderRadiusBottomLeft": 0,
+          "shapeType": "rectangle",
+          "fillColor": "#8B7CF6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 0,
+          "groupId": "kl-b2-g-game",
+          "groupName": "Friday game night card"
+        },
+        {
+          "id": "kl-b2-game-box",
+          "type": "shape",
+          "name": "Tick box",
+          "position": {
+            "x": 343.26,
+            "y": 2197.93
+          },
+          "size": {
+            "width": 66,
+            "height": 66
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#8B7CF6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 19,
+          "groupId": "kl-b2-g-game",
+          "groupName": "Friday game night card"
+        },
+        {
+          "id": "kl-b2-game-tick",
+          "type": "shape",
+          "name": "Tick",
+          "position": {
+            "x": 352.26,
+            "y": 2206.93
+          },
+          "size": {
+            "width": 48,
+            "height": 48
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M5 12.5l4.5 4.5L19 7.5",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 7.6
+          },
+          "groupId": "kl-b2-g-game",
+          "groupName": "Friday game night card"
+        },
+        {
+          "id": "kl-b2-game-title",
+          "type": "text",
+          "name": "Event",
+          "position": {
+            "x": 431.17,
+            "y": 2169.15
+          },
+          "size": {
+            "width": 455,
+            "height": 71.9
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "content": "Friday game night",
+          "fontSize": 14.7,
+          "color": "#23174F",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.29,
+          "groupId": "kl-b2-g-game",
+          "groupName": "Friday game night card"
+        },
+        {
+          "id": "kl-b2-game-time",
+          "type": "text",
+          "name": "Time",
+          "position": {
+            "x": 434.39,
+            "y": 2239.36
+          },
+          "size": {
+            "width": 362,
+            "height": 56.5
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "content": "Fri 6:30 to 8:30 pm",
+          "fontSize": 10.5,
+          "color": "#6557AD",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "kl-b2-g-game",
+          "groupName": "Friday game night card"
+        },
+        {
+          "id": "kl-b2-game-face-dad",
+          "type": "image",
+          "name": "Dad avatar",
+          "position": {
+            "x": 440.06,
+            "y": 2312.07
+          },
+          "size": {
+            "width": 54,
+            "height": 54
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-avatar-dad.png",
+          "objectFit": "contain",
+          "groupId": "kl-b2-g-game",
+          "groupName": "Friday game night card"
+        },
+        {
+          "id": "kl-b2-game-who-dad",
+          "type": "text",
+          "name": "Dad",
+          "position": {
+            "x": 499.68,
+            "y": 2308.53
+          },
+          "size": {
+            "width": 108,
+            "height": 53.2
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "content": "Dad",
+          "fontSize": 9.6,
+          "color": "#23174F",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "kl-b2-g-game",
+          "groupName": "Friday game night card"
+        },
+        {
+          "id": "kl-b2-game-face-mom",
+          "type": "image",
+          "name": "Mom avatar",
+          "position": {
+            "x": 593.33,
+            "y": 2305.38
+          },
+          "size": {
+            "width": 54,
+            "height": 54
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-avatar-mom.png",
+          "objectFit": "contain",
+          "groupId": "kl-b2-g-game",
+          "groupName": "Friday game night card"
+        },
+        {
+          "id": "kl-b2-game-who-mom",
+          "type": "text",
+          "name": "Mom",
+          "position": {
+            "x": 652.96,
+            "y": 2301.51
+          },
+          "size": {
+            "width": 123,
+            "height": 53.2
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "content": "Mom",
+          "fontSize": 9.6,
+          "color": "#23174F",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "kl-b2-g-game",
+          "groupName": "Friday game night card"
+        },
+        {
+          "id": "kl-b2-game-face-girl",
+          "type": "image",
+          "name": "Mia avatar",
+          "position": {
+            "x": 762.3,
+            "y": 2298
+          },
+          "size": {
+            "width": 54,
+            "height": 54
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-avatar-girl.png",
+          "objectFit": "contain",
+          "groupId": "kl-b2-g-game",
+          "groupName": "Friday game night card"
+        },
+        {
+          "id": "kl-b2-game-who-girl",
+          "type": "text",
+          "name": "Mia",
+          "position": {
+            "x": 821.93,
+            "y": 2294.64
+          },
+          "size": {
+            "width": 100,
+            "height": 53.2
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "content": "Mia",
+          "fontSize": 9.6,
+          "color": "#23174F",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "kl-b2-g-game",
+          "groupName": "Friday game night card"
+        },
+        {
+          "id": "kl-b2-game-pin",
+          "type": "image",
+          "name": "Push pin",
+          "position": {
+            "x": 332,
+            "y": 2028.77
+          },
+          "size": {
+            "width": 104,
+            "height": 134.45
+          },
+          "rotation": -8,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 26,
+            "color": "rgba(24,44,98,0.24)"
+          },
+          "imageSrc": "/elements/images/stickers/sticker-push-pin.png",
+          "objectFit": "contain",
+          "groupId": "kl-b2-g-game",
+          "groupName": "Friday game night card"
+        },
+        {
+          "id": "kl-b2-game-pad",
+          "type": "image",
+          "name": "Game controller",
+          "position": {
+            "x": 750,
+            "y": 1980.35
+          },
+          "size": {
+            "width": 300,
+            "height": 191.29
+          },
+          "rotation": -13,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 26,
+            "color": "rgba(24,44,98,0.24)"
+          },
+          "imageSrc": "/elements/images/stickers/sticker-game-controller.png",
+          "objectFit": "contain",
+          "groupId": "kl-b2-g-game",
+          "groupName": "Friday game night card"
+        },
+        {
+          "id": "kl-b2-sparkle-a",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 1042,
+            "y": 1500
+          },
+          "size": {
+            "width": 96,
+            "height": 96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFCB3D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q58.15 41.85 98 50 Q58.15 58.15 50 98 Q41.85 58.15 2 50 Q41.85 41.85 50 2 Z",
+          "specialProps": {
+            "viewBox": "2 2 96 96"
+          },
+          "groupId": "kl-b2-g-sparkles",
+          "groupName": "Sparkles"
+        },
+        {
+          "id": "kl-b2-sparkle-b",
+          "type": "shape",
+          "name": "Small sparkle",
+          "position": {
+            "x": 1004,
+            "y": 1626
+          },
+          "size": {
+            "width": 50,
+            "height": 50
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF6B5E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q58.15 41.85 98 50 Q58.15 58.15 50 98 Q41.85 58.15 2 50 Q41.85 41.85 50 2 Z",
+          "specialProps": {
+            "viewBox": "2 2 96 96"
+          },
+          "groupId": "kl-b2-g-sparkles",
+          "groupName": "Sparkles"
+        }
+      ]
+    },
+    {
+      "id": "kl-board-3",
+      "name": "Twelve Family Tools In One App",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#E6F0FC",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#EFF6FF",
+        "color2": "#DBE8FA",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "kl-b3-blob",
+          "type": "shape",
+          "name": "Green blob",
+          "position": {
+            "x": 560,
+            "y": -230
+          },
+          "size": {
+            "width": 820,
+            "height": 700
+          },
+          "rotation": -12,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#22C077",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M16 22 C22 16 42.67 15.33 50 18 C57.33 20.67 54.33 33.67 60 38 C65.67 42.33 79.67 37.67 84 44 C88.33 50.33 91.67 70 86 76 C80.33 82 58 82.67 50 80 C42 77.33 44 64.33 38 60 C32 55.67 17.67 60.33 14 54 C10.33 47.67 10 28 16 22 Z",
+          "specialProps": {
+            "viewBox": "11.35 16.51 77.65 64.98"
+          }
+        },
+        {
+          "id": "kl-b3-number",
+          "type": "text",
+          "name": "Number",
+          "position": {
+            "x": 74,
+            "y": 16.4
+          },
+          "size": {
+            "width": 406,
+            "height": 544
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "12",
+          "fontSize": 120,
+          "color": "#14161F",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -2.4,
+          "groupId": "kl-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "kl-b3-sparkle",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 506,
+            "y": 150
+          },
+          "size": {
+            "width": 120,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFCB3D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q58.15 41.85 98 50 Q58.15 58.15 50 98 Q41.85 58.15 2 50 Q41.85 41.85 50 2 Z",
+          "specialProps": {
+            "viewBox": "2 2 96 96"
+          },
+          "groupId": "kl-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "kl-b3-sparkle-small",
+          "type": "shape",
+          "name": "Small sparkle",
+          "position": {
+            "x": 476,
+            "y": 286
+          },
+          "size": {
+            "width": 58,
+            "height": 58
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF6B5E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q58.15 41.85 98 50 Q58.15 58.15 50 98 Q41.85 58.15 2 50 Q41.85 41.85 50 2 Z",
+          "specialProps": {
+            "viewBox": "2 2 96 96"
+          },
+          "groupId": "kl-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "kl-b3-headline-text",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 81.34,
+            "y": 472.45
+          },
+          "size": {
+            "width": 736,
+            "height": 311.52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "family tools\nin one app",
+          "fontSize": 39.6,
+          "color": "#14161F",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -0.48,
+          "groupId": "kl-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "kl-b3-sub",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 79.79,
+            "y": 787.76
+          },
+          "size": {
+            "width": 892,
+            "height": 74.46
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Lists, chores, meals, trips and more",
+          "fontSize": 15.3,
+          "color": "#2B3242",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1
+        },
+        {
+          "id": "kl-b3-tool-todos-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": -292.53,
+            "y": 1010.2
+          },
+          "size": {
+            "width": 540,
+            "height": 404
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 0,
+            "color": "#14161F"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#14161F",
+          "strokeWidth": 7,
+          "borderRadius": 46,
+          "groupId": "kl-b3-g-tool-todos",
+          "groupName": "To-dos card"
+        },
+        {
+          "id": "kl-b3-tool-todos-title",
+          "type": "text",
+          "name": "Tool name",
+          "position": {
+            "x": -143.78,
+            "y": 1029.22
+          },
+          "size": {
+            "width": 223,
+            "height": 84.68
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "To-dos",
+          "fontSize": 17.4,
+          "color": "#14161F",
+          "fontFamily": "Fredoka",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "kl-b3-g-tool-todos",
+          "groupName": "To-dos card"
+        },
+        {
+          "id": "kl-b3-tool-todos-panel",
+          "type": "image",
+          "name": "Tool preview",
+          "position": {
+            "x": -261.47,
+            "y": 1126.1
+          },
+          "size": {
+            "width": 484,
+            "height": 259.6
+          },
+          "rotation": -4,
+          "scale": 1,
+          "imageSrc": "/data/projects/kinloom-tool-todos.png",
+          "objectFit": "contain",
+          "groupId": "kl-b3-g-tool-todos",
+          "groupName": "To-dos card"
+        },
+        {
+          "id": "kl-b3-tool-events-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 278.08,
+            "y": 970.3
+          },
+          "size": {
+            "width": 540,
+            "height": 404
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 0,
+            "color": "#14161F"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#14161F",
+          "strokeWidth": 7,
+          "borderRadius": 46,
+          "groupId": "kl-b3-g-tool-events",
+          "groupName": "Events card"
+        },
+        {
+          "id": "kl-b3-tool-events-title",
+          "type": "text",
+          "name": "Tool name",
+          "position": {
+            "x": 427,
+            "y": 989.38
+          },
+          "size": {
+            "width": 221,
+            "height": 84.68
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Events",
+          "fontSize": 17.4,
+          "color": "#14161F",
+          "fontFamily": "Fredoka",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "kl-b3-g-tool-events",
+          "groupName": "Events card"
+        },
+        {
+          "id": "kl-b3-tool-events-panel",
+          "type": "image",
+          "name": "Tool preview",
+          "position": {
+            "x": 309.14,
+            "y": 1086.2
+          },
+          "size": {
+            "width": 484,
+            "height": 259.6
+          },
+          "rotation": -4,
+          "scale": 1,
+          "imageSrc": "/data/projects/kinloom-tool-events.png",
+          "objectFit": "contain",
+          "groupId": "kl-b3-g-tool-events",
+          "groupName": "Events card"
+        },
+        {
+          "id": "kl-b3-tool-calendar-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 848.69,
+            "y": 930.4
+          },
+          "size": {
+            "width": 540,
+            "height": 404
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 0,
+            "color": "#14161F"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#14161F",
+          "strokeWidth": 7,
+          "borderRadius": 46,
+          "groupId": "kl-b3-g-tool-calendar",
+          "groupName": "Calendar card"
+        },
+        {
+          "id": "kl-b3-tool-calendar-title",
+          "type": "text",
+          "name": "Tool name",
+          "position": {
+            "x": 966.64,
+            "y": 949.44
+          },
+          "size": {
+            "width": 284,
+            "height": 84.68
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Calendar",
+          "fontSize": 17.4,
+          "color": "#14161F",
+          "fontFamily": "Fredoka",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "kl-b3-g-tool-calendar",
+          "groupName": "Calendar card"
+        },
+        {
+          "id": "kl-b3-tool-calendar-panel",
+          "type": "image",
+          "name": "Tool preview",
+          "position": {
+            "x": 879.74,
+            "y": 1046.29
+          },
+          "size": {
+            "width": 484,
+            "height": 259.6
+          },
+          "rotation": -4,
+          "scale": 1,
+          "imageSrc": "/data/projects/kinloom-tool-calendar.png",
+          "objectFit": "contain",
+          "groupId": "kl-b3-g-tool-calendar",
+          "groupName": "Calendar card"
+        },
+        {
+          "id": "kl-b3-tool-notes-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": -441.53,
+            "y": 1459.69
+          },
+          "size": {
+            "width": 540,
+            "height": 404
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 0,
+            "color": "#14161F"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#14161F",
+          "strokeWidth": 7,
+          "borderRadius": 46,
+          "groupId": "kl-b3-g-tool-notes",
+          "groupName": "Notes card"
+        },
+        {
+          "id": "kl-b3-tool-notes-title",
+          "type": "text",
+          "name": "Tool name",
+          "position": {
+            "x": -280.3,
+            "y": 1478.75
+          },
+          "size": {
+            "width": 197,
+            "height": 84.68
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Notes",
+          "fontSize": 17.4,
+          "color": "#14161F",
+          "fontFamily": "Fredoka",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "kl-b3-g-tool-notes",
+          "groupName": "Notes card"
+        },
+        {
+          "id": "kl-b3-tool-notes-panel",
+          "type": "image",
+          "name": "Tool preview",
+          "position": {
+            "x": -410.48,
+            "y": 1575.59
+          },
+          "size": {
+            "width": 484,
+            "height": 259.6
+          },
+          "rotation": -4,
+          "scale": 1,
+          "imageSrc": "/data/projects/kinloom-tool-notes.png",
+          "objectFit": "contain",
+          "groupId": "kl-b3-g-tool-notes",
+          "groupName": "Notes card"
+        },
+        {
+          "id": "kl-b3-tool-groceries-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 129.07,
+            "y": 1419.79
+          },
+          "size": {
+            "width": 540,
+            "height": 404
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 0,
+            "color": "#14161F"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#14161F",
+          "strokeWidth": 7,
+          "borderRadius": 46,
+          "groupId": "kl-b3-g-tool-groceries",
+          "groupName": "Groceries card"
+        },
+        {
+          "id": "kl-b3-tool-groceries-title",
+          "type": "text",
+          "name": "Tool name",
+          "position": {
+            "x": 239.75,
+            "y": 1438.85
+          },
+          "size": {
+            "width": 298,
+            "height": 84.68
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Groceries",
+          "fontSize": 17.4,
+          "color": "#14161F",
+          "fontFamily": "Fredoka",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "kl-b3-g-tool-groceries",
+          "groupName": "Groceries card"
+        },
+        {
+          "id": "kl-b3-tool-groceries-panel",
+          "type": "image",
+          "name": "Tool preview",
+          "position": {
+            "x": 160.13,
+            "y": 1535.68
+          },
+          "size": {
+            "width": 484,
+            "height": 259.6
+          },
+          "rotation": -4,
+          "scale": 1,
+          "imageSrc": "/data/projects/kinloom-tool-groceries.png",
+          "objectFit": "contain",
+          "groupId": "kl-b3-g-tool-groceries",
+          "groupName": "Groceries card"
+        },
+        {
+          "id": "kl-b3-tool-chores-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 699.68,
+            "y": 1379.89
+          },
+          "size": {
+            "width": 540,
+            "height": 404
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 0,
+            "color": "#14161F"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#14161F",
+          "strokeWidth": 7,
+          "borderRadius": 46,
+          "groupId": "kl-b3-g-tool-chores",
+          "groupName": "Chores card"
+        },
+        {
+          "id": "kl-b3-tool-chores-title",
+          "type": "text",
+          "name": "Tool name",
+          "position": {
+            "x": 846.31,
+            "y": 1398.92
+          },
+          "size": {
+            "width": 227,
+            "height": 84.68
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Chores",
+          "fontSize": 17.4,
+          "color": "#14161F",
+          "fontFamily": "Fredoka",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "kl-b3-g-tool-chores",
+          "groupName": "Chores card"
+        },
+        {
+          "id": "kl-b3-tool-chores-panel",
+          "type": "image",
+          "name": "Tool preview",
+          "position": {
+            "x": 730.73,
+            "y": 1495.78
+          },
+          "size": {
+            "width": 484,
+            "height": 259.6
+          },
+          "rotation": -4,
+          "scale": 1,
+          "imageSrc": "/data/projects/kinloom-tool-chores.png",
+          "objectFit": "contain",
+          "groupId": "kl-b3-g-tool-chores",
+          "groupName": "Chores card"
+        },
+        {
+          "id": "kl-b3-tool-birthdays-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": -231.42,
+            "y": 1884.07
+          },
+          "size": {
+            "width": 540,
+            "height": 404
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 0,
+            "color": "#14161F"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#14161F",
+          "strokeWidth": 7,
+          "borderRadius": 46,
+          "groupId": "kl-b3-g-tool-birthdays",
+          "groupName": "Birthdays card"
+        },
+        {
+          "id": "kl-b3-tool-birthdays-title",
+          "type": "text",
+          "name": "Tool name",
+          "position": {
+            "x": -119.64,
+            "y": 1903.12
+          },
+          "size": {
+            "width": 296,
+            "height": 84.68
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Birthdays",
+          "fontSize": 17.4,
+          "color": "#14161F",
+          "fontFamily": "Fredoka",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "kl-b3-g-tool-birthdays",
+          "groupName": "Birthdays card"
+        },
+        {
+          "id": "kl-b3-tool-birthdays-panel",
+          "type": "image",
+          "name": "Tool preview",
+          "position": {
+            "x": -200.36,
+            "y": 1999.96
+          },
+          "size": {
+            "width": 484,
+            "height": 259.6
+          },
+          "rotation": -4,
+          "scale": 1,
+          "imageSrc": "/data/projects/kinloom-tool-birthdays.png",
+          "objectFit": "contain",
+          "groupId": "kl-b3-g-tool-birthdays",
+          "groupName": "Birthdays card"
+        },
+        {
+          "id": "kl-b3-tool-trips-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 339.19,
+            "y": 1844.17
+          },
+          "size": {
+            "width": 540,
+            "height": 404
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 0,
+            "color": "#14161F"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#14161F",
+          "strokeWidth": 7,
+          "borderRadius": 46,
+          "groupId": "kl-b3-g-tool-trips",
+          "groupName": "Trips card"
+        },
+        {
+          "id": "kl-b3-tool-trips-title",
+          "type": "text",
+          "name": "Tool name",
+          "position": {
+            "x": 513.43,
+            "y": 1863.19
+          },
+          "size": {
+            "width": 172,
+            "height": 84.68
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Trips",
+          "fontSize": 17.4,
+          "color": "#14161F",
+          "fontFamily": "Fredoka",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "kl-b3-g-tool-trips",
+          "groupName": "Trips card"
+        },
+        {
+          "id": "kl-b3-tool-trips-panel",
+          "type": "image",
+          "name": "Tool preview",
+          "position": {
+            "x": 370.24,
+            "y": 1960.06
+          },
+          "size": {
+            "width": 484,
+            "height": 259.6
+          },
+          "rotation": -4,
+          "scale": 1,
+          "imageSrc": "/data/projects/kinloom-tool-trips.png",
+          "objectFit": "contain",
+          "groupId": "kl-b3-g-tool-trips",
+          "groupName": "Trips card"
+        },
+        {
+          "id": "kl-b3-tool-budget-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 909.79,
+            "y": 1804.27
+          },
+          "size": {
+            "width": 540,
+            "height": 404
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 0,
+            "color": "#14161F"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#14161F",
+          "strokeWidth": 7,
+          "borderRadius": 46,
+          "groupId": "kl-b3-g-tool-budget",
+          "groupName": "Budget card"
+        },
+        {
+          "id": "kl-b3-tool-budget-title",
+          "type": "text",
+          "name": "Tool name",
+          "position": {
+            "x": 1053.32,
+            "y": 1823.34
+          },
+          "size": {
+            "width": 232,
+            "height": 84.68
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Budget",
+          "fontSize": 17.4,
+          "color": "#14161F",
+          "fontFamily": "Fredoka",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "kl-b3-g-tool-budget",
+          "groupName": "Budget card"
+        },
+        {
+          "id": "kl-b3-tool-budget-panel",
+          "type": "image",
+          "name": "Tool preview",
+          "position": {
+            "x": 940.85,
+            "y": 1920.16
+          },
+          "size": {
+            "width": 484,
+            "height": 259.6
+          },
+          "rotation": -4,
+          "scale": 1,
+          "imageSrc": "/data/projects/kinloom-tool-budget.png",
+          "objectFit": "contain",
+          "groupId": "kl-b3-g-tool-budget",
+          "groupName": "Budget card"
+        },
+        {
+          "id": "kl-b3-tool-meals-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": -380.43,
+            "y": 2333.56
+          },
+          "size": {
+            "width": 540,
+            "height": 404
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 0,
+            "color": "#14161F"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#14161F",
+          "strokeWidth": 7,
+          "borderRadius": 46,
+          "groupId": "kl-b3-g-tool-meals",
+          "groupName": "Meal plan card"
+        },
+        {
+          "id": "kl-b3-tool-meals-title",
+          "type": "text",
+          "name": "Tool name",
+          "position": {
+            "x": -271.39,
+            "y": 2352.59
+          },
+          "size": {
+            "width": 302,
+            "height": 84.68
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Meal plan",
+          "fontSize": 17.4,
+          "color": "#14161F",
+          "fontFamily": "Fredoka",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "kl-b3-g-tool-meals",
+          "groupName": "Meal plan card"
+        },
+        {
+          "id": "kl-b3-tool-meals-panel",
+          "type": "image",
+          "name": "Tool preview",
+          "position": {
+            "x": -349.37,
+            "y": 2449.45
+          },
+          "size": {
+            "width": 484,
+            "height": 259.6
+          },
+          "rotation": -4,
+          "scale": 1,
+          "imageSrc": "/data/projects/kinloom-tool-meals.png",
+          "objectFit": "contain",
+          "groupId": "kl-b3-g-tool-meals",
+          "groupName": "Meal plan card"
+        },
+        {
+          "id": "kl-b3-tool-reminders-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 190.18,
+            "y": 2293.66
+          },
+          "size": {
+            "width": 540,
+            "height": 404
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 0,
+            "color": "#14161F"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#14161F",
+          "strokeWidth": 7,
+          "borderRadius": 46,
+          "groupId": "kl-b3-g-tool-reminders",
+          "groupName": "Reminders card"
+        },
+        {
+          "id": "kl-b3-tool-reminders-title",
+          "type": "text",
+          "name": "Tool name",
+          "position": {
+            "x": 291.17,
+            "y": 2312.73
+          },
+          "size": {
+            "width": 317,
+            "height": 84.68
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Reminders",
+          "fontSize": 17.4,
+          "color": "#14161F",
+          "fontFamily": "Fredoka",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "kl-b3-g-tool-reminders",
+          "groupName": "Reminders card"
+        },
+        {
+          "id": "kl-b3-tool-reminders-panel",
+          "type": "image",
+          "name": "Tool preview",
+          "position": {
+            "x": 221.23,
+            "y": 2409.55
+          },
+          "size": {
+            "width": 484,
+            "height": 259.6
+          },
+          "rotation": -4,
+          "scale": 1,
+          "imageSrc": "/data/projects/kinloom-tool-reminders.png",
+          "objectFit": "contain",
+          "groupId": "kl-b3-g-tool-reminders",
+          "groupName": "Reminders card"
+        },
+        {
+          "id": "kl-b3-tool-recipes-card",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 760.79,
+            "y": 2253.76
+          },
+          "size": {
+            "width": 540,
+            "height": 404
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 0,
+            "color": "#14161F"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#14161F",
+          "strokeWidth": 7,
+          "borderRadius": 46,
+          "groupId": "kl-b3-g-tool-recipes",
+          "groupName": "Recipes card"
+        },
+        {
+          "id": "kl-b3-tool-recipes-title",
+          "type": "text",
+          "name": "Tool name",
+          "position": {
+            "x": 898.77,
+            "y": 2272.83
+          },
+          "size": {
+            "width": 243,
+            "height": 84.68
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Recipes",
+          "fontSize": 17.4,
+          "color": "#14161F",
+          "fontFamily": "Fredoka",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "kl-b3-g-tool-recipes",
+          "groupName": "Recipes card"
+        },
+        {
+          "id": "kl-b3-tool-recipes-panel",
+          "type": "image",
+          "name": "Tool preview",
+          "position": {
+            "x": 791.84,
+            "y": 2369.65
+          },
+          "size": {
+            "width": 484,
+            "height": 259.6
+          },
+          "rotation": -4,
+          "scale": 1,
+          "imageSrc": "/data/projects/kinloom-tool-recipes.png",
+          "objectFit": "contain",
+          "groupId": "kl-b3-g-tool-recipes",
+          "groupName": "Recipes card"
+        }
+      ]
+    },
+    {
+      "id": "kl-board-4",
+      "name": "Out Of Milk Its On The List",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#E6F0FC",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#EFF6FF",
+        "color2": "#DBE8FA",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "kl-b4-splat",
+          "type": "shape",
+          "name": "Coral splat",
+          "position": {
+            "x": 700,
+            "y": 560
+          },
+          "size": {
+            "width": 700,
+            "height": 700
+          },
+          "rotation": 12,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF6B5E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 5 C54.25 4.86 56.79 23.57 63 27.48 C69.21 31.4 85.24 24.75 87.24 28.5 C89.24 32.25 74.57 42.58 75 50 C75.43 57.42 91.75 69.1 89.84 73 C87.92 76.9 70.14 69.88 63.5 73.38 C56.86 76.88 54.33 94.29 50 94 C45.67 93.71 44 75.23 37.5 71.65 C31 68.07 13.28 76.11 11.03 72.5 C8.78 68.89 23.71 57.33 24 50 C24.29 42.67 10.51 32.11 12.76 28.5 C15.01 24.89 31.29 32.27 37.5 28.35 C43.71 24.43 45.75 5.14 50 5 Z",
+          "specialProps": {
+            "viewBox": "10.8 5 79.2 89"
+          }
+        },
+        {
+          "id": "kl-b4-marker",
+          "type": "shape",
+          "name": "Marker highlight",
+          "position": {
+            "x": 62,
+            "y": 462
+          },
+          "size": {
+            "width": 640,
+            "height": 168
+          },
+          "rotation": -1.5,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFCB3D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M8 22 C40 13 92 21 142 14 C192 8 250 17 293 9 C299 27 289 45 296 63 C250 71 200 61 150 68 C100 75 52 65 6 72 C1 54 13 40 8 22 Z",
+          "specialProps": {
+            "viewBox": "0 0 300 80"
+          },
+          "groupId": "kl-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "kl-b4-headline-text",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 80.48,
+            "y": 121.67
+          },
+          "size": {
+            "width": 856,
+            "height": 510.72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Out of milk?\nIt's on\nthe list.",
+          "fontSize": 45.6,
+          "color": "#14161F",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -0.55,
+          "groupId": "kl-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "kl-b4-sub",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 83.38,
+            "y": 664.8
+          },
+          "size": {
+            "width": 592,
+            "height": 163.52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "One grocery list the\nwhole family adds to",
+          "fontSize": 16.8,
+          "color": "#2B3242",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.28
+        },
+        {
+          "id": "kl-b4-phone-side",
+          "type": "shape",
+          "name": "Phone side",
+          "position": {
+            "x": 163,
+            "y": 958
+          },
+          "size": {
+            "width": 920,
+            "height": 1904.31
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#14161F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 136,
+          "groupId": "kl-b4-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kl-b4-phone-outline",
+          "type": "shape",
+          "name": "Phone outline",
+          "position": {
+            "x": 143,
+            "y": 940
+          },
+          "size": {
+            "width": 920,
+            "height": 1904.31
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#14161F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 136,
+          "groupId": "kl-b4-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kl-b4-phone-device",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 153,
+            "y": 950
+          },
+          "size": {
+            "width": 900,
+            "height": 1884.31
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#F3F6FB",
+          "screenshotSrc": "/data/projects/kinloom-screen-groceries.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "kl-b4-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kl-b4-milk",
+          "type": "image",
+          "name": "Milk carton",
+          "position": {
+            "x": 898,
+            "y": 681.59
+          },
+          "size": {
+            "width": 228,
+            "height": 336.82
+          },
+          "rotation": 10,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 26,
+            "color": "rgba(24,44,98,0.24)"
+          },
+          "imageSrc": "/elements/images/stickers/sticker-milk-carton.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "kl-b4-pill-oat-milk-body",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 72,
+            "y": 1582.04
+          },
+          "size": {
+            "width": 590,
+            "height": 132
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 0,
+            "color": "#14161F"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#C7E4FF",
+          "strokeColor": "#14161F",
+          "strokeWidth": 7,
+          "borderRadius": 44,
+          "groupId": "kl-b4-g-pill-oat-milk",
+          "groupName": "Oat milk pill"
+        },
+        {
+          "id": "kl-b4-pill-oat-milk-box",
+          "type": "shape",
+          "name": "Tick box",
+          "position": {
+            "x": 106.22,
+            "y": 1624.99
+          },
+          "size": {
+            "width": 66,
+            "height": 66
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3D7BF7",
+          "strokeColor": "#14161F",
+          "strokeWidth": 5,
+          "borderRadius": 19,
+          "groupId": "kl-b4-g-pill-oat-milk",
+          "groupName": "Oat milk pill"
+        },
+        {
+          "id": "kl-b4-pill-oat-milk-tick",
+          "type": "shape",
+          "name": "Tick",
+          "position": {
+            "x": 115.22,
+            "y": 1633.99
+          },
+          "size": {
+            "width": 48,
+            "height": 48
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M5 12.5l4.5 4.5L19 7.5",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 7.6
+          },
+          "groupId": "kl-b4-g-pill-oat-milk",
+          "groupName": "Oat milk pill"
+        },
+        {
+          "id": "kl-b4-pill-oat-milk-text",
+          "type": "text",
+          "name": "Item",
+          "position": {
+            "x": 193.52,
+            "y": 1607.69
+          },
+          "size": {
+            "width": 264,
+            "height": 81.76
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "content": "Oat milk",
+          "fontSize": 16.8,
+          "color": "#14161F",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.34,
+          "groupId": "kl-b4-g-pill-oat-milk",
+          "groupName": "Oat milk pill"
+        },
+        {
+          "id": "kl-b4-pill-oat-milk-face",
+          "type": "image",
+          "name": "Mom avatar",
+          "position": {
+            "x": 561.78,
+            "y": 1601.96
+          },
+          "size": {
+            "width": 72,
+            "height": 72
+          },
+          "rotation": -2.5,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-avatar-mom.png",
+          "objectFit": "contain",
+          "groupId": "kl-b4-g-pill-oat-milk",
+          "groupName": "Oat milk pill"
+        },
+        {
+          "id": "kl-b4-pill-bananas-body",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 540,
+            "y": 1897.71
+          },
+          "size": {
+            "width": 590,
+            "height": 132
+          },
+          "rotation": 2,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 0,
+            "color": "#14161F"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#C7E4FF",
+          "strokeColor": "#14161F",
+          "strokeWidth": 7,
+          "borderRadius": 44,
+          "groupId": "kl-b4-g-pill-bananas",
+          "groupName": "Bananas pill"
+        },
+        {
+          "id": "kl-b4-pill-bananas-box",
+          "type": "shape",
+          "name": "Tick box",
+          "position": {
+            "x": 574.14,
+            "y": 1922.75
+          },
+          "size": {
+            "width": 66,
+            "height": 66
+          },
+          "rotation": 2,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3D7BF7",
+          "strokeColor": "#14161F",
+          "strokeWidth": 5,
+          "borderRadius": 19,
+          "groupId": "kl-b4-g-pill-bananas",
+          "groupName": "Bananas pill"
+        },
+        {
+          "id": "kl-b4-pill-bananas-tick",
+          "type": "shape",
+          "name": "Tick",
+          "position": {
+            "x": 583.14,
+            "y": 1931.75
+          },
+          "size": {
+            "width": 48,
+            "height": 48
+          },
+          "rotation": 2,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M5 12.5l4.5 4.5L19 7.5",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 7.6
+          },
+          "groupId": "kl-b4-g-pill-bananas",
+          "groupName": "Bananas pill"
+        },
+        {
+          "id": "kl-b4-pill-bananas-text",
+          "type": "text",
+          "name": "Item",
+          "position": {
+            "x": 660.37,
+            "y": 1920.15
+          },
+          "size": {
+            "width": 269,
+            "height": 81.76
+          },
+          "rotation": 2,
+          "scale": 1,
+          "content": "Bananas",
+          "fontSize": 16.8,
+          "color": "#14161F",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.34,
+          "groupId": "kl-b4-g-pill-bananas",
+          "groupName": "Bananas pill"
+        },
+        {
+          "id": "kl-b4-pill-bananas-face",
+          "type": "image",
+          "name": "Leo avatar",
+          "position": {
+            "x": 1029.86,
+            "y": 1935.77
+          },
+          "size": {
+            "width": 72,
+            "height": 72
+          },
+          "rotation": 2,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-avatar-boy.png",
+          "objectFit": "contain",
+          "groupId": "kl-b4-g-pill-bananas",
+          "groupName": "Bananas pill"
+        },
+        {
+          "id": "kl-b4-pill-pasta-body",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 92,
+            "y": 2297.56
+          },
+          "size": {
+            "width": 590,
+            "height": 132
+          },
+          "rotation": -1.5,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 0,
+            "color": "#14161F"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#C7E4FF",
+          "strokeColor": "#14161F",
+          "strokeWidth": 7,
+          "borderRadius": 44,
+          "groupId": "kl-b4-g-pill-pasta",
+          "groupName": "Pasta pill"
+        },
+        {
+          "id": "kl-b4-pill-pasta-box",
+          "type": "shape",
+          "name": "Tick box",
+          "position": {
+            "x": 126.08,
+            "y": 2336.53
+          },
+          "size": {
+            "width": 66,
+            "height": 66
+          },
+          "rotation": -1.5,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#3D7BF7",
+          "strokeColor": "#14161F",
+          "strokeWidth": 5,
+          "borderRadius": 19,
+          "groupId": "kl-b4-g-pill-pasta",
+          "groupName": "Pasta pill"
+        },
+        {
+          "id": "kl-b4-pill-pasta-tick",
+          "type": "shape",
+          "name": "Tick",
+          "position": {
+            "x": 135.08,
+            "y": 2345.53
+          },
+          "size": {
+            "width": 48,
+            "height": 48
+          },
+          "rotation": -1.5,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M5 12.5l4.5 4.5L19 7.5",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 7.6
+          },
+          "groupId": "kl-b4-g-pill-pasta",
+          "groupName": "Pasta pill"
+        },
+        {
+          "id": "kl-b4-pill-pasta-text",
+          "type": "text",
+          "name": "Item",
+          "position": {
+            "x": 212.29,
+            "y": 2323.47
+          },
+          "size": {
+            "width": 191,
+            "height": 81.76
+          },
+          "rotation": -1.5,
+          "scale": 1,
+          "content": "Pasta",
+          "fontSize": 16.8,
+          "color": "#14161F",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.34,
+          "groupId": "kl-b4-g-pill-pasta",
+          "groupName": "Pasta pill"
+        },
+        {
+          "id": "kl-b4-pill-pasta-face",
+          "type": "image",
+          "name": "Dad avatar",
+          "position": {
+            "x": 581.92,
+            "y": 2321.51
+          },
+          "size": {
+            "width": 72,
+            "height": 72
+          },
+          "rotation": -1.5,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-avatar-dad.png",
+          "objectFit": "contain",
+          "groupId": "kl-b4-g-pill-pasta",
+          "groupName": "Pasta pill"
+        }
+      ]
+    },
+    {
+      "id": "kl-board-5",
+      "name": "Chores Get Done Really",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#E6F0FC",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#EFF6FF",
+        "color2": "#DBE8FA",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "kl-b5-splat",
+          "type": "shape",
+          "name": "Violet splat",
+          "position": {
+            "x": 752,
+            "y": -36
+          },
+          "size": {
+            "width": 610,
+            "height": 610
+          },
+          "rotation": 20,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#8B7CF6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 5 C54.25 4.86 56.79 23.57 63 27.48 C69.21 31.4 85.24 24.75 87.24 28.5 C89.24 32.25 74.57 42.58 75 50 C75.43 57.42 91.75 69.1 89.84 73 C87.92 76.9 70.14 69.88 63.5 73.38 C56.86 76.88 54.33 94.29 50 94 C45.67 93.71 44 75.23 37.5 71.65 C31 68.07 13.28 76.11 11.03 72.5 C8.78 68.89 23.71 57.33 24 50 C24.29 42.67 10.51 32.11 12.76 28.5 C15.01 24.89 31.29 32.27 37.5 28.35 C43.71 24.43 45.75 5.14 50 5 Z",
+          "specialProps": {
+            "viewBox": "10.8 5 79.2 89"
+          }
+        },
+        {
+          "id": "kl-b5-blob",
+          "type": "shape",
+          "name": "Green blob",
+          "position": {
+            "x": -300,
+            "y": 2170
+          },
+          "size": {
+            "width": 780,
+            "height": 640
+          },
+          "rotation": -14,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#22C077",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 6 C58.49 4.82 73.99 13.68 78.99 21.01 C83.99 28.34 79.41 39.75 80 50 C80.59 60.25 87.53 77.69 82.53 82.53 C77.53 87.36 60.02 79.82 50 79 C39.98 78.18 29.92 82.41 22.42 77.58 C14.92 72.74 4.06 58.25 5 50 C5.94 41.75 20.58 35.41 28.08 28.08 C35.58 20.75 41.51 7.18 50 6 Z",
+          "specialProps": {
+            "viewBox": "4.94 5.89 79.39 78.24"
+          }
+        },
+        {
+          "id": "kl-b5-squiggle",
+          "type": "shape",
+          "name": "Squiggle",
+          "position": {
+            "x": 92,
+            "y": 640
+          },
+          "size": {
+            "width": 470,
+            "height": 44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF6B5E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 50 Q6.25 30 12.5 50 Q18.75 70 25 50 Q31.25 30 37.5 50 Q43.75 70 50 50 Q56.25 30 62.5 50 Q68.75 70 75 50 Q81.25 30 87.5 50 Q93.75 70 100 50",
+          "specialProps": {
+            "viewBox": "0 40 100 20",
+            "strokeOnly": true,
+            "baseStrokeWidth": 16
+          },
+          "groupId": "kl-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "kl-b5-headline-text",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 79.87,
+            "y": 121.67
+          },
+          "size": {
+            "width": 662,
+            "height": 510.72
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Chores\nget done.\nReally.",
+          "fontSize": 45.6,
+          "color": "#14161F",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -0.55,
+          "groupId": "kl-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "kl-b5-sub",
+          "type": "text",
+          "name": "Subtitle",
+          "position": {
+            "x": 81.23,
+            "y": 724.8
+          },
+          "size": {
+            "width": 510,
+            "height": 163.52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Kids tick them off\nand earn stars",
+          "fontSize": 16.8,
+          "color": "#2B3242",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.28
+        },
+        {
+          "id": "kl-b5-star-big",
+          "type": "image",
+          "name": "Gold star",
+          "position": {
+            "x": 834,
+            "y": 177.61
+          },
+          "size": {
+            "width": 300,
+            "height": 288.79
+          },
+          "rotation": 12,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 26,
+            "color": "rgba(24,44,98,0.24)"
+          },
+          "imageSrc": "/elements/images/stickers/sticker-gold-star.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "kl-b5-phone-side",
+          "type": "shape",
+          "name": "Phone side",
+          "position": {
+            "x": 323.77,
+            "y": 1021.81
+          },
+          "size": {
+            "width": 880,
+            "height": 1820.56
+          },
+          "rotation": -6,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#14161F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 130.4,
+          "groupId": "kl-b5-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kl-b5-phone-outline",
+          "type": "shape",
+          "name": "Phone outline",
+          "position": {
+            "x": 302,
+            "y": 1006
+          },
+          "size": {
+            "width": 880,
+            "height": 1820.56
+          },
+          "rotation": -6,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#14161F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 130.4,
+          "groupId": "kl-b5-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kl-b5-phone-device",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 312,
+            "y": 1016
+          },
+          "size": {
+            "width": 860,
+            "height": 1800.56
+          },
+          "rotation": -6,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#F3F6FB",
+          "screenshotSrc": "/data/projects/kinloom-screen-chores.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "kl-b5-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kl-b5-chore-feed-body",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 72,
+            "y": 1500
+          },
+          "size": {
+            "width": 624,
+            "height": 160
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 0,
+            "color": "#14161F"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#14161F",
+          "strokeWidth": 7,
+          "borderRadius": 52,
+          "groupId": "kl-b5-g-chore-feed",
+          "groupName": "Feed Biscuit chore"
+        },
+        {
+          "id": "kl-b5-chore-feed-face",
+          "type": "image",
+          "name": "Leo avatar",
+          "position": {
+            "x": 100.57,
+            "y": 1544.18
+          },
+          "size": {
+            "width": 104,
+            "height": 104
+          },
+          "rotation": -4,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-avatar-boy.png",
+          "objectFit": "contain",
+          "groupId": "kl-b5-g-chore-feed",
+          "groupName": "Feed Biscuit chore"
+        },
+        {
+          "id": "kl-b5-chore-feed-title",
+          "type": "text",
+          "name": "Chore",
+          "position": {
+            "x": 219.35,
+            "y": 1524.07
+          },
+          "size": {
+            "width": 333,
+            "height": 73
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Feed Biscuit",
+          "fontSize": 15,
+          "color": "#14161F",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.3,
+          "groupId": "kl-b5-g-chore-feed",
+          "groupName": "Feed Biscuit chore"
+        },
+        {
+          "id": "kl-b5-chore-feed-who",
+          "type": "text",
+          "name": "Who",
+          "position": {
+            "x": 223.75,
+            "y": 1586.37
+          },
+          "size": {
+            "width": 316,
+            "height": 55.4
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "Leo earned 1 star",
+          "fontSize": 10.2,
+          "color": "#6B7385",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "kl-b5-g-chore-feed",
+          "groupName": "Feed Biscuit chore"
+        },
+        {
+          "id": "kl-b5-chore-feed-done",
+          "type": "shape",
+          "name": "Done mark",
+          "position": {
+            "x": 585.41,
+            "y": 1524.19
+          },
+          "size": {
+            "width": 78,
+            "height": 78
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#22C077",
+          "strokeColor": "#14161F",
+          "strokeWidth": 5,
+          "groupId": "kl-b5-g-chore-feed",
+          "groupName": "Feed Biscuit chore"
+        },
+        {
+          "id": "kl-b5-chore-feed-tick",
+          "type": "shape",
+          "name": "Tick",
+          "position": {
+            "x": 600.41,
+            "y": 1539.19
+          },
+          "size": {
+            "width": 48,
+            "height": 48
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M5 12.5l4.5 4.5L19 7.5",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 7.6
+          },
+          "groupId": "kl-b5-g-chore-feed",
+          "groupName": "Feed Biscuit chore"
+        },
+        {
+          "id": "kl-b5-chore-feed-bone",
+          "type": "image",
+          "name": "Dog bone",
+          "position": {
+            "x": 73,
+            "y": 1408.2
+          },
+          "size": {
+            "width": 226,
+            "height": 135.6
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 26,
+            "color": "rgba(24,44,98,0.24)"
+          },
+          "imageSrc": "/elements/images/stickers/sticker-dog-bone.png",
+          "objectFit": "contain",
+          "groupId": "kl-b5-g-chore-feed",
+          "groupName": "Feed Biscuit chore"
+        },
+        {
+          "id": "kl-b5-chore-plants-body",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 72,
+            "y": 1976
+          },
+          "size": {
+            "width": 710,
+            "height": 160
+          },
+          "rotation": -6,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 0,
+            "color": "#14161F"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#14161F",
+          "strokeWidth": 7,
+          "borderRadius": 52,
+          "groupId": "kl-b5-g-chore-plants",
+          "groupName": "Water the plants chore"
+        },
+        {
+          "id": "kl-b5-chore-plants-face",
+          "type": "image",
+          "name": "Mia avatar",
+          "position": {
+            "x": 101.51,
+            "y": 2032.75
+          },
+          "size": {
+            "width": 104,
+            "height": 104
+          },
+          "rotation": -6,
+          "scale": 1,
+          "imageSrc": "/elements/images/stickers/sticker-avatar-girl.png",
+          "objectFit": "contain",
+          "groupId": "kl-b5-g-chore-plants",
+          "groupName": "Water the plants chore"
+        },
+        {
+          "id": "kl-b5-chore-plants-title",
+          "type": "text",
+          "name": "Chore",
+          "position": {
+            "x": 221.38,
+            "y": 1999.16
+          },
+          "size": {
+            "width": 430,
+            "height": 73
+          },
+          "rotation": -6,
+          "scale": 1,
+          "content": "Water the plants",
+          "fontSize": 15,
+          "color": "#14161F",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.3,
+          "groupId": "kl-b5-g-chore-plants",
+          "groupName": "Water the plants chore"
+        },
+        {
+          "id": "kl-b5-chore-plants-who",
+          "type": "text",
+          "name": "Who",
+          "position": {
+            "x": 225.19,
+            "y": 2067.13
+          },
+          "size": {
+            "width": 312,
+            "height": 55.4
+          },
+          "rotation": -6,
+          "scale": 1,
+          "content": "Mia earned 1 star",
+          "fontSize": 10.2,
+          "color": "#6B7385",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "kl-b5-g-chore-plants",
+          "groupName": "Water the plants chore"
+        },
+        {
+          "id": "kl-b5-chore-plants-done",
+          "type": "shape",
+          "name": "Done mark",
+          "position": {
+            "x": 670.44,
+            "y": 1987.31
+          },
+          "size": {
+            "width": 78,
+            "height": 78
+          },
+          "rotation": -6,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#22C077",
+          "strokeColor": "#14161F",
+          "strokeWidth": 5,
+          "groupId": "kl-b5-g-chore-plants",
+          "groupName": "Water the plants chore"
+        },
+        {
+          "id": "kl-b5-chore-plants-tick",
+          "type": "shape",
+          "name": "Tick",
+          "position": {
+            "x": 685.44,
+            "y": 2002.31
+          },
+          "size": {
+            "width": 48,
+            "height": 48
+          },
+          "rotation": -6,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M5 12.5l4.5 4.5L19 7.5",
+          "specialProps": {
+            "viewBox": "0 0 24 24",
+            "strokeOnly": true,
+            "baseStrokeWidth": 7.6
+          },
+          "groupId": "kl-b5-g-chore-plants",
+          "groupName": "Water the plants chore"
+        },
+        {
+          "id": "kl-b5-reward-body",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 440,
+            "y": 2254
+          },
+          "size": {
+            "width": 690,
+            "height": 232
+          },
+          "rotation": -6,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 0,
+            "color": "#14161F"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFE9A6",
+          "strokeColor": "#14161F",
+          "strokeWidth": 7,
+          "borderRadius": 58,
+          "groupId": "kl-b5-g-reward",
+          "groupName": "Reward card"
+        },
+        {
+          "id": "kl-b5-reward-top",
+          "type": "text",
+          "name": "Reward goal",
+          "position": {
+            "x": 486.58,
+            "y": 2274.7
+          },
+          "size": {
+            "width": 345,
+            "height": 122.64
+          },
+          "rotation": -6,
+          "scale": 1,
+          "content": "20 stars",
+          "fontSize": 25.2,
+          "color": "#14161F",
+          "fontFamily": "Fredoka",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.25,
+          "groupId": "kl-b5-g-reward",
+          "groupName": "Reward card"
+        },
+        {
+          "id": "kl-b5-reward-text",
+          "type": "text",
+          "name": "Reward",
+          "position": {
+            "x": 495.94,
+            "y": 2383.14
+          },
+          "size": {
+            "width": 402,
+            "height": 64.2
+          },
+          "rotation": -6,
+          "scale": 1,
+          "content": "unlock pizza night",
+          "fontSize": 12.6,
+          "color": "#6A5200",
+          "fontFamily": "Plus Jakarta Sans",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "kl-b5-g-reward",
+          "groupName": "Reward card"
+        },
+        {
+          "id": "kl-b5-reward-pizza",
+          "type": "image",
+          "name": "Pizza slice",
+          "position": {
+            "x": 925,
+            "y": 2163.83
+          },
+          "size": {
+            "width": 218,
+            "height": 248.33
+          },
+          "rotation": 14,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 26,
+            "color": "rgba(24,44,98,0.24)"
+          },
+          "imageSrc": "/elements/images/stickers/sticker-pizza-slice.png",
+          "objectFit": "contain",
+          "groupId": "kl-b5-g-reward",
+          "groupName": "Reward card"
+        },
+        {
+          "id": "kl-b5-star-a",
+          "type": "image",
+          "name": "Small gold star",
+          "position": {
+            "x": 1017,
+            "y": 1089.35
+          },
+          "size": {
+            "width": 126,
+            "height": 121.29
+          },
+          "rotation": -14,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 26,
+            "color": "rgba(24,44,98,0.24)"
+          },
+          "imageSrc": "/elements/images/stickers/sticker-gold-star.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "kl-b5-star-b",
+          "type": "image",
+          "name": "Small gold star",
+          "position": {
+            "x": 70,
+            "y": 1786.32
+          },
+          "size": {
+            "width": 124,
+            "height": 119.37
+          },
+          "rotation": 16,
+          "scale": 1,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 26,
+            "color": "rgba(24,44,98,0.24)"
+          },
+          "imageSrc": "/elements/images/stickers/sticker-gold-star.png",
+          "objectFit": "contain"
+        }
+      ]
+    }
+  ]
+}

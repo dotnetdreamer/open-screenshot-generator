@@ -8,6 +8,10 @@ const path = require('path');
 const { launch, startBlankProject, sleep, exportArtboards, clickTab, dismissTipsDialog, waitForProjectFonts, APP_URL } = require('./lib');
 
 const TEMPLATES = [
+  { slug: 'gabwise-skills', card: 'Gabwise Skills', boards: 5 },
+  { slug: 'owedly-settlements', card: 'Owedly Settlements', boards: 5 },
+  { slug: 'kinloom-family', card: 'Kinloom Family', boards: 5 },
+  { slug: 'kanapon-japanese', card: 'Kanapon Japanese', boards: 5 },
   { slug: 'umdo-voice-todo', card: 'Umdo Voice To-Do', boards: 5 },
   { slug: 'paylark-benefits', card: 'Paylark Benefits', boards: 6 },
   { slug: 'signsy-asl', card: 'Signsy ASL', boards: 6 },
