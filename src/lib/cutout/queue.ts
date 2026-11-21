@@ -14,6 +14,8 @@ import {
   PictureChangedError,
   saveLibraryCut,
   setLibraryImageState,
+  settleUnfinishedImage,
+  stillUnfinished,
   unfinishedLibraryImages,
 } from './library';
 import { decodePicture, encodeMask, encodeRgba, thumbnailOf, type WorkingPicture } from './picture';
@@ -151,7 +153,10 @@ async function cutLibraryImage(id: string): Promise<boolean | 'paused'> {
     // A picture restored without its photo is cut from the picture itself,
     // with the settings photoOf leaves it (none of the edge ones). One whose
     // photo changes while it is cut (a backup bringing the real photo down)
-    // is cut once more, from the new photo.
+    // and still waits for its cut is cut once more, from what it is now. One
+    // that has a finished version by then (an edit saved in a window, or a
+    // newer version a backup brought) keeps it: that is the later change,
+    // and this cut goes.
     for (let round = 0; ; round++) {
       const source = await photoOf(id);
       if (!source) throw new Error('The photo is no longer on this device');
@@ -170,10 +175,13 @@ async function cutLibraryImage(id: string): Promise<boolean | 'paused'> {
           rect: files.rect,
           engine: files.engine,
           photo: source.photo,
+          basis: source.row.mediaId,
         });
         break;
       } catch (error) {
-        if (!(error instanceof PictureChangedError) || round > 0) throw error;
+        if (!(error instanceof PictureChangedError)) throw error;
+        if (!(await stillUnfinished(id))) break;
+        if (round > 0) throw error;
       }
     }
     stepListeners.forEach((listener) => listener(id, null, 'done'));
@@ -181,11 +189,10 @@ async function cutLibraryImage(id: string): Promise<boolean | 'paused'> {
     if (error instanceof CutoutWorkerError && error.stopped) {
       // Stopped either way: a picture whose state did not go back to waiting
       // is still `cutting`, which the next run picks up all the same.
-      await setLibraryImageState(id, 'waiting').catch((stateError) => console.error('Putting a picture back in line failed', stateError));
+      await settleUnfinishedImage(id, 'waiting').catch((stateError) => console.error('Putting a picture back in line failed', stateError));
       return 'paused';
     }
     console.error('Cutting a picture failed', error);
-    stepListeners.forEach((listener) => listener(id, null, 'failed'));
     const words = isOutOfRoom(error)
       ? OUT_OF_ROOM
       : error instanceof PictureChangedError
@@ -193,7 +200,10 @@ async function cutLibraryImage(id: string): Promise<boolean | 'paused'> {
         : error instanceof Error
           ? error.message
           : 'The background could not be removed';
-    await setLibraryImageState(id, 'failed', words);
+    // Only a picture still waiting for this cut is marked: one finished
+    // meanwhile keeps its version, and the view hears it is done.
+    const marked = await settleUnfinishedImage(id, 'failed', words);
+    stepListeners.forEach((listener) => listener(id, null, marked ? 'failed' : 'done'));
   }
   return true;
 }

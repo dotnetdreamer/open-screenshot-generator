@@ -55,7 +55,7 @@ function metadataOf(body: string): { name: string; appProperties?: Record<string
 
 test('a picture goes to Drive under its own name, with its media id kept out of sight', async () => {
   const sent = fakeDrive((request) => ({ id: `file-${request.body.length}` }));
-  const state = { manifest: null, mediaIds: new Set<string>(), handle: 'folder-1', files: new Map<string, unknown>() };
+  const state = { lists: [], fenced: true, unreadable: [], mediaIds: new Set<string>(), handle: 'folder-1', files: new Map<string, unknown>() };
   const next = await googleDriveLibrary.upload(session, state, [
     { mediaId: 'asset_1', blob: new Blob(['a'], { type: 'image/png' }), mimeType: 'image/png', name: 'Dog: on grass?' },
     { mediaId: 'libsrc_1', blob: new Blob(['b'], { type: 'image/jpeg' }), mimeType: 'image/jpeg', name: 'Dog: on grass? (photo)' },
@@ -91,11 +91,14 @@ test('reading the folder finds pictures by their appProperties and by the older 
   assert.deepEqual(state.files.get('asset_new'), { fileId: 'f1', name: 'Dog.png', tagged: true });
   assert.deepEqual(state.files.get('asset_old'), { fileId: 'f2', name: 'image__asset_old', tagged: false });
   assert.deepEqual(state.files.get('library.json'), { fileId: 'f3', name: 'library.json', tagged: false });
-  assert.deepEqual(state.manifest, manifest);
+  assert.deepEqual(state.lists, [{ formatVersion: 1, device: 'legacy', updatedAt: 1, seen: {}, images: [], deleted: [] }], 'a list from before the lists, read as one');
+  assert.equal(state.fenced, false);
 });
 
 const folderWith = (files: Array<[string, string, string, boolean]>) => ({
-  manifest: null,
+  lists: [],
+  fenced: true,
+  unreadable: [],
   mediaIds: new Set(files.map(([mediaId]) => mediaId)),
   handle: 'folder-1',
   files: new Map<string, unknown>(files.map(([mediaId, fileId, name, tagged]) => [mediaId, { fileId, name, tagged }])),

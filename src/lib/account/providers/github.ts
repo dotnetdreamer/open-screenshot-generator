@@ -32,6 +32,8 @@ import {
   AccountAuthError,
   AccountBlockedError,
   AccountCancelledError,
+  StorageBusyError,
+  whenNotBusy,
   type AccountSaveOptions,
   type Account,
   type AccountSession,
@@ -41,10 +43,11 @@ import {
   type ProgressFn,
   type ProjectBundle,
   type ProjectManifest,
-  type RemoteLibraryManifest,
+  type RemoteLibraryList,
   type RemoteLibraryState,
   type SignInOptions,
 } from '../types';
+import { deviceOfListFile, FENCE_TEXT, LEGACY_DEVICE, LEGACY_LIST, listFileName, readListFile } from '../libraryFiles';
 import { bridgeFetch, formEncode, randomState, requestJson, throwConnectionFailure, throwIfSignInCancelled } from '../transport';
 import {
   base64ToBlob,
@@ -145,6 +148,8 @@ async function githubJson<T>(
     if (/HTTP 404/.test(message)) {
       throw new Error('That gist no longer exists, or the token cannot see it (needs gist access).');
     }
+    // "Gist cannot be updated": another change to the same gist is under way.
+    if (/HTTP 409/.test(message)) throw new StorageBusyError();
     throw error;
   }
 }
@@ -797,11 +802,12 @@ export const githubProvider: CloudProvider = {
 // project. Only the finished pictures travel: a gist holds 300 files of at most
 // 7.5 MB each once base64 is paid for, and the photos and masks would take two
 // more files a picture. A cut restored from a gist can still be erased with the
-// brush, from its own transparency.
+// brush, from its own transparency. Beside them, each computer's list of the
+// pictures and library.json (src/lib/account/libraryFiles.ts), which count
+// against the 300 files as well.
 
 const LIBRARY_TAG = '[open-screenshot-generator-images]';
 const LIBRARY_DESCRIPTION = `Open Screenshot Generator images ${LIBRARY_TAG}`;
-const LIBRARY_MANIFEST = 'library.json';
 /** Base64 sent per request, kept well under what GitHub takes in one body. */
 const LIBRARY_BATCH_BYTES = 6 * 1024 * 1024;
 
@@ -810,17 +816,34 @@ async function libraryGist(session: AccountSession): Promise<Gist | null> {
   return found ? githubJson<Gist>(session, `/gists/${found.id}`) : null;
 }
 
-function stateOf(gist: Gist, manifest: RemoteLibraryManifest | null): RemoteLibraryState {
+/** The pictures' gist as the library sees it: the files by media id, and the lists, read. */
+async function stateOf(gist: Gist): Promise<RemoteLibraryState> {
   const files = new Map<string, unknown>();
   const mediaIds = new Set<string>();
+  const lists: RemoteLibraryList[] = [];
+  const unreadable: string[] = [];
+  let fenced = false;
   for (const [name, file] of Object.entries(gist.files ?? {})) {
     const id = mediaIdFromFileName(name);
     if (id) {
       mediaIds.add(id);
       files.set(id, file);
+      continue;
     }
+    if (name !== LEGACY_LIST && !deviceOfListFile(name)) continue;
+    files.set(name, file);
+    const read = readListFile(name, await readGistFile(file));
+    if (read.kind === 'list') lists.push(read.list);
+    else if (read.kind === 'fence') fenced = true;
+    else unreadable.push(name);
   }
-  return { manifest, mediaIds, handle: gist.id, files };
+  return { lists, fenced, unreadable, mediaIds, handle: gist.id, files };
+}
+
+/** One change to the pictures' gist, a moment later while another computer's change is under way. */
+function patchGist(session: AccountSession, handle: string, files: Record<string, { content: string } | null>): Promise<Gist> {
+  const body = JSON.stringify({ files });
+  return whenNotBusy(() => githubJson<Gist>(session, `/gists/${handle}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body }));
 }
 
 export const githubLibrary: LibraryRemote = {
@@ -828,13 +851,16 @@ export const githubLibrary: LibraryRemote = {
 
   async read(session) {
     const gist = await libraryGist(session);
-    if (!gist) return { manifest: null, mediaIds: new Set(), handle: null, files: new Map() };
-    const manifestFile = gist.files?.[LIBRARY_MANIFEST];
-    const manifest = manifestFile ? (JSON.parse(await readGistFile(manifestFile)) as RemoteLibraryManifest) : null;
-    return stateOf(gist, manifest);
+    if (!gist) return { lists: [], fenced: false, unreadable: [], mediaIds: new Set(), handle: null, files: new Map() };
+    return stateOf(gist);
   },
 
-  async upload(session, state, files, onProgress) {
+  async refresh(session, state) {
+    return state.handle ? stateOf(await githubJson<Gist>(session, `/gists/${state.handle}`)) : githubLibrary.read(session);
+  },
+
+  async upload(session, state, files, options = {}) {
+    const { onProgress, kept, device } = options;
     const todo = files.filter((file) => !state.mediaIds.has(file.mediaId));
     const tooBig = todo.find((file) => file.blob.size > MAX_GIST_RAW_BYTES);
     if (tooBig) {
@@ -842,21 +868,30 @@ export const githubLibrary: LibraryRemote = {
         `One picture is ${formatBytes(tooBig.blob.size)}, over the ${formatBytes(MAX_GIST_RAW_BYTES)} a gist holds in one file. Back up to Google Drive instead`
       );
     }
-    if (state.mediaIds.size + todo.length > MAX_GIST_MEDIA_FILES) {
-      throw new AccountBlockedError(`A gist holds ${MAX_GIST_MEDIA_FILES} pictures. Back up to Google Drive to keep more`);
+    // Counted as the gist will be once the sync is done: a changed picture's
+    // new file in, its old one out. Counting both would refuse a change to
+    // any picture once the gist is full. library.json and each computer's
+    // list take a file each, this computer's included.
+    const lists = new Set([...state.files.keys()].filter((name) => deviceOfListFile(name)));
+    if (device) lists.add(listFileName(device));
+    const room = MAX_GIST_FILES - 1 - Math.max(1, lists.size);
+    const after = new Set(kept ? [...state.mediaIds].filter((id) => kept.has(id)) : state.mediaIds);
+    for (const file of todo) after.add(file.mediaId);
+    if (todo.length && after.size > room) {
+      throw new AccountBlockedError(`A gist holds ${room} pictures. Back up to Google Drive to keep more`);
     }
     let handle = state.handle;
+    let { fenced } = state;
     if (!handle) {
+      // A new gist has no list from before to keep, so library.json starts
+      // as the note: a build from before that finds the gist stops at it.
       const created = await githubJson<Gist>(session, '/gists', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          description: LIBRARY_DESCRIPTION,
-          public: false,
-          files: { [LIBRARY_MANIFEST]: { content: JSON.stringify({ formatVersion: 1, updatedAt: Date.now(), images: [], deleted: [] }) } },
-        }),
+        body: JSON.stringify({ description: LIBRARY_DESCRIPTION, public: false, files: { [LEGACY_LIST]: { content: FENCE_TEXT } } }),
       });
       handle = created.id;
+      fenced = true;
     }
     const mediaIds = new Set(state.mediaIds);
     let batch: Record<string, { content: string }> = {};
@@ -864,11 +899,9 @@ export const githubLibrary: LibraryRemote = {
     let sent = 0;
     const flush = async () => {
       if (!Object.keys(batch).length) return;
-      await githubJson<Gist>(session, `/gists/${handle}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ files: batch }),
-      });
+      // Another computer backing up the same gist this moment: its change
+      // takes a second or two, and the same files go again after it.
+      await patchGist(session, handle as string, batch);
       batch = {};
       batchBytes = 0;
     };
@@ -882,19 +915,28 @@ export const githubLibrary: LibraryRemote = {
       onProgress?.(`Sending picture ${sent} of ${todo.length}`, sent / (todo.length + 1));
     }
     await flush();
+    if (!todo.length && handle === state.handle) return state;
     // The file list again, so a download right after finds the new files.
-    const gist = await githubJson<Gist>(session, `/gists/${handle}`);
-    return { ...stateOf(gist, state.manifest), mediaIds: new Set([...mediaIds, ...stateOf(gist, null).mediaIds]) };
+    const fresh = await stateOf(await githubJson<Gist>(session, `/gists/${handle}`));
+    return { ...fresh, fenced: fresh.fenced || fenced, mediaIds: new Set([...mediaIds, ...fresh.mediaIds]) };
   },
 
-  async writeManifest(session, state, manifest) {
+  async writeList(session, state, list, options = {}) {
     if (!state.handle) throw new Error('The pictures gist is missing');
-    await githubJson<Gist>(session, `/gists/${state.handle}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ files: { [LIBRARY_MANIFEST]: { content: JSON.stringify(manifest) } } }),
+    const name = listFileName(list.device);
+    // One change, so the note never takes library.json's place before the
+    // list that took in its pictures is there.
+    const fence = !!options.fence && !state.fenced;
+    const written = await patchGist(session, state.handle, {
+      [name]: { content: JSON.stringify(list) },
+      ...(fence ? { [LEGACY_LIST]: { content: FENCE_TEXT } } : {}),
     });
-    return { ...state, manifest };
+    const files = new Map(state.files);
+    const file = written?.files?.[name];
+    if (file) files.set(name, file);
+    const fenced = state.fenced || fence;
+    const lists = [...state.lists.filter((other) => other.device !== list.device && !(fenced && other.device === LEGACY_DEVICE)), list];
+    return { ...state, lists, fenced, files };
   },
 
   async download(_session, state, mediaId, mimeType) {
@@ -909,16 +951,59 @@ export const githubLibrary: LibraryRemote = {
     for (const id of mediaIds) files[mediaFileName(id)] = null;
     // One request takes them all out, so when it fails they are all still there.
     try {
-      await githubJson(session, `/gists/${state.handle}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ files }),
-      });
+      await patchGist(session, state.handle, files);
       return [];
     } catch (error) {
       if (error instanceof AccountAuthError) throw error;
       console.error('Taking pictures out of the gist failed', error);
       return mediaIds;
     }
+  },
+
+  async restore(session, from, mediaIds) {
+    if (!from.handle || mediaIds.length === 0) return [];
+    const left: string[] = [];
+    let batch: Record<string, { content: string }> = {};
+    let ids: string[] = [];
+    let batchBytes = 0;
+    const flush = async () => {
+      if (!ids.length) return;
+      try {
+        await patchGist(session, from.handle as string, batch);
+      } catch (error) {
+        if (error instanceof AccountAuthError) throw error;
+        console.error('Putting pictures back into the gist failed', error);
+        left.push(...ids);
+      }
+      batch = {};
+      ids = [];
+      batchBytes = 0;
+    };
+    for (const mediaId of mediaIds) {
+      // The file as `from` read it: its text came with the gist, or its raw
+      // address names that version of the gist, which GitHub keeps.
+      const file = from.files.get(mediaId) as GistFile | undefined;
+      let content: string;
+      try {
+        if (!file) throw new Error('Not read before');
+        content = await readGistFile(file);
+      } catch (error) {
+        if (error instanceof AccountAuthError) throw error;
+        console.error('Reading a picture taken out of the gist failed', mediaId, error);
+        left.push(mediaId);
+        continue;
+      }
+      if (batchBytes + content.length > LIBRARY_BATCH_BYTES) await flush();
+      batch[mediaFileName(mediaId)] = { content };
+      ids.push(mediaId);
+      batchBytes += content.length;
+    }
+    await flush();
+    return left;
+  },
+
+  async dropLists(session, state, devices) {
+    if (!state.handle || devices.length === 0) return;
+    await patchGist(session, state.handle, Object.fromEntries(devices.map((device) => [listFileName(device), null])));
   },
 };

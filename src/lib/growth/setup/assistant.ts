@@ -22,7 +22,7 @@ import { useSyncExternalStore } from 'react';
 import { parseServiceAccount } from '@/lib/publish/googlePlay';
 import type { AppStoreCredentials, PlayCredentials } from '@/lib/publish/types';
 import type { GrowthStore } from '../stores';
-import { growthBrowser, onKeyFile, type BrowserPort, type CaughtKeyFile } from './browser';
+import { growthBrowser, onDownloadRefused, onDownloadStarted, onKeyFile, type BrowserPort, type CaughtKeyFile } from './browser';
 import {
   isBareAnswer,
   issuerIdOnPage,
@@ -117,11 +117,13 @@ export interface AssistantSnapshot {
   items: ChatItem[];
   phase: AssistantPhase;
   running: boolean;
+  /** A first message waiting for the assistant to be ready (askWhenReady, startSeoSetup). */
+  pending: string | null;
 }
 
 // --- the store -------------------------------------------------------------------------
 
-let snapshot: AssistantSnapshot = { items: [], phase: 'idle', running: false };
+let snapshot: AssistantSnapshot = { items: [], phase: 'idle', running: false, pending: null };
 const listeners = new Set<() => void>();
 let env: AssistantEnv | null = null;
 let serial = 0;
@@ -131,13 +133,105 @@ let events: string[] = [];
 /** Pages, copies, messages and file names: where a value has to appear to be saved. */
 let seen: string[] = [];
 let lastPage: PageSnapshot | null = null;
-const keyFiles: { apple: CaughtKeyFile[]; play: CaughtKeyFile[] } = { apple: [], play: [] };
+
+/** The job and conversation a key file is for: where its download started, or where the user added it. */
+interface KeyOwner {
+  job: 'stores' | 'seo';
+  conversation: number;
+}
+
+/** A key file the app holds, with whom it's for. */
+type HeldKey = CaughtKeyFile & { owner: KeyOwner };
+
+/**
+ * Key files waiting to be saved. Only the store setup's own files are here:
+ * a file made for SEO goes to SEO, and one nobody can place is never kept.
+ */
+const keyFiles: { apple: HeldKey[]; play: HeldKey[] } = { apple: [], play: [] };
+/** Key files kept for another job or a later conversation (addKeyFile), which New chat doesn't drop. */
+const heldFiles = new WeakSet<CaughtKeyFile>();
+/** A key made for SEO that arrived while the SEO view had nothing to save it to (configureSeoSetup). */
+let seoWaiting: CaughtKeyFile | null = null;
 let controller: AbortController | null = null;
 let approval: { id: string; resolve: (allowed: boolean) => void } | null = null;
 let waiting: { id: string; resolve: (what: string) => void; fileKind?: 'apple' | 'play' } | null = null;
 let wakeAfter = false;
 /** The user wrote while a turn was under way, so the loop owes an answer. */
 let unanswered = false;
+
+/** The job the conversation is on: the stores, or Google for the SEO view (startSeoSetup). */
+let goal: 'stores' | 'seo' = 'stores';
+
+/** The conversation on screen: one more with every New chat. */
+let conversation = 0;
+
+/**
+ * The conversation and job each browser download started in, by the
+ * browser's number for it. A key file belongs to the job that asked for it,
+ * not to whatever conversation is on screen when the download ends. An entry
+ * goes when its download ends either way (onKeyFile, onDownloadRefused).
+ */
+const downloadOrigins = new Map<number, KeyOwner>();
+/**
+ * More downloads under way than anyone makes. Past it the oldest is
+ * forgotten, and a file nobody can place is never saved (addKeyFile).
+ */
+const MAX_DOWNLOADS = 64;
+
+/** The browser started a key download (growth_browser.rs sends its number). */
+export function noteDownloadStarted(id: number): void {
+  downloadOrigins.set(id, { job: goal, conversation });
+  if (downloadOrigins.size > MAX_DOWNLOADS) downloadOrigins.delete(downloadOrigins.keys().next().value as number);
+}
+
+/** A download the browser started ended without a key file (growth_browser.rs). */
+export function noteDownloadEnded(id: number): void {
+  downloadOrigins.delete(id);
+}
+
+/** Actions that change Growth's store setup, which the SEO job never takes. */
+const STORE_ACTIONS = new Set<AssistantAction['do']>(['save_apple_key', 'save_vendor_number', 'save_play_key', 'save_reports_uri', 'set_stores', 'refresh']);
+/** Actions that change the SEO view's Google setup, taken in its job only. */
+const SEO_ACTIONS = new Set<AssistantAction['do']>(['use_growth_key_for_seo', 'save_seo_api_key']);
+
+/** What the SEO view knows about its Google setup. */
+export interface SeoSetupFacts {
+  /** The website the SEO view has on screen, null when it has none online. */
+  siteUrl: string | null;
+  /** The key SEO uses, where it came from, and its Google Cloud project. */
+  key: { email: string; from: 'seo' | 'growth'; projectId: string | null } | null;
+  /** Growth's Google Play key, which SEO can use too. */
+  growthKey: { email: string; projectId: string | null } | null;
+  apiKey: boolean;
+}
+
+/**
+ * The SEO view's side of its setup job: what it knows, and the saves it
+ * makes. The SEO view hands it over when it opens; with none, the job can't
+ * start. Kept apart from AssistantEnv, which Growth hands over on every render.
+ */
+export interface SeoSetupPort {
+  facts(): SeoSetupFacts;
+  saveKey(json: string): void;
+  useGrowthKey(): void;
+  saveApiKey(value: string): void;
+}
+
+let seoPort: SeoSetupPort | null = null;
+
+export function configureSeoSetup(port: SeoSetupPort | null): void {
+  seoPort = port;
+  // A key made for SEO before the SEO view could take it.
+  if (port && seoWaiting) {
+    const file = seoWaiting;
+    seoWaiting = null;
+    saveSeoKey(file, ', kept until the SEO view opened');
+  }
+}
+
+export function assistantGoal(): 'stores' | 'seo' {
+  return goal;
+}
 /** New chat was pressed during a turn: the conversation empties once the turn has stopped. */
 let resetAfter = false;
 /** Prompts left before the user has to do something (MAX_STEPS). */
@@ -185,7 +279,7 @@ export function assistantSnapshot(): AssistantSnapshot {
   return snapshot;
 }
 
-const SERVER_SNAPSHOT: AssistantSnapshot = { items: [], phase: 'idle', running: false };
+const SERVER_SNAPSHOT: AssistantSnapshot = { items: [], phase: 'idle', running: false, pending: null };
 
 export function useAssistant(): AssistantSnapshot {
   return useSyncExternalStore(subscribeAssistant, assistantSnapshot, () => SERVER_SNAPSHOT);
@@ -209,13 +303,64 @@ export function setAssistantBrowser(port: BrowserPort): void {
   browser = port;
 }
 
+/**
+ * A turn was asked for before Growth handed anything over. React runs the
+ * Ask screen's effects before Growth's own on the first mount, so a message
+ * sent from there (an insight's question, SEO's Google setup) comes first.
+ */
+let runWhenReady = false;
+
+/**
+ * A first message for when the assistant can answer: Growth says "Loading"
+ * for a moment after it opens, and finding Claude Code or Codex can take
+ * longer than the Ask screen takes to show. `goal` starts a new conversation
+ * on that job; without one, the message joins the conversation on screen.
+ */
+let pendingStart: { message: string; goal?: 'seo' } | null = null;
+
+function setPending(next: typeof pendingStart): void {
+  pendingStart = next;
+  if (snapshot.pending !== (next?.message ?? null)) publish({ pending: next?.message ?? null });
+}
+
+/** Send the waiting first message, once nothing stands in the way. */
+function startPending(): void {
+  if (!pendingStart || !env || env.reason || snapshot.running) return;
+  const next = pendingStart;
+  setPending(null);
+  if (next.goal) {
+    reset();
+    goal = next.goal;
+  }
+  sendMessage(next.message);
+}
+
+/**
+ * Ask `message` as soon as the assistant can answer, rather than now: the
+ * Ask screen calls this for a question handed over from elsewhere, and its
+ * effect can run before Growth has said the AI is ready.
+ */
+export function askWhenReady(message: string): void {
+  setPending({ message });
+  startPending();
+}
+
 /** Growth hands over what it knows and can do, on every render. */
 export function configureAssistant(next: AssistantEnv): void {
   env = next;
   if (!hearingKeyFiles) {
     hearingKeyFiles = true;
     onKeyFile(addKeyFile);
+    onDownloadStarted(({ id }) => noteDownloadStarted(id));
+    onDownloadRefused(({ id }) => {
+      if (id !== undefined) noteDownloadEnded(id);
+    });
   }
+  if (runWhenReady) {
+    runWhenReady = false;
+    queueMicrotask(() => void run());
+  }
+  if (pendingStart) queueMicrotask(startPending);
 }
 
 function stopped(): DOMException {
@@ -269,6 +414,22 @@ export function statusText(facts: SetupFacts, files: typeof keyFiles = keyFiles)
   return lines.join('\n');
 }
 
+/** The SEO job's lines of the status, first, so the model knows which job it is on. */
+export function seoStatusText(facts: SeoSetupFacts): string {
+  const lines = ['The job now: set up Google for the SEO view (Search Console, Analytics and PageSpeed), not the stores.'];
+  lines.push(facts.siteUrl ? `The website: ${facts.siteUrl}` : 'The website: not online yet, so Search Console and Analytics have nothing to read until it is.');
+  lines.push(
+    facts.key
+      ? `SEO's Google key: saved, ${facts.key.email}${facts.key.from === 'growth' ? " (Growth's Google Play key)" : ''}${facts.key.projectId ? `, Google Cloud project ${facts.key.projectId}` : ''}.`
+      : 'SEO\'s Google key: not saved.'
+  );
+  if (!facts.key) {
+    lines.push(facts.growthKey ? `Growth has a Google Play key, ${facts.growthKey.email}${facts.growthKey.projectId ? ` in project ${facts.growthKey.projectId}` : ''}; use_growth_key_for_seo uses it.` : 'Growth has no Google Play key.');
+  }
+  lines.push(facts.apiKey ? 'Google API key for SEO: saved.' : 'Google API key for SEO: not saved.');
+  return lines.join('\n');
+}
+
 // --- key files ----------------------------------------------------------------------
 
 function playEmail(content: string): string | null {
@@ -280,7 +441,10 @@ function playEmail(content: string): string | null {
 }
 
 function saveApple(keyId: string, issuerId: string): boolean {
-  const file = keyFiles.apple.find((entry) => keyIdFromFileName(entry.fileName) === keyId) ?? (keyFiles.apple.length === 1 ? keyFiles.apple[0] : null);
+  // The file named for this Key ID, or the only one held when its name doesn't say (a renamed file).
+  // Never another key's file: its private key under this Key ID couldn't sign anything.
+  const only = keyFiles.apple.length === 1 && !keyIdFromFileName(keyFiles.apple[0].fileName) ? keyFiles.apple[0] : null;
+  const file = keyFiles.apple.find((entry) => keyIdFromFileName(entry.fileName) === keyId) ?? only;
   if (!file || !env) return false;
   env.saveAppleKey({ issuerId, keyId, privateKey: file.content });
   keyFiles.apple = keyFiles.apple.filter((entry) => entry !== file);
@@ -289,7 +453,8 @@ function saveApple(keyId: string, issuerId: string): boolean {
 }
 
 function savePlay(packageName: string): boolean {
-  const file = keyFiles.play[keyFiles.play.length - 1];
+  // Only a file the store setup asked for, or one the user added there.
+  const file = keyFiles.play.filter((entry) => entry.owner.job === 'stores').pop();
   if (!file || !env) return false;
   env.savePlayKey({ serviceAccountJson: file.content, packageName });
   keyFiles.play = [];
@@ -302,23 +467,75 @@ function savePlay(packageName: string): boolean {
   return true;
 }
 
+/** SEO's own key: saved for SEO, never for Google Play. */
+function saveSeoKey(file: CaughtKeyFile, how = ''): void {
+  const email = playEmail(file.content) ?? file.fileName;
+  if (!seoPort) {
+    seoWaiting = file;
+    add({ kind: 'key-file', fileName: file.fileName, detail: `${email}. Kept for SEO, saved when the SEO view opens` });
+    events.push(`A service account key file arrived for ${email}, made for SEO. It's saved for SEO when the SEO view opens, and never for Google Play.`);
+    return;
+  }
+  seoPort.saveKey(file.content);
+  add({ kind: 'saved', title: 'Google key saved for SEO', detail: `${email}${how}. The key file stays on this computer` });
+  events.push(`The app saved the service account key ${email} for SEO. Growth's Google Play key, if any, is untouched.`);
+}
+
+/**
+ * Whom a key file is for. A download is the job's and the conversation's it
+ * started in (noteDownloadStarted), a file the user adds is for the job on
+ * screen, and a download the app has no start for is nobody's: it is never
+ * saved, so it can't land in the wrong place.
+ */
+function ownerOf(file: CaughtKeyFile, from: 'browser' | 'user'): KeyOwner | null {
+  if (from === 'user') return { job: goal, conversation };
+  if (file.downloadId === undefined) return null;
+  const origin = downloadOrigins.get(file.downloadId) ?? null;
+  downloadOrigins.delete(file.downloadId);
+  return origin;
+}
+
 /**
  * A key file from the browser, from the user's own disk (`from` "user"), or
- * pasted into the chat. Saved at once when the app has everything else it
- * needs.
+ * pasted into the chat. Saved at once only in the conversation and the job
+ * that asked for it, when the app has everything else it needs. A key made
+ * for SEO goes to SEO whenever it arrives. Anything else is kept unsaved for
+ * the store setup. A download the app has no start for, Apple's or
+ * Google's, is nobody's: it's dropped with a notice, never kept or saved.
  */
 export function addKeyFile(file: CaughtKeyFile, from: 'browser' | 'user' = 'browser'): void {
   if (from === 'user') userActed();
+  const owner = ownerOf(file, from);
+  const here = owner !== null && owner.conversation === conversation && owner.job === goal;
   if (file.kind === 'apple-key') {
     if (!/-----BEGIN [A-Z ]*PRIVATE KEY-----/.test(file.content)) {
       add({ kind: 'notice', tone: 'error', text: `${file.fileName} has no private key in it` });
       return;
     }
-    keyFiles.apple = [...keyFiles.apple.filter((entry) => entry.fileName !== file.fileName), file].slice(-3);
+    if (!owner) {
+      // Nobody can say which setup asked for it, so it's kept nowhere, as a Google key isn't either.
+      add({ kind: 'notice', tone: 'error', text: `${file.fileName} wasn't kept: the app couldn't tell which setup asked for it. Revoke it in App Store Connect and make a new one from this chat` });
+      events.push(`An App Store Connect key file, ${file.fileName}, arrived, but the app couldn't tell which setup asked for it, so it kept nothing. Apple lets a key be downloaded only once: ask the developer to revoke it in App Store Connect and make a new one here.`);
+      wake('added a key file', 'apple');
+      return;
+    }
+    // An App Store key is only ever the store setup's, whichever job its download started in.
+    const held: HeldKey = { ...file, owner };
+    keyFiles.apple = [...keyFiles.apple.filter((entry) => entry.fileName !== file.fileName), held].slice(-3);
     const keyId = keyIdFromFileName(file.fileName);
     remember(file.fileName);
     // The Key ID on its own, so it counts as read (seenIn wants it whole).
     if (keyId) remember(`Key ID ${keyId}`);
+    if (!here || goal !== 'stores') {
+      // Held, not saved: it downloads only once, and saving it is the store conversation's to do.
+      heldFiles.add(held);
+      add({ kind: 'key-file', fileName: file.fileName, detail: 'Kept for the App Store setup, not saved yet' });
+      events.push(
+        `The key file ${file.fileName} arrived${owner && owner.conversation !== conversation ? ' from an earlier conversation' : ''}. The app keeps it and saves nothing on its own; a conversation about the stores can save it with save_apple_key.`
+      );
+      wake('added a key file', 'apple');
+      return;
+    }
     const issuerId = issuerIdOnPage(lastPage?.text ?? '') ?? env?.facts().appleKey?.issuerId ?? null;
     if (keyId && issuerId && saveApple(keyId, issuerId)) {
       events.push(`The app saved the App Store Connect API key from ${file.fileName}, with Issuer ID ${issuerId}.`);
@@ -334,8 +551,34 @@ export function addKeyFile(file: CaughtKeyFile, from: 'browser' | 'user' = 'brow
       add({ kind: 'notice', tone: 'error', text: `${file.fileName} is not a service account key` });
       return;
     }
-    keyFiles.play = [file];
     remember(email);
+    if (owner?.job === 'seo') {
+      // SEO's own key, even after New chat: the Google Play key stays as it is.
+      saveSeoKey(file, owner.conversation !== conversation ? ', from the Google setup before New chat' : '');
+      wake('added a key file', 'play');
+      return;
+    }
+    if (!owner) {
+      // Google Play's or SEO's, nobody can say, so it is saved nowhere and kept nowhere.
+      add({ kind: 'notice', tone: 'error', text: `${file.fileName} wasn't saved: the app couldn't tell which setup it was made for. Make the key again from that setup` });
+      events.push(`A service account key file arrived for ${email}, but the app couldn't tell which setup asked for it, so it saved nothing and kept nothing. Ask the developer to make the key again from the setup that needs it.`);
+      wake('added a key file', 'play');
+      return;
+    }
+    const held: HeldKey = { ...file, owner };
+    keyFiles.play = [held];
+    if (!here) {
+      // The store setup's key, from an earlier conversation or during the SEO job: kept, not saved.
+      heldFiles.add(held);
+      add({ kind: 'key-file', fileName: file.fileName, detail: `${email}. Not saved yet` });
+      events.push(
+        goal === 'seo'
+          ? `A service account key file arrived for ${email} from the store setup. This job doesn't save Google Play keys, so the app keeps it unsaved.`
+          : `A service account key file arrived for ${email} from an earlier conversation. It isn't saved: if the developer wants it for Google Play, save it with save_play_key and the app's package name.`
+      );
+      wake('added a key file', 'play');
+      return;
+    }
     const packageName = env?.facts().playKey?.packageName ?? null;
     if (packageName && savePlay(packageName)) {
       events.push(`The app saved the service account key ${email} for ${packageName}.`);
@@ -537,9 +780,18 @@ async function step(
 async function performOne(action: AssistantAction, signal: AbortSignal): Promise<Outcome> {
   const current = env;
   if (!current) return 'stop';
+  // Each job changes only its own setup, whatever the answer asks for.
+  if (goal === 'seo' && (STORE_ACTIONS.has(action.do) || (action.do === 'ask_for_key_file' && action.kind === 'apple'))) {
+    return failed(
+      `${action.do}: refused. This job sets up Google for the SEO view and never changes Growth's store keys or settings. For those, the developer starts a new chat.`
+    );
+  }
+  if (goal !== 'seo' && SEO_ACTIONS.has(action.do)) {
+    return failed(`${action.do}: refused outside the SEO view's Google setup. The developer starts it from SEO, Setup, Set up with Ask AI.`);
+  }
   switch (action.do) {
     case 'open': {
-      if (!mayOpen(action.url)) return failed(`open ${action.url}: not allowed. Only the App Store Connect, Google Cloud and Play Console sites open here.`);
+      if (!mayOpen(action.url)) return failed(`open ${action.url}: not allowed. Only the App Store Connect, Google Cloud, Play Console, Search Console and Google Analytics sites open here.`);
       const done = await step('open', `Opened ${host(action.url)}`, async () => {
         if (browser.state().open) await browser.go(action.url);
         else await browser.open(action.url);
@@ -555,7 +807,8 @@ async function performOne(action: AssistantAction, signal: AbortSignal): Promise
       if (!control?.ok) return failed(`click [${action.ref}]: ${control?.error ?? 'that control is no longer on the page'}. Read the page again.`);
       const name = control.name || `control ${action.ref}`;
       const dialog = control.dialog || null;
-      const verdict = judgeClick(name, action.changes, { dialog });
+      // The SEO job asks before any button whatever it says (policy.ts, strict).
+      const verdict = judgeClick(name, action.changes, { dialog, role: control.role ?? null, strict: goal === 'seo' });
       // "OK" says nothing by itself, so the question names its dialog.
       const refusal = await allowed(verdict, `click [${action.ref}] "${name}"`, signal, 'press', dialog && isBareAnswer(name) ? dialog : null);
       if (refusal) return refusal;
@@ -680,7 +933,7 @@ async function performOne(action: AssistantAction, signal: AbortSignal): Promise
         events.push(`save_play_key: Growth now reads ${packageName} with the saved key`);
         return 'continue';
       }
-      savePlay(packageName);
+      if (!savePlay(packageName)) return failed('save_play_key: the app holds no key file made for Google Play.');
       events.push(`save_play_key: saved the key for ${packageName}`);
       return 'continue';
     }
@@ -712,6 +965,25 @@ async function performOne(action: AssistantAction, signal: AbortSignal): Promise
         })
         .finally(() => wake('saw a refresh end'));
       return 'done';
+    }
+    case 'use_growth_key_for_seo': {
+      if (!seoPort) return failed('use_growth_key_for_seo: the SEO view is not open. Ask the developer to open SEO and press Set up with Ask AI.');
+      const growthKey = seoPort.facts().growthKey;
+      if (!growthKey) return failed('use_growth_key_for_seo: Growth has no Google Play key to use. Make a key for SEO instead.');
+      seoPort.useGrowthKey();
+      add({ kind: 'saved', title: 'SEO uses the Google Play key', detail: growthKey.email });
+      events.push(`use_growth_key_for_seo: SEO now reads Google as ${growthKey.email}`);
+      return 'continue';
+    }
+    case 'save_seo_api_key': {
+      if (!seoPort) return failed('save_seo_api_key: the SEO view is not open. Ask the developer to open SEO and press Set up with Ask AI.');
+      const value = action.value.trim();
+      if (!valid.googleApiKey(value)) return failed('save_seo_api_key: that is not a Google API key, which starts with AIza and has 39 characters.');
+      if (!seenIn(value, seen)) return failed('save_seo_api_key: that key is not on any page you read. Copy it exactly from the page.');
+      seoPort.saveApiKey(value);
+      add({ kind: 'saved', title: 'Google API key saved for SEO', detail: `${value.slice(0, 6)}...${value.slice(-4)}` });
+      events.push('save_seo_api_key: saved');
+      return 'continue';
     }
     case 'close_browser':
       await browser.close();
@@ -754,7 +1026,11 @@ async function readBrowser(): Promise<string | null> {
 }
 
 async function run(): Promise<void> {
-  if (snapshot.running || !env) return;
+  if (!env) {
+    runWhenReady = true;
+    return;
+  }
+  if (snapshot.running) return;
   if (env.reason) {
     add({ kind: 'notice', tone: 'error', text: env.reason });
     return;
@@ -773,7 +1049,7 @@ async function run(): Promise<void> {
       publish({ phase: 'thinking' });
       const numbers = current.numbers();
       const prompt = turnPrompt({
-        status: statusText(current.facts()),
+        status: goal === 'seo' && seoPort ? `${seoStatusText(seoPort.facts())}\n${statusText(current.facts())}` : statusText(current.facts()),
         events,
         page,
         transcript,
@@ -815,11 +1091,13 @@ async function run(): Promise<void> {
       resetAfter = false;
       wakeAfter = false;
       reset();
-    } else if (wakeAfter && !stop.signal.aborted) {
+    } else if (wakeAfter && !stop.signal.aborted && !pendingStart) {
       wakeAfter = false;
       queueMicrotask(() => void run());
     }
     wakeAfter = false;
+    // A first message that waited for this turn to stop (startSeoSetup) goes now.
+    if (pendingStart) queueMicrotask(startPending);
   }
 }
 
@@ -860,15 +1138,26 @@ export function stopAssistant(): void {
 }
 
 function reset(): void {
+  goal = 'stores';
+  conversation += 1;
   transcript.length = 0;
   events = [];
   seen = [];
   lastPage = null;
-  keyFiles.apple = [];
-  keyFiles.play = [];
+  // A file kept for another job stays until it's saved: an App Store key downloads only once.
+  keyFiles.apple = keyFiles.apple.filter((file) => heldFiles.has(file));
+  keyFiles.play = keyFiles.play.filter((file) => heldFiles.has(file));
   unanswered = false;
   budget = MAX_STEPS;
   publish({ items: [], phase: 'idle' });
+}
+
+/** Unit tests only: forget the key files kept for another job, and the downloads under way. */
+export function forgetHeldKeyFiles(): void {
+  keyFiles.apple = [];
+  keyFiles.play = [];
+  seoWaiting = null;
+  downloadOrigins.clear();
 }
 
 /**
@@ -876,10 +1165,31 @@ function reset(): void {
  * nothing it was still writing lands in the new one. The browser stays as it is.
  */
 export function newConversation(): void {
+  // A first message still waiting for the AI is dropped with the rest.
+  setPending(null);
   if (snapshot.running) {
     resetAfter = true;
     controller?.abort();
     return;
   }
   reset();
+}
+
+/** What the developer says, for them, to start the SEO view's Google setup. */
+export const SEO_SETUP_MESSAGE = 'Help me connect Google for my website: Search Console, Analytics and PageSpeed.';
+
+/**
+ * Start the SEO view's Google setup: a new conversation on that job, with
+ * the developer's first message sent for them. It waits until the assistant
+ * can answer, however long finding the AI takes (the Ask screen shows it
+ * waiting), and a turn under way is stopped first.
+ */
+export function startSeoSetup(): void {
+  if (!seoPort) return;
+  setPending({ message: SEO_SETUP_MESSAGE, goal: 'seo' });
+  if (snapshot.running) {
+    controller?.abort();
+    return;
+  }
+  startPending();
 }

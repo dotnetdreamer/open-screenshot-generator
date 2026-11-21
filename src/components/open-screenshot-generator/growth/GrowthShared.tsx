@@ -44,6 +44,8 @@ export type GrowthTab =
   | 'connect';
 
 export interface GrowthTabOptions {
+  /** Ask AI: start on this setup job instead of the stores, as SEO's "Set up with Ask AI" does. */
+  setupGoal?: 'seo';
   /** Reviews: open with this filter. */
   reviewRating?: number;
   reviewUnanswered?: boolean;

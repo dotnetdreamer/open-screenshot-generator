@@ -1,0 +1,2781 @@
+{
+  "id": "template_kanapon_japanese",
+  "name": "Kanapon Japanese",
+  "description": "App Store & Play Store screenshots for a Japanese learning, kana flashcard or language app. White and warm yellow artboards with thick black outlines, hard sticker shadows, red label pills and bold Poppins headlines, led by Pon, an original daruma mascot in six poses. Kana word tags float around an outlined phone, audio tiles pop out of a listening quiz, hiragana tiles unlock row by row, quiz answers lift off the screen, and a goal board shows the daruma custom of painting one eye when you start and the other when you get there. A faint wave pattern, laurel stats and every sticker are shapes you can recolor, and every part sits in a named layer group.",
+  "previewImage": "/data/projects/previews/kanapon-japanese.png",
+  "timestamp": "2026-11-21T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "kp-board-1",
+      "name": "Hello Japanese Free Forever",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "kp-b1-pattern-top",
+          "type": "shape",
+          "name": "Wave pattern",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1206,
+            "height": 201
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.085,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 67 A67 67 0 0 1 134 67 M28.1 67 A38.9 38.9 0 0 1 105.9 67 M134 67 A67 67 0 0 1 268 67 M162.1 67 A38.9 38.9 0 0 1 239.9 67 M268 67 A67 67 0 0 1 402 67 M296.1 67 A38.9 38.9 0 0 1 373.9 67 M402 67 A67 67 0 0 1 536 67 M430.1 67 A38.9 38.9 0 0 1 507.9 67 M536 67 A67 67 0 0 1 670 67 M564.1 67 A38.9 38.9 0 0 1 641.9 67 M670 67 A67 67 0 0 1 804 67 M698.1 67 A38.9 38.9 0 0 1 775.9 67 M804 67 A67 67 0 0 1 938 67 M832.1 67 A38.9 38.9 0 0 1 909.9 67 M938 67 A67 67 0 0 1 1072 67 M966.1 67 A38.9 38.9 0 0 1 1043.9 67 M1072 67 A67 67 0 0 1 1206 67 M1100.1 67 A38.9 38.9 0 0 1 1177.9 67 M-67 134 A67 67 0 0 1 67 134 M-38.9 134 A38.9 38.9 0 0 1 38.9 134 M67 134 A67 67 0 0 1 201 134 M95.1 134 A38.9 38.9 0 0 1 172.9 134 M201 134 A67 67 0 0 1 335 134 M229.1 134 A38.9 38.9 0 0 1 306.9 134 M335 134 A67 67 0 0 1 469 134 M363.1 134 A38.9 38.9 0 0 1 440.9 134 M469 134 A67 67 0 0 1 603 134 M497.1 134 A38.9 38.9 0 0 1 574.9 134 M603 134 A67 67 0 0 1 737 134 M631.1 134 A38.9 38.9 0 0 1 708.9 134 M737 134 A67 67 0 0 1 871 134 M765.1 134 A38.9 38.9 0 0 1 842.9 134 M871 134 A67 67 0 0 1 1005 134 M899.1 134 A38.9 38.9 0 0 1 976.9 134 M1005 134 A67 67 0 0 1 1139 134 M1033.1 134 A38.9 38.9 0 0 1 1110.9 134 M1139 134 A67 67 0 0 1 1273 134 M1167.1 134 A38.9 38.9 0 0 1 1244.9 134 M0 201 A67 67 0 0 1 134 201 M28.1 201 A38.9 38.9 0 0 1 105.9 201 M134 201 A67 67 0 0 1 268 201 M162.1 201 A38.9 38.9 0 0 1 239.9 201 M268 201 A67 67 0 0 1 402 201 M296.1 201 A38.9 38.9 0 0 1 373.9 201 M402 201 A67 67 0 0 1 536 201 M430.1 201 A38.9 38.9 0 0 1 507.9 201 M536 201 A67 67 0 0 1 670 201 M564.1 201 A38.9 38.9 0 0 1 641.9 201 M670 201 A67 67 0 0 1 804 201 M698.1 201 A38.9 38.9 0 0 1 775.9 201 M804 201 A67 67 0 0 1 938 201 M832.1 201 A38.9 38.9 0 0 1 909.9 201 M938 201 A67 67 0 0 1 1072 201 M966.1 201 A38.9 38.9 0 0 1 1043.9 201 M1072 201 A67 67 0 0 1 1206 201 M1100.1 201 A38.9 38.9 0 0 1 1177.9 201",
+          "specialProps": {
+            "viewBox": "0 0 1206 201",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5
+          },
+          "groupId": "kp-b1-g-pattern",
+          "groupName": "Wave pattern"
+        },
+        {
+          "id": "kp-b1-pattern-bottom",
+          "type": "shape",
+          "name": "Wave pattern",
+          "position": {
+            "x": 0,
+            "y": 2354
+          },
+          "size": {
+            "width": 1206,
+            "height": 268
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.085,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 67 A67 67 0 0 1 134 67 M28.1 67 A38.9 38.9 0 0 1 105.9 67 M134 67 A67 67 0 0 1 268 67 M162.1 67 A38.9 38.9 0 0 1 239.9 67 M268 67 A67 67 0 0 1 402 67 M296.1 67 A38.9 38.9 0 0 1 373.9 67 M402 67 A67 67 0 0 1 536 67 M430.1 67 A38.9 38.9 0 0 1 507.9 67 M536 67 A67 67 0 0 1 670 67 M564.1 67 A38.9 38.9 0 0 1 641.9 67 M670 67 A67 67 0 0 1 804 67 M698.1 67 A38.9 38.9 0 0 1 775.9 67 M804 67 A67 67 0 0 1 938 67 M832.1 67 A38.9 38.9 0 0 1 909.9 67 M938 67 A67 67 0 0 1 1072 67 M966.1 67 A38.9 38.9 0 0 1 1043.9 67 M1072 67 A67 67 0 0 1 1206 67 M1100.1 67 A38.9 38.9 0 0 1 1177.9 67 M-67 134 A67 67 0 0 1 67 134 M-38.9 134 A38.9 38.9 0 0 1 38.9 134 M67 134 A67 67 0 0 1 201 134 M95.1 134 A38.9 38.9 0 0 1 172.9 134 M201 134 A67 67 0 0 1 335 134 M229.1 134 A38.9 38.9 0 0 1 306.9 134 M335 134 A67 67 0 0 1 469 134 M363.1 134 A38.9 38.9 0 0 1 440.9 134 M469 134 A67 67 0 0 1 603 134 M497.1 134 A38.9 38.9 0 0 1 574.9 134 M603 134 A67 67 0 0 1 737 134 M631.1 134 A38.9 38.9 0 0 1 708.9 134 M737 134 A67 67 0 0 1 871 134 M765.1 134 A38.9 38.9 0 0 1 842.9 134 M871 134 A67 67 0 0 1 1005 134 M899.1 134 A38.9 38.9 0 0 1 976.9 134 M1005 134 A67 67 0 0 1 1139 134 M1033.1 134 A38.9 38.9 0 0 1 1110.9 134 M1139 134 A67 67 0 0 1 1273 134 M1167.1 134 A38.9 38.9 0 0 1 1244.9 134 M0 201 A67 67 0 0 1 134 201 M28.1 201 A38.9 38.9 0 0 1 105.9 201 M134 201 A67 67 0 0 1 268 201 M162.1 201 A38.9 38.9 0 0 1 239.9 201 M268 201 A67 67 0 0 1 402 201 M296.1 201 A38.9 38.9 0 0 1 373.9 201 M402 201 A67 67 0 0 1 536 201 M430.1 201 A38.9 38.9 0 0 1 507.9 201 M536 201 A67 67 0 0 1 670 201 M564.1 201 A38.9 38.9 0 0 1 641.9 201 M670 201 A67 67 0 0 1 804 201 M698.1 201 A38.9 38.9 0 0 1 775.9 201 M804 201 A67 67 0 0 1 938 201 M832.1 201 A38.9 38.9 0 0 1 909.9 201 M938 201 A67 67 0 0 1 1072 201 M966.1 201 A38.9 38.9 0 0 1 1043.9 201 M1072 201 A67 67 0 0 1 1206 201 M1100.1 201 A38.9 38.9 0 0 1 1177.9 201 M-67 268 A67 67 0 0 1 67 268 M-38.9 268 A38.9 38.9 0 0 1 38.9 268 M67 268 A67 67 0 0 1 201 268 M95.1 268 A38.9 38.9 0 0 1 172.9 268 M201 268 A67 67 0 0 1 335 268 M229.1 268 A38.9 38.9 0 0 1 306.9 268 M335 268 A67 67 0 0 1 469 268 M363.1 268 A38.9 38.9 0 0 1 440.9 268 M469 268 A67 67 0 0 1 603 268 M497.1 268 A38.9 38.9 0 0 1 574.9 268 M603 268 A67 67 0 0 1 737 268 M631.1 268 A38.9 38.9 0 0 1 708.9 268 M737 268 A67 67 0 0 1 871 268 M765.1 268 A38.9 38.9 0 0 1 842.9 268 M871 268 A67 67 0 0 1 1005 268 M899.1 268 A38.9 38.9 0 0 1 976.9 268 M1005 268 A67 67 0 0 1 1139 268 M1033.1 268 A38.9 38.9 0 0 1 1110.9 268 M1139 268 A67 67 0 0 1 1273 268 M1167.1 268 A38.9 38.9 0 0 1 1244.9 268",
+          "specialProps": {
+            "viewBox": "0 0 1206 268",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5
+          },
+          "groupId": "kp-b1-g-pattern",
+          "groupName": "Wave pattern"
+        },
+        {
+          "id": "kp-b1-headline-text",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 53,
+            "y": 100.36
+          },
+          "size": {
+            "width": 1100,
+            "height": 419.68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Hello,\nJapanese!",
+          "fontSize": 51.6,
+          "color": "#141414",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -1.29,
+          "groupId": "kp-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "kp-b1-free-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 294.23,
+            "y": 548
+          },
+          "size": {
+            "width": 617.55,
+            "height": 148
+          },
+          "rotation": -3,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#E8372C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 44.4,
+          "groupId": "kp-b1-g-free",
+          "groupName": "Free sticker"
+        },
+        {
+          "id": "kp-b1-free-text",
+          "type": "text",
+          "name": "Label text",
+          "position": {
+            "x": 321.36,
+            "y": 559.68
+          },
+          "size": {
+            "width": 558,
+            "height": 125.56
+          },
+          "rotation": -3,
+          "scale": 1,
+          "content": "Free forever",
+          "fontSize": 25.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.52,
+          "groupId": "kp-b1-g-free",
+          "groupName": "Free sticker"
+        },
+        {
+          "id": "kp-b1-sparkle-1",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 974,
+            "y": 506
+          },
+          "size": {
+            "width": 84,
+            "height": 84
+          },
+          "rotation": 8,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC93C",
+          "strokeColor": "#141414",
+          "strokeWidth": 7,
+          "customPath": "M50 2 Q58.15 41.85 98 50 Q58.15 58.15 50 98 Q41.85 58.15 2 50 Q41.85 41.85 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        },
+        {
+          "id": "kp-b1-stat-learners-left",
+          "type": "shape",
+          "name": "Laurel",
+          "position": {
+            "x": 76,
+            "y": 746
+          },
+          "size": {
+            "width": 112,
+            "height": 224
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M69.91 175.3 Q41.8 162.07 20.39 182.24 Q46.52 195.75 69.91 175.3 Z M46.7 152.09 Q26.54 130.33 0.37 140.53 Q18.68 161.83 46.7 152.09 Z M46.7 152.09 Q57.64 132.29 45.27 114.87 Q34.28 133.19 46.7 152.09 Z M33.88 121.88 Q23.84 95.46 -2.92 95.13 Q5.65 120.48 33.88 121.88 Z M33.88 121.88 Q50.61 108.29 45.9 88.49 Q29.65 100.74 33.88 121.88 Z M33.31 89.07 Q33.87 62.2 10.4 52.38 Q8.92 77.78 33.31 89.07 Z M33.31 89.07 Q52.89 83.05 55.79 63.92 Q37.11 68.93 33.31 89.07 Z M45.07 58.43 Q66.35 44.42 61.4 20.82 Q40.77 33.32 45.07 58.43 Z M85.99 175.89 L77.3 171.35 L69.24 165.77 L61.94 159.22 L55.51 151.83 L50.05 143.68 L45.64 134.93 L42.36 125.69 L40.25 116.12 L39.35 106.35 L39.66 96.56 L41.2 86.87 L43.92 77.46 L47.8 68.45 L52.76 60 L46.7 55.91 L41.28 65.15 L37.04 74.99 L34.06 85.28 L32.39 95.86 L32.04 106.57 L33.03 117.24 L35.33 127.7 L38.92 137.8 L43.74 147.37 L49.71 156.27 L56.74 164.35 L64.72 171.5 L73.52 177.61 L83.02 182.56 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 200"
+          },
+          "groupId": "kp-b1-g-stat-learners",
+          "groupName": "Learners stat"
+        },
+        {
+          "id": "kp-b1-stat-learners-right",
+          "type": "shape",
+          "name": "Laurel",
+          "position": {
+            "x": 456,
+            "y": 746
+          },
+          "size": {
+            "width": 112,
+            "height": 224
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M30.09 175.3 Q58.2 162.07 79.61 182.24 Q53.48 195.75 30.09 175.3 Z M53.3 152.09 Q73.46 130.33 99.63 140.53 Q81.32 161.83 53.3 152.09 Z M53.3 152.09 Q42.36 132.29 54.73 114.87 Q65.72 133.19 53.3 152.09 Z M66.12 121.88 Q76.16 95.46 102.92 95.13 Q94.35 120.48 66.12 121.88 Z M66.12 121.88 Q49.39 108.29 54.1 88.49 Q70.35 100.74 66.12 121.88 Z M66.69 89.07 Q66.13 62.2 89.6 52.38 Q91.08 77.78 66.69 89.07 Z M66.69 89.07 Q47.11 83.05 44.21 63.92 Q62.89 68.93 66.69 89.07 Z M54.93 58.43 Q33.65 44.42 38.6 20.82 Q59.23 33.32 54.93 58.43 Z M14.01 175.89 L22.7 171.35 L30.76 165.77 L38.06 159.22 L44.49 151.83 L49.95 143.68 L54.36 134.93 L57.64 125.69 L59.75 116.12 L60.65 106.35 L60.34 96.56 L58.8 86.87 L56.08 77.46 L52.2 68.45 L47.24 60 L53.3 55.91 L58.72 65.15 L62.96 74.99 L65.94 85.28 L67.61 95.86 L67.96 106.57 L66.97 117.24 L64.67 127.7 L61.08 137.8 L56.26 147.37 L50.29 156.27 L43.26 164.35 L35.28 171.5 L26.48 177.61 L16.98 182.56 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 200"
+          },
+          "groupId": "kp-b1-g-stat-learners",
+          "groupName": "Learners stat"
+        },
+        {
+          "id": "kp-b1-stat-learners-big",
+          "type": "text",
+          "name": "Figure",
+          "position": {
+            "x": 194.12,
+            "y": 750.24
+          },
+          "size": {
+            "width": 254,
+            "height": 151.84
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "2M+",
+          "fontSize": 31.2,
+          "color": "#141414",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.78,
+          "groupId": "kp-b1-g-stat-learners",
+          "groupName": "Learners stat"
+        },
+        {
+          "id": "kp-b1-stat-learners-under",
+          "type": "text",
+          "name": "Caption",
+          "position": {
+            "x": 203.9,
+            "y": 886.53
+          },
+          "size": {
+            "width": 238,
+            "height": 56.5
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "LEARNERS",
+          "fontSize": 10.5,
+          "color": "#141414",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.74,
+          "groupId": "kp-b1-g-stat-learners",
+          "groupName": "Learners stat"
+        },
+        {
+          "id": "kp-b1-stat-rating-left",
+          "type": "shape",
+          "name": "Laurel",
+          "position": {
+            "x": 638,
+            "y": 746
+          },
+          "size": {
+            "width": 112,
+            "height": 224
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M69.91 175.3 Q41.8 162.07 20.39 182.24 Q46.52 195.75 69.91 175.3 Z M46.7 152.09 Q26.54 130.33 0.37 140.53 Q18.68 161.83 46.7 152.09 Z M46.7 152.09 Q57.64 132.29 45.27 114.87 Q34.28 133.19 46.7 152.09 Z M33.88 121.88 Q23.84 95.46 -2.92 95.13 Q5.65 120.48 33.88 121.88 Z M33.88 121.88 Q50.61 108.29 45.9 88.49 Q29.65 100.74 33.88 121.88 Z M33.31 89.07 Q33.87 62.2 10.4 52.38 Q8.92 77.78 33.31 89.07 Z M33.31 89.07 Q52.89 83.05 55.79 63.92 Q37.11 68.93 33.31 89.07 Z M45.07 58.43 Q66.35 44.42 61.4 20.82 Q40.77 33.32 45.07 58.43 Z M85.99 175.89 L77.3 171.35 L69.24 165.77 L61.94 159.22 L55.51 151.83 L50.05 143.68 L45.64 134.93 L42.36 125.69 L40.25 116.12 L39.35 106.35 L39.66 96.56 L41.2 86.87 L43.92 77.46 L47.8 68.45 L52.76 60 L46.7 55.91 L41.28 65.15 L37.04 74.99 L34.06 85.28 L32.39 95.86 L32.04 106.57 L33.03 117.24 L35.33 127.7 L38.92 137.8 L43.74 147.37 L49.71 156.27 L56.74 164.35 L64.72 171.5 L73.52 177.61 L83.02 182.56 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 200"
+          },
+          "groupId": "kp-b1-g-stat-rating",
+          "groupName": "Rating stat"
+        },
+        {
+          "id": "kp-b1-stat-rating-right",
+          "type": "shape",
+          "name": "Laurel",
+          "position": {
+            "x": 1018,
+            "y": 746
+          },
+          "size": {
+            "width": 112,
+            "height": 224
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M30.09 175.3 Q58.2 162.07 79.61 182.24 Q53.48 195.75 30.09 175.3 Z M53.3 152.09 Q73.46 130.33 99.63 140.53 Q81.32 161.83 53.3 152.09 Z M53.3 152.09 Q42.36 132.29 54.73 114.87 Q65.72 133.19 53.3 152.09 Z M66.12 121.88 Q76.16 95.46 102.92 95.13 Q94.35 120.48 66.12 121.88 Z M66.12 121.88 Q49.39 108.29 54.1 88.49 Q70.35 100.74 66.12 121.88 Z M66.69 89.07 Q66.13 62.2 89.6 52.38 Q91.08 77.78 66.69 89.07 Z M66.69 89.07 Q47.11 83.05 44.21 63.92 Q62.89 68.93 66.69 89.07 Z M54.93 58.43 Q33.65 44.42 38.6 20.82 Q59.23 33.32 54.93 58.43 Z M14.01 175.89 L22.7 171.35 L30.76 165.77 L38.06 159.22 L44.49 151.83 L49.95 143.68 L54.36 134.93 L57.64 125.69 L59.75 116.12 L60.65 106.35 L60.34 96.56 L58.8 86.87 L56.08 77.46 L52.2 68.45 L47.24 60 L53.3 55.91 L58.72 65.15 L62.96 74.99 L65.94 85.28 L67.61 95.86 L67.96 106.57 L66.97 117.24 L64.67 127.7 L61.08 137.8 L56.26 147.37 L50.29 156.27 L43.26 164.35 L35.28 171.5 L26.48 177.61 L16.98 182.56 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 200"
+          },
+          "groupId": "kp-b1-g-stat-rating",
+          "groupName": "Rating stat"
+        },
+        {
+          "id": "kp-b1-stat-rating-big",
+          "type": "text",
+          "name": "Figure",
+          "position": {
+            "x": 780.48,
+            "y": 750.24
+          },
+          "size": {
+            "width": 203,
+            "height": 151.84
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "4.9",
+          "fontSize": 31.2,
+          "color": "#141414",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.78,
+          "groupId": "kp-b1-g-stat-rating",
+          "groupName": "Rating stat"
+        },
+        {
+          "id": "kp-b1-stat-rating-stars",
+          "type": "shape",
+          "name": "Stars",
+          "position": {
+            "x": 768,
+            "y": 894
+          },
+          "size": {
+            "width": 232,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC93C",
+          "strokeColor": "#141414",
+          "strokeWidth": 5,
+          "customPath": "M20 0 L25.29 12.72 L39.02 13.82 L28.56 22.78 L31.76 36.18 L20 29 L8.24 36.18 L11.44 22.78 L0.98 13.82 L14.71 12.72 Z M68 0 L73.29 12.72 L87.02 13.82 L76.56 22.78 L79.76 36.18 L68 29 L56.24 36.18 L59.44 22.78 L48.98 13.82 L62.71 12.72 Z M116 0 L121.29 12.72 L135.02 13.82 L124.56 22.78 L127.76 36.18 L116 29 L104.24 36.18 L107.44 22.78 L96.98 13.82 L110.71 12.72 Z M164 0 L169.29 12.72 L183.02 13.82 L172.56 22.78 L175.76 36.18 L164 29 L152.24 36.18 L155.44 22.78 L144.98 13.82 L158.71 12.72 Z M212 0 L217.29 12.72 L231.02 13.82 L220.56 22.78 L223.76 36.18 L212 29 L200.24 36.18 L203.44 22.78 L192.98 13.82 L206.71 12.72 Z",
+          "specialProps": {
+            "viewBox": "0 0 232 40"
+          },
+          "groupId": "kp-b1-g-stat-rating",
+          "groupName": "Rating stat"
+        },
+        {
+          "id": "kp-b1-phone-shadow",
+          "type": "shape",
+          "name": "Phone shadow",
+          "position": {
+            "x": 225,
+            "y": 1062
+          },
+          "size": {
+            "width": 780,
+            "height": 1633.09
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 109.2,
+          "groupId": "kp-b1-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kp-b1-phone-body",
+          "type": "shape",
+          "name": "Phone body",
+          "position": {
+            "x": 213,
+            "y": 1048
+          },
+          "size": {
+            "width": 780,
+            "height": 1633.09
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 109.2,
+          "groupId": "kp-b1-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kp-b1-phone-device",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 213,
+            "y": 1048
+          },
+          "size": {
+            "width": 780,
+            "height": 1633.09
+          },
+          "rotation": 0,
+          "scale": 1,
+          "frameStyle": "outline",
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#141414",
+          "screenshotSrc": "/data/projects/kanapon-screen-home.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "kp-b1-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kp-b1-tag-neko-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 57.18,
+            "y": 1488
+          },
+          "size": {
+            "width": 237.64,
+            "height": 144
+          },
+          "rotation": -8,
+          "scale": 1,
+          "shadow": {
+            "x": 7,
+            "y": 9,
+            "blur": 0,
+            "color": "#141414"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#141414",
+          "strokeWidth": 9,
+          "borderRadius": 43.2,
+          "groupId": "kp-b1-g-tag-neko",
+          "groupName": "Word tag: neko"
+        },
+        {
+          "id": "kp-b1-tag-neko-text",
+          "type": "text",
+          "name": "Label text",
+          "position": {
+            "x": 76.77,
+            "y": 1496.27
+          },
+          "size": {
+            "width": 208,
+            "height": 116.8
+          },
+          "rotation": -8,
+          "scale": 1,
+          "content": "ねこ",
+          "fontSize": 24,
+          "color": "#141414",
+          "fontFamily": "Noto Sans JP",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.48,
+          "groupId": "kp-b1-g-tag-neko",
+          "groupName": "Word tag: neko"
+        },
+        {
+          "id": "kp-b1-tag-sushi-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 916.03,
+            "y": 1258
+          },
+          "size": {
+            "width": 239.95,
+            "height": 144
+          },
+          "rotation": 7,
+          "scale": 1,
+          "shadow": {
+            "x": 7,
+            "y": 9,
+            "blur": 0,
+            "color": "#141414"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#141414",
+          "strokeWidth": 9,
+          "borderRadius": 43.2,
+          "groupId": "kp-b1-g-tag-sushi",
+          "groupName": "Word tag: sushi"
+        },
+        {
+          "id": "kp-b1-tag-sushi-text",
+          "type": "text",
+          "name": "Label text",
+          "position": {
+            "x": 933.31,
+            "y": 1265.99
+          },
+          "size": {
+            "width": 208,
+            "height": 116.8
+          },
+          "rotation": 7,
+          "scale": 1,
+          "content": "すし",
+          "fontSize": 24,
+          "color": "#141414",
+          "fontFamily": "Noto Sans JP",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.48,
+          "groupId": "kp-b1-g-tag-sushi",
+          "groupName": "Word tag: sushi"
+        },
+        {
+          "id": "kp-b1-tag-arigatou-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 77.5,
+            "y": 1891
+          },
+          "size": {
+            "width": 429,
+            "height": 134
+          },
+          "rotation": -7,
+          "scale": 1,
+          "shadow": {
+            "x": 7,
+            "y": 9,
+            "blur": 0,
+            "color": "#141414"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#141414",
+          "strokeWidth": 9,
+          "borderRadius": 40.2,
+          "groupId": "kp-b1-g-tag-arigatou",
+          "groupName": "Word tag: arigatou"
+        },
+        {
+          "id": "kp-b1-tag-arigatou-text",
+          "type": "text",
+          "name": "Label text",
+          "position": {
+            "x": 94.79,
+            "y": 1904
+          },
+          "size": {
+            "width": 401,
+            "height": 102.2
+          },
+          "rotation": -7,
+          "scale": 1,
+          "content": "ありがとう",
+          "fontSize": 21,
+          "color": "#141414",
+          "fontFamily": "Noto Sans JP",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.42,
+          "groupId": "kp-b1-g-tag-arigatou",
+          "groupName": "Word tag: arigatou"
+        },
+        {
+          "id": "kp-b1-pon",
+          "type": "image",
+          "name": "Pon",
+          "position": {
+            "x": 235.29,
+            "y": 1960.29
+          },
+          "size": {
+            "width": 735.43,
+            "height": 725.14
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/mascots/mascot-daruma-big.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "kp-b1-tag-ramen-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 782.55,
+            "y": 1895
+          },
+          "size": {
+            "width": 362.9,
+            "height": 134
+          },
+          "rotation": 8,
+          "scale": 1,
+          "shadow": {
+            "x": 7,
+            "y": 9,
+            "blur": 0,
+            "color": "#141414"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFC93C",
+          "strokeColor": "#141414",
+          "strokeWidth": 9,
+          "borderRadius": 40.2,
+          "groupId": "kp-b1-g-tag-ramen",
+          "groupName": "Word tag: ramen"
+        },
+        {
+          "id": "kp-b1-tag-ramen-text",
+          "type": "text",
+          "name": "Label text",
+          "position": {
+            "x": 798.02,
+            "y": 1905.5
+          },
+          "size": {
+            "width": 327,
+            "height": 102.2
+          },
+          "rotation": 8,
+          "scale": 1,
+          "content": "ラーメン",
+          "fontSize": 21,
+          "color": "#141414",
+          "fontFamily": "Noto Sans JP",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.42,
+          "groupId": "kp-b1-g-tag-ramen",
+          "groupName": "Word tag: ramen"
+        }
+      ]
+    },
+    {
+      "id": "kp-board-2",
+      "name": "Train Your Ear With Real Voices",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFC93C",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "kp-b2-pattern-bottom",
+          "type": "shape",
+          "name": "Wave pattern",
+          "position": {
+            "x": 0,
+            "y": 2354
+          },
+          "size": {
+            "width": 1206,
+            "height": 268
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.085,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 67 A67 67 0 0 1 134 67 M28.1 67 A38.9 38.9 0 0 1 105.9 67 M134 67 A67 67 0 0 1 268 67 M162.1 67 A38.9 38.9 0 0 1 239.9 67 M268 67 A67 67 0 0 1 402 67 M296.1 67 A38.9 38.9 0 0 1 373.9 67 M402 67 A67 67 0 0 1 536 67 M430.1 67 A38.9 38.9 0 0 1 507.9 67 M536 67 A67 67 0 0 1 670 67 M564.1 67 A38.9 38.9 0 0 1 641.9 67 M670 67 A67 67 0 0 1 804 67 M698.1 67 A38.9 38.9 0 0 1 775.9 67 M804 67 A67 67 0 0 1 938 67 M832.1 67 A38.9 38.9 0 0 1 909.9 67 M938 67 A67 67 0 0 1 1072 67 M966.1 67 A38.9 38.9 0 0 1 1043.9 67 M1072 67 A67 67 0 0 1 1206 67 M1100.1 67 A38.9 38.9 0 0 1 1177.9 67 M-67 134 A67 67 0 0 1 67 134 M-38.9 134 A38.9 38.9 0 0 1 38.9 134 M67 134 A67 67 0 0 1 201 134 M95.1 134 A38.9 38.9 0 0 1 172.9 134 M201 134 A67 67 0 0 1 335 134 M229.1 134 A38.9 38.9 0 0 1 306.9 134 M335 134 A67 67 0 0 1 469 134 M363.1 134 A38.9 38.9 0 0 1 440.9 134 M469 134 A67 67 0 0 1 603 134 M497.1 134 A38.9 38.9 0 0 1 574.9 134 M603 134 A67 67 0 0 1 737 134 M631.1 134 A38.9 38.9 0 0 1 708.9 134 M737 134 A67 67 0 0 1 871 134 M765.1 134 A38.9 38.9 0 0 1 842.9 134 M871 134 A67 67 0 0 1 1005 134 M899.1 134 A38.9 38.9 0 0 1 976.9 134 M1005 134 A67 67 0 0 1 1139 134 M1033.1 134 A38.9 38.9 0 0 1 1110.9 134 M1139 134 A67 67 0 0 1 1273 134 M1167.1 134 A38.9 38.9 0 0 1 1244.9 134 M0 201 A67 67 0 0 1 134 201 M28.1 201 A38.9 38.9 0 0 1 105.9 201 M134 201 A67 67 0 0 1 268 201 M162.1 201 A38.9 38.9 0 0 1 239.9 201 M268 201 A67 67 0 0 1 402 201 M296.1 201 A38.9 38.9 0 0 1 373.9 201 M402 201 A67 67 0 0 1 536 201 M430.1 201 A38.9 38.9 0 0 1 507.9 201 M536 201 A67 67 0 0 1 670 201 M564.1 201 A38.9 38.9 0 0 1 641.9 201 M670 201 A67 67 0 0 1 804 201 M698.1 201 A38.9 38.9 0 0 1 775.9 201 M804 201 A67 67 0 0 1 938 201 M832.1 201 A38.9 38.9 0 0 1 909.9 201 M938 201 A67 67 0 0 1 1072 201 M966.1 201 A38.9 38.9 0 0 1 1043.9 201 M1072 201 A67 67 0 0 1 1206 201 M1100.1 201 A38.9 38.9 0 0 1 1177.9 201 M-67 268 A67 67 0 0 1 67 268 M-38.9 268 A38.9 38.9 0 0 1 38.9 268 M67 268 A67 67 0 0 1 201 268 M95.1 268 A38.9 38.9 0 0 1 172.9 268 M201 268 A67 67 0 0 1 335 268 M229.1 268 A38.9 38.9 0 0 1 306.9 268 M335 268 A67 67 0 0 1 469 268 M363.1 268 A38.9 38.9 0 0 1 440.9 268 M469 268 A67 67 0 0 1 603 268 M497.1 268 A38.9 38.9 0 0 1 574.9 268 M603 268 A67 67 0 0 1 737 268 M631.1 268 A38.9 38.9 0 0 1 708.9 268 M737 268 A67 67 0 0 1 871 268 M765.1 268 A38.9 38.9 0 0 1 842.9 268 M871 268 A67 67 0 0 1 1005 268 M899.1 268 A38.9 38.9 0 0 1 976.9 268 M1005 268 A67 67 0 0 1 1139 268 M1033.1 268 A38.9 38.9 0 0 1 1110.9 268 M1139 268 A67 67 0 0 1 1273 268 M1167.1 268 A38.9 38.9 0 0 1 1244.9 268",
+          "specialProps": {
+            "viewBox": "0 0 1206 268",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5
+          },
+          "groupId": "kp-b2-g-pattern",
+          "groupName": "Wave pattern"
+        },
+        {
+          "id": "kp-b2-phone-shadow",
+          "type": "shape",
+          "name": "Phone shadow",
+          "position": {
+            "x": 175,
+            "y": -306
+          },
+          "size": {
+            "width": 880,
+            "height": 1842.46
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 123.2,
+          "groupId": "kp-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kp-b2-phone-body",
+          "type": "shape",
+          "name": "Phone body",
+          "position": {
+            "x": 163,
+            "y": -320
+          },
+          "size": {
+            "width": 880,
+            "height": 1842.46
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 123.2,
+          "groupId": "kp-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kp-b2-phone-device",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 163,
+            "y": -320
+          },
+          "size": {
+            "width": 880,
+            "height": 1842.46
+          },
+          "rotation": 0,
+          "scale": 1,
+          "frameStyle": "outline",
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#141414",
+          "screenshotSrc": "/data/projects/kanapon-screen-listen.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "kp-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kp-b2-tile-2-bg",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 625,
+            "y": 448.7
+          },
+          "size": {
+            "width": 330,
+            "height": 268
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 8,
+            "y": 10,
+            "blur": 0,
+            "color": "#141414"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#141414",
+          "strokeWidth": 9,
+          "borderRadius": 46,
+          "groupId": "kp-b2-g-tile-2",
+          "groupName": "Audio tile 2"
+        },
+        {
+          "id": "kp-b2-tile-2-icon",
+          "type": "shape",
+          "name": "Speaker",
+          "position": {
+            "x": 728.36,
+            "y": 521.06
+          },
+          "size": {
+            "width": 123.28,
+            "height": 123.28
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M10 38 H26 L46 20 V80 L26 62 H10 Z M56 34 C62 42 62 58 56 66 L62 70 C70 60 70 40 62 30 Z M68 22 C78 36 78 64 68 78 L74 82 C86 66 86 34 74 18 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "kp-b2-g-tile-2",
+          "groupName": "Audio tile 2"
+        },
+        {
+          "id": "kp-b2-tile-3-bg",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 261,
+            "y": 782.05
+          },
+          "size": {
+            "width": 330,
+            "height": 268
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 8,
+            "y": 10,
+            "blur": 0,
+            "color": "#141414"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#141414",
+          "strokeWidth": 9,
+          "borderRadius": 46,
+          "groupId": "kp-b2-g-tile-3",
+          "groupName": "Audio tile 3"
+        },
+        {
+          "id": "kp-b2-tile-3-icon",
+          "type": "shape",
+          "name": "Speaker",
+          "position": {
+            "x": 364.36,
+            "y": 854.41
+          },
+          "size": {
+            "width": 123.28,
+            "height": 123.28
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M10 38 H26 L46 20 V80 L26 62 H10 Z M56 34 C62 42 62 58 56 66 L62 70 C70 60 70 40 62 30 Z M68 22 C78 36 78 64 68 78 L74 82 C86 66 86 34 74 18 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "kp-b2-g-tile-3",
+          "groupName": "Audio tile 3"
+        },
+        {
+          "id": "kp-b2-tile-4-bg",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 674,
+            "y": 787.51
+          },
+          "size": {
+            "width": 356,
+            "height": 290
+          },
+          "rotation": 7,
+          "scale": 1,
+          "shadow": {
+            "x": 8,
+            "y": 10,
+            "blur": 0,
+            "color": "#141414"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#141414",
+          "strokeWidth": 9,
+          "borderRadius": 46,
+          "groupId": "kp-b2-g-tile-4",
+          "groupName": "Audio tile 4"
+        },
+        {
+          "id": "kp-b2-tile-4-icon",
+          "type": "shape",
+          "name": "Speaker",
+          "position": {
+            "x": 785.3,
+            "y": 865.81
+          },
+          "size": {
+            "width": 133.4,
+            "height": 133.4
+          },
+          "rotation": 7,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M10 38 H26 L46 20 V80 L26 62 H10 Z M56 34 C62 42 62 58 56 66 L62 70 C70 60 70 40 62 30 Z M68 22 C78 36 78 64 68 78 L74 82 C86 66 86 34 74 18 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "kp-b2-g-tile-4",
+          "groupName": "Audio tile 4"
+        },
+        {
+          "id": "kp-b2-tile-1-bg",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 164,
+            "y": 441.16
+          },
+          "size": {
+            "width": 392,
+            "height": 316
+          },
+          "rotation": -8,
+          "scale": 1,
+          "shadow": {
+            "x": 8,
+            "y": 10,
+            "blur": 0,
+            "color": "#141414"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFC93C",
+          "strokeColor": "#141414",
+          "strokeWidth": 9,
+          "borderRadius": 46,
+          "groupId": "kp-b2-g-tile-1",
+          "groupName": "Audio tile 1, picked"
+        },
+        {
+          "id": "kp-b2-tile-1-icon",
+          "type": "shape",
+          "name": "Speaker",
+          "position": {
+            "x": 287.32,
+            "y": 526.48
+          },
+          "size": {
+            "width": 145.36,
+            "height": 145.36
+          },
+          "rotation": -8,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M10 38 H26 L46 20 V80 L26 62 H10 Z M56 34 C62 42 62 58 56 66 L62 70 C70 60 70 40 62 30 Z M68 22 C78 36 78 64 68 78 L74 82 C86 66 86 34 74 18 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "kp-b2-g-tile-1",
+          "groupName": "Audio tile 1, picked"
+        },
+        {
+          "id": "kp-b2-check-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 253,
+            "y": 1193.63
+          },
+          "size": {
+            "width": 700,
+            "height": 128
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shadow": {
+            "x": 7,
+            "y": 9,
+            "blur": 0,
+            "color": "#141414"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFC93C",
+          "strokeColor": "#141414",
+          "strokeWidth": 9,
+          "borderRadius": 46,
+          "groupId": "kp-b2-g-check",
+          "groupName": "Check button"
+        },
+        {
+          "id": "kp-b2-check-text",
+          "type": "text",
+          "name": "Label text",
+          "position": {
+            "x": 327.94,
+            "y": 1216.99
+          },
+          "size": {
+            "width": 548,
+            "height": 81.76
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Check my answer",
+          "fontSize": 16.8,
+          "color": "#141414",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.34,
+          "groupId": "kp-b2-g-check",
+          "groupName": "Check button"
+        },
+        {
+          "id": "kp-b2-note-1",
+          "type": "shape",
+          "name": "Music note",
+          "position": {
+            "x": 268,
+            "y": 1700
+          },
+          "size": {
+            "width": 118,
+            "height": 118
+          },
+          "rotation": -12,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#E8372C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M40 16 L84 8 V62 A12 9 0 1 1 76 54 V22 L48 27 V74 A12 9 0 1 1 40 66 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "kp-b2-g-pon",
+          "groupName": "Pon and notes"
+        },
+        {
+          "id": "kp-b2-note-2",
+          "type": "shape",
+          "name": "Music note",
+          "position": {
+            "x": 836,
+            "y": 1668
+          },
+          "size": {
+            "width": 92,
+            "height": 92
+          },
+          "rotation": 12,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M40 16 L84 8 V62 A12 9 0 1 1 76 54 V22 L48 27 V74 A12 9 0 1 1 40 66 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "kp-b2-g-pon",
+          "groupName": "Pon and notes"
+        },
+        {
+          "id": "kp-b2-pon",
+          "type": "image",
+          "name": "Pon",
+          "position": {
+            "x": 423.63,
+            "y": 1641.63
+          },
+          "size": {
+            "width": 358.74,
+            "height": 353.83
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/mascots/mascot-daruma-happy.png",
+          "objectFit": "contain",
+          "groupId": "kp-b2-g-pon",
+          "groupName": "Pon and notes"
+        },
+        {
+          "id": "kp-b2-sparkle-1",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 862,
+            "y": 1872
+          },
+          "size": {
+            "width": 68,
+            "height": 68
+          },
+          "rotation": 10,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#141414",
+          "strokeWidth": 7,
+          "customPath": "M50 2 Q58.15 41.85 98 50 Q58.15 58.15 50 98 Q41.85 58.15 2 50 Q41.85 41.85 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "kp-b2-g-pon",
+          "groupName": "Pon and notes"
+        },
+        {
+          "id": "kp-b2-headline-1",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 128.68,
+            "y": 2077.42
+          },
+          "size": {
+            "width": 945,
+            "height": 189.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Train your ear",
+          "fontSize": 39,
+          "color": "#141414",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.97,
+          "groupId": "kp-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "kp-b2-headline-2",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 116.14,
+            "y": 2261.42
+          },
+          "size": {
+            "width": 330,
+            "height": 189.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "with",
+          "fontSize": 39,
+          "color": "#141414",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.97,
+          "groupId": "kp-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "kp-b2-real-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 434.63,
+            "y": 2279
+          },
+          "size": {
+            "width": 652.98,
+            "height": 158
+          },
+          "rotation": -2,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#E8372C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 47.4,
+          "groupId": "kp-b2-g-real",
+          "groupName": "Real voices label"
+        },
+        {
+          "id": "kp-b2-real-text",
+          "type": "text",
+          "name": "Label text",
+          "position": {
+            "x": 450.22,
+            "y": 2281.06
+          },
+          "size": {
+            "width": 618,
+            "height": 154.76
+          },
+          "rotation": -2,
+          "scale": 1,
+          "content": "real voices",
+          "fontSize": 31.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.64,
+          "groupId": "kp-b2-g-real",
+          "groupName": "Real voices label"
+        }
+      ]
+    },
+    {
+      "id": "kp-board-3",
+      "name": "Unlock Kana One Row At A Time",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "kp-b3-pattern-top",
+          "type": "shape",
+          "name": "Wave pattern",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1206,
+            "height": 201
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.085,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 67 A67 67 0 0 1 134 67 M28.1 67 A38.9 38.9 0 0 1 105.9 67 M134 67 A67 67 0 0 1 268 67 M162.1 67 A38.9 38.9 0 0 1 239.9 67 M268 67 A67 67 0 0 1 402 67 M296.1 67 A38.9 38.9 0 0 1 373.9 67 M402 67 A67 67 0 0 1 536 67 M430.1 67 A38.9 38.9 0 0 1 507.9 67 M536 67 A67 67 0 0 1 670 67 M564.1 67 A38.9 38.9 0 0 1 641.9 67 M670 67 A67 67 0 0 1 804 67 M698.1 67 A38.9 38.9 0 0 1 775.9 67 M804 67 A67 67 0 0 1 938 67 M832.1 67 A38.9 38.9 0 0 1 909.9 67 M938 67 A67 67 0 0 1 1072 67 M966.1 67 A38.9 38.9 0 0 1 1043.9 67 M1072 67 A67 67 0 0 1 1206 67 M1100.1 67 A38.9 38.9 0 0 1 1177.9 67 M-67 134 A67 67 0 0 1 67 134 M-38.9 134 A38.9 38.9 0 0 1 38.9 134 M67 134 A67 67 0 0 1 201 134 M95.1 134 A38.9 38.9 0 0 1 172.9 134 M201 134 A67 67 0 0 1 335 134 M229.1 134 A38.9 38.9 0 0 1 306.9 134 M335 134 A67 67 0 0 1 469 134 M363.1 134 A38.9 38.9 0 0 1 440.9 134 M469 134 A67 67 0 0 1 603 134 M497.1 134 A38.9 38.9 0 0 1 574.9 134 M603 134 A67 67 0 0 1 737 134 M631.1 134 A38.9 38.9 0 0 1 708.9 134 M737 134 A67 67 0 0 1 871 134 M765.1 134 A38.9 38.9 0 0 1 842.9 134 M871 134 A67 67 0 0 1 1005 134 M899.1 134 A38.9 38.9 0 0 1 976.9 134 M1005 134 A67 67 0 0 1 1139 134 M1033.1 134 A38.9 38.9 0 0 1 1110.9 134 M1139 134 A67 67 0 0 1 1273 134 M1167.1 134 A38.9 38.9 0 0 1 1244.9 134 M0 201 A67 67 0 0 1 134 201 M28.1 201 A38.9 38.9 0 0 1 105.9 201 M134 201 A67 67 0 0 1 268 201 M162.1 201 A38.9 38.9 0 0 1 239.9 201 M268 201 A67 67 0 0 1 402 201 M296.1 201 A38.9 38.9 0 0 1 373.9 201 M402 201 A67 67 0 0 1 536 201 M430.1 201 A38.9 38.9 0 0 1 507.9 201 M536 201 A67 67 0 0 1 670 201 M564.1 201 A38.9 38.9 0 0 1 641.9 201 M670 201 A67 67 0 0 1 804 201 M698.1 201 A38.9 38.9 0 0 1 775.9 201 M804 201 A67 67 0 0 1 938 201 M832.1 201 A38.9 38.9 0 0 1 909.9 201 M938 201 A67 67 0 0 1 1072 201 M966.1 201 A38.9 38.9 0 0 1 1043.9 201 M1072 201 A67 67 0 0 1 1206 201 M1100.1 201 A38.9 38.9 0 0 1 1177.9 201",
+          "specialProps": {
+            "viewBox": "0 0 1206 201",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5
+          },
+          "groupId": "kp-b3-g-pattern",
+          "groupName": "Wave pattern"
+        },
+        {
+          "id": "kp-b3-pattern-bottom",
+          "type": "shape",
+          "name": "Wave pattern",
+          "position": {
+            "x": 0,
+            "y": 2354
+          },
+          "size": {
+            "width": 1206,
+            "height": 268
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.085,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 67 A67 67 0 0 1 134 67 M28.1 67 A38.9 38.9 0 0 1 105.9 67 M134 67 A67 67 0 0 1 268 67 M162.1 67 A38.9 38.9 0 0 1 239.9 67 M268 67 A67 67 0 0 1 402 67 M296.1 67 A38.9 38.9 0 0 1 373.9 67 M402 67 A67 67 0 0 1 536 67 M430.1 67 A38.9 38.9 0 0 1 507.9 67 M536 67 A67 67 0 0 1 670 67 M564.1 67 A38.9 38.9 0 0 1 641.9 67 M670 67 A67 67 0 0 1 804 67 M698.1 67 A38.9 38.9 0 0 1 775.9 67 M804 67 A67 67 0 0 1 938 67 M832.1 67 A38.9 38.9 0 0 1 909.9 67 M938 67 A67 67 0 0 1 1072 67 M966.1 67 A38.9 38.9 0 0 1 1043.9 67 M1072 67 A67 67 0 0 1 1206 67 M1100.1 67 A38.9 38.9 0 0 1 1177.9 67 M-67 134 A67 67 0 0 1 67 134 M-38.9 134 A38.9 38.9 0 0 1 38.9 134 M67 134 A67 67 0 0 1 201 134 M95.1 134 A38.9 38.9 0 0 1 172.9 134 M201 134 A67 67 0 0 1 335 134 M229.1 134 A38.9 38.9 0 0 1 306.9 134 M335 134 A67 67 0 0 1 469 134 M363.1 134 A38.9 38.9 0 0 1 440.9 134 M469 134 A67 67 0 0 1 603 134 M497.1 134 A38.9 38.9 0 0 1 574.9 134 M603 134 A67 67 0 0 1 737 134 M631.1 134 A38.9 38.9 0 0 1 708.9 134 M737 134 A67 67 0 0 1 871 134 M765.1 134 A38.9 38.9 0 0 1 842.9 134 M871 134 A67 67 0 0 1 1005 134 M899.1 134 A38.9 38.9 0 0 1 976.9 134 M1005 134 A67 67 0 0 1 1139 134 M1033.1 134 A38.9 38.9 0 0 1 1110.9 134 M1139 134 A67 67 0 0 1 1273 134 M1167.1 134 A38.9 38.9 0 0 1 1244.9 134 M0 201 A67 67 0 0 1 134 201 M28.1 201 A38.9 38.9 0 0 1 105.9 201 M134 201 A67 67 0 0 1 268 201 M162.1 201 A38.9 38.9 0 0 1 239.9 201 M268 201 A67 67 0 0 1 402 201 M296.1 201 A38.9 38.9 0 0 1 373.9 201 M402 201 A67 67 0 0 1 536 201 M430.1 201 A38.9 38.9 0 0 1 507.9 201 M536 201 A67 67 0 0 1 670 201 M564.1 201 A38.9 38.9 0 0 1 641.9 201 M670 201 A67 67 0 0 1 804 201 M698.1 201 A38.9 38.9 0 0 1 775.9 201 M804 201 A67 67 0 0 1 938 201 M832.1 201 A38.9 38.9 0 0 1 909.9 201 M938 201 A67 67 0 0 1 1072 201 M966.1 201 A38.9 38.9 0 0 1 1043.9 201 M1072 201 A67 67 0 0 1 1206 201 M1100.1 201 A38.9 38.9 0 0 1 1177.9 201 M-67 268 A67 67 0 0 1 67 268 M-38.9 268 A38.9 38.9 0 0 1 38.9 268 M67 268 A67 67 0 0 1 201 268 M95.1 268 A38.9 38.9 0 0 1 172.9 268 M201 268 A67 67 0 0 1 335 268 M229.1 268 A38.9 38.9 0 0 1 306.9 268 M335 268 A67 67 0 0 1 469 268 M363.1 268 A38.9 38.9 0 0 1 440.9 268 M469 268 A67 67 0 0 1 603 268 M497.1 268 A38.9 38.9 0 0 1 574.9 268 M603 268 A67 67 0 0 1 737 268 M631.1 268 A38.9 38.9 0 0 1 708.9 268 M737 268 A67 67 0 0 1 871 268 M765.1 268 A38.9 38.9 0 0 1 842.9 268 M871 268 A67 67 0 0 1 1005 268 M899.1 268 A38.9 38.9 0 0 1 976.9 268 M1005 268 A67 67 0 0 1 1139 268 M1033.1 268 A38.9 38.9 0 0 1 1110.9 268 M1139 268 A67 67 0 0 1 1273 268 M1167.1 268 A38.9 38.9 0 0 1 1244.9 268",
+          "specialProps": {
+            "viewBox": "0 0 1206 268",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5
+          },
+          "groupId": "kp-b3-g-pattern",
+          "groupName": "Wave pattern"
+        },
+        {
+          "id": "kp-b3-pon",
+          "type": "image",
+          "name": "Pon",
+          "position": {
+            "x": 447.82,
+            "y": 134.82
+          },
+          "size": {
+            "width": 341.18,
+            "height": 306.1
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/mascots/mascot-daruma-headband.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "kp-b3-unlock-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 201.43,
+            "y": 480
+          },
+          "size": {
+            "width": 803.15,
+            "height": 172
+          },
+          "rotation": -2,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#E8372C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 51.6,
+          "groupId": "kp-b3-g-unlock",
+          "groupName": "Unlock label"
+        },
+        {
+          "id": "kp-b3-unlock-text",
+          "type": "text",
+          "name": "Label text",
+          "position": {
+            "x": 229.05,
+            "y": 484.25
+          },
+          "size": {
+            "width": 746,
+            "height": 163.52
+          },
+          "rotation": -2,
+          "scale": 1,
+          "content": "Unlock kana",
+          "fontSize": 33.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.67,
+          "groupId": "kp-b3-g-unlock",
+          "groupName": "Unlock label"
+        },
+        {
+          "id": "kp-b3-headline-text",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 53,
+            "y": 654.9
+          },
+          "size": {
+            "width": 1100,
+            "height": 352.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "one row\nat a time",
+          "fontSize": 42,
+          "color": "#141414",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.08,
+          "letterSpacing": -1.05,
+          "groupId": "kp-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "kp-b3-phone-shadow",
+          "type": "shape",
+          "name": "Phone shadow",
+          "position": {
+            "x": 215,
+            "y": 1080
+          },
+          "size": {
+            "width": 800,
+            "height": 1674.96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 112,
+          "groupId": "kp-b3-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kp-b3-phone-body",
+          "type": "shape",
+          "name": "Phone body",
+          "position": {
+            "x": 203,
+            "y": 1066
+          },
+          "size": {
+            "width": 800,
+            "height": 1674.96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 112,
+          "groupId": "kp-b3-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kp-b3-phone-device",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 203,
+            "y": 1066
+          },
+          "size": {
+            "width": 800,
+            "height": 1674.96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "frameStyle": "outline",
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#141414",
+          "screenshotSrc": "/data/projects/kanapon-screen-kana.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "kp-b3-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kp-b3-kana-a-bg",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 53,
+            "y": 1043
+          },
+          "size": {
+            "width": 214,
+            "height": 214
+          },
+          "rotation": -10,
+          "scale": 1,
+          "shadow": {
+            "x": 7,
+            "y": 9,
+            "blur": 0,
+            "color": "#141414"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#E8372C",
+          "strokeColor": "#141414",
+          "strokeWidth": 9,
+          "borderRadius": 51.36,
+          "groupId": "kp-b3-g-kana-a",
+          "groupName": "Kana tile a"
+        },
+        {
+          "id": "kp-b3-kana-a-kana",
+          "type": "text",
+          "name": "Kana",
+          "position": {
+            "x": 78.81,
+            "y": 1044.37
+          },
+          "size": {
+            "width": 151,
+            "height": 156.22
+          },
+          "rotation": -10,
+          "scale": 1,
+          "content": "あ",
+          "fontSize": 32.1,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans JP",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "kp-b3-g-kana-a",
+          "groupName": "Kana tile a"
+        },
+        {
+          "id": "kp-b3-kana-a-romaji",
+          "type": "text",
+          "name": "Reading",
+          "position": {
+            "x": 136.61,
+            "y": 1181.15
+          },
+          "size": {
+            "width": 70,
+            "height": 58.02
+          },
+          "rotation": -10,
+          "scale": 1,
+          "content": "a",
+          "fontSize": 10.91,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.22,
+          "groupId": "kp-b3-g-kana-a",
+          "groupName": "Kana tile a"
+        },
+        {
+          "id": "kp-b3-kana-ka-bg",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 963,
+            "y": 1271
+          },
+          "size": {
+            "width": 190,
+            "height": 190
+          },
+          "rotation": 9,
+          "scale": 1,
+          "shadow": {
+            "x": 7,
+            "y": 9,
+            "blur": 0,
+            "color": "#141414"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFC93C",
+          "strokeColor": "#141414",
+          "strokeWidth": 9,
+          "borderRadius": 45.6,
+          "groupId": "kp-b3-g-kana-ka",
+          "groupName": "Kana tile ka"
+        },
+        {
+          "id": "kp-b3-kana-ka-kana",
+          "type": "text",
+          "name": "Kana",
+          "position": {
+            "x": 990.54,
+            "y": 1272.21
+          },
+          "size": {
+            "width": 139,
+            "height": 138.7
+          },
+          "rotation": 9,
+          "scale": 1,
+          "content": "か",
+          "fontSize": 28.5,
+          "color": "#141414",
+          "fontFamily": "Noto Sans JP",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "kp-b3-g-kana-ka",
+          "groupName": "Kana tile ka"
+        },
+        {
+          "id": "kp-b3-kana-ka-romaji",
+          "type": "text",
+          "name": "Reading",
+          "position": {
+            "x": 1005.87,
+            "y": 1392.61
+          },
+          "size": {
+            "width": 88,
+            "height": 53.53
+          },
+          "rotation": 9,
+          "scale": 1,
+          "content": "ka",
+          "fontSize": 9.69,
+          "color": "#141414",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.19,
+          "groupId": "kp-b3-g-kana-ka",
+          "groupName": "Kana tile ka"
+        },
+        {
+          "id": "kp-b3-kana-sa-bg",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 46,
+            "y": 1698
+          },
+          "size": {
+            "width": 184,
+            "height": 184
+          },
+          "rotation": 8,
+          "scale": 1,
+          "shadow": {
+            "x": 7,
+            "y": 9,
+            "blur": 0,
+            "color": "#141414"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFE1DB",
+          "strokeColor": "#141414",
+          "strokeWidth": 9,
+          "borderRadius": 44.16,
+          "groupId": "kp-b3-g-kana-sa",
+          "groupName": "Kana tile sa"
+        },
+        {
+          "id": "kp-b3-kana-sa-kana",
+          "type": "text",
+          "name": "Kana",
+          "position": {
+            "x": 72.63,
+            "y": 1698.99
+          },
+          "size": {
+            "width": 136,
+            "height": 134.32
+          },
+          "rotation": 8,
+          "scale": 1,
+          "content": "さ",
+          "fontSize": 27.6,
+          "color": "#141414",
+          "fontFamily": "Noto Sans JP",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "kp-b3-g-kana-sa",
+          "groupName": "Kana tile sa"
+        },
+        {
+          "id": "kp-b3-kana-sa-romaji",
+          "type": "text",
+          "name": "Reading",
+          "position": {
+            "x": 89.49,
+            "y": 1815.81
+          },
+          "size": {
+            "width": 84,
+            "height": 52.41
+          },
+          "rotation": 8,
+          "scale": 1,
+          "content": "sa",
+          "fontSize": 9.38,
+          "color": "#141414",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.19,
+          "groupId": "kp-b3-g-kana-sa",
+          "groupName": "Kana tile sa"
+        },
+        {
+          "id": "kp-b3-kana-ta-bg",
+          "type": "shape",
+          "name": "Tile",
+          "position": {
+            "x": 963,
+            "y": 2027
+          },
+          "size": {
+            "width": 206,
+            "height": 206
+          },
+          "rotation": -8,
+          "scale": 1,
+          "shadow": {
+            "x": 7,
+            "y": 9,
+            "blur": 0,
+            "color": "#141414"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#141414",
+          "strokeWidth": 9,
+          "borderRadius": 49.44,
+          "groupId": "kp-b3-g-kana-ta",
+          "groupName": "Kana tile ta"
+        },
+        {
+          "id": "kp-b3-kana-ta-kana",
+          "type": "text",
+          "name": "Kana",
+          "position": {
+            "x": 988.52,
+            "y": 2029.1
+          },
+          "size": {
+            "width": 147,
+            "height": 150.38
+          },
+          "rotation": -8,
+          "scale": 1,
+          "content": "た",
+          "fontSize": 30.9,
+          "color": "#141414",
+          "fontFamily": "Noto Sans JP",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "kp-b3-g-kana-ta",
+          "groupName": "Kana tile ta"
+        },
+        {
+          "id": "kp-b3-kana-ta-romaji",
+          "type": "text",
+          "name": "Reading",
+          "position": {
+            "x": 1033.2,
+            "y": 2159.52
+          },
+          "size": {
+            "width": 84,
+            "height": 56.52
+          },
+          "rotation": -8,
+          "scale": 1,
+          "content": "ta",
+          "fontSize": 10.51,
+          "color": "#141414",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.21,
+          "groupId": "kp-b3-g-kana-ta",
+          "groupName": "Kana tile ta"
+        },
+        {
+          "id": "kp-b3-sparkle-1",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 1001,
+            "y": 1001
+          },
+          "size": {
+            "width": 78,
+            "height": 78
+          },
+          "rotation": 6,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC93C",
+          "strokeColor": "#141414",
+          "strokeWidth": 7,
+          "customPath": "M50 2 Q58.15 41.85 98 50 Q58.15 58.15 50 98 Q41.85 58.15 2 50 Q41.85 41.85 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        }
+      ]
+    },
+    {
+      "id": "kp-board-4",
+      "name": "Tap The Right Word And It Sticks",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFC93C",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "kp-b4-pattern-top",
+          "type": "shape",
+          "name": "Wave pattern",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1206,
+            "height": 201
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.085,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 67 A67 67 0 0 1 134 67 M28.1 67 A38.9 38.9 0 0 1 105.9 67 M134 67 A67 67 0 0 1 268 67 M162.1 67 A38.9 38.9 0 0 1 239.9 67 M268 67 A67 67 0 0 1 402 67 M296.1 67 A38.9 38.9 0 0 1 373.9 67 M402 67 A67 67 0 0 1 536 67 M430.1 67 A38.9 38.9 0 0 1 507.9 67 M536 67 A67 67 0 0 1 670 67 M564.1 67 A38.9 38.9 0 0 1 641.9 67 M670 67 A67 67 0 0 1 804 67 M698.1 67 A38.9 38.9 0 0 1 775.9 67 M804 67 A67 67 0 0 1 938 67 M832.1 67 A38.9 38.9 0 0 1 909.9 67 M938 67 A67 67 0 0 1 1072 67 M966.1 67 A38.9 38.9 0 0 1 1043.9 67 M1072 67 A67 67 0 0 1 1206 67 M1100.1 67 A38.9 38.9 0 0 1 1177.9 67 M-67 134 A67 67 0 0 1 67 134 M-38.9 134 A38.9 38.9 0 0 1 38.9 134 M67 134 A67 67 0 0 1 201 134 M95.1 134 A38.9 38.9 0 0 1 172.9 134 M201 134 A67 67 0 0 1 335 134 M229.1 134 A38.9 38.9 0 0 1 306.9 134 M335 134 A67 67 0 0 1 469 134 M363.1 134 A38.9 38.9 0 0 1 440.9 134 M469 134 A67 67 0 0 1 603 134 M497.1 134 A38.9 38.9 0 0 1 574.9 134 M603 134 A67 67 0 0 1 737 134 M631.1 134 A38.9 38.9 0 0 1 708.9 134 M737 134 A67 67 0 0 1 871 134 M765.1 134 A38.9 38.9 0 0 1 842.9 134 M871 134 A67 67 0 0 1 1005 134 M899.1 134 A38.9 38.9 0 0 1 976.9 134 M1005 134 A67 67 0 0 1 1139 134 M1033.1 134 A38.9 38.9 0 0 1 1110.9 134 M1139 134 A67 67 0 0 1 1273 134 M1167.1 134 A38.9 38.9 0 0 1 1244.9 134 M0 201 A67 67 0 0 1 134 201 M28.1 201 A38.9 38.9 0 0 1 105.9 201 M134 201 A67 67 0 0 1 268 201 M162.1 201 A38.9 38.9 0 0 1 239.9 201 M268 201 A67 67 0 0 1 402 201 M296.1 201 A38.9 38.9 0 0 1 373.9 201 M402 201 A67 67 0 0 1 536 201 M430.1 201 A38.9 38.9 0 0 1 507.9 201 M536 201 A67 67 0 0 1 670 201 M564.1 201 A38.9 38.9 0 0 1 641.9 201 M670 201 A67 67 0 0 1 804 201 M698.1 201 A38.9 38.9 0 0 1 775.9 201 M804 201 A67 67 0 0 1 938 201 M832.1 201 A38.9 38.9 0 0 1 909.9 201 M938 201 A67 67 0 0 1 1072 201 M966.1 201 A38.9 38.9 0 0 1 1043.9 201 M1072 201 A67 67 0 0 1 1206 201 M1100.1 201 A38.9 38.9 0 0 1 1177.9 201",
+          "specialProps": {
+            "viewBox": "0 0 1206 201",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5
+          },
+          "groupId": "kp-b4-g-pattern",
+          "groupName": "Wave pattern"
+        },
+        {
+          "id": "kp-b4-pattern-bottom",
+          "type": "shape",
+          "name": "Wave pattern",
+          "position": {
+            "x": 0,
+            "y": 2354
+          },
+          "size": {
+            "width": 1206,
+            "height": 268
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.085,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 67 A67 67 0 0 1 134 67 M28.1 67 A38.9 38.9 0 0 1 105.9 67 M134 67 A67 67 0 0 1 268 67 M162.1 67 A38.9 38.9 0 0 1 239.9 67 M268 67 A67 67 0 0 1 402 67 M296.1 67 A38.9 38.9 0 0 1 373.9 67 M402 67 A67 67 0 0 1 536 67 M430.1 67 A38.9 38.9 0 0 1 507.9 67 M536 67 A67 67 0 0 1 670 67 M564.1 67 A38.9 38.9 0 0 1 641.9 67 M670 67 A67 67 0 0 1 804 67 M698.1 67 A38.9 38.9 0 0 1 775.9 67 M804 67 A67 67 0 0 1 938 67 M832.1 67 A38.9 38.9 0 0 1 909.9 67 M938 67 A67 67 0 0 1 1072 67 M966.1 67 A38.9 38.9 0 0 1 1043.9 67 M1072 67 A67 67 0 0 1 1206 67 M1100.1 67 A38.9 38.9 0 0 1 1177.9 67 M-67 134 A67 67 0 0 1 67 134 M-38.9 134 A38.9 38.9 0 0 1 38.9 134 M67 134 A67 67 0 0 1 201 134 M95.1 134 A38.9 38.9 0 0 1 172.9 134 M201 134 A67 67 0 0 1 335 134 M229.1 134 A38.9 38.9 0 0 1 306.9 134 M335 134 A67 67 0 0 1 469 134 M363.1 134 A38.9 38.9 0 0 1 440.9 134 M469 134 A67 67 0 0 1 603 134 M497.1 134 A38.9 38.9 0 0 1 574.9 134 M603 134 A67 67 0 0 1 737 134 M631.1 134 A38.9 38.9 0 0 1 708.9 134 M737 134 A67 67 0 0 1 871 134 M765.1 134 A38.9 38.9 0 0 1 842.9 134 M871 134 A67 67 0 0 1 1005 134 M899.1 134 A38.9 38.9 0 0 1 976.9 134 M1005 134 A67 67 0 0 1 1139 134 M1033.1 134 A38.9 38.9 0 0 1 1110.9 134 M1139 134 A67 67 0 0 1 1273 134 M1167.1 134 A38.9 38.9 0 0 1 1244.9 134 M0 201 A67 67 0 0 1 134 201 M28.1 201 A38.9 38.9 0 0 1 105.9 201 M134 201 A67 67 0 0 1 268 201 M162.1 201 A38.9 38.9 0 0 1 239.9 201 M268 201 A67 67 0 0 1 402 201 M296.1 201 A38.9 38.9 0 0 1 373.9 201 M402 201 A67 67 0 0 1 536 201 M430.1 201 A38.9 38.9 0 0 1 507.9 201 M536 201 A67 67 0 0 1 670 201 M564.1 201 A38.9 38.9 0 0 1 641.9 201 M670 201 A67 67 0 0 1 804 201 M698.1 201 A38.9 38.9 0 0 1 775.9 201 M804 201 A67 67 0 0 1 938 201 M832.1 201 A38.9 38.9 0 0 1 909.9 201 M938 201 A67 67 0 0 1 1072 201 M966.1 201 A38.9 38.9 0 0 1 1043.9 201 M1072 201 A67 67 0 0 1 1206 201 M1100.1 201 A38.9 38.9 0 0 1 1177.9 201 M-67 268 A67 67 0 0 1 67 268 M-38.9 268 A38.9 38.9 0 0 1 38.9 268 M67 268 A67 67 0 0 1 201 268 M95.1 268 A38.9 38.9 0 0 1 172.9 268 M201 268 A67 67 0 0 1 335 268 M229.1 268 A38.9 38.9 0 0 1 306.9 268 M335 268 A67 67 0 0 1 469 268 M363.1 268 A38.9 38.9 0 0 1 440.9 268 M469 268 A67 67 0 0 1 603 268 M497.1 268 A38.9 38.9 0 0 1 574.9 268 M603 268 A67 67 0 0 1 737 268 M631.1 268 A38.9 38.9 0 0 1 708.9 268 M737 268 A67 67 0 0 1 871 268 M765.1 268 A38.9 38.9 0 0 1 842.9 268 M871 268 A67 67 0 0 1 1005 268 M899.1 268 A38.9 38.9 0 0 1 976.9 268 M1005 268 A67 67 0 0 1 1139 268 M1033.1 268 A38.9 38.9 0 0 1 1110.9 268 M1139 268 A67 67 0 0 1 1273 268 M1167.1 268 A38.9 38.9 0 0 1 1244.9 268",
+          "specialProps": {
+            "viewBox": "0 0 1206 268",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5
+          },
+          "groupId": "kp-b4-g-pattern",
+          "groupName": "Wave pattern"
+        },
+        {
+          "id": "kp-b4-pon",
+          "type": "image",
+          "name": "Pon",
+          "position": {
+            "x": 447.54,
+            "y": 134.81
+          },
+          "size": {
+            "width": 310.35,
+            "height": 306.1
+          },
+          "rotation": 5,
+          "scale": 1,
+          "imageSrc": "/elements/images/mascots/mascot-daruma-wink.png",
+          "objectFit": "contain"
+        },
+        {
+          "id": "kp-b4-headline-text",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 53,
+            "y": 468.27
+          },
+          "size": {
+            "width": 1100,
+            "height": 362.08
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Tap the\nright word",
+          "fontSize": 43.8,
+          "color": "#141414",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.06,
+          "letterSpacing": -1.09,
+          "groupId": "kp-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "kp-b4-sticks-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 304.6,
+            "y": 839
+          },
+          "size": {
+            "width": 596.8,
+            "height": 138
+          },
+          "rotation": -2,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#E8372C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 41.4,
+          "groupId": "kp-b4-g-sticks",
+          "groupName": "It sticks label"
+        },
+        {
+          "id": "kp-b4-sticks-text",
+          "type": "text",
+          "name": "Label text",
+          "position": {
+            "x": 332.57,
+            "y": 850.99
+          },
+          "size": {
+            "width": 545,
+            "height": 113.88
+          },
+          "rotation": -2,
+          "scale": 1,
+          "content": "and it sticks!",
+          "fontSize": 23.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.47,
+          "groupId": "kp-b4-g-sticks",
+          "groupName": "It sticks label"
+        },
+        {
+          "id": "kp-b4-phone-shadow",
+          "type": "shape",
+          "name": "Phone shadow",
+          "position": {
+            "x": 215,
+            "y": 1080
+          },
+          "size": {
+            "width": 800,
+            "height": 1674.96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 112,
+          "groupId": "kp-b4-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kp-b4-phone-body",
+          "type": "shape",
+          "name": "Phone body",
+          "position": {
+            "x": 203,
+            "y": 1066
+          },
+          "size": {
+            "width": 800,
+            "height": 1674.96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 112,
+          "groupId": "kp-b4-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kp-b4-phone-device",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 203,
+            "y": 1066
+          },
+          "size": {
+            "width": 800,
+            "height": 1674.96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "frameStyle": "outline",
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#141414",
+          "screenshotSrc": "/data/projects/kanapon-screen-quiz.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "kp-b4-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kp-b4-answer-kuma-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 685.1,
+            "y": 2110.2
+          },
+          "size": {
+            "width": 372,
+            "height": 196
+          },
+          "rotation": 7,
+          "scale": 1,
+          "shadow": {
+            "x": 8,
+            "y": 10,
+            "blur": 0,
+            "color": "#141414"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#141414",
+          "strokeWidth": 9,
+          "borderRadius": 46,
+          "groupId": "kp-b4-g-answer-kuma",
+          "groupName": "Answer: kuma"
+        },
+        {
+          "id": "kp-b4-answer-kuma-text",
+          "type": "text",
+          "name": "Label text",
+          "position": {
+            "x": 753.59,
+            "y": 2134.7
+          },
+          "size": {
+            "width": 236,
+            "height": 134.32
+          },
+          "rotation": 7,
+          "scale": 1,
+          "content": "くま",
+          "fontSize": 27.6,
+          "color": "#141414",
+          "fontFamily": "Noto Sans JP",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 1.1,
+          "groupId": "kp-b4-g-answer-kuma",
+          "groupName": "Answer: kuma"
+        },
+        {
+          "id": "kp-b4-answer-neko-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 136.9,
+            "y": 1823.2
+          },
+          "size": {
+            "width": 412,
+            "height": 224
+          },
+          "rotation": -8,
+          "scale": 1,
+          "shadow": {
+            "x": 8,
+            "y": 10,
+            "blur": 0,
+            "color": "#141414"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#E8372C",
+          "strokeColor": "#141414",
+          "strokeWidth": 9,
+          "borderRadius": 52,
+          "groupId": "kp-b4-g-answer-neko",
+          "groupName": "Answer: neko"
+        },
+        {
+          "id": "kp-b4-answer-neko-text",
+          "type": "text",
+          "name": "Label text",
+          "position": {
+            "x": 215.93,
+            "y": 1849.26
+          },
+          "size": {
+            "width": 269,
+            "height": 157.68
+          },
+          "rotation": -8,
+          "scale": 1,
+          "content": "ねこ",
+          "fontSize": 32.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Noto Sans JP",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 1.3,
+          "groupId": "kp-b4-g-answer-neko",
+          "groupName": "Answer: neko"
+        },
+        {
+          "id": "kp-b4-answer-neko-badge",
+          "type": "shape",
+          "name": "Check badge",
+          "position": {
+            "x": 470.5,
+            "y": 1750.66
+          },
+          "size": {
+            "width": 108,
+            "height": 108
+          },
+          "rotation": -8,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#141414",
+          "strokeWidth": 9,
+          "groupId": "kp-b4-g-answer-neko",
+          "groupName": "Answer: neko"
+        },
+        {
+          "id": "kp-b4-answer-neko-check",
+          "type": "shape",
+          "name": "Check",
+          "position": {
+            "x": 492.64,
+            "y": 1773.65
+          },
+          "size": {
+            "width": 64,
+            "height": 64
+          },
+          "rotation": -8,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#E8372C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M8 56 L20 44 L38 62 L80 16 L92 27 L38 86 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "kp-b4-g-answer-neko",
+          "groupName": "Answer: neko"
+        },
+        {
+          "id": "kp-b4-sparkle-1",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 1013,
+            "y": 1013
+          },
+          "size": {
+            "width": 78,
+            "height": 78
+          },
+          "rotation": 6,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#141414",
+          "strokeWidth": 7,
+          "customPath": "M50 2 Q58.15 41.85 98 50 Q58.15 58.15 50 98 Q41.85 58.15 2 50 Q41.85 41.85 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          }
+        }
+      ]
+    },
+    {
+      "id": "kp-board-5",
+      "name": "Set A Goal Keep The Streak",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "kp-b5-pattern-top",
+          "type": "shape",
+          "name": "Wave pattern",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1206,
+            "height": 201
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.085,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 67 A67 67 0 0 1 134 67 M28.1 67 A38.9 38.9 0 0 1 105.9 67 M134 67 A67 67 0 0 1 268 67 M162.1 67 A38.9 38.9 0 0 1 239.9 67 M268 67 A67 67 0 0 1 402 67 M296.1 67 A38.9 38.9 0 0 1 373.9 67 M402 67 A67 67 0 0 1 536 67 M430.1 67 A38.9 38.9 0 0 1 507.9 67 M536 67 A67 67 0 0 1 670 67 M564.1 67 A38.9 38.9 0 0 1 641.9 67 M670 67 A67 67 0 0 1 804 67 M698.1 67 A38.9 38.9 0 0 1 775.9 67 M804 67 A67 67 0 0 1 938 67 M832.1 67 A38.9 38.9 0 0 1 909.9 67 M938 67 A67 67 0 0 1 1072 67 M966.1 67 A38.9 38.9 0 0 1 1043.9 67 M1072 67 A67 67 0 0 1 1206 67 M1100.1 67 A38.9 38.9 0 0 1 1177.9 67 M-67 134 A67 67 0 0 1 67 134 M-38.9 134 A38.9 38.9 0 0 1 38.9 134 M67 134 A67 67 0 0 1 201 134 M95.1 134 A38.9 38.9 0 0 1 172.9 134 M201 134 A67 67 0 0 1 335 134 M229.1 134 A38.9 38.9 0 0 1 306.9 134 M335 134 A67 67 0 0 1 469 134 M363.1 134 A38.9 38.9 0 0 1 440.9 134 M469 134 A67 67 0 0 1 603 134 M497.1 134 A38.9 38.9 0 0 1 574.9 134 M603 134 A67 67 0 0 1 737 134 M631.1 134 A38.9 38.9 0 0 1 708.9 134 M737 134 A67 67 0 0 1 871 134 M765.1 134 A38.9 38.9 0 0 1 842.9 134 M871 134 A67 67 0 0 1 1005 134 M899.1 134 A38.9 38.9 0 0 1 976.9 134 M1005 134 A67 67 0 0 1 1139 134 M1033.1 134 A38.9 38.9 0 0 1 1110.9 134 M1139 134 A67 67 0 0 1 1273 134 M1167.1 134 A38.9 38.9 0 0 1 1244.9 134 M0 201 A67 67 0 0 1 134 201 M28.1 201 A38.9 38.9 0 0 1 105.9 201 M134 201 A67 67 0 0 1 268 201 M162.1 201 A38.9 38.9 0 0 1 239.9 201 M268 201 A67 67 0 0 1 402 201 M296.1 201 A38.9 38.9 0 0 1 373.9 201 M402 201 A67 67 0 0 1 536 201 M430.1 201 A38.9 38.9 0 0 1 507.9 201 M536 201 A67 67 0 0 1 670 201 M564.1 201 A38.9 38.9 0 0 1 641.9 201 M670 201 A67 67 0 0 1 804 201 M698.1 201 A38.9 38.9 0 0 1 775.9 201 M804 201 A67 67 0 0 1 938 201 M832.1 201 A38.9 38.9 0 0 1 909.9 201 M938 201 A67 67 0 0 1 1072 201 M966.1 201 A38.9 38.9 0 0 1 1043.9 201 M1072 201 A67 67 0 0 1 1206 201 M1100.1 201 A38.9 38.9 0 0 1 1177.9 201",
+          "specialProps": {
+            "viewBox": "0 0 1206 201",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5
+          },
+          "groupId": "kp-b5-g-pattern",
+          "groupName": "Wave pattern"
+        },
+        {
+          "id": "kp-b5-pattern-bottom",
+          "type": "shape",
+          "name": "Wave pattern",
+          "position": {
+            "x": 0,
+            "y": 2354
+          },
+          "size": {
+            "width": 1206,
+            "height": 268
+          },
+          "rotation": 0,
+          "scale": 1,
+          "opacity": 0.085,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 67 A67 67 0 0 1 134 67 M28.1 67 A38.9 38.9 0 0 1 105.9 67 M134 67 A67 67 0 0 1 268 67 M162.1 67 A38.9 38.9 0 0 1 239.9 67 M268 67 A67 67 0 0 1 402 67 M296.1 67 A38.9 38.9 0 0 1 373.9 67 M402 67 A67 67 0 0 1 536 67 M430.1 67 A38.9 38.9 0 0 1 507.9 67 M536 67 A67 67 0 0 1 670 67 M564.1 67 A38.9 38.9 0 0 1 641.9 67 M670 67 A67 67 0 0 1 804 67 M698.1 67 A38.9 38.9 0 0 1 775.9 67 M804 67 A67 67 0 0 1 938 67 M832.1 67 A38.9 38.9 0 0 1 909.9 67 M938 67 A67 67 0 0 1 1072 67 M966.1 67 A38.9 38.9 0 0 1 1043.9 67 M1072 67 A67 67 0 0 1 1206 67 M1100.1 67 A38.9 38.9 0 0 1 1177.9 67 M-67 134 A67 67 0 0 1 67 134 M-38.9 134 A38.9 38.9 0 0 1 38.9 134 M67 134 A67 67 0 0 1 201 134 M95.1 134 A38.9 38.9 0 0 1 172.9 134 M201 134 A67 67 0 0 1 335 134 M229.1 134 A38.9 38.9 0 0 1 306.9 134 M335 134 A67 67 0 0 1 469 134 M363.1 134 A38.9 38.9 0 0 1 440.9 134 M469 134 A67 67 0 0 1 603 134 M497.1 134 A38.9 38.9 0 0 1 574.9 134 M603 134 A67 67 0 0 1 737 134 M631.1 134 A38.9 38.9 0 0 1 708.9 134 M737 134 A67 67 0 0 1 871 134 M765.1 134 A38.9 38.9 0 0 1 842.9 134 M871 134 A67 67 0 0 1 1005 134 M899.1 134 A38.9 38.9 0 0 1 976.9 134 M1005 134 A67 67 0 0 1 1139 134 M1033.1 134 A38.9 38.9 0 0 1 1110.9 134 M1139 134 A67 67 0 0 1 1273 134 M1167.1 134 A38.9 38.9 0 0 1 1244.9 134 M0 201 A67 67 0 0 1 134 201 M28.1 201 A38.9 38.9 0 0 1 105.9 201 M134 201 A67 67 0 0 1 268 201 M162.1 201 A38.9 38.9 0 0 1 239.9 201 M268 201 A67 67 0 0 1 402 201 M296.1 201 A38.9 38.9 0 0 1 373.9 201 M402 201 A67 67 0 0 1 536 201 M430.1 201 A38.9 38.9 0 0 1 507.9 201 M536 201 A67 67 0 0 1 670 201 M564.1 201 A38.9 38.9 0 0 1 641.9 201 M670 201 A67 67 0 0 1 804 201 M698.1 201 A38.9 38.9 0 0 1 775.9 201 M804 201 A67 67 0 0 1 938 201 M832.1 201 A38.9 38.9 0 0 1 909.9 201 M938 201 A67 67 0 0 1 1072 201 M966.1 201 A38.9 38.9 0 0 1 1043.9 201 M1072 201 A67 67 0 0 1 1206 201 M1100.1 201 A38.9 38.9 0 0 1 1177.9 201 M-67 268 A67 67 0 0 1 67 268 M-38.9 268 A38.9 38.9 0 0 1 38.9 268 M67 268 A67 67 0 0 1 201 268 M95.1 268 A38.9 38.9 0 0 1 172.9 268 M201 268 A67 67 0 0 1 335 268 M229.1 268 A38.9 38.9 0 0 1 306.9 268 M335 268 A67 67 0 0 1 469 268 M363.1 268 A38.9 38.9 0 0 1 440.9 268 M469 268 A67 67 0 0 1 603 268 M497.1 268 A38.9 38.9 0 0 1 574.9 268 M603 268 A67 67 0 0 1 737 268 M631.1 268 A38.9 38.9 0 0 1 708.9 268 M737 268 A67 67 0 0 1 871 268 M765.1 268 A38.9 38.9 0 0 1 842.9 268 M871 268 A67 67 0 0 1 1005 268 M899.1 268 A38.9 38.9 0 0 1 976.9 268 M1005 268 A67 67 0 0 1 1139 268 M1033.1 268 A38.9 38.9 0 0 1 1110.9 268 M1139 268 A67 67 0 0 1 1273 268 M1167.1 268 A38.9 38.9 0 0 1 1244.9 268",
+          "specialProps": {
+            "viewBox": "0 0 1206 268",
+            "strokeOnly": true,
+            "baseStrokeWidth": 5
+          },
+          "groupId": "kp-b5-g-pattern",
+          "groupName": "Wave pattern"
+        },
+        {
+          "id": "kp-b5-headline-1",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 256.17,
+            "y": 133.18
+          },
+          "size": {
+            "width": 692,
+            "height": 186.88
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Set a goal,",
+          "fontSize": 38.4,
+          "color": "#141414",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.96,
+          "groupId": "kp-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "kp-b5-headline-2",
+          "type": "text",
+          "name": "Headline",
+          "position": {
+            "x": 87.58,
+            "y": 309.18
+          },
+          "size": {
+            "width": 591,
+            "height": 186.88
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "keep the",
+          "fontSize": 38.4,
+          "color": "#141414",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.96,
+          "groupId": "kp-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "kp-b5-streak-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 672.65,
+            "y": 324
+          },
+          "size": {
+            "width": 436.61,
+            "height": 160
+          },
+          "rotation": -3,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#E8372C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 48,
+          "groupId": "kp-b5-g-streak",
+          "groupName": "Streak label"
+        },
+        {
+          "id": "kp-b5-streak-text",
+          "type": "text",
+          "name": "Label text",
+          "position": {
+            "x": 693.54,
+            "y": 327.12
+          },
+          "size": {
+            "width": 390,
+            "height": 154.76
+          },
+          "rotation": -3,
+          "scale": 1,
+          "content": "streak",
+          "fontSize": 31.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.64,
+          "groupId": "kp-b5-g-streak",
+          "groupName": "Streak label"
+        },
+        {
+          "id": "kp-b5-pon-goal",
+          "type": "image",
+          "name": "Pon, goal set",
+          "position": {
+            "x": 129.72,
+            "y": 611.44
+          },
+          "size": {
+            "width": 377.1,
+            "height": 371.93
+          },
+          "rotation": -4,
+          "scale": 1,
+          "imageSrc": "/elements/images/mascots/mascot-daruma-goal.png",
+          "objectFit": "contain",
+          "groupId": "kp-b5-g-eyes",
+          "groupName": "One eye, then two"
+        },
+        {
+          "id": "kp-b5-pon-done",
+          "type": "image",
+          "name": "Pon, goal reached",
+          "position": {
+            "x": 699.18,
+            "y": 611.44
+          },
+          "size": {
+            "width": 377.1,
+            "height": 371.93
+          },
+          "rotation": 4,
+          "scale": 1,
+          "imageSrc": "/elements/images/mascots/mascot-daruma-hello.png",
+          "objectFit": "contain",
+          "groupId": "kp-b5-g-eyes",
+          "groupName": "One eye, then two"
+        },
+        {
+          "id": "kp-b5-arrow",
+          "type": "shape",
+          "name": "Arrow",
+          "position": {
+            "x": 506,
+            "y": 596
+          },
+          "size": {
+            "width": 196,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 14,
+          "customPath": "M10 28 C40 12 74 26 84 60 M68 52 L86 64 L92 40",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 14
+          },
+          "groupId": "kp-b5-g-eyes",
+          "groupName": "One eye, then two"
+        },
+        {
+          "id": "kp-b5-sparkle-1",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 1075,
+            "y": 555
+          },
+          "size": {
+            "width": 70,
+            "height": 70
+          },
+          "rotation": 8,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFC93C",
+          "strokeColor": "#141414",
+          "strokeWidth": 7,
+          "customPath": "M50 2 Q58.15 41.85 98 50 Q58.15 58.15 50 98 Q41.85 58.15 2 50 Q41.85 41.85 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "kp-b5-g-eyes",
+          "groupName": "One eye, then two"
+        },
+        {
+          "id": "kp-b5-label-set-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 187.06,
+            "y": 956
+          },
+          "size": {
+            "width": 261.89,
+            "height": 96
+          },
+          "rotation": -3,
+          "scale": 1,
+          "shadow": {
+            "x": 6,
+            "y": 7,
+            "blur": 0,
+            "color": "#141414"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#141414",
+          "strokeWidth": 9,
+          "borderRadius": 28.8,
+          "groupId": "kp-b5-g-label-set",
+          "groupName": "Goal set label"
+        },
+        {
+          "id": "kp-b5-label-set-text",
+          "type": "text",
+          "name": "Label text",
+          "position": {
+            "x": 201.33,
+            "y": 969.92
+          },
+          "size": {
+            "width": 233,
+            "height": 68.6
+          },
+          "rotation": -3,
+          "scale": 1,
+          "content": "Goal set",
+          "fontSize": 13.8,
+          "color": "#141414",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.14,
+          "groupId": "kp-b5-g-label-set",
+          "groupName": "Goal set label"
+        },
+        {
+          "id": "kp-b5-label-done-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 687.21,
+            "y": 956
+          },
+          "size": {
+            "width": 401.59,
+            "height": 96
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shadow": {
+            "x": 6,
+            "y": 7,
+            "blur": 0,
+            "color": "#141414"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFC93C",
+          "strokeColor": "#141414",
+          "strokeWidth": 9,
+          "borderRadius": 28.8,
+          "groupId": "kp-b5-g-label-done",
+          "groupName": "Goal reached label"
+        },
+        {
+          "id": "kp-b5-label-done-text",
+          "type": "text",
+          "name": "Label text",
+          "position": {
+            "x": 701.26,
+            "y": 969.98
+          },
+          "size": {
+            "width": 376,
+            "height": 68.6
+          },
+          "rotation": 3,
+          "scale": 1,
+          "content": "Goal reached!",
+          "fontSize": 13.8,
+          "color": "#141414",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.14,
+          "groupId": "kp-b5-g-label-done",
+          "groupName": "Goal reached label"
+        },
+        {
+          "id": "kp-b5-caption-text",
+          "type": "text",
+          "name": "Caption",
+          "position": {
+            "x": 73,
+            "y": 1098.29
+          },
+          "size": {
+            "width": 1060,
+            "height": 142.08
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Paint one eye when you start,\nthe other when you get there.",
+          "fontSize": 14.1,
+          "color": "#3B3B3B",
+          "fontFamily": "Poppins",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.32,
+          "letterSpacing": -0.14,
+          "groupId": "kp-b5-g-caption",
+          "groupName": "Caption"
+        },
+        {
+          "id": "kp-b5-phone-shadow",
+          "type": "shape",
+          "name": "Phone shadow",
+          "position": {
+            "x": 215,
+            "y": 1344
+          },
+          "size": {
+            "width": 800,
+            "height": 1674.96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#141414",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 112,
+          "groupId": "kp-b5-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kp-b5-phone-body",
+          "type": "shape",
+          "name": "Phone body",
+          "position": {
+            "x": 203,
+            "y": 1330
+          },
+          "size": {
+            "width": 800,
+            "height": 1674.96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 112,
+          "groupId": "kp-b5-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kp-b5-phone-device",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 203,
+            "y": 1330
+          },
+          "size": {
+            "width": 800,
+            "height": 1674.96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "frameStyle": "outline",
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#141414",
+          "screenshotSrc": "/data/projects/kanapon-screen-goal.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "kp-b5-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "kp-b5-proverb-bg",
+          "type": "shape",
+          "name": "Label",
+          "position": {
+            "x": 233,
+            "y": 2360
+          },
+          "size": {
+            "width": 740,
+            "height": 228
+          },
+          "rotation": -3,
+          "scale": 1,
+          "shadow": {
+            "x": 8,
+            "y": 10,
+            "blur": 0,
+            "color": "#141414"
+          },
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#141414",
+          "strokeWidth": 9,
+          "borderRadius": 56,
+          "groupId": "kp-b5-g-proverb",
+          "groupName": "Proverb tag"
+        },
+        {
+          "id": "kp-b5-proverb-kanji",
+          "type": "text",
+          "name": "Proverb",
+          "position": {
+            "x": 318.27,
+            "y": 2375.58
+          },
+          "size": {
+            "width": 576,
+            "height": 125.56
+          },
+          "rotation": -3,
+          "scale": 1,
+          "content": "七転び八起き",
+          "fontSize": 25.8,
+          "color": "#141414",
+          "fontFamily": "Noto Sans JP",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": 0.77,
+          "groupId": "kp-b5-g-proverb",
+          "groupName": "Proverb tag"
+        },
+        {
+          "id": "kp-b5-proverb-meaning",
+          "type": "text",
+          "name": "Meaning",
+          "position": {
+            "x": 322.79,
+            "y": 2505.23
+          },
+          "size": {
+            "width": 565,
+            "height": 57.6
+          },
+          "rotation": -3,
+          "scale": 1,
+          "content": "Fall seven times, get up eight",
+          "fontSize": 10.8,
+          "color": "#3B3B3B",
+          "fontFamily": "Poppins",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.11,
+          "groupId": "kp-b5-g-proverb",
+          "groupName": "Proverb tag"
+        }
+      ]
+    }
+  ]
+}

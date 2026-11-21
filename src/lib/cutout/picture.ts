@@ -110,6 +110,34 @@ export async function encodeRgba(
   }
 }
 
+const PNG_SIGNATURE = [137, 80, 78, 71, 13, 10, 26, 10];
+
+/**
+ * A picture as PNG bytes: as it is when it is a PNG already, drawn again as
+ * one otherwise. A picture kept as it came is kept as a JPEG when it is opaque
+ * (add.ts), and Export as PNG has to give a PNG whatever is kept.
+ */
+export async function asPng(blob: Blob): Promise<Blob> {
+  const head = new Uint8Array(await blob.slice(0, PNG_SIGNATURE.length).arrayBuffer());
+  if (PNG_SIGNATURE.every((byte, i) => head[i] === byte)) return blob.type === 'image/png' ? blob : new Blob([blob], { type: 'image/png' });
+  const bitmap = await createImageBitmap(blob);
+  try {
+    const canvas = canvasOf(bitmap.width, bitmap.height);
+    try {
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('This browser could not draw the picture');
+      context.drawImage(bitmap, 0, 0);
+      const png = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
+      if (!png) throw new Error('The picture could not be saved');
+      return png;
+    } finally {
+      releaseCanvas(canvas);
+    }
+  } finally {
+    bitmap.close();
+  }
+}
+
 /** One byte a pixel (a mask) as a greyscale PNG, the way it is kept. */
 export function encodeMask(mask: Uint8Array, width: number, height: number): Promise<Blob> {
   const rgba = new Uint8ClampedArray(width * height * 4);

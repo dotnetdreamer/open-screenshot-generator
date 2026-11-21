@@ -289,8 +289,12 @@ export interface CloudProvider {
 
 /**
  * The user's own pictures (the background remover's library) as kept in their
- * storage: one manifest and a file per picture, apart from any project.
- * See src/lib/cutout/backup.ts, which merges it with this device's copy.
+ * storage: a list for each computer that backs up there, and a file per
+ * picture, apart from any project. See src/lib/account/libraryFiles.ts for the
+ * lists, and src/lib/cutout/backup.ts, which merges them with this computer's.
+ *
+ * This is the one shared list builds from before the lists kept in
+ * library.json, which is still read as one more list while it has pictures.
  */
 export interface RemoteLibraryManifest {
   formatVersion: 1;
@@ -322,9 +326,47 @@ export interface RemoteLibraryImage {
   updatedAt: number;
 }
 
+/**
+ * One computer's list of the pictures in the account, in a file of its own
+ * that no other computer writes (src/lib/account/libraryFiles.ts). It holds
+ * everything that computer knew when it last backed up: the lists it read
+ * then, merged with its own pictures.
+ */
+export interface RemoteLibraryList {
+  formatVersion: 1;
+  /** The computer that wrote it; the file's name says the same. */
+  device: string;
+  /** When it was written, by that computer's clock. Each of its lists is later than the one before. */
+  updatedAt: number;
+  /**
+   * The other computers' lists it took in, by computer: the `updatedAt` each
+   * had then. A list another one took in since says nothing that one does
+   * not, so it is left out of the merge, and a deletion forgotten after
+   * TOMBSTONE_DAYS cannot bring its old pictures back.
+   */
+  seen: Record<string, number>;
+  images: RemoteLibraryImage[];
+  /** Pictures deleted somewhere, so a sync elsewhere deletes them too. */
+  deleted: Array<{ id: string; at: number }>;
+  /**
+   * Files a backup from that computer is sending, or keeping for its newer
+   * pictures, while it runs: written before it sends any, so no other
+   * computer takes them out before its list names them. The list's pictures
+   * are its last finished backup's meanwhile.
+   */
+  sending?: string[];
+  /** When `sending` was written. Old ones (a backup that never finished) are not kept to. */
+  sendingAt?: number;
+}
+
 /** What one read of the remote library found. `handle` and `files` are the provider's own. */
 export interface RemoteLibraryState {
-  manifest: RemoteLibraryManifest | null;
+  /** Every list there: each computer's, and library.json's while a build from before the lists wrote pictures in it. */
+  lists: RemoteLibraryList[];
+  /** Whether library.json is the note that stops builds from before the lists. */
+  fenced: boolean;
+  /** The names of list files there that do not read as one. Nothing is taken out of the account while there are some. */
+  unreadable: string[];
   /** Media ids already stored there. */
   mediaIds: Set<string>;
   handle: string | null;
@@ -336,24 +378,44 @@ export interface LibraryRemote {
   /** Whether the photos and masks travel too, so a cut can still be changed after a restore. */
   keepsSources: boolean;
   read(session: AccountSession): Promise<RemoteLibraryState>;
+  /** The lists and files as they are now, which another computer may have changed since `state` was read. */
+  refresh(session: AccountSession, state: RemoteLibraryState): Promise<RemoteLibraryState>;
   /**
    * Sends files not already there, making the folder on the first call. `name`
    * is what the file is called where the storage shows a name to the user.
+   * `kept` is every file the account holds once the sync is done, and
+   * `device` the computer whose list it adds, for a storage that limits how
+   * many files it holds: the old versions about to go do not count against it.
    */
   upload(
     session: AccountSession,
     state: RemoteLibraryState,
     files: Array<{ mediaId: string; blob: Blob; mimeType: string; name?: string }>,
-    onProgress?: ProgressFn
+    options?: { onProgress?: ProgressFn; kept?: ReadonlySet<string>; device?: string }
   ): Promise<RemoteLibraryState>;
-  writeManifest(session: AccountSession, state: RemoteLibraryState, manifest: RemoteLibraryManifest): Promise<RemoteLibraryState>;
+  /**
+   * Writes this computer's list, making its file the first time. `fence`
+   * makes library.json the note too, once the list has taken in what it held.
+   */
+  writeList(session: AccountSession, state: RemoteLibraryState, list: RemoteLibraryList, options?: { fence?: boolean }): Promise<RemoteLibraryState>;
   download(session: AccountSession, state: RemoteLibraryState, mediaId: string, mimeType: string): Promise<Blob>;
   /**
-   * Takes out the files the manifest no longer names (Drive puts them in its
+   * Takes out the files no list names any more (Drive puts them in its
    * trash). Returns the media ids of the ones still there because the storage
    * refused or failed; the next sync finds them unnamed and tries again.
    */
   remove(session: AccountSession, state: RemoteLibraryState, mediaIds: string[]): Promise<string[]>;
+  /**
+   * Puts back files `remove` took out, for pictures another computer named
+   * meanwhile: out of the Drive trash, or into the gist again from the copy
+   * `from` read. Returns the media ids it could not put back.
+   */
+  restore(session: AccountSession, from: RemoteLibraryState, mediaIds: string[]): Promise<string[]>;
+  /**
+   * Takes out other computers' lists, for a storage that limits how many files
+   * it holds (a gist): only ones this computer's list took in.
+   */
+  dropLists?(session: AccountSession, state: RemoteLibraryState, devices: string[]): Promise<void>;
   /**
    * Gives files already there the name `upload` would give them now, for a
    * storage that shows the user names (a renamed picture, a file from before
@@ -373,6 +435,31 @@ export class AccountAuthError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'AccountAuthError';
+  }
+}
+
+/**
+ * The storage is taking another write to the same place this moment and
+ * refused this one: GitHub answers 409 to a gist change made while another
+ * change to it is under way (two computers backing up at once did, November
+ * 2026). The other write takes a second or two, so trying again works.
+ */
+export class StorageBusyError extends Error {
+  constructor(message = 'GitHub was busy with another change to the same gist. Try again in a moment.') {
+    super(message);
+    this.name = 'StorageBusyError';
+  }
+}
+
+/** Runs `job`, again after 1, 2 and 4 seconds while the storage is busy (StorageBusyError). */
+export async function whenNotBusy<T>(job: () => Promise<T>): Promise<T> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await job();
+    } catch (error) {
+      if (!(error instanceof StorageBusyError) || attempt >= 3) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 1000 * 2 ** attempt));
+    }
   }
 }
 

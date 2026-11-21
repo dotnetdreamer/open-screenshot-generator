@@ -61,6 +61,9 @@ const OPEN_HOSTS: &[&str] = &[
     "play.google.com",
     "support.google.com",
     "developers.google.com",
+    // The SEO view's Google setup adds the key's email as a user here.
+    "search.google.com",
+    "analytics.google.com",
 ];
 
 /// What a page, or a frame inside one, may load: Apple's and Google's own
@@ -119,6 +122,9 @@ pub struct GrowthBrowserState {
 struct PendingDownload {
     path: PathBuf,
     name: String,
+    /// The number this app gave the download, sent with its start and with its
+    /// file, so the page can tell which conversation asked for it.
+    id: u64,
 }
 
 /// How long after turning a download away its failure may still come in.
@@ -140,12 +146,12 @@ struct Downloads {
 
 impl Downloads {
     /// Whether a download from `url` to `path` may start.
-    fn start(&mut self, url: &str, path: PathBuf, name: String) -> bool {
+    fn start(&mut self, url: &str, path: PathBuf, name: String, id: u64) -> bool {
         if self.pending.contains_key(url) {
             self.turned_away.entry(url.to_string()).or_default().push(Instant::now());
             return false;
         }
-        self.pending.insert(url.to_string(), PendingDownload { path, name });
+        self.pending.insert(url.to_string(), PendingDownload { path, name, id });
         true
     }
 
@@ -419,11 +425,12 @@ fn on_download<R: Runtime>(app: &AppHandle<R>, event: DownloadEvent<'_>) -> bool
             };
             let serial = state.next_file.fetch_add(1, Ordering::SeqCst);
             let path = dir.join(format!("{}-{serial}.{ext}", std::process::id()));
-            if !state.downloads.lock().unwrap().start(url.as_str(), path.clone(), name.clone()) {
+            if !state.downloads.lock().unwrap().start(url.as_str(), path.clone(), name.clone(), serial) {
                 send(app, json!({ "type": "download-refused", "fileName": name, "reason": "That key file is downloading already" }));
                 return false;
             }
             *destination = path;
+            send(app, json!({ "type": "download-started", "fileName": name, "id": serial }));
             true
         }
         DownloadEvent::Finished { url, path, success } => {
@@ -447,12 +454,16 @@ fn on_download<R: Runtime>(app: &AppHandle<R>, event: DownloadEvent<'_>) -> bool
             match read.as_deref().map(|text| (text, classify_key_file(&download.name, text))) {
                 Some((text, Ok(kind))) => send(
                     app,
-                    json!({ "type": "key-file", "kind": kind, "fileName": download.name, "content": text }),
+                    json!({ "type": "key-file", "kind": kind, "fileName": download.name, "content": text, "id": download.id }),
                 ),
-                Some((_, Err(reason))) => send(app, json!({ "type": "download-refused", "fileName": download.name, "reason": reason })),
+                // The number its start had, so the editor forgets which job asked for it.
+                Some((_, Err(reason))) => send(
+                    app,
+                    json!({ "type": "download-refused", "fileName": download.name, "reason": reason, "id": download.id }),
+                ),
                 None => send(
                     app,
-                    json!({ "type": "download-refused", "fileName": download.name, "reason": "The download did not finish" }),
+                    json!({ "type": "download-refused", "fileName": download.name, "reason": "The download did not finish", "id": download.id }),
                 ),
             }
             true
@@ -771,6 +782,9 @@ mod tests {
         assert!(may_open(&url("https://appstoreconnect.apple.com/access/integrations/api")));
         assert!(may_open(&url("https://console.cloud.google.com/iam-admin/serviceaccounts")));
         assert!(may_open(&url("https://play.google.com/console/u/0/developers")));
+        assert!(may_open(&url("https://search.google.com/search-console/users")));
+        assert!(may_open(&url("https://analytics.google.com/analytics/web/")));
+        assert!(!may_open(&url("https://search.google.com.evil.example/")));
         assert!(!may_open(&url("http://appstoreconnect.apple.com/")));
         assert!(!may_open(&url("https://appstoreconnect.apple.com:8443/")));
         assert!(!may_open(&url("https://appstoreconnect.apple.com.evil.example/")));
@@ -813,15 +827,17 @@ mod tests {
     fn one_download_per_address_runs_at_a_time() {
         let key = "https://appstoreconnect.apple.com/iris/v1/apiKeys/2X9R4HXF34/download";
         let mut downloads = Downloads::default();
-        assert!(downloads.start(key, PathBuf::from("/cache/1-0.p8"), "AuthKey_2X9R4HXF34.p8".into()));
+        assert!(downloads.start(key, PathBuf::from("/cache/1-0.p8"), "AuthKey_2X9R4HXF34.p8".into(), 1));
         // A double click: the second is turned away while the first runs.
-        assert!(!downloads.start(key, PathBuf::from("/cache/1-1.p8"), "AuthKey_2X9R4HXF34.p8".into()));
+        assert!(!downloads.start(key, PathBuf::from("/cache/1-1.p8"), "AuthKey_2X9R4HXF34.p8".into(), 2));
         // WebKit reports the turned-away one as failed, by the same address,
         // and the one still running is left alone.
         assert!(downloads.finish(key, None, false).is_none());
         assert_eq!(downloads.paths(), HashSet::from([PathBuf::from("/cache/1-0.p8")]));
         let done = downloads.finish(key, None, true).expect("the first download");
         assert_eq!(done.path, PathBuf::from("/cache/1-0.p8"));
+        // The file goes out with the id its start went out with.
+        assert_eq!(done.id, 1);
         assert!(downloads.paths().is_empty());
     }
 
@@ -829,12 +845,12 @@ mod tests {
     fn a_turned_away_failure_that_comes_last_is_still_its_own() {
         let key = "https://example.apple.com/key";
         let mut downloads = Downloads::default();
-        assert!(downloads.start(key, PathBuf::from("/cache/a.p8"), "a.p8".into()));
-        assert!(!downloads.start(key, PathBuf::from("/cache/b.p8"), "a.p8".into()));
+        assert!(downloads.start(key, PathBuf::from("/cache/a.p8"), "a.p8".into(), 3));
+        assert!(!downloads.start(key, PathBuf::from("/cache/b.p8"), "a.p8".into(), 4));
         assert_eq!(downloads.finish(key, None, true).map(|d| d.path), Some(PathBuf::from("/cache/a.p8")));
         assert!(downloads.finish(key, None, false).is_none());
         // Nothing is left over to confuse the next download from there.
-        assert!(downloads.start(key, PathBuf::from("/cache/c.p8"), "a.p8".into()));
+        assert!(downloads.start(key, PathBuf::from("/cache/c.p8"), "a.p8".into(), 5));
         assert_eq!(downloads.finish(key, None, false).map(|d| d.path), Some(PathBuf::from("/cache/c.p8")));
     }
 
@@ -842,7 +858,7 @@ mod tests {
     fn a_named_file_must_be_the_one_written() {
         let key = "https://example.apple.com/key";
         let mut downloads = Downloads::default();
-        assert!(downloads.start(key, PathBuf::from("/cache/a.p8"), "a.p8".into()));
+        assert!(downloads.start(key, PathBuf::from("/cache/a.p8"), "a.p8".into(), 6));
         assert!(downloads.finish(key, Some(Path::new("/Users/me/Downloads/a.p8")), true).is_none());
         assert!(downloads.finish(key, Some(Path::new("/cache/a.p8")), true).is_some());
     }

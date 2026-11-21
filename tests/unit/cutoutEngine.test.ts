@@ -32,9 +32,23 @@ const engineSource = build({
   }],
 }).then((result) => result.outputFiles![0].text);
 
-async function engine(options: { cached?: boolean; flat?: boolean; simd?: boolean; vision?: boolean; holdDownload?: boolean } = {}) {
+async function engine(
+  options: {
+    cached?: boolean;
+    flat?: boolean;
+    simd?: boolean;
+    vision?: boolean;
+    holdDownload?: boolean;
+    /** WebGPU with half precision, so the 1024 model is the one used. */
+    gpu?: boolean;
+    /** Where the model's mask says nothing: on the GPU only, or on both. */
+    unsureOn?: 'webgpu' | 'all';
+  } = {}
+) {
   const state = { cached: !!options.cached, vision: !!options.vision };
   const requests: string[] = [];
+  const stored = new Map<string, string>();
+  let device: 'webgpu' | 'wasm' | null = null;
   let finishDownload: (() => void) | undefined;
   let announceDownload: (() => void) | undefined;
   const downloadStarted = new Promise<void>((resolve) => { announceDownload = resolve; });
@@ -54,11 +68,13 @@ async function engine(options: { cached?: boolean; flat?: boolean; simd?: boolea
         this.stopDownload?.();
         done(null);
       } else if (request.type === 'load') {
-        if (state.cached) done({ device: 'wasm', ms: 0 });
+        device = request.gpu ? 'webgpu' : 'wasm';
+        if (state.cached) done({ device, ms: 0 });
         else fail('Model download is incomplete');
       } else if (request.type === 'cut') {
+        const unsure = request.useModel && (options.unsureOn === 'all' || (options.unsureOn === 'webgpu' && device === 'webgpu'));
         if (!request.useModel && !request.hint && !options.flat) fail('NO_ENGINE');
-        else done({ mask: new Uint8Array([255]).buffer, width: 1, height: 1, engine: request.useModel ? 'model' : request.hint ? 'vision' : 'color', flat: !!options.flat, ms: 0 });
+        else done({ mask: new Uint8Array([unsure ? 128 : 255]).buffer, width: 1, height: 1, engine: request.useModel ? 'model' : request.hint ? 'vision' : 'color', flat: !!options.flat, ...(unsure ? { unsure } : {}), ms: 0 });
       }
     }
   }
@@ -74,15 +90,41 @@ async function engine(options: { cached?: boolean; flat?: boolean; simd?: boolea
     Uint8ClampedArray,
     DOMException,
     Worker: TestWorker,
-    navigator: {},
-    window: { localStorage: { getItem: () => null } },
+    navigator: options.gpu
+      ? { gpu: { requestAdapter: async () => ({ features: { has: (name: string) => name === 'shader-f16' }, limits: { maxStorageBuffersPerShaderStage: 10 } }) } }
+      : {},
+    window: { localStorage: { getItem: (key: string) => stored.get(key) ?? null, setItem: (key: string, value: string) => stored.set(key, value) } },
     WebAssembly: options.simd === false ? { validate: () => false } : WebAssembly,
     testState: state,
   });
   const api = module.exports as typeof import('@/lib/cutout/engine');
   const picture = { rgba: new Uint8ClampedArray([20, 30, 40, 255]), width: 1, height: 1, hasAlpha: false };
-  return { api, requests, picture, downloadStarted, finishDownload: () => finishDownload?.() };
+  return { api, requests, picture, stored, downloadStarted, finishDownload: () => finishDownload?.() };
 }
+
+test('a GPU whose mask says nothing hands the photo, and the ones after it, to the CPU model', async () => {
+  const { api, picture, requests, stored } = await engine({ cached: true, gpu: true, unsureOn: 'webgpu' });
+  const first = await api.cutPicture('photo', picture);
+  assert.equal(first.engine, 'model');
+  assert.equal(first.mask[0], 255, "the CPU model's mask, not the GPU's grey");
+  assert.deepEqual(requests, ['load', 'cut', 'load', 'cut'], 'the GPU model, then the CPU model');
+  assert.equal(api.getCutoutStatus().model?.device, 'cpu');
+  assert.equal(api.getCutoutStatus().device, 'wasm');
+  assert.equal(stored.get('osg.cutout.gpu-failed'), '1', 'remembered for the next time the app opens');
+
+  await api.cutPicture('next', picture);
+  assert.deepEqual(requests.slice(4), ['cut'], 'the next photo goes straight to the CPU model');
+});
+
+test('a photo the model finds nothing in fails with words, rather than being called cut', async () => {
+  const { api, picture } = await engine({ cached: true, gpu: true, unsureOn: 'all' });
+  await assert.rejects(api.cutPicture('photo', picture), (error: Error) => error.message === api.EMPTY_MASK);
+});
+
+test('a photo on a plain colour that the model finds nothing in is still cut by its colour', async () => {
+  const { api, picture } = await engine({ cached: true, unsureOn: 'all', flat: true });
+  assert.equal((await api.cutPicture('logo', picture)).engine, 'color');
+});
 
 test('a flat logo needs no model download, including an agent call', async () => {
   for (const download of [true, false]) {
@@ -175,6 +217,14 @@ interface QueueState {
     refuseState?: string;
     /** The first save finds the picture changed under the cut. */
     changesOnce?: boolean;
+    /** The picture's version, `mediaId`. */
+    mediaId?: string;
+    /** Another window saves this version while the picture is cut: a hand edit, so a finished one. */
+    editedDuringCut?: string;
+    /** The cut fails after another window saved a finished version. */
+    failsAfterEdit?: string;
+    /** Set when the queue's cut was saved. */
+    savedByQueue?: boolean;
   }>;
 }
 
@@ -189,6 +239,17 @@ async function libraryQueue(state: QueueState) {
       export async function cutPicture() {
         globalThis.testState.attempts++;
         if (globalThis.testState.paused) throw new CutoutWorkerError();
+        const edited = globalThis.testState.rows.find(row => row.editedDuringCut);
+        if (edited) {
+          Object.assign(edited, { mediaId: edited.editedDuringCut, state: 'ready' });
+          delete edited.editedDuringCut;
+        }
+        const failing = globalThis.testState.rows.find(row => row.failsAfterEdit);
+        if (failing) {
+          Object.assign(failing, { mediaId: failing.failsAfterEdit, state: 'ready' });
+          delete failing.failsAfterEdit;
+          throw new Error('NO_ENGINE');
+        }
         return { mask: new Uint8Array([255]), width: 1, height: 1, engine: 'model' };
       }
       export async function renderCutout() { return { rgba: new ArrayBuffer(4), width: 1, height: 1, rect: {} }; }
@@ -205,6 +266,15 @@ async function libraryQueue(state: QueueState) {
         if (row.refuseState === state) throw new Error('The database refused the write');
         Object.assign(row, { state, error });
       }
+      const unfinished = (row) => !!row && !row.deletedAt && (row.state === 'waiting' || row.state === 'cutting');
+      export async function stillUnfinished(id) { return unfinished(await getLibraryImage(id)); }
+      export async function settleUnfinishedImage(id, state, error) {
+        const row = await getLibraryImage(id);
+        if (row.refuseState === state) throw new Error('The database refused the write');
+        if (!unfinished(row)) return false;
+        Object.assign(row, { state, error });
+        return true;
+      }
       export async function saveLibraryCut(id, cut) {
         const row = await getLibraryImage(id);
         if (!cut.photo) throw new Error('A save has to say which photo its mask is over');
@@ -212,12 +282,16 @@ async function libraryQueue(state: QueueState) {
           row.changesOnce = false;
           throw new PictureChangedError();
         }
+        // As the real one: a cut of a version the picture no longer is.
+        if (!('basis' in cut) || cut.basis !== row.mediaId) throw new PictureChangedError();
         row.state = 'ready';
+        row.savedByQueue = true;
       }
       export async function photoOf(id) {
         const row = await getLibraryImage(id);
         if (row?.photoFails) throw row.photoFails;
-        return row?.sourceMediaId ? { row, photo: { id: row.sourceMediaId, blob: new Blob() } } : null;
+        // A copy, as a read from the database is.
+        return row?.sourceMediaId ? { row: { ...row }, photo: { id: row.sourceMediaId, blob: new Blob() } } : null;
       }
       export function isOutOfRoom(error) { return error?.name === 'QuotaExceededError'; }
       export const OUT_OF_ROOM = 'Out of room';
@@ -327,4 +401,33 @@ test('a picture whose photo changes while it is cut is cut once more, from the n
   await queue.drainLibraryQueue();
   assert.equal(state.rows[0].state, 'ready');
   assert.equal(state.attempts, 2);
+});
+
+test('a picture saved in another window while it is cut keeps that version, and is not cut again over it', async () => {
+  const state: QueueState = {
+    paused: false,
+    scans: 0,
+    attempts: 0,
+    rows: [{ id: 'first', state: 'waiting', sourceMediaId: 'first', mediaId: 'asset_1', editedDuringCut: 'asset_2' }],
+  };
+  const queue = await libraryQueue(state);
+  await queue.drainLibraryQueue();
+  assert.equal(state.rows[0].state, 'ready');
+  assert.equal(state.rows[0].mediaId, 'asset_2', 'the edit is the picture');
+  assert.equal(state.rows[0].savedByQueue, undefined, 'no cut was saved over it');
+  assert.equal(state.attempts, 1, 'and none was started again');
+});
+
+test('a cut that fails after another window finished the picture leaves that version as it is', async () => {
+  const state: QueueState = {
+    paused: false,
+    scans: 0,
+    attempts: 0,
+    rows: [{ id: 'first', state: 'waiting', sourceMediaId: 'first', mediaId: 'asset_1', failsAfterEdit: 'asset_2' }],
+  };
+  const queue = await libraryQueue(state);
+  await queue.drainLibraryQueue();
+  assert.equal(state.rows[0].state, 'ready', 'not marked failed');
+  assert.equal(state.rows[0].error, undefined);
+  assert.equal(state.rows[0].mediaId, 'asset_2');
 });
