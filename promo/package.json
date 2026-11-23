@@ -4,6 +4,8 @@
   "private": true,
   "description": "Remotion promo video for Open Screenshot Generator",
   "scripts": {
+    "render:rack": "remotion render PromoRack out/open-screenshot-generator-promo-rack-video.mp4 --muted --crf=17 --concurrency=6 --image-format=png --pixel-format=yuv420p && node scripts/mux-rack.js",
+    "music:rack": "node scripts/arrange-music-rack.cjs",
     "render:launch": "remotion render PromoLaunch ../website/assets/video/launch-promo.mp4 --codec=h264 --crf=20 --audio-codec=aac --audio-bitrate=192k --pixel-format=yuv420p",
     "render:hero": "remotion render HeroLaunch ../website/assets/video/hero-editor-loop.mp4 --codec=h264 --crf=24 --pixel-format=yuv420p --muted",
     "gen:launch-score": "node scripts/gen-launch-score.cjs",

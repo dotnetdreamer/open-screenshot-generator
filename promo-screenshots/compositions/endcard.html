@@ -1,0 +1,40 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; }
+    #ec-pill-wrap { position: absolute; left: 0; right: 0; top: 1580px; display: flex; justify-content: center; }
+    #ec-pill {
+      font: 600 40px "Inter", sans-serif;
+      color: #f6f1e8;
+      padding: 24px 46px;
+      border-radius: 999px;
+      background: rgba(18, 15, 12, 0.92);
+      border: 3px solid #e9b872;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+      white-space: nowrap;
+    }
+    #ec-note-wrap { position: absolute; left: 0; right: 0; top: 1706px; display: flex; justify-content: center; }
+    #ec-note { font: 500 37px "Inter", sans-serif; color: rgba(246, 241, 232, 0.66); }
+  </style>
+  <div
+    id="root"
+    data-composition-id="endcard"
+    data-width="1440"
+    data-height="1800"
+    data-composition-variables='[
+      {"id":"pill","type":"string","label":"End card pill","default":"Free and open source · openscrgen.app"},
+      {"id":"note","type":"string","label":"End card note","default":"Capture, Claude Code and Codex need the free desktop app"}
+    ]'
+  >
+    <div id="ec-pill-wrap"><div id="ec-pill" data-var-text="pill">Free and open source · openscrgen.app</div></div>
+    <div id="ec-note-wrap"><div id="ec-note" data-var-text="note">Capture, Claude Code and Codex need the free desktop app</div></div>
+  </div>
+  <script>
+    // The pill lands just after the clap, the note a beat later; then both hold still.
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#ec-pill", { opacity: 0, y: 26, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.42, ease: "back.out(1.6)" }, 0.12);
+    tl.fromTo("#ec-note", { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power2.out" }, 0.52);
+    tl.to({}, { duration: 3.5 }, 0);
+    window.__timelines = window.__timelines || {};
+    window.__timelines["endcard"] = tl;
+  </script>
+</template>

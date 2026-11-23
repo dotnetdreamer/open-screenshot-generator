@@ -1,0 +1,16 @@
+{
+  "name": "promo-screenshots",
+  "private": true,
+  "type": "module",
+  "description": "16 features. One take. The screenshot features of Open Screenshot Generator as one camera move, made with HyperFrames",
+  "scripts": {
+    "dev": "npx --yes hyperframes@0.9.81 preview",
+    "check": "npx --yes hyperframes@0.9.81 check",
+    "render": "npx --yes hyperframes@0.9.81 render --quality delivery -o renders/open-screenshot-generator-one-take.mp4",
+    "render:draft": "npx --yes hyperframes@0.9.81 render --quality draft --variables-file .draft-vars.json -o renders/draft.mp4",
+    "vendor": "node scripts/build-vendor.mjs",
+    "fonts": "node scripts/fetch-fonts.mjs",
+    "shots": "node scripts/prep-shots.mjs",
+    "music": "node scripts/arrange-music.cjs"
+  }
+}

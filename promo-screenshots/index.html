@@ -1,0 +1,56 @@
+<!doctype html>
+<html
+  lang="en"
+  data-composition-variables='[
+    {"id":"renderScale","type":"number","label":"Stage render scale","description":"1 for the delivery render. 0.5 draws the 3D stage at half size for quick drafts.","default":1,"min":0.25,"max":1,"step":0.25}
+  ]'
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1440, height=1800" />
+    <script src="assets/vendor/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Space Grotesk"; src: url("assets/fonts/SpaceGrotesk.woff2") format("woff2"); font-weight: 300 700; font-style: normal; font-display: block; }
+      @font-face { font-family: "Inter"; src: url("assets/fonts/Inter.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: block; }
+      @font-face { font-family: "JetBrains Mono"; src: url("assets/fonts/JetBrainsMono.woff2") format("woff2"); font-weight: 100 800; font-style: normal; font-display: block; }
+      @font-face { font-family: "Instrument Serif"; src: url("assets/fonts/InstrumentSerif-400.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: block; }
+      @font-face { font-family: "Instrument Serif"; src: url("assets/fonts/InstrumentSerif-400i.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: block; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: 1440px; height: 1800px; overflow: hidden; background: #060504; }
+      #root { position: relative; width: 100%; height: 100%; }
+      #stage { position: absolute; inset: 0; width: 1440px; height: 1800px; display: block; }
+      #endcard { z-index: 3; }
+    </style>
+  </head>
+  <body>
+    <!--
+      "16 features. One take." The screenshot features of Open Screenshot Generator
+      as one unbroken camera move past sixteen LED screens (SPEC.md). The stage is
+      three.js, drawn for every seek in assets/film/main.js; the end card pill is a
+      scene of its own; the music is intro.mp3, arranged by scripts/arrange-music.cjs.
+    -->
+    <div id="root" data-composition-id="main" data-start="0" data-duration="40" data-fps="60" data-width="1440" data-height="1800">
+      <canvas id="stage" class="clip" data-start="0" data-duration="40" data-track-index="0" data-layout-ignore></canvas>
+      <div
+        id="endcard"
+        data-composition-id="endcard"
+        data-composition-src="compositions/endcard.html"
+        data-start="36.5"
+        data-duration="3.5"
+        data-track-index="1"
+        data-track-kind="graphics"
+        data-width="1440"
+        data-height="1800"
+      ></div>
+      <audio id="music" src="assets/audio/music.m4a" data-start="0" data-duration="40" data-track-index="2" data-volume="1"></audio>
+    </div>
+    <script>
+      // The stage draws itself on hf-seek; the root timeline only spans the film.
+      const tl = gsap.timeline({ paused: true });
+      tl.to({}, { duration: 40 }, 0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+    <script type="module" src="assets/film/main.js"></script>
+  </body>
+</html>

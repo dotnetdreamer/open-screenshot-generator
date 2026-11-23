@@ -1,0 +1,5 @@
+# HyperFrames working files and renders
+.hyperframes/
+renders/
+# raw captures written by scripts/capture-every-device.cjs
+scripts/.captures/

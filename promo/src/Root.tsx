@@ -13,6 +13,22 @@ import { STEPS_DURATION, StepsPromo } from "./steps/StepsPromo";
 import { PromoVs, VS_DURATION } from "./vs/PromoVs";
 import { FEATURES_DURATION, PromoFeatures } from "./features/PromoFeatures";
 import { HERO_DURATION, HeroLaunch, LAUNCH_DURATION, PromoLaunch } from "./launch/LaunchPromo";
+import { PromoRack, RACK_DURATION } from "./rack/PromoRack";
+
+const RackComposition: React.FC = () => (
+  // Everything that is not about making screenshots, patched into a modular
+  // synth rack one module at a time. 4:5 for X and Instagram, 1440x1800 like
+  // the film it copies; the scenes are laid out at 1080x1350 and scaled up.
+  <Composition
+    id="PromoRack"
+    component={PromoRack}
+    durationInFrames={RACK_DURATION}
+    fps={60}
+    width={1440}
+    height={1800}
+    defaultProps={{ withMusic: false }}
+  />
+);
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -33,6 +49,7 @@ export const RemotionRoot: React.FC = () => {
         width={1920}
         height={840}
       />
+      <RackComposition />
       {/* The feature reel: what the editor does, then every release since
           July, each beat dated on the rail that rides the second act. */}
       <Composition

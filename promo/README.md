@@ -12,7 +12,9 @@ A product promo built with [Remotion](https://www.remotion.dev/), three.js and G
 - `PromoVsMobile` — the same 58-second edit in portrait (`out/open-screenshot-generator-promo-vs-mobile.mp4`), 1080x1920. One implementation, not two: every scene reads `useVideoConfig()` and reflows
 - `PromoSteps` — a 30-second portrait cut (`out/open-screenshot-generator-promo-steps.mp4`), 1080x1920, walking the three steps to store-ready screenshots: pick a template, drop in your screenshot, preview. Its own visual system under `src/steps/` (not shared with the other cuts): a GLSL aurora + drifting-motes three.js backdrop whose palette and energy pulse follow the step beats, deep camera dives with a touch-ripple pointer and a spotlight highlight over the real UI, and its own music bed (`music-steps.m4a`)
 
-All are 30 fps with an original synthesized music bed.
+- `PromoRack` — a 30-second 4:5 cut for X and Instagram (`out/open-screenshot-generator-promo-rack.mp4`), 1440x1800 at 60 fps: the eighteen features that are not about making screenshots, patched one by one into a modular synth rack, on `intro.mp3` cut to its beat. See [the rack cut](#the-rack-cut-srcrack)
+
+All are 30 fps, except the rack cut at 60 fps. Most have an original synthesized music bed; the feature reel and the rack cut use the supplied `intro.mp3`.
 
 ## Commands
 
@@ -169,3 +171,55 @@ no screenshots to its first reviews, in three chapters over 92 seconds:
   `crop-features.js` and `gen-music-features.js` made the previous version of this
   film. Nothing in `src/features/` reads them now.
 
+## The rack cut (`src/rack/`)
+
+`PromoRack`, 30 seconds at 1440x1800 and 60 fps, made for X and Instagram
+(`out/open-screenshot-generator-promo-rack.mp4`). It shows everything the app
+does that is not about making the screenshots themselves. A terminal types
+`/add App icon`, the module slides into its slot on the beat, boots and is
+patched in with a cable. Eighteen modules go down the first column, up the
+second and down the third. Then the camera pulls back to the whole rack, and a
+frosted card drops over it: "18 tools, one app". The look and the moves follow
+a modular synth rack film that was shared on X; the words, the screens and the
+score are ours.
+
+```bash
+npm run music:rack       # arrange public/intro.mp3 and the effects into public/rack/score.m4a
+npm run render:rack      # render muted at 1440x1800, then copy the score in
+npx remotion render PromoRack out/rack-review.mp4 --muted --scale=0.75   # quick look
+```
+
+- **Everything sits on the beat of the music**, `intro.mp3` at 120 BPM: a beat
+  is 30 frames and a bar is 2 s. `style.ts` has `LAND_BEATS` (a module every
+  two beats), `SHOT` (the cuts, the pull back, the signal, the card) and `STEP`
+  (when a module types, slides, boots and is patched, counted from its
+  landing). The cut to column two is on the track's crash, the groove drops as
+  column two's last module is patched, and the card lands on the final hit.
+- **The music is arranged, not edited by hand.** `scripts/arrange-music-rack.cjs`
+  lays bars of `intro.mp3` under the film's bars, joining them only where
+  `arrange-music-features.js` found the joins cannot be heard, and checks that the
+  crash, the pull back and the final hit sit where the film expects them. It
+  reads the timing out of `style.ts` and the names out of `copy.ts`, and adds
+  quiet effects with no pitch: key clicks, a sweep as a module slides in, a clack
+  as it lands, the plug, a tick per module as the signal runs down the cable,
+  the pull back and the card. `RACK_SFX_DB=off` leaves the music alone. Change
+  the timing in `style.ts`, then run `npm run music:rack` again. `intro.mp3` is
+  a supplied track: check its licence before publishing.
+- **The rack is CSS in one 3D context**, not three.js. `camera.ts` turns a key
+  (where the camera looks, how big the rack is, yaw, pitch, roll) into one
+  transform on the world, glides through a key per module on a Catmull-Rom
+  curve, and adds a hand-held drift and a small jolt when a module lands.
+- **Depth of field** is two `backdrop-filter` bands at the top and bottom of the
+  frame. **Motion blur** on a sliding module or the falling card is copies along
+  its path, averaged by giving copy i an opacity of 1/(i+1). The pull back gets
+  a cheaper camera blur: an even one for the travel and one that grows towards
+  the edges for the zoom. Rendering the whole rack a dozen times a frame, the
+  honest way, stalled the render on the office PC.
+- **Every word on screen is in `copy.ts`**, written to the house style. The card
+  notes that Upload, Growth and Reviews need the free desktop app.
+- **The screens** (`demos/`) show Juniper, the made-up app from the feature reel,
+  with the app's own labels where it has them. Juniper's numbers are made up.
+  The cut-outs in Remove background are copies of the editor's product
+  illustrations (`public/elements/images/products/`, original work).
+- The scenes are laid out at 1080x1350 and scaled to the composition, so a
+  `--scale=0.75` render is the same film at 1080x1350.
