@@ -722,12 +722,7 @@ function toggle(app, e, spec) {
  * nothing in here reads the request body.
  */
 function upsertAccount(app, e, identity) {
-  let user = null;
-  try {
-    user = app.findFirstRecordByFilter('users', `${identity.field} = {:key}`, { key: identity.key });
-  } catch {
-    user = null;
-  }
+  let user = findAccount(app, identity);
 
   // Checked before anything is written, so a banned account cannot refresh its
   // own display name by signing in again.
@@ -773,8 +768,20 @@ function upsertAccount(app, e, identity) {
   try {
     app.save(user);
   } catch (err) {
-    console.warn('openscreengen: could not save an account —', err);
-    return e.json(500, { error: 'could not save your account' });
+    /*
+     * Two sign-ins for the same new person can arrive at once, from two tabs or
+     * from an editor build that sends one exchange per mounted component. The
+     * first creates the account, and this one then fails the unique email check.
+     * If an account under this provider key exists now, the other request made
+     * it, so this one signs in to it instead of answering 500.
+     */
+    const created = isNew ? findAccount(app, identity) : null;
+    if (!created) {
+      console.warn('openscreengen: could not save an account —', err);
+      return e.json(500, { error: 'could not save your account' });
+    }
+    if (created.getBool('banned')) return e.json(403, { error: 'banned' });
+    user = created;
   }
 
   /*
@@ -793,6 +800,15 @@ function upsertAccount(app, e, identity) {
   }
 
   return e.json(200, { token: token, record: authorOf(app, user, user.id) });
+}
+
+/** The account keyed on this provider identity, or null. */
+function findAccount(app, identity) {
+  try {
+    return app.findFirstRecordByFilter('users', `${identity.field} = {:key}`, { key: identity.key });
+  } catch {
+    return null;
+  }
 }
 
 // ---------- odds and ends ----------
