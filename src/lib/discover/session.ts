@@ -23,6 +23,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { getSession as getAccountSession, subscribe as subscribeAccount } from '@/lib/account/store';
+import type { AccountSession } from '@/lib/account/types';
 import type { DiscoverAuthor } from '@/types/discover';
 
 /**
@@ -221,12 +222,23 @@ export function discoverCapabilities(): Promise<DiscoverCapabilities> {
 }
 
 /**
+ * The exchange in flight, keyed on the storage account it is for.
+ *
+ * Every mounted useDiscoverSession hears the same storage sign-in and calls
+ * signInToDiscover at the same moment. Sharing one request keeps a first sign-in
+ * from sending two or three: the first would create the account and the others
+ * would fail the server's unique email check with a 500.
+ */
+let pendingExchange: { key: string; promise: Promise<DiscoverSession> } | null = null;
+
+/**
  * Swap the connected storage account for a community session.
  *
  * Returns null when there is nothing to swap — no backend, or nobody connected —
  * which is the ordinary signed-out case and not a failure. Throws only when the
  * exchange was attempted and refused, so a caller can tell "you are a guest"
- * from "the door said no".
+ * from "the door said no". Callers that ask for the same account while an
+ * exchange is in flight share it.
  */
 export async function signInToDiscover(): Promise<DiscoverSession | null> {
   if (!isDiscoverConfigured()) return null;
@@ -234,6 +246,17 @@ export async function signInToDiscover(): Promise<DiscoverSession | null> {
   const account = getAccountSession();
   if (!account?.accessToken) return null;
 
+  const key = `${account.provider}:${account.account.id}`;
+  if (pendingExchange && pendingExchange.key === key) return pendingExchange.promise;
+
+  const promise = exchangeAccountToken(account).finally(() => {
+    if (pendingExchange?.promise === promise) pendingExchange = null;
+  });
+  pendingExchange = { key, promise };
+  return promise;
+}
+
+async function exchangeAccountToken(account: AccountSession): Promise<DiscoverSession> {
   const response = await fetch(`${DISCOVER_URL}/api/openscreengen/auth/${account.provider}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
