@@ -6,12 +6,15 @@ The desktop app updates itself from our own update server on the VPS. A release 
 
 ```
 GitHub Actions                          VPS                                 Installed app
-desktop.yml                             openscreengen-updates               src-tauri/src/updater.rs
+                                        openscreengen-updates               src-tauri/src/updater.rs
                                         updates.openscrgen.app
-build legs: build, sign each update
-payload, collect it               ──►   releases/<version>/<files>
-updates job: after every leg      ──►   releases/<version>/manifest.json
-publish, then move the channel    ──►   channels/stable.json, beta.json
+desktop.yml: build, sign each
+update payload, attach it to the
+GitHub release
+desktop-updates.yml, publish:
+upload the release's payloads     ──►   releases/<version>/<files>
+then the manifest                 ──►   releases/<version>/manifest.json
+then move the channel             ──►   channels/stable.json, beta.json
                                                                    ◄──  GET /v1/desktop/{os}/{arch}/{installer}/{version}
                                         204, or the one file that       ?channel=stable&bucket=37
                                         fits, with its signature   ──►  download, verify, wait for Restart
@@ -70,24 +73,21 @@ The setup is all or nothing. With none of `UPDATES_URL`, `UPDATER_PUBKEY` and `T
 
 ## Releasing
 
-Run **Release desktop app (Tauri)** from the Actions tab as before. Four inputs decide how the release reaches installed copies:
+Two steps, two workflows in the Actions tab:
+
+1. **Release desktop app (Tauri)** builds the release. The version job checks the update setup before it tags anything. Each build leg writes `src-tauri/tauri.updater.conf.json` (the server's address, the public key, and the switch that makes the build sign its update payloads) and builds with it, and the payloads and their `.sig` files go on the GitHub release with the installers. The Linux leg signs the AppImage again after `scripts/patch-appimage.sh` repacks it, because the repack changes the file the first signature was made for. Installed copies see nothing yet.
+2. **Desktop updates** with `publish` puts it on the update server. It downloads the release's payloads and signatures (`version`, or the latest release when that is empty), describes them with `scripts/updates/from-release.mjs`, uploads the files, publishes the manifest, and only then moves the channel. An installed copy never sees half a release. These inputs decide how it reaches installed copies:
 
 | Input | Default | What it does |
 | --- | --- | --- |
-| `update_channel` | `stable` | The channel that gets this release. A beta release reaches only installs that opted into beta versions |
-| `update_rollout` | `100` | The percentage of installs offered it now. Widen it later with **Desktop updates** |
-| `update_notes` | empty | What is new, shown in the update prompt. Plain text; each line is a line |
-| `update_critical` | off | The release fixes something serious: the prompt opens by itself and says so |
+| `channel` | `stable` | The channel that gets this release. A beta release reaches only installs that opted into beta versions |
+| `percent` | `100` | The percentage of installs offered it now. Widen it later with `rollout` |
+| `notes` | empty | What is new, shown in the update prompt. Plain text; each line is a line |
+| `critical` | off | The release fixes something serious: the prompt opens by itself and says so |
 
-What happens on the way:
+`publish` stops before sending anything when a payload on the release has no `.sig` beside it, carries another version, or the release has no payloads at all (it was built without in-app updates).
 
-1. The version job checks the setup before it tags anything.
-2. Each build leg writes `src-tauri/tauri.updater.conf.json` (the server's address, the public key, and the switch that makes the build sign its update payloads) and builds with it.
-3. The Linux leg signs the AppImage again after `scripts/patch-appimage.sh` repacks it, because the repack changes the file the first signature was made for.
-4. Each leg collects its signed payloads with `scripts/updates/collect.mjs` and attaches them to the run.
-5. Once every leg has built (Windows, Linux, and one Mac leg per chip), the `updates` job merges what they collected into one manifest, uploads the files, publishes the manifest, and only then moves the channel to the new version. An installed copy never sees half a release, and a release that failed on one platform reaches none.
-
-A dry run builds and signs everything and attaches the collected files to the run, but publishes nothing. The Microsoft Store and Mac App Store builds are separate: the Microsoft Store gets its MSIX from the **Microsoft Store (Windows)** workflow, and the App Store build comes from the `mac-app-store-build` skill. Neither includes the updater.
+A dry run of the release builds and signs everything but makes no release, so there is nothing to publish. The Microsoft Store and Mac App Store builds are separate: the Microsoft Store gets its MSIX from the **Microsoft Store (Windows)** workflow, and the App Store build comes from the `mac-app-store-build` skill. Neither includes the updater.
 
 ## Steering a rollout
 
@@ -96,6 +96,7 @@ Run **Desktop updates** from the Actions tab:
 | Action | What it does |
 | --- | --- |
 | `status` | What each channel offers, recent releases, and how many checks each installed version made since the server started |
+| `publish` | Send a GitHub release's signed update files to the server and offer that `version` on the channel, at `percent` |
 | `rollout` | Offer the channel's release to `percent` of installs |
 | `pause` | Stop offering the channel's release |
 | `resume` | Offer it again |
@@ -111,11 +112,11 @@ npm run updates -- rollout --channel stable --percent 50
 npm run updates -- promote --channel stable --version 1.2.0
 ```
 
-**A staged release:** release with `update_rollout` at 10. Watch the issue tracker and the `status` numbers for a day, then widen to 50, then 100.
+**A staged release:** `publish` with `percent` at 10. Watch the issue tracker and the `status` numbers for a day, then widen to 50, then 100.
 
-**A beta:** release with `update_channel` set to `beta`. When it holds up, `promote` it to `stable`. Beta installs get whichever of the two channels is newer, so they are never behind stable.
+**A beta:** `publish` with `channel` set to `beta`. When it holds up, `promote` it to `stable`. Beta installs get whichever of the two channels is newer, so they are never behind stable.
 
-**A bad release:** `pause` the channel straight away. Installs that downloaded it but had not restarted drop it at their next check. Then release the fix as a new version, which moves the channel and unpauses it. A channel cannot be pointed back at an older version: installed copies only update forward, so everyone already on the bad release would stay there.
+**A bad release:** `pause` the channel straight away. Installs that downloaded it but had not restarted drop it at their next check. Then release the fix as a new version and `publish` it, which moves the channel and unpauses it. A channel cannot be pointed back at an older version: installed copies only update forward, so everyone already on the bad release would stay there.
 
 ## Testing an update end to end
 

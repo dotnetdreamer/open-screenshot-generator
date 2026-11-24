@@ -14,6 +14,7 @@ import {
   compareVersions,
   decodeMinisign,
   describeBundle,
+  describeReleaseAsset,
   endpointTemplate,
   fragmentName,
   parseArgs,
@@ -207,8 +208,8 @@ test('the two Mac builds, made on the same kind of runner, keep their own update
     },
   ];
 
-  // The updates job downloads every leg's fragment into one folder, so a
-  // shared name would leave one of them behind.
+  // Fragments collected from several builds can share one folder, so a shared
+  // name would leave one of them behind.
   const names = legs.map((fragment) => fragmentName(fragment.entries));
   assert.deepEqual(names, [
     'fragment-darwin-aarch64.json',
@@ -256,4 +257,66 @@ test('a downloaded Mac app is signed ad hoc, so macOS does not call it damaged',
   // The App Store build overrides the identity from APPLE_SIGNING_IDENTITY and
   // keeps the hardened runtime it was approved with.
   assert.equal(read('tauri.appstore.conf.json').bundle.macOS.hardenedRuntime, true);
+});
+
+// The files of two real releases, as GitHub lists them.
+const RELEASE_1_0_13 = [
+  'Open.Screenshot.Generator_1.0.13_amd64.AppImage',
+  'Open.Screenshot.Generator_1.0.13_amd64.AppImage.sig',
+  'Open.Screenshot.Generator_1.0.13_amd64.deb',
+  'Open.Screenshot.Generator_1.0.13_amd64.deb.sig',
+  'Open.Screenshot.Generator_1.0.13_macos_apple-silicon.app.tar.gz',
+  'Open.Screenshot.Generator_1.0.13_macos_apple-silicon.app.tar.gz.sig',
+  'Open.Screenshot.Generator_1.0.13_macos_apple-silicon.dmg',
+  'Open.Screenshot.Generator_1.0.13_macos_intel.app.tar.gz',
+  'Open.Screenshot.Generator_1.0.13_macos_intel.app.tar.gz.sig',
+  'Open.Screenshot.Generator_1.0.13_macos_intel.dmg',
+  'Open.Screenshot.Generator_1.0.13_x64-setup.exe',
+  'Open.Screenshot.Generator_1.0.13_x64-setup.exe.sig',
+  'Open.Screenshot.Generator_1.0.13_x64_en-US.msi',
+  'Open.Screenshot.Generator_1.0.13_x64_en-US.msi.sig',
+  'Open.Screenshot.Generator_1.0.13_x64_portable.zip',
+];
+const RELEASE_1_0_11_MAC = ['Open.Screenshot.Generator_1.0.11_universal.dmg', 'Open.Screenshot.Generator_universal.app.tar.gz'];
+
+test('every update payload on a release serves the systems it was built for, and nothing else counts', () => {
+  const served: Record<string, string[]> = {};
+  for (const name of RELEASE_1_0_13) {
+    const kind = describeReleaseAsset(name);
+    if (kind) served[name] = platformKeys(kind);
+  }
+  assert.deepEqual(served, {
+    'Open.Screenshot.Generator_1.0.13_amd64.AppImage': ['linux-x86_64-appimage'],
+    'Open.Screenshot.Generator_1.0.13_amd64.deb': ['linux-x86_64-deb'],
+    'Open.Screenshot.Generator_1.0.13_macos_apple-silicon.app.tar.gz': ['darwin-aarch64-app'],
+    'Open.Screenshot.Generator_1.0.13_macos_intel.app.tar.gz': ['darwin-x86_64-app'],
+    'Open.Screenshot.Generator_1.0.13_x64-setup.exe': ['windows-x86_64-nsis'],
+    'Open.Screenshot.Generator_1.0.13_x64_en-US.msi': ['windows-x86_64-msi'],
+  });
+  // A release from before the split serves both Macs from one tarball.
+  assert.equal(describeReleaseAsset(RELEASE_1_0_11_MAC[0]), null);
+  assert.deepEqual(describeReleaseAsset(RELEASE_1_0_11_MAC[1])?.arches, ['aarch64', 'x86_64']);
+});
+
+test('Desktop updates downloads every update payload of a release and its signature, and leaves the installers', () => {
+  const workflow = fs.readFileSync(path.join(process.cwd(), '.github', 'workflows', 'desktop-updates.yml'), 'utf8');
+  const patterns = [...workflow.matchAll(/--pattern '([^']+)'/g)].map((match) => match[1]);
+  assert.ok(patterns.length > 0, 'the workflow names what it downloads');
+  const glob = (pattern: string) => new RegExp(`^${pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*')}$`);
+  const downloaded = (name: string) => patterns.some((pattern) => glob(pattern).test(name));
+  for (const name of [...RELEASE_1_0_13, ...RELEASE_1_0_11_MAC]) {
+    const payload = describeReleaseAsset(name) !== null;
+    const signature = name.endsWith('.sig') && describeReleaseAsset(name.slice(0, -'.sig'.length)) !== null;
+    assert.equal(downloaded(name), payload || signature, name);
+  }
+});
+
+test('the release workflow only releases; publishing to the update server is Desktop updates\' job', () => {
+  const release = fs.readFileSync(path.join(process.cwd(), '.github', 'workflows', 'desktop.yml'), 'utf8');
+  assert.ok(!/update_(channel|rollout|notes|critical)/.test(release), 'no update inputs on the release form');
+  assert.ok(!/environment: updates|UPDATES_ADMIN_TOKEN|release\.mjs publish/.test(release), 'no step that publishes to the update server');
+  // It still signs the update payloads, which publish needs from the release.
+  assert.ok(release.includes('--config src-tauri/tauri.updater.conf.json'));
+  const steer = fs.readFileSync(path.join(process.cwd(), '.github', 'workflows', 'desktop-updates.yml'), 'utf8');
+  assert.ok(steer.includes('from-release.mjs') && steer.includes('release.mjs publish'));
 });

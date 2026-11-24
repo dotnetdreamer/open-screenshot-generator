@@ -1,25 +1,30 @@
 name: Desktop updates
 
-# Steers a release that is already on our update server (docs/UPDATES.md).
-# The desktop release workflow publishes; this one decides who gets it.
+# Puts desktop releases on our update server and decides who gets them
+# (docs/UPDATES.md). The release workflow (desktop.yml) builds a release and
+# attaches its signed update files to it; installed copies see nothing until
+# this one publishes it.
 #
 #   status    what each channel offers, and which versions have been checking
+#   publish   send a GitHub release's signed update files to the server and
+#             offer that version on the channel, to percent of installs
 #   rollout   offer the channel's release to more installs, or fewer
 #   pause     stop offering the channel's release, when it turns out bad
 #   resume    offer it again
 #   promote   point a channel at a published release, e.g. a beta to stable
 #
 # A channel never moves back to an older version from here: installed copies
-# only update forward, so the way out of a bad release is pause, then a fixed
-# release. Manual only; the admin token lives in the updates environment.
+# only update forward, so the way out of a bad release is pause, then publish
+# a fixed release. Manual only; the admin token lives in the updates
+# environment.
 
 on:
   workflow_dispatch:
     inputs:
       action:
-        description: 'What to do. status: show what users get now. rollout: change how many users get the update. pause: stop giving out the update. resume: give it out again. promote: give an already released version to the users picked below, e.g. move a beta to everyone'
+        description: 'What to do. status: show what users get now. publish: give a new release to the users picked below. rollout: change how many users get the update. pause: stop giving out the update. resume: give it out again. promote: give an already published version to the users picked below, e.g. move a beta to everyone'
         type: choice
-        options: [status, rollout, pause, resume, promote]
+        options: [status, publish, rollout, pause, resume, promote]
         default: status
       channel:
         description: 'Which users. stable: everyone. beta: only people who turned on "Get beta versions" in the app settings'
@@ -27,13 +32,21 @@ on:
         options: [stable, beta]
         default: stable
       percent:
-        description: 'For rollout and promote: percent of users who get it. 100 means everyone'
+        description: 'For publish, rollout and promote: percent of users who get it. 100 means everyone'
         type: number
         default: 100
       version:
-        description: 'For promote only: the version to give them, like 1.2.0'
+        description: 'For publish and promote: the version to give them, like 1.2.0. Publish takes the latest release when you leave it empty'
         type: string
         default: ''
+      notes:
+        description: 'For publish only: what is new in this version. Users see this when the app offers the update'
+        type: string
+        default: ''
+      critical:
+        description: 'For publish only: urgent fix. Instead of only a small "Restart to update" button, the app pops up the update message on its own and warns that it fixes a serious problem. People can still pick Later'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -53,6 +66,33 @@ jobs:
         with:
           node-version: 20
 
+      # Only the update payloads and their .sig files: the .dmg and the
+      # portable zip are not updates. The patterns cover every kind
+      # describeReleaseAsset in scripts/updates/lib.mjs knows.
+      - name: Download the release's update files
+        id: release
+        if: inputs.action == 'publish'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          if [ -n "$VERSION" ]; then
+            tag="v${VERSION#v}"
+          else
+            tag="$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName)"
+          fi
+          echo "Publishing $tag"
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --dir release-files \
+            --pattern '*.app.tar.gz' --pattern '*.app.tar.gz.sig' \
+            --pattern '*-setup.exe' --pattern '*-setup.exe.sig' \
+            --pattern '*.msi' --pattern '*.msi.sig' \
+            --pattern '*.AppImage' --pattern '*.AppImage.sig' \
+            --pattern '*.deb' --pattern '*.deb.sig' \
+            --pattern '*.rpm' --pattern '*.rpm.sig'
+          ls -l release-files
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+
       # The inputs reach the shell through the environment, never as code.
       - name: ${{ inputs.action }} ${{ inputs.channel }}
         env:
@@ -62,9 +102,24 @@ jobs:
           CHANNEL: ${{ inputs.channel }}
           PERCENT: ${{ inputs.percent }}
           VERSION: ${{ inputs.version }}
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+          NOTES: ${{ inputs.notes }}
+          CRITICAL: ${{ inputs.critical }}
         run: |
+          set -euo pipefail
           case "$ACTION" in
             status)  node scripts/updates/release.mjs status ;;
+            publish)
+              node scripts/updates/from-release.mjs --dir release-files --version "$RELEASE_VERSION"
+              printf '%s' "$NOTES" > release-notes.txt
+              critical=()
+              if [ "$CRITICAL" = 'true' ]; then critical=(--critical); fi
+              node scripts/updates/release.mjs manifest --in release-files --out release-files/manifest.json \
+                --version "$RELEASE_VERSION" --notes-file release-notes.txt \
+                --download-page "https://github.com/$GITHUB_REPOSITORY/releases/tag/v$RELEASE_VERSION" "${critical[@]}"
+              node scripts/updates/release.mjs publish --dir release-files --manifest release-files/manifest.json \
+                --channel "$CHANNEL" --rollout "$PERCENT"
+              ;;
             rollout) node scripts/updates/release.mjs rollout --channel "$CHANNEL" --percent "$PERCENT" ;;
             pause)   node scripts/updates/release.mjs pause --channel "$CHANNEL" ;;
             resume)  node scripts/updates/release.mjs resume --channel "$CHANNEL" ;;

@@ -131,16 +131,50 @@ export function describeBundle(relativePath, hostArch = process.arch) {
   return null;
 }
 
+const RELEASE_MAC_ARCHES = {
+  'macos_apple-silicon': ['aarch64'],
+  macos_intel: ['x86_64'],
+  universal: ['aarch64', 'x86_64'],
+  aarch64: ['aarch64'],
+  x64: ['x86_64'],
+};
+
+/**
+ * What a file on a GitHub release is, from its name: the bundle kind and the
+ * architectures it serves, or null for anything that is not an update payload
+ * (the .dmg, the portable zip, a .sig). The release workflow names the Mac
+ * tarballs ..._macos_apple-silicon.app.tar.gz and ..._macos_intel; releases
+ * up to 1.0.11 had one ..._universal.app.tar.gz for both Macs.
+ */
+export function describeReleaseAsset(name) {
+  if (name.endsWith('.app.tar.gz')) {
+    const arches = RELEASE_MAC_ARCHES[name.match(/_(macos_apple-silicon|macos_intel|universal|aarch64|x64)\.app\.tar\.gz$/)?.[1]];
+    return arches ? { os: 'darwin', bundle: 'app', arches } : null;
+  }
+  const folder = name.endsWith('-setup.exe')
+    ? 'nsis'
+    : name.endsWith('.msi')
+      ? 'msi'
+      : name.endsWith('.AppImage')
+        ? 'appimage'
+        : name.endsWith('.deb')
+          ? 'deb'
+          : name.endsWith('.rpm')
+            ? 'rpm'
+            : null;
+  return folder ? describeBundle(`release/bundle/${folder}/${name}`) : null;
+}
+
 export function platformKeys({ os, bundle, arches }) {
   return arches.map((arch) => `${os}-${arch}-${bundle}`);
 }
 
 /**
- * What a build leg calls its fragment: after the systems it serves, such as
- * fragment-darwin-aarch64.json. The updates job downloads every leg into one
- * folder, and the two Mac legs run on the same kind of runner, so the name has
- * to come from what the leg built. Named after the runner, one Mac's fragment
- * would overwrite the other's and those Macs would never get the update.
+ * What collect.mjs calls its fragment: after the systems it serves, such as
+ * fragment-darwin-aarch64.json, so fragments from several builds can share
+ * one folder. Two Mac builds run on the same kind of machine, so a name taken
+ * from the machine would let one Mac's fragment overwrite the other's, and
+ * those Macs would never get the update.
  */
 export function fragmentName(entries) {
   const systems = new Set(entries.flatMap((entry) => entry.keys.map((key) => key.split('-').slice(0, 2).join('-'))));

@@ -134,7 +134,6 @@ tag. Go to **Actions > Release desktop app (Tauri) > Run workflow** and pick:
 | `bump` | `patch` (default), `minor` or `major`, applied to the current version |
 | `version` | An exact version, e.g. `1.2.0`. Overrides `bump` when set. |
 | `dry_run` | Build the installers and attach them to the run as artifacts. No version bump, no tag, no release. |
-| `update_channel`, `update_rollout`, `update_notes`, `update_critical` | How the release reaches copies already installed, through our update server. Only when in-app updates are set up; see [UPDATES.md](UPDATES.md#releasing). |
 
 A real run bumps the four files, commits that as `release: v<version>` on the
 default branch, tags it, builds Windows, macOS and Linux, and publishes a
@@ -157,9 +156,9 @@ first launch (the release notes tell them how to get past it). See the store
 sections below for signing.
 
 Installed copies update themselves from our own update server, once that is
-set up: every release signs its update payloads, publishes them to the server
-after every platform built, and the app offers a restart into the new
-version. The portable zip only links to the download, and the two store
+set up: every release signs its update payloads and attaches them to the
+release, **Desktop updates** with `publish` sends a release to the server, and
+the app offers a restart into the new version. The portable zip only links to the download, and the two store
 builds leave updating to their store. [UPDATES.md](UPDATES.md) covers the
 setup, staged rollouts and pausing a bad release.
 
