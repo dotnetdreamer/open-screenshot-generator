@@ -117,6 +117,14 @@ default branch, tags it, builds Windows, macOS and Linux, and publishes a
 GitHub release with the installers attached. Use `dry_run` first when you have
 changed anything that could affect the build.
 
+The release page's text comes from
+[.github/release-notes.md](../.github/release-notes.md): a table of which file
+fits which computer, the other ways to get the app, and how to get past the
+first launch warnings. The workflow fills in the version, so every file name
+and link is exact, and puts the filled in notes on the run's summary page, so a
+dry run shows them first. If the build's file names change, change them there
+too.
+
 The Microsoft Store has its own workflow, **Microsoft Store (Windows)**. See
 [Publishing from GitHub Actions](#publishing-from-github-actions).
 

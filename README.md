@@ -5,7 +5,7 @@
 
 Make screenshots and preview videos for the App Store and Google Play. Start with a template, add screenshots of your app, change the text and colors, then export the finished files at store sizes.
 
-Open the [web editor](https://editor.openscrgen.app) or [watch the walkthrough](https://youtu.be/gfABjk1Q_Z0?si=uWIIoq1cgQIQSgud). The desktop app is free for Mac, Windows and Linux:
+Get the free desktop app for Mac, Windows and Linux, or edit right away in the [web editor](https://editor.openscrgen.app). You can also [watch the walkthrough](https://youtu.be/gfABjk1Q_Z0?si=uWIIoq1cgQIQSgud).
 
 <p align="center">
   <a href="https://apps.apple.com/app/id6822657542"><img src="docs/badges/mac-app-store.svg" alt="Download on the Mac App Store" height="48"></a>
@@ -13,9 +13,11 @@ Open the [web editor](https://editor.openscrgen.app) or [watch the walkthrough](
   <a href="https://apps.microsoft.com/detail/9nt28z42qkcd"><img src="docs/badges/microsoft-store.svg" alt="Download from the Microsoft Store" height="50"></a>
   &nbsp;&nbsp;
   <a href="https://github.com/dotnetdreamer/open-screenshot-generator/releases/latest"><img src="docs/badges/github.svg" alt="Download from GitHub" height="48"></a>
+  &nbsp;&nbsp;
+  <a href="https://editor.openscrgen.app"><img src="docs/badges/web-editor.svg" alt="Edit now in your web browser" height="48"></a>
 </p>
 
-<p align="center"><sub>The Mac App Store version can't run Claude Code or Codex. For Claude Code or Codex on a Mac, get the app from GitHub.</sub></p>
+<p align="center"><sub>The web editor needs no install and no account. The desktop app adds Capture, store uploads and more: <a href="#feature-checklist-web-vs-desktop">see the checklist</a>.<br>The Mac App Store version can't run Claude Code or Codex. For Claude Code or Codex on a Mac, get the app from GitHub.</sub></p>
 
 <div align="center">
 

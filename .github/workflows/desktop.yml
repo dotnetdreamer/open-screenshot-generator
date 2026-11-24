@@ -85,6 +85,9 @@ jobs:
       # Whether this release is signed for in-app updates and published to our
       # update server. Decided once, like the version, so no leg can disagree.
       updates: ${{ steps.updates.outputs.enabled }}
+      # The release page's text, filled in once like the version, so every leg
+      # publishes the same notes.
+      notes: ${{ steps.notes.outputs.body }}
     steps:
       - uses: actions/checkout@v4
 
@@ -113,6 +116,11 @@ jobs:
           # for the duplicate-tag check below, and on a dry run that is all we
           # want.
           version=$(node scripts/set-version.mjs "$selector" --dry-run)
+
+          # The version this one replaces, for the release notes' changelog
+          # link. Read before anything is bumped.
+          previous=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          echo "previous=${previous}" >> "$GITHUB_OUTPUT"
 
           if [ '${{ inputs.dry_run }}' = 'true' ]; then
             echo "Dry run: would release v${version}. Not bumping, tagging or publishing."
@@ -149,6 +157,31 @@ jobs:
       - name: Summary
         run: |
           echo "Releasing v${{ steps.bump.outputs.version }} (dry run = ${{ inputs.dry_run }})" >> "$GITHUB_STEP_SUMMARY"
+
+      # The release page's text: .github/release-notes.md with the version,
+      # the repository and the version before it filled in, so every file name
+      # and link is exact. The changelog line goes when the version before has
+      # no tag to compare with. The notes also go on the run's summary, so a
+      # dry run shows them before a real release publishes them.
+      - name: Write the release notes
+        id: notes
+        shell: bash
+        env:
+          VERSION: ${{ steps.bump.outputs.version }}
+          PREVIOUS: ${{ steps.bump.outputs.previous }}
+        run: |
+          set -euo pipefail
+          fill=(-e "s|<version>|${VERSION}|g" -e "s|<repo>|${GITHUB_REPOSITORY}|g" -e "s|<previous>|${PREVIOUS}|g")
+          if ! git ls-remote --exit-code --tags origin "refs/tags/v${PREVIOUS}" >/dev/null 2>&1; then
+            fill=(-e '/<previous>/d' "${fill[@]}")
+          fi
+          notes="$(sed "${fill[@]}" .github/release-notes.md)"
+          {
+            echo 'body<<RELEASE_NOTES_END'
+            printf '%s\n' "$notes"
+            echo 'RELEASE_NOTES_END'
+          } >> "$GITHUB_OUTPUT"
+          printf '\n%s\n' "$notes" >> "$GITHUB_STEP_SUMMARY"
 
   build:
     needs: version
@@ -297,28 +330,11 @@ jobs:
           # on the default branch mid-release; the branch never differs from
           # itself.
           releaseCommitish: ${{ github.event.repository.default_branch }}
-          # The bundles are unsigned, so both OSes will warn on first launch.
-          # Saying so here is cheaper than fielding the bug reports.
-          releaseBody: |
-            ## Download
-
-            | Platform | File |
-            | --- | --- |
-            | Windows 10/11 | `.exe` (installer), `.msi`, or `_portable.zip` (no install) |
-            | macOS 10.15+ (Intel + Apple silicon) | `.dmg` |
-            | Linux | `.AppImage` (portable) or `.deb` |
-
-            The portable Windows build is a single exe: unzip anywhere and run it. It needs the Microsoft Edge WebView2 Runtime, which is preinstalled on Windows 11 and on most Windows 10 systems. The installers set WebView2 up automatically; the portable build does not.
-
-            These builds are not code-signed yet, so the first launch needs one extra click:
-
-            - **Windows:** SmartScreen says "Windows protected your PC" -> More info -> Run anyway.
-            - **macOS:** Gatekeeper says the app cannot be verified -> right-click the app -> Open -> Open.
-            - **Linux:** `chmod +x` the AppImage before running it.
-
-            The Linux AppImage runs against your system WebKitGTK when you have one installed, which is what keeps it working on rolling releases such as Arch and Fedora. Without one it falls back to the copy inside the AppImage. Set `OSG_APPIMAGE_STACK=bundled` to force that copy, or `=host` to require the system one.
-
-            Projects are stored locally in the app. Nothing is uploaded anywhere.
+          # .github/release-notes.md as the version job filled it in: which
+          # file fits which computer and, since the bundles are unsigned, how
+          # to get past the first launch warnings. Saying so there is cheaper
+          # than fielding the bug reports.
+          releaseBody: ${{ needs.version.outputs.notes }}
           # The updater overlay comes last, so it wins where it overlaps.
           args: ${{ matrix.args }} ${{ needs.version.outputs.updates == 'true' && '--config src-tauri/tauri.updater.conf.json' || '' }}
           # Installed copies update from our server, never from GitHub, so no
