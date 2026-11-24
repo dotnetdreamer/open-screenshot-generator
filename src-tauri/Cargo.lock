@@ -2625,7 +2625,7 @@ dependencies = [
 
 [[package]]
 name = "open-screenshot-generator"
-version = "1.0.12"
+version = "1.0.13"
 dependencies = [
  "base64 0.22.1",
  "objc2",
