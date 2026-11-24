@@ -3,7 +3,7 @@
  *
  * Photo groups: Adobe Stock (free collection) photos licensed through the
  * project owner's Adobe account and background-removed; filenames embed the
- * Stock asset ID (<group>-as<ID>.png). Badges: official vendor marketing
+ * Stock asset ID (<group>-as<ID>). Badges: official vendor marketing
  * badges from each store's badge program. Mascots, 3D objects, stickers,
  * products, cards, drawings and line art: illustrations drawn for this
  * project's templates, which also use them, so a template and the palette
@@ -13,7 +13,10 @@
  * docs/image-asset-licenses.md.
  *
  * Each item becomes an image element with imageSrc pointing at the asset;
- * defaultSize preserves the asset's aspect ratio.
+ * defaultSize preserves the asset's aspect ratio. A palette tile shows the
+ * item's thumbnail instead (libraryThumbSrc). A picture keeps its .png name
+ * here while the app shows the WebP made from it: that name is what a design
+ * stores, and an installed CLI from before knows no other (pictureRenames.ts).
  */
 
 export interface LibraryImageDef {
@@ -415,3 +418,15 @@ export const IMAGE_CATEGORIES: ImageCategory[] = [
     ],
   },
 ];
+
+/**
+ * The small copy of a library picture that a palette tile shows, at
+ * /thumbs/<the picture's path>.webp (scripts/pictures/to-webp.mjs makes one for
+ * every picture listed here). The palette never loads the full pictures, which
+ * the desktop app downloads only when one goes on an artboard. The store
+ * badges are small enough to show as they are.
+ */
+export function libraryThumbSrc(src: string): string {
+  if (src.startsWith('/elements/images/badges/')) return src;
+  return `/thumbs${src.replace(/\.[a-z]+$/i, '')}.webp`;
+}

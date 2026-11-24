@@ -1,7 +1,7 @@
 // Zero-dependency static file server for the `next build` output in `out/`.
 //
-// The desktop shell loads `frontendDist: "../out"` in a release build, so the
-// static export is the bundle desktop users actually run. `npm run test:e2e:static`
+// A desktop release build embeds this same export (split by
+// scripts/desktop-assets.mjs), so it is the bundle desktop users actually run. `npm run test:e2e:static`
 // points the suite at this server instead of the dev server, which is what
 // catches anything that only works because Turbopack is in the loop.
 //

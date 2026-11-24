@@ -17,6 +17,7 @@
 
 import { db } from '@/database';
 import { ASSET_REF_PREFIX, isAssetRef, assetIdFromRef, type MediaAsset } from '@/lib/mediaStore';
+import { ensurePicture, mayNeedDownload } from '@/lib/pictureDownloads';
 
 export { ASSET_REF_PREFIX, isAssetRef } from '@/lib/mediaStore';
 const ASSET_ID_PREFIX = 'asset_';
@@ -168,12 +169,27 @@ const IMAGE_SOURCE_PROPS = ['imageSrc', 'screenshotSrc', 'customFrameSrc', 'post
  * hold them and renderers resolve them at draw time (src/lib/mediaStore.ts),
  * which is what keeps multi-MB base64 out of project state, undo history and
  * autosave (issue #19).
+ *
+ * A picture of the app's own (a library picture, template art) has to be on
+ * this computer too: the desktop app downloads those the first time they are
+ * used, and one that does not come fails the call the same way.
  */
 export async function validateAssetProps(
   props: Record<string, unknown>
 ): Promise<Record<string, unknown>> {
   for (const key of IMAGE_SOURCE_PROPS) {
     const value = props[key];
+    if (mayNeedDownload(value)) {
+      const failure = await ensurePicture(value);
+      if (failure) {
+        throw new Error(
+          failure.reason === 'unreachable'
+            ? `The picture ${value} for ${key} didn't download. Check the internet connection and try again.`
+            : `The picture ${value} for ${key} isn't available from the app's site right now. Try again later, or update the app.`
+        );
+      }
+      continue;
+    }
     if (!isAssetRef(value)) continue;
     const id = assetIdFromRef(value);
     const row = await db.media.get(id);

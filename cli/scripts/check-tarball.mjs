@@ -92,7 +92,8 @@ for (const file of files) {
   if (CREDENTIAL_FILE.test(name) || segments.includes('.git')) {
     problems.push(`${relative}: looks like a credential or repository file`);
   }
-  if (relative.startsWith('editor/elements/')) {
+  // thumbs/ holds the palette's small copies of the same pictures, Adobe Stock among them.
+  if (relative.startsWith('editor/elements/') || relative.startsWith('editor/thumbs/')) {
     problems.push(`${relative}: artwork, which must hydrate at run time and never ship`);
   }
   if (relative.startsWith('editor/data/projects/') && segments.length > 4) {

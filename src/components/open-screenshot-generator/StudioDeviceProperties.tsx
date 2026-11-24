@@ -524,7 +524,7 @@ export function StudioDeviceProperties({ element, onUpdateElement, onUpdateEleme
                 )}
               >
                 <img
-                  src={withBasePath(`/elements/device-3d/studio/look-${look.id}.png`)}
+                  src={withBasePath(`/elements/device-3d/studio/look-${look.id}.webp`)}
                   alt=""
                   className={cn('max-h-full max-w-full object-contain', active && matched?.mirrored && '-scale-x-100')}
                   draggable={false}

@@ -37,7 +37,8 @@ import {
 } from "lucide-react";
 import type { ElementType, ShapeType, DeviceType } from '@/types/artboard';
 import { ELEMENT_CATEGORIES, type ElementCategory, type LibraryElementDef } from '@/lib/elementLibrary';
-import { IMAGE_CATEGORIES, type LibraryImageDef } from '@/lib/imageLibrary';
+import { IMAGE_CATEGORIES, libraryThumbSrc, type LibraryImageDef } from '@/lib/imageLibrary';
+import { ensurePicture, mayNeedDownload } from '@/lib/pictureDownloads';
 // 3D pose tables and colored flat presets live in lib/ so the MCP asset library
 // lists exactly what these tiles drop (see lib/mcp/assetLibrary.ts).
 import {
@@ -295,13 +296,18 @@ const ImageLibraryTile: React.FC<{
         type="button"
         className="flex flex-col items-center gap-1 group cursor-grab active:cursor-grabbing"
         draggable
-        onDragStart={(e) => onDragStart(e, 'image', undefined, styleProps, libraryId)}
+        onDragStart={(e) => {
+          // The desktop app downloads a library picture the first time it goes
+          // on an artboard. A drag starts that early; the drop waits for it.
+          if (mayNeedDownload(item.src)) void ensurePicture(item.src);
+          onDragStart(e, 'image', undefined, styleProps, libraryId);
+        }}
         onClick={() => (onDragStart as any)(null, 'image', undefined, styleProps, libraryId)}
         {...useTileTouchDrag({ label: item.label, type: 'image', styleProps, libraryId })}
         aria-label={`Add ${item.label} (${libraryId})`}
       >
         <span className="aspect-square w-full rounded-lg bg-accent/10 group-hover:bg-accent/25 transition-colors flex items-center justify-center p-2 overflow-hidden">
-          <img src={withBasePath(item.src)} alt="" className="max-w-full max-h-full object-contain pointer-events-none" draggable={false} />
+          <img src={withBasePath(libraryThumbSrc(item.src))} alt="" className="max-w-full max-h-full object-contain pointer-events-none" draggable={false} />
         </span>
         <span className="text-[10px] text-muted-foreground group-hover:text-foreground transition-colors text-center leading-tight">{item.label}</span>
       </button>
@@ -920,7 +926,7 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
                           {section.models.map((model) => (
                             <Device3DThumbTile
                               key={`studio-${model.id}`}
-                              src={`/elements/device-3d/studio/${model.id}.png`}
+                              src={`/elements/device-3d/studio/${model.id}.webp`}
                               label={model.label}
                               note={model.maker === 'google' ? SCREEN_NOTES[model.cutout.kind] : model.fold ? 'Foldable' : undefined}
                               title={`Add ${model.label} in 3D`}
@@ -940,7 +946,7 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
                         SIDES_3D.map((side) => (
                           <Device3DThumbTile
                             key={`ip17-${color}-${pose}-${side}`}
-                            src={`/elements/device-3d/iphone-${pose}-${side}-${color}.png`}
+                            src={`/elements/device-3d/iphone-${pose}-${side}-${color}.webp`}
                             label={color === 'black' ? 'Black' : 'White'}
                             title={`Add iPhone 17 Pro Max 3D, ${pose} ${side} (${color})`}
                             libraryId={device3dLibraryId('iphone', pose, side, color)}
@@ -962,7 +968,7 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
                         SIDES_3D.map((side) => (
                           <Device3DThumbTile
                             key={`and3d-${color}-${pose}-${side}`}
-                            src={`/elements/device-3d/android-${pose}-${side}-${color}.png`}
+                            src={`/elements/device-3d/android-${pose}-${side}-${color}.webp`}
                             label={color === 'black' ? 'Black' : 'White'}
                             title={`Add Android 3D, ${pose} ${side} (${color})`}
                             libraryId={device3dLibraryId('android', pose, side, color)}
@@ -984,7 +990,7 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
                         SIDES_3D.map((side) => (
                           <Device3DThumbTile
                             key={`watch-${color}-${pose}-${side}`}
-                            src={`/elements/device-3d/watch-${pose}-${side}-${color}.png`}
+                            src={`/elements/device-3d/watch-${pose}-${side}-${color}.webp`}
                             label={color === 'black' ? 'Black' : 'White'}
                             title={`Add Apple Watch 3D, ${pose} ${side} (${color})`}
                             libraryId={device3dLibraryId('watch', pose, side, color)}
@@ -1007,7 +1013,7 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
                           SIDES_3D.map((side) => (
                             <Device3DThumbTile
                               key={`mb-${color}-${pose}-${side}`}
-                              src={`/elements/device-3d/macbook-${pose}-${side}-${color}.png`}
+                              src={`/elements/device-3d/macbook-${pose}-${side}-${color}.webp`}
                               label={color === 'black' ? 'MacBook Black' : 'MacBook Silver'}
                               title={`Add MacBook 3D, ${pose} ${side} (${color})`}
                               libraryId={device3dLibraryId('macbook', pose, side, color)}
@@ -1028,7 +1034,7 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
                           SIDES_3D.map((side) => (
                             <Device3DThumbTile
                               key={`im-${color}-${pose}-${side}`}
-                              src={`/elements/device-3d/imac-${pose}-${side}-${color}.png`}
+                              src={`/elements/device-3d/imac-${pose}-${side}-${color}.webp`}
                               label={color === 'black' ? 'iMac Black' : 'iMac Silver'}
                               title={`Add iMac 3D, ${pose} ${side} (${color})`}
                               libraryId={device3dLibraryId('imac', pose, side, color)}
@@ -1090,35 +1096,35 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
                     badge="New"
                     onOpen={() => setOpenDeviceCategoryId('3d-studio')}
                     previews={STUDIO_3D_PREVIEWS.map((k) => (
-                      <img key={k} src={withBasePath(`/elements/device-3d/studio/${k}.png`)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
+                      <img key={k} src={withBasePath(`/elements/device-3d/studio/${k}.webp`)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
                     ))}
                   />
                   <DeviceCategoryCard
                     label={DEVICE_CATEGORY_LABELS['3d-iphone']}
                     onOpen={() => setOpenDeviceCategoryId('3d-iphone')}
                     previews={IPHONE_3D_PREVIEWS.map((k) => (
-                      <img key={k} src={withBasePath(`/elements/device-3d/iphone-${k}.png`)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
+                      <img key={k} src={withBasePath(`/elements/device-3d/iphone-${k}.webp`)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
                     ))}
                   />
                   <DeviceCategoryCard
                     label={DEVICE_CATEGORY_LABELS['3d-android']}
                     onOpen={() => setOpenDeviceCategoryId('3d-android')}
                     previews={ANDROID_3D_PREVIEWS.map((k) => (
-                      <img key={k} src={withBasePath(`/elements/device-3d/android-${k}.png`)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
+                      <img key={k} src={withBasePath(`/elements/device-3d/android-${k}.webp`)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
                     ))}
                   />
                   <DeviceCategoryCard
                     label={DEVICE_CATEGORY_LABELS['3d-watch']}
                     onOpen={() => setOpenDeviceCategoryId('3d-watch')}
                     previews={WATCH_3D_PREVIEWS.map((k) => (
-                      <img key={k} src={withBasePath(`/elements/device-3d/watch-${k}.png`)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
+                      <img key={k} src={withBasePath(`/elements/device-3d/watch-${k}.webp`)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
                     ))}
                   />
                   <DeviceCategoryCard
                     label={DEVICE_CATEGORY_LABELS['3d-mac']}
                     onOpen={() => setOpenDeviceCategoryId('3d-mac')}
                     previews={MAC_3D_PREVIEWS.map((k) => (
-                      <img key={k} src={withBasePath(`/elements/device-3d/${k}.png`)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
+                      <img key={k} src={withBasePath(`/elements/device-3d/${k}.webp`)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
                     ))}
                   />
                   <DeviceCategoryCard
@@ -1184,7 +1190,7 @@ export const ElementPalette = memo(function ElementPalette({ onAddElement, onDro
                       label={category.label}
                       onOpen={() => setOpenImageCategoryId(category.id)}
                       previews={category.items.slice(0, 6).map(item => (
-                        <img key={item.id} src={withBasePath(item.src)} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
+                        <img key={item.id} src={withBasePath(libraryThumbSrc(item.src))} alt="" className="max-w-full max-h-full object-contain" draggable={false} />
                       ))}
                     />
                   ))}

@@ -7,6 +7,12 @@
 //
 // We keep stored/library paths canonical (no basePath) and prefix ONLY at render time via
 // withBasePath(). Locally BASE_PATH is empty, so this is a no-op in dev.
+//
+// It is also where a picture path a saved project kept from before the pictures
+// became WebP turns into the WebP's (pictureRenames.ts), since nearly every
+// stored picture reaches the screen through here.
+import { currentPicturePath } from '@/lib/pictureRenames';
+
 export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 
 // Prefix a root-absolute local path with the deploy sub-path. Leaves data:, blob:,
@@ -14,6 +20,8 @@ export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 export function withBasePath(src?: string | null): string {
   if (!src) return src ?? '';
   if (!src.startsWith('/') || src.startsWith('//')) return src;
-  if (BASE_PATH && (src === BASE_PATH || src.startsWith(`${BASE_PATH}/`))) return src;
-  return `${BASE_PATH}${src}`;
+  if (BASE_PATH && (src === BASE_PATH || src.startsWith(`${BASE_PATH}/`))) {
+    return `${BASE_PATH}${currentPicturePath(src.slice(BASE_PATH.length))}`;
+  }
+  return `${BASE_PATH}${currentPicturePath(src)}`;
 }

@@ -15,6 +15,7 @@ mod settings;
 mod splash;
 mod updater;
 mod store_package;
+mod web_assets;
 mod web_session;
 mod webview_crash;
 
@@ -29,6 +30,10 @@ pub fn run() {
     if packaged {
         context.config_mut().identifier = store_package::STORE_IDENTIFIER.to_string();
     }
+    // The files the binary does not carry: the macOS build's pictures in its
+    // resources, and the template art and library pictures every build
+    // downloads the first time they are shown (web_assets.rs).
+    web_assets::wrap(&mut context);
 
     // Before Tauri resolves any path or opens the webview profile: the bundle
     // identifier changed with the rename to Open Screenshot Generator, and
@@ -152,6 +157,8 @@ pub fn run() {
             growth_browser::abs_growth_browser_run,
             growth_browser::abs_growth_browser_close,
             growth_browser::abs_growth_browser_info,
+            web_assets::abs_downloads_missing,
+            web_assets::abs_downloads_fetch,
         ])
         .setup(|app| {
             // Settings first: it manages the state the other modules read.

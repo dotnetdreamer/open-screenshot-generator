@@ -83,8 +83,8 @@ Templates are plain JSON project files under [public/data/projects/](../public/d
 
 ### Where things live
 
-- [public/data/projects/](../public/data/projects/) `<slug>.json` template files, plus loose per-template art PNGs (no enforced naming: `calora-macros-screen-1.png`, `cvcraft-screen-home.png`, `breathora-bottom-fade.png` all coexist)
-- [public/data/projects/previews/](../public/data/projects/previews/) card thumbnails, always `<slug>.png`, one per template
+- [public/data/projects/](../public/data/projects/) `<slug>.json` template files, plus loose per-template art, each a PNG with its WebP beside it (no enforced naming: `calora-macros-screen-1.png`, `cvcraft-screen-home.png`, `breathora-bottom-fade.png` all coexist). The desktop app downloads these the first time they are used (AGENTS.md rule 91)
+- [public/data/projects/previews/](../public/data/projects/previews/) card thumbnails, `<slug>.png` with `<slug>.webp` (at most 1400 px wide) beside it, one per template; templates name the PNG (AGENTS.md rule 90)
 - `app-screens/`, `watch-screens/`, `mac-screens/`, `fg-screens/` reusable skeleton UI screens baked into device mockups
 - [templateCategories.ts](../src/lib/templateCategories.ts) the registry: `TEMPLATE_CATEGORIES: TemplateCategory[]` and `ALL_TEMPLATE_FILES`
 - [projectService.ts](../src/services/projectService.ts) `loadProjectTemplates()` fetches `${BASE_PATH}/data/projects/<file>` for every catalog entry in parallel and tags each `Project` with `category`
@@ -152,7 +152,8 @@ Canvas-size presets shown in the toolbar's Canvas Size dialog are a separate cat
 2. Register the filename in the matching `TEMPLATE_CATEGORIES[].files` array in [templateCategories.ts](../src/lib/templateCategories.ts). This is the only step that makes it appear.
 3. Add `{ slug, card, boards, tab? }` to `TEMPLATES` in [export-templates.js](../.claude/skills/app-screenshots/scripts/export-templates.js) if you want the headless export QA loop (`node export-templates.js <outRoot> [slug ...]` with `npm run dev` on :9002), then review the exported PNGs. `card` is the card's visible title text, `tab` the tab label to click first.
 4. Add the slug to `SLUGS` (and `SLUG_TAB` for non-first tabs) in [gen-previews.js](../.claude/skills/app-screenshots/scripts/gen-previews.js), run it, and it writes `previews/<slug>.png` (a 3000x1000 phone-carousel strip) and rewrites `previewImage` in the JSON for you. This script does **not** cover the Feature Graphic tab: `fg-*` previews are 1024x683, the 1024x500 board letterboxed onto a blurred fill with ffmpeg, and must be produced separately.
-5. Run `npm run gen:ai-catalog` to refresh `public/data/ai/catalog.txt`.
+5. Run `npm run pictures:webp`. The template's art and its preview went in as PNG; it makes a WebP beside each (a preview at most 1400 px wide), which the app shows. The template keeps naming the PNG, and nothing else changes (AGENTS.md rule 89).
+6. Run `npm run gen:ai-catalog` to refresh `public/data/ai/catalog.txt`.
 
 ### Coordinate and sizing rules
 
@@ -859,7 +860,7 @@ Flat rendering: `getFlatDeviceChrome(deviceType, effectiveWidth)` returns `FlatD
 - The screenshot is a `MeshBasicMaterial({ toneMapped: false })` plane at `screenSize.z + 0.001`. `objectFit: 'contain'` shrinks the plane; `'cover'` crops via `texture.repeat/offset`; `ShapeGeometry` UVs must go through `normalizeShapeUVs`.
 - Rendering is on demand (no rAF loop) because PNG export can snapshot the canvas at any moment. `applySize()` rebuilds geometry only when the aspect changes by more than 0.005 and is debounced 110 ms during resize. Layering uses `renderOrder` (shot = 1, notch = 2) plus small z offsets, not depth tricks.
 - The `artboard:export` CustomEvent (`detail.phase: 'begin' | 'end'`, dispatched from [OpenScreenshotGeneratorLayout.tsx](../src/components/open-screenshot-generator/OpenScreenshotGeneratorLayout.tsx) and [videoExport.ts](../src/lib/video/videoExport.ts)) forces pixel ratio >= 2 during capture and restores afterwards. Cleanup calls `renderer.forceContextLoss()` so a batch swap cannot hold 2N WebGL contexts.
-- Thumbnails live at `public/elements/device-3d/<prefix>-<pose>-<side>-<color>.png` (156 files; prefixes `iphone, android, watch, macbook, imac`). The palette renders them via `<img src={withBasePath(...)}>`, never a live canvas.
+- Thumbnails live at `public/elements/device-3d/<prefix>-<pose>-<side>-<color>.webp` (156 files; prefixes `iphone, android, watch, macbook, imac`), 480 px on the long side. `regen-3d-thumbs.js` writes PNG at 1280; run `npm run pictures:webp` after it to make each WebP again. The palette renders them via `<img src={withBasePath(...)}>`, never a live canvas.
 - Pose sets and element sizes come from device3dPresets.ts: `POSE_ORDER` (10), `WATCH_POSE_ORDER` (= `front` + POSE_ORDER), `MACBOOK_POSE_ORDER` (`front, upright, side, tilted, reclined`), `IMAC_POSE_ORDER` (`front, upright, side`), plus `IPHONE_3D_SIZES`, `ANDROID_3D_SIZES`, `WATCH_3D_SIZES`, `MACBOOK_3D_SIZES`, `IMAC_3D_SIZES`. The pose angles themselves live in [device3dPoseAngles.ts](../src/lib/device3dPoseAngles.ts), shared with the 3D Studio.
 
 ### The 3D Studio device
@@ -877,7 +878,7 @@ Flat rendering: `getFlatDeviceChrome(deviceType, effectiveWidth)` returns `FlatD
 - **Live gestures never commit per frame.** The handle and the panel sliders publish through [device3dStudioLive.ts](../src/lib/device3dStudioLive.ts); every renderer of that element follows at frame rate, drawing into a square the size of the bounding sphere so nothing clips before the box catches up, and keeps showing the live values after release until the commit reaches its props. The Properties panel follows too: its sliders and their labels show a gesture's values as it happens, from one of its own sliders or a handle on the canvas (a detached panel only follows its own, since the canvas's never reach its window). In the panel every turn and fold value is a slider, at the top: a foldable's Opening, then Turn, Tilt and Spin, with the fold poses and the look grid as presets under them.
 - **The renderer** ([DeviceStudioRenderer.tsx](../src/components/open-screenshot-generator/elements/DeviceStudioRenderer.tsx)) builds the phone in millimetres once per model and screenshot (`buildPhone`); angle, lens, finish, light and glare update it in place. The edge is the measured cross-section swept round the outline, split into cover glass, seal and frame (and back glass). A raised part's wall is swept out from its top's edge and rides on the edge's round-over where it runs out over it (`backSurface`), so a Pro plateau sits inside the frame's usual rim instead of raising the frame's sides; the Air's skirt takes a shape between its wide and narrow sections by its width. The reflections come from a procedural studio (`buildStudioEnvironment`, the key softbox follows the light) through PMREM, `NeutralToneMapping` keeps the finish colours, and the screenshot stays unlit and untone-mapped on the display's active area. It honours `artboard:export`, the context-loss rebuild and the pixel-ratio budget exactly like the posed renderer.
 - **Everything that counts WebGL devices** goes through `isDevice3dStyle` ([devicePerspective.ts](../src/lib/devicePerspective.ts)): `count3dDevices`, `flattenBoard3d`, the intake index and the graphics start screen.
-- **Palette and library.** The 3D Studio group has one tile per measured model (`STUDIO_MODELS`, newest generation first), under an iPhone and an Android heading by `maker`, each Pixel tile noting its kind of screen; a tile arrives at `STUDIO_TILE_LOOK` in the model's default finish; library ids are `studio3d:<model>`. Thumbnails are `public/elements/device-3d/studio/<model>.png` and `look-<look>.png` (the panel's look grid), made by `regen-studio-thumbs.js` from the real renderer. Re-run it after any model, material or look change.
+- **Palette and library.** The 3D Studio group has one tile per measured model (`STUDIO_MODELS`, newest generation first), under an iPhone and an Android heading by `maker`, each Pixel tile noting its kind of screen; a tile arrives at `STUDIO_TILE_LOOK` in the model's default finish; library ids are `studio3d:<model>`. Thumbnails are `public/elements/device-3d/studio/<model>.webp` and `look-<look>.webp` (the panel's look grid), made by `regen-studio-thumbs.js` from the real renderer. Re-run it after any model, material or look change.
 
 ### Recipe: add a vector element to the Elements palette
 
@@ -898,8 +899,8 @@ Flat rendering: `getFlatDeviceChrome(deviceType, effectiveWidth)` returns `FlatD
 
 ### Recipe: add an image asset group
 
-1. Use the `stock-image-assets` skill. Assets must be Adobe Stock free-collection photos licensed through the owner's account, background-removed, trimmed, longest side <= 1000 px, named `<group>-as<StockID>.png` under `public/elements/images/<group>/`.
-2. Append an `ImageCategory` to `IMAGE_CATEGORIES` with `defaultSize` scaled so the longest side is about 430 canvas units, preserving the PNG aspect. The Images tab overview and drill-in both iterate `IMAGE_CATEGORIES`, so there is no second registration site.
+1. Use the `stock-image-assets` skill. Assets must be Adobe Stock free-collection photos licensed through the owner's account, background-removed, trimmed, longest side <= 1000 px, named `<group>-as<StockID>.png` under `public/elements/images/<group>/`, then given their WebP with `npm run pictures:webp`, which also makes their palette tiles under `public/thumbs/`.
+2. Append an `ImageCategory` to `IMAGE_CATEGORIES` with `defaultSize` scaled so the longest side is about 430 canvas units, preserving the picture's aspect. The Images tab overview and drill-in both iterate `IMAGE_CATEGORIES`, so there is no second registration site.
 3. Append license rows to [image-asset-licenses.md](../docs/image-asset-licenses.md) in the same change.
 
 ### Traps
@@ -943,7 +944,7 @@ The palette's fourth tab drops an **artboard**, not a layer. [previewScenes.ts](
 
 ### Verifying scenes
 
-`StaticArtboard` renders a board with the real element components, so a scene can be checked without driving the app at all: bundle it and `previewScenes.ts` with esbuild (the recipe `regen-3d-thumbs.js` uses), serve the harness from `public/` so `/data/projects/app-screens/*.png` resolve, and screenshot `#mount` per scene. That is far more reliable than the canvas (headless Edge returns torn frames after a horizontal scroll of the board row) and far faster than the in-app PNG export (~35s a board, spent trying to inline the Google Fonts stylesheet).
+`StaticArtboard` renders a board with the real element components, so a scene can be checked without driving the app at all: bundle it and `previewScenes.ts` with esbuild (the recipe `regen-3d-thumbs.js` uses), serve the harness from `public/` so `/data/projects/app-screens/*.webp` resolve, and screenshot `#mount` per scene. That is far more reliable than the canvas (headless Edge returns torn frames after a horizontal scroll of the board row) and far faster than the in-app PNG export (~35s a board, spent trying to inline the Google Fonts stylesheet).
 
 ---
 

@@ -96,6 +96,12 @@ interface ArtboardProps {
   onMoveArtboard: (artboardId: string, direction: 'left' | 'right') => void;
   onTranslateArtboard?: (artboardId: string) => void;
   onExportArtboard?: (artboardId: string) => void;
+  /**
+   * A palette tile dropped on this board. The layout's handler adds it once a
+   * library picture the desktop app has to download is here, as a click does
+   * (addElementWithItsPicture); without one the board adds it at once.
+   */
+  onDropElement?: (artboardId: string, type: ElementType, subType: ShapeType | DeviceType | undefined, dropPosition: Point, styleProps?: Record<string, any>) => void;
   canDeleteArtboard: boolean;
   canMoveArtboardLeft: boolean;
   canMoveArtboardRight: boolean;
@@ -153,6 +159,7 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
   onMoveArtboard,
   onTranslateArtboard,
   onExportArtboard,
+  onDropElement,
   canDeleteArtboard,
   canMoveArtboardLeft,
   canMoveArtboardRight,
@@ -1212,7 +1219,9 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
             if (type) {
               // Client coords: addElement converts them against the board's own
               // rect and display scale.
-              selfRef.current?.addElement(type, subType || undefined, { x: e.clientX, y: e.clientY }, styleProps);
+              const point = { x: e.clientX, y: e.clientY };
+              if (onDropElement) onDropElement(artboard.id, type, subType || undefined, point, styleProps);
+              else selfRef.current?.addElement(type, subType || undefined, point, styleProps);
             }
           }}
           onDragOver={(e) => {

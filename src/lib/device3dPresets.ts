@@ -7,7 +7,7 @@
  * palette would produce. Keeping both readers on one table is the point: a pose
  * added here shows up in the app and over MCP at the same time.
  *
- * Thumbnails are pre-rendered to /elements/device-3d/<device>-<pose>-<side>-<colour>.png.
+ * Thumbnails are pre-rendered to /elements/device-3d/<device>-<pose>-<side>-<colour>.webp.
  */
 
 import type { Device3DPose, DeviceType } from '@/types/artboard';

@@ -20,6 +20,7 @@ import {
   belongsToVersion,
   decodeMinisign,
   describeBundle,
+  fragmentName as fragmentNameFor,
   parseArgs,
   platformKeys,
   publishedName,
@@ -99,6 +100,6 @@ if (!entries.length) {
   process.exit(1);
 }
 
-const fragmentName = `fragment-${process.platform}-${process.arch}.json`;
+const fragmentName = fragmentNameFor(entries);
 fs.writeFileSync(path.join(outDir, fragmentName), `${JSON.stringify({ version, entries }, null, 2)}\n`);
 console.log(`wrote ${fragmentName} with ${entries.length} file(s)`);

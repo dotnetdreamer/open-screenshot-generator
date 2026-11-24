@@ -13,6 +13,7 @@ import {
   decodeMinisign,
   describeBundle,
   endpointTemplate,
+  fragmentName,
   parseArgs,
   platformKeys,
   publishedName,
@@ -166,4 +167,32 @@ test('arguments read as flags with values, bare flags, and words', () => {
     positional: ['publish'],
     flags: { dir: 'out', 'dry-run': true, rollout: '25' },
   });
+});
+
+test('the two Mac builds, made on the same kind of runner, write fragments that do not overwrite each other', () => {
+  // Both legs run on an Apple silicon runner; one of them cross-builds for Intel.
+  const arm = describeBundle('aarch64-apple-darwin/release/bundle/macos/Open Screenshot Generator.app.tar.gz', 'arm64');
+  const intel = describeBundle('x86_64-apple-darwin/release/bundle/macos/Open Screenshot Generator.app.tar.gz', 'arm64');
+  assert.ok(arm && intel);
+  const armName = fragmentName([{ keys: platformKeys(arm) }]);
+  const intelName = fragmentName([{ keys: platformKeys(intel) }]);
+  assert.equal(armName, 'fragment-darwin-aarch64.json');
+  assert.equal(intelName, 'fragment-darwin-x86_64.json');
+  assert.equal(
+    publishedName('Open Screenshot Generator.app.tar.gz', { version: '1.0.12', ...arm }),
+    'Open.Screenshot.Generator_1.0.12_aarch64.app.tar.gz'
+  );
+  assert.equal(
+    publishedName('Open Screenshot Generator.app.tar.gz', { version: '1.0.12', ...intel }),
+    'Open.Screenshot.Generator_1.0.12_x86_64.app.tar.gz'
+  );
+
+  // A Windows leg makes an installer and an MSI for one system: one fragment.
+  const windows = [
+    { keys: ['windows-x86_64-nsis'] },
+    { keys: ['windows-x86_64-msi'] },
+  ];
+  assert.equal(fragmentName(windows), 'fragment-windows-x86_64.json');
+  // A universal build serves both Macs from one leg.
+  assert.equal(fragmentName([{ keys: ['darwin-aarch64-app', 'darwin-x86_64-app'] }]), 'fragment-darwin-aarch64_darwin-x86_64.json');
 });

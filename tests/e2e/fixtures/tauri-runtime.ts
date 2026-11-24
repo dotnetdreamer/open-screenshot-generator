@@ -73,6 +73,14 @@ export interface TauriMockConfig {
   /** Commands that must reject, mapped to the rejection message. */
   errors: Record<string, string>;
   /**
+   * Pictures this pretend build has not downloaded yet (web_assets.rs).
+   * abs_downloads_missing answers with the ones it is asked about, and a
+   * successful abs_downloads_fetch takes a path off the list.
+   */
+  missingPictures: string[];
+  /** Pictures whose abs_downloads_fetch rejects, mapped to Rust's message ("unreachable: ..."). */
+  pictureFailures: Record<string, string>;
+  /**
    * Canned answers for tauri-plugin-http, the app's way out to App Store
    * Connect, Google Play and the AI providers. The first rule whose `match`
    * (a regular expression source) finds "METHOD url" answers; anything else
@@ -116,6 +124,8 @@ export const DEFAULT_TAURI_CONFIG: TauriMockConfig = {
   responses: {},
   held: [],
   errors: {},
+  missingPictures: [],
+  pictureFailures: {},
   http: [],
   growthPages: {},
   growthDriver: '',
@@ -140,6 +150,7 @@ export function tauriInitScript(config: TauriMockConfig): string {
     files: [],
     /** The bytes of the latest PNG written, as base64: { path, base64 }. */
     lastPng: null,
+    lastJson: null,
     openedUrls: [],
     /** Commands with no default and no configured response. */
     unhandled: [],
@@ -775,6 +786,8 @@ export function tauriInitScript(config: TauriMockConfig): string {
         // The latest PNG's bytes, for a spec that has to look at the pixels.
         // Only the last one, so a long export run does not pile up megabytes.
         if (cmd === 'plugin:fs|write_file' && /\\.png$/i.test(path)) state.lastPng = { path, base64: toBase64(args) };
+        // And the latest JSON, for a spec that reads back a project file.
+        if (/\\.json$/i.test(path)) state.lastJson = { path, base64: toBase64(args) };
         return null;
       }
       case 'plugin:fs|mkdir':
@@ -887,6 +900,27 @@ export function tauriInitScript(config: TauriMockConfig): string {
       case 'plugin:http|fetch_cancel':
       case 'plugin:http|fetch_cancel_body':
         return null;
+
+      // -- pictures the desktop app downloads on first use (web_assets.rs) -----
+      // The dev server has every picture, so by default none is missing. A spec
+      // lists missing ones, and failing ones, with tauri.setMissingPictures.
+      case 'abs_downloads_missing': {
+        const missing = state.config.missingPictures || [];
+        return (Array.isArray(args.paths) ? args.paths : []).filter((path) => missing.includes(path));
+      }
+      case 'abs_downloads_fetch': {
+        // Held in config.held like a canned answer, for a spec that acts while
+        // a picture downloads; releaseCommands() lets each one finish.
+        if ((state.config.held || []).includes(cmd)) {
+          await new Promise((resolve, reject) => {
+            state.commandsHeld.push({ cmd, id: args.path, release: resolve, stop: (message) => reject(new Error(message)) });
+          });
+        }
+        const failure = (state.config.pictureFailures || {})[args.path];
+        if (failure) throw new Error(failure);
+        state.config.missingPictures = (state.config.missingPictures || []).filter((path) => path !== args.path);
+        return null;
+      }
 
       default:
         if (cmd.startsWith('plugin:window|') || cmd.startsWith('plugin:webview|')) return null;

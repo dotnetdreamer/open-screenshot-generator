@@ -10,6 +10,14 @@ import { getPlayback, stopPlayback } from '@/lib/video/playback';
 import { AUDIO_ACCEPT, saveAudio } from '@/lib/mediaStore';
 import { soundLayerName } from '@/lib/video/audio';
 import { migrateVideoDevices } from '@/lib/video/migrateVideoDevices';
+import {
+  downloadPicturesFor,
+  ensurePicture,
+  mayNeedDownload,
+  picturesFailedCopy,
+  PicturesNotDownloadedError,
+  type DownloadFailure,
+} from '@/lib/pictureDownloads';
 import { externalizeInlineMedia } from '@/lib/externalizeInlineMedia';
 import {
   SidebarProvider,
@@ -628,6 +636,18 @@ function afterIdle(work: () => void): void {
 /** Resolves at the browser's next idle moment. */
 const nextIdle = () => new Promise<void>((resolve) => afterIdle(resolve));
 
+/**
+ * A template whose pictures were still downloading when the user went
+ * elsewhere: the start dialog closed, or another project opened. It is not
+ * created, since it would open over whatever they went to instead.
+ */
+class TemplateLeftError extends Error {
+  constructor() {
+    super('The template was left before its pictures downloaded.');
+    this.name = 'TemplateLeftError';
+  }
+}
+
 function makeHistoryEntry(artboards: ArtboardState[], change: HistoryChange): HistoryEntry {
   const json = JSON.stringify(artboards);
   return {
@@ -941,7 +961,17 @@ function createBlankProject(size: Size = { ...DEFAULT_CANVAS_SIZE }): Project {
 // whole studio layout (canvas, palette, properties panel).
 // `emptyState` renders in place of the search + grid when this category has no
 // templates yet (e.g. Feature Graphic before any are authored).
-function TemplateGallery({ projects, onSelect, isLoading, emptyState, previewAspect, previewFit, gridClassName }: { projects: Project[]; onSelect: (project: Project) => void; isLoading?: boolean; emptyState?: React.ReactNode; previewAspect: string; previewFit: 'cover' | 'contain'; gridClassName: string }) {
+function TemplateGallery({ projects, onSelect, isLoading, emptyState, previewAspect, previewFit, gridClassName, opening }: {
+  projects: Project[];
+  onSelect: (project: Project) => void;
+  isLoading?: boolean;
+  emptyState?: React.ReactNode;
+  previewAspect: string;
+  previewFit: 'cover' | 'contain';
+  gridClassName: string;
+  /** The template whose pictures the desktop app is downloading before it opens, and how far along. */
+  opening?: { templateId?: string; done: number; total: number } | null;
+}) {
   const [searchQuery, setSearchQuery] = useState('');
   const deferredQuery = useDeferredValue(searchQuery);
   const normalizedQuery = deferredQuery.trim().toLowerCase();
@@ -1027,6 +1057,19 @@ function TemplateGallery({ projects, onSelect, isLoading, emptyState, previewAsp
                         <span className="absolute right-2 top-2 z-10 rounded-full bg-background/85 px-2 py-0.5 text-[11px] font-medium tabular-nums text-foreground shadow-sm backdrop-blur">
                           {screens} screens
                         </span>
+                      )}
+                      {opening?.templateId === project.id && (
+                        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-background/75 backdrop-blur-sm">
+                          <span className="text-sm font-medium tabular-nums text-foreground">
+                            {`Downloading pictures ${opening.done} of ${opening.total}`}
+                          </span>
+                          <span className="h-1 w-2/5 overflow-hidden rounded-full bg-primary/20">
+                            <span
+                              className="block h-full bg-primary transition-[width] duration-300 ease-out"
+                              style={{ width: `${opening.total ? Math.round((opening.done / opening.total) * 100) : 0}%` }}
+                            />
+                          </span>
+                        </div>
                       )}
                     </div>
                   </CardHeader>
@@ -1303,7 +1346,39 @@ export function OpenScreenshotGeneratorLayout() {
    * are moving. A local IndexedDB open leaves it null and keeps the sweep.
    */
   const [projectLoadStatus, setProjectLoadStatus] = useState<ProjectLoadStep | null>(null);
+  /**
+   * The desktop app downloading the pictures a template or project needs before
+   * it opens (lib/pictureDownloads.ts). It takes the status bar over while it
+   * runs, whatever else the open reports.
+   */
+  const [pictureDownload, setPictureDownload] = useState<{
+    owner: object;
+    name?: string;
+    templateId?: string;
+    done: number;
+    total: number;
+  } | null>(null);
   const { toast } = useToast();
+  /**
+   * Downloads the pictures `value` names that this computer does not have,
+   * counted in the status bar while `shown()` says the count still matters.
+   * Each call clears only its own count, never one that started after it.
+   */
+  const getPictures = useCallback(async (value: unknown, name?: string, templateId?: string, shown: () => boolean = () => true) => {
+    const owner = {};
+    const clearOwn = () => setPictureDownload((current) => (current?.owner === owner ? null : current));
+    try {
+      return await downloadPicturesFor(value, (done, total) => {
+        if (shown()) setPictureDownload({ owner, name, templateId, done, total });
+        else clearOwn();
+      });
+    } finally {
+      clearOwn();
+    }
+  }, []);
+  const toastPicturesMissing = useCallback((failed: DownloadFailure[], what: 'project' | 'picture') => {
+    toast({ ...picturesFailedCopy(failed, what), variant: "destructive" });
+  }, [toast]);
   // Desktop updates (lib/updates). The main window asks the update server on a
   // schedule and answers Help > Check for updates; the other editor windows
   // only write their edits when an install asks them to (see below).
@@ -1617,6 +1692,9 @@ export function OpenScreenshotGeneratorLayout() {
     const written = projectSaves.flushOtherThan(projectId);
     loadedProjectIdRef.current = projectId;
     canvasSerialRef.current += 1;
+    // A template still downloading its pictures stops here (handleSelectTemplate),
+    // so its count leaves the status bar now rather than at its next picture.
+    setPictureDownload((current) => (current?.templateId ? null : current));
     // One whose tab closed while this one was read kept its lock only for being
     // on the canvas. It lets go once those last edits are written.
     if (outgoing && outgoing !== projectId) void written.then(() => letGoIfUnused(outgoing));
@@ -2294,6 +2372,10 @@ export function OpenScreenshotGeneratorLayout() {
             });
           }
           if (isStale()) return;
+          // The desktop app's template art, before the canvas shows the project.
+          const pictures = await getPictures(projectData, project.name);
+          if (isStale()) return;
+          if (pictures.failed.length) toastPicturesMissing(pictures.failed, 'project');
           // Layers sent to this tab while it was being read parked it with
           // the change (editTabInBackground). That copy is newer than the row
           // read here, so it is the one that opens.
@@ -4269,6 +4351,24 @@ export function OpenScreenshotGeneratorLayout() {
     }
   }, [toast, canvasTakesCommits]);
 
+  /**
+   * Adds an element from the palette or a drop once its picture is on this
+   * computer. The desktop app downloads a library picture the first time it
+   * goes on an artboard, and one that does not come is not added: an empty
+   * layer is worse than being told why. Everything else is added at once.
+   */
+  const addElementWithItsPicture = useCallback((artboardId: string, type: ElementType, subType?: ShapeType | DeviceType, dropPosition?: Point, styleProps?: Record<string, any>) => {
+    const src: unknown = type === 'image' ? styleProps?.imageSrc : undefined;
+    if (!mayNeedDownload(src)) {
+      handleAddElementToArtboard(artboardId, type, subType, dropPosition, styleProps);
+      return;
+    }
+    void ensurePicture(src).then((failure) => {
+      if (failure) toastPicturesMissing([failure], 'picture');
+      else handleAddElementToArtboard(artboardId, type, subType, dropPosition, styleProps);
+    });
+  }, [handleAddElementToArtboard, toastPicturesMissing]);
+
   // Sound layers are added with their file, so both doors (the timeline's
   // "+ Sound" and the palette tile) open the file picker first and add the
   // layer once a file is chosen. Cancelling the picker adds nothing.
@@ -4314,11 +4414,11 @@ export function OpenScreenshotGeneratorLayout() {
       return;
     }
     if (activeArtboardId) {
-      handleAddElementToArtboard(activeArtboardId, type, subType, undefined, styleProps);
+      addElementWithItsPicture(activeArtboardId, type, subType, undefined, styleProps);
     } else {
       toast({ title: "No Artboard Active", description: "Please select or create an artboard first.", variant: "destructive" });
     }
-  }, [activeArtboardId, handleAddElementToArtboard, handleAddSound, toast]);
+  }, [activeArtboardId, addElementWithItsPicture, handleAddSound, toast]);
 
   /**
    * A palette tile dragged with a finger and released over the canvas. The
@@ -4518,8 +4618,8 @@ export function OpenScreenshotGeneratorLayout() {
       toast({ title: "No Artboard Active", description: "Please select or create an artboard first.", variant: "destructive" });
       return;
     }
-    handleAddElementToArtboard(artboardId, type, subType, droppedOn ? point : undefined, styleProps);
-  }, [activeArtboardId, handleAddElementToArtboard, toast]);
+    addElementWithItsPicture(artboardId, type, subType, droppedOn ? point : undefined, styleProps);
+  }, [activeArtboardId, addElementWithItsPicture, toast]);
 
   // Get the current size from the first artboard or any active artboard
   // The canvas size is the screenshots' size. Header and search art and the
@@ -5107,8 +5207,13 @@ export function OpenScreenshotGeneratorLayout() {
       screenshots?: Array<{ elementId: string; src: string }>;
       /** Opened from the gallery to look at: its tab is a preview until edited. */
       preview?: boolean;
+      /** False once the user has gone elsewhere, which stops the open with TemplateLeftError. */
+      stillWanted?: () => boolean;
+      /** Called once nothing stops the open any more, just before the copy is written. */
+      onWrite?: () => void;
     }
   ): Promise<{ projectId: string; name: string; artboards: ArtboardState[]; warnings: string[] } | null> => {
+    const stillWanted = options?.stillWanted ?? (() => true);
     if (!template.projectData || !Array.isArray(template.projectData) || template.projectData.length === 0) {
       return null;
     }
@@ -5125,10 +5230,21 @@ export function OpenScreenshotGeneratorLayout() {
       screenshots: options?.screenshots,
     });
 
+    // The desktop app downloads template art the first time it is used, and
+    // only what the filled copy still shows: a screenshot handed in for a slot
+    // replaces the sample one, which is then never needed. A template that
+    // cannot get its pictures is not started at all, since a project with
+    // empty frames is worse than being told to try again.
+    const pictures = await getPictures(updatedArtboards, template.name, template.id, stillWanted);
+    if (!stillWanted()) throw new TemplateLeftError();
+    if (pictures.failed.length) throw new PicturesNotDownloadedError(pictures.failed);
+
     // Screenshots handed in as data URLs (the AI build path) and any inline
     // media a template carries move into the Dexie media table before the row
     // is written, so the project starts life reference-only (issue #19).
     const externalizedArtboards = await externalizeInlineMedia(updatedArtboards);
+    if (!stillWanted()) throw new TemplateLeftError();
+    options?.onWrite?.();
 
     await db.projects.put({
       id: newProjectId,
@@ -5146,7 +5262,25 @@ export function OpenScreenshotGeneratorLayout() {
 
   // `nameOverride` lets the AI agent name the project itself; the gallery and
   // "Start Blank" paths keep the historic "<template> Copy" naming.
+  //
+  // A template takes a moment to open while the desktop app downloads its
+  // pictures, and the user may do something else meanwhile. Whatever they did
+  // last wins: a newer pick (another template, a blank canvas, the same card
+  // clicked twice) or leaving the start dialog moves the token on, and opening
+  // another project moves canvasSerialRef on, so the template does not open
+  // over that. A pick that is already being written is left to finish, since
+  // a second click then would make a second copy of it.
+  const templateOpenRef = useRef({ token: 0, writing: false });
+  const cancelTemplateOpen = () => {
+    templateOpenRef.current = { token: templateOpenRef.current.token + 1, writing: false };
+    setPictureDownload((current) => (current?.templateId ? null : current));
+  };
   const handleSelectTemplate = async (template: Project, options?: { nameOverride?: string }) => {
+    if (templateOpenRef.current.writing) return;
+    const token = templateOpenRef.current.token + 1;
+    templateOpenRef.current = { token, writing: false };
+    const serial = canvasSerialRef.current;
+    const stillWanted = () => templateOpenRef.current.token === token && canvasSerialRef.current === serial;
     try {
       if (!template.projectData || !Array.isArray(template.projectData) || template.projectData.length === 0) {
         toast({
@@ -5169,6 +5303,10 @@ export function OpenScreenshotGeneratorLayout() {
       const created = await createProjectFromTemplateData(template, {
         nameOverride: options?.nameOverride,
         preview: !options?.nameOverride,
+        stillWanted,
+        onWrite: () => {
+          templateOpenRef.current = { token, writing: true };
+        },
       });
 
       if (created) {
@@ -5177,17 +5315,25 @@ export function OpenScreenshotGeneratorLayout() {
       }
 
       toast({
-        title: "Creation Failed",
-        description: "Failed to create project from template.",
+        title: "That template could not be opened",
+        description: "Try again, or pick another template.",
         variant: "destructive"
       });
     } catch (error) {
+      // Left on purpose, so there is nothing to tell the user.
+      if (error instanceof TemplateLeftError) return;
       console.error("Error creating project from template:", error);
+      if (error instanceof PicturesNotDownloadedError) {
+        toast({ ...picturesFailedCopy(error.failed, 'template'), variant: "destructive" });
+        return;
+      }
       toast({
-        title: "Creation Failed", 
-        description: "Failed to create project from template.", 
-        variant: "destructive" 
+        title: "That template could not be opened",
+        description: "Try again, or pick another template.",
+        variant: "destructive"
       });
+    } finally {
+      if (templateOpenRef.current.token === token) templateOpenRef.current = { token, writing: false };
     }
   };
 
@@ -10080,6 +10226,12 @@ export function OpenScreenshotGeneratorLayout() {
       );
       console.log("Final artboards with positions:", finalArtboards.map((ab: ArtboardState) => ({ id: ab.id, position: ab.position })));
 
+      // The desktop app's template art, before the canvas shows the project.
+      // Opened either way: the user's own work must never wait on the internet.
+      const pictures = await getPictures(finalArtboards, projectName);
+      if (stopped()) return false;
+      if (pictures.failed.length) toastPicturesMissing(pictures.failed, 'project');
+
       // Store what the canvas is about to show. Most callers wrote a row a
       // moment ago, before the passes above; the headless bridge hands in a
       // document that has no row at all, and a project without one is missing
@@ -10401,8 +10553,12 @@ const generateRandomProjectName = (): string => {
           }
           onOpenChange={(newOpenState) => {
             if (!newOpenState && claudeStartingRef.current) return;
-            // Dismissed, so the + button's new tab is not happening.
-            if (!newOpenState) projectTabs.dropNewTabRequest();
+            // Dismissed, so the + button's new tab is not happening, and nor
+            // is a template still downloading its pictures.
+            if (!newOpenState) {
+              projectTabs.dropNewTabRequest();
+              cancelTemplateOpen();
+            }
             if (!newOpenState && artboards.length === 0) {
               // Tabs from last time and nothing on the canvas: back to the
               // tab used last, rather than a blank project nobody asked for.
@@ -10603,6 +10759,7 @@ const generateRandomProjectName = (): string => {
                   <TemplateGallery
                     projects={availableProjects.filter((p) => p.category === cat.id)}
                     onSelect={handleSelectTemplate}
+                    opening={pictureDownload}
                     isLoading={isLoadingProjects}
                     previewAspect={cat.previewAspect}
                     previewFit={cat.previewFit}
@@ -10651,6 +10808,8 @@ const generateRandomProjectName = (): string => {
                           <div
                             className="min-w-0 flex-grow cursor-pointer py-2 hover:text-primary"
                             onClick={() => {
+                              // The project already open, maybe: a template still downloading stops here too.
+                              cancelTemplateOpen();
                               setActiveProjectId(project.id);
                               setIsTemplateSelectorOpen(false);
                               // --- 4. Set projectId in URL when selecting a project ---
@@ -11893,11 +12052,23 @@ const generateRandomProjectName = (): string => {
       }
       const template = availableProjects.find((t) => t.id === templateId);
       if (!template) throw new Error(`No template "${templateId}". Call list_templates for valid ids.`);
-      const created = await createProjectFromTemplateData(template, {
-        nameOverride: name,
-        texts,
-        screenshots,
-      });
+      // Another project opened while the pictures downloaded means the user
+      // went to it, and the new project would open over it.
+      const serial = canvasSerialRef.current;
+      let created: Awaited<ReturnType<typeof createProjectFromTemplateData>>;
+      try {
+        created = await createProjectFromTemplateData(template, {
+          nameOverride: name,
+          texts,
+          screenshots,
+          stillWanted: () => canvasSerialRef.current === serial,
+        });
+      } catch (error) {
+        if (!(error instanceof TemplateLeftError)) throw error;
+        throw new Error(
+          "Another project was opened while the template's pictures downloaded, so nothing was created. Check list_projects for the one open now before you create the project again."
+        );
+      }
       if (!created) throw new Error('Could not create a project from that template.');
       return {
         projectId: created.projectId,
@@ -11931,6 +12102,10 @@ const generateRandomProjectName = (): string => {
         JSON.parse(JSON.stringify(template.projectData)) as ArtboardState[]
       );
       const warnings = fillTemplateSlots(copy, { texts, screenshots });
+      // The pictures the filled copy still shows, as createProjectFromTemplateData
+      // gets them: nothing changes when they cannot be downloaded.
+      const pictures = await getPictures(copy, template.name);
+      if (pictures.failed.length) throw new PicturesNotDownloadedError(pictures.failed);
       let boards = normalizeLocalization(
         ensureUniqueElementIds(await externalizeInlineMedia(migrateVideoDevices(copy)))
       );
@@ -12601,9 +12776,17 @@ const generateRandomProjectName = (): string => {
             desktopShortcuts={isDesktopApp}
           />
           <LoadStatusBar
-            phase={loadPhase}
+            phase={pictureDownload ? 'project' : loadPhase}
             templateProgress={templateProgress}
-            projectStep={projectLoadStatus}
+            projectStep={
+              pictureDownload
+                ? {
+                    name: pictureDownload.name,
+                    step: `Downloading pictures ${pictureDownload.done} of ${pictureDownload.total}`,
+                    ratio: pictureDownload.total ? pictureDownload.done / pictureDownload.total : 0,
+                  }
+                : projectLoadStatus
+            }
           />
           <Toolbar
             onSelectTemplate={() => openStartDialog()}
@@ -12727,7 +12910,7 @@ const generateRandomProjectName = (): string => {
                 onUpdateArtboards={commitView}
                 onUpdateBaseArtboards={handleCanvasStructuralChange}
                 activeLocale={activeLocale}
-                onAddElementToArtboard={handleAddElementToArtboard}
+                onAddElementToArtboard={addElementWithItsPicture}
                 onAddPreviewScene={handleAddPreviewScene}
                 onAddCreativeLook={handleAddCreativeLook}
                 onDropImageFiles={(files, point) => void handleCanvasImageDrop(files, point)}

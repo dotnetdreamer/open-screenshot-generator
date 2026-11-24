@@ -36,6 +36,12 @@ export interface AssetManifest {
   /** Tier each entry belongs to, so `osg cache warm --tier` can select. */
   tiers: Record<string, string[]>;
   entries: Record<string, AssetEntry>;
+  /**
+   * Folder to the names in it of pictures with a WebP made from their PNG
+   * (src/lib/pictureRenames.json). The editor asks for the WebP, and a project
+   * that names the PNG is served the WebP entry.
+   */
+  renamed?: Record<string, string[]>;
 }
 
 const EMPTY: AssetManifest = { version: '0', tiers: {}, entries: {} };
@@ -93,12 +99,30 @@ export interface HydrateOptions {
 }
 
 /**
+ * The manifest path that answers `requestPath`: itself, or the WebP for a PNG
+ * name a picture had before the pictures became WebP. Null when neither is in
+ * the manifest.
+ */
+export function resolveAssetPath(manifest: AssetManifest, requestPath: string): string | null {
+  if (manifest.entries[requestPath]) return requestPath;
+  if (!requestPath.endsWith('.png')) return null;
+  const slash = requestPath.lastIndexOf('/') + 1;
+  const dir = requestPath.slice(0, slash);
+  const name = requestPath.slice(slash, -'.png'.length);
+  if (!manifest.renamed?.[dir]?.includes(name)) return null;
+  const webp = `${dir}${name}.webp`;
+  return manifest.entries[webp] ? webp : null;
+}
+
+/**
  * Return the bytes for a manifest path, from cache or from the network.
  * Returns null when the path is not in the manifest at all (a genuine 404).
  */
 export async function hydrate(requestPath: string, options: HydrateOptions): Promise<Buffer | null> {
+  const resolved = resolveAssetPath(options.manifest, requestPath);
+  if (!resolved) return null;
+  requestPath = resolved;
   const entry = options.manifest.entries[requestPath];
-  if (!entry) return null;
 
   const cached = readCached(entry.sha256);
   if (cached) {

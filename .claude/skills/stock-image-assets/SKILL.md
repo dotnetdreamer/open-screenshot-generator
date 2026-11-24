@@ -76,6 +76,16 @@ user's connected Adobe account so there is a real license record on file.
    A new group only needs a new entry in `IMAGE_CATEGORIES`; the palette
    (`ElementPalette.tsx` Images tab) renders groups generically.
 
+7b. **Make the WebP** — `npm run pictures:webp`. The app shows WebP, so this
+   makes one beside each new PNG and their palette tiles under
+   `public/thumbs/`. The PNG stays, and `imageLibrary.ts` keeps naming it. The
+   unit tests fail while a PNG has no WebP made from it
+   (`tests/unit/pictures.test.ts`). The desktop app does not ship these
+   pictures: it downloads each one the first time it is used
+   (`.agents/AGENTS.md` rule 91). A picture that has shipped can't be changed
+   under its name (the converter refuses), so a redone one needs a new name,
+   such as `<group>-as<StockID>-2.png`.
+
 8. **Update the license record** — append rows to
    `docs/image-asset-licenses.md` (file, Stock ID, exact Stock title, license
    date). The user's full history lives at stock.adobe.com/license-history.

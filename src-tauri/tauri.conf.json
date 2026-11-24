@@ -6,8 +6,8 @@
   "build": {
     "beforeDevCommand": "npm run build:assistant-agent && npm run dev",
     "devUrl": "http://localhost:9002",
-    "beforeBuildCommand": "npm run build:assistant-agent && npm run build",
-    "frontendDist": "../out"
+    "beforeBuildCommand": "npm run build:assistant-agent && npm run build && node scripts/desktop-assets.mjs",
+    "frontendDist": "../out-desktop/bundled"
   },
   "app": {
     "windows": [

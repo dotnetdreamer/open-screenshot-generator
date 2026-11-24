@@ -36,6 +36,12 @@ serde_json = "1"
 # `export_png { save: true }` writes files on every desktop platform.
 base64 = "0.22"
 
+# Downloaded pictures are checked against the sha256 their manifest names, and
+# a download waits on Tauri's runtime without holding one of its threads
+# (web_assets.rs). Both crates are in the build already, through wry and tauri.
+sha2 = "0.10"
+tokio = { version = "1", features = ["rt-multi-thread"] }
+
 # Minimal blocking HTTP server for the opt-in local MCP server (mcp_server.rs).
 # Localhost only, one accept thread + a thread per request; no async runtime, and
 # a clean shutdown via recv_timeout so the on/off toggle can stop it instantly.
@@ -60,7 +66,12 @@ objc2 = "0.6"
 objc2-core-foundation = { version = "0.3", default-features = false, features = ["std", "CFData"] }
 objc2-core-graphics = { version = "0.3", default-features = false, features = ["std", "CGColorSpace", "CGDataProvider", "CGImage"] }
 objc2-core-video = { version = "0.3", default-features = false, features = ["std", "CVBase", "CVBuffer", "CVImageBuffer", "CVPixelBuffer", "CVReturn"] }
-objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSArray", "NSDictionary", "NSError", "NSFileManager", "NSIndexSet", "NSPathUtilities", "NSString", "NSURL"] }
+objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSArray", "NSDictionary", "NSError", "NSFileManager", "NSIndexSet", "NSPathUtilities", "NSProcessInfo", "NSString", "NSURL"] }
+# macOS 10.15's web view cannot decode WebP, so there web_assets.rs hands the
+# app's pictures over as PNG: image-webp reads them, png writes them (png is in
+# the build already, for the menu and tray icons).
+image-webp = "0.2"
+png = "0.18"
 objc2-vision = { version = "0.3", default-features = false, features = ["std", "objc2-core-graphics", "objc2-core-video", "VNGenerateForegroundInstanceMaskRequest", "VNObservation", "VNRequest", "VNRequestHandler"] }
 
 # Screenshot capture of the assistant windows for the operation timeline.

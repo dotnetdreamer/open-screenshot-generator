@@ -25,6 +25,8 @@ node_modules/
 # next.js
 /.next/
 /out/
+# what each desktop build carries, split from out/ (scripts/desktop-assets.mjs)
+/out-desktop/
 
 # production
 /build

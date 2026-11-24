@@ -19,7 +19,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import type { AddressInfo } from 'node:net';
-import { hydrate, type AssetManifest } from './assets.js';
+import { hydrate, resolveAssetPath, type AssetManifest } from './assets.js';
 import { isInside } from '../paths.js';
 import { debug, warn } from '../log.js';
 
@@ -167,7 +167,7 @@ export async function startEditorServer(options: EditorServerOptions): Promise<E
           },
         });
         if (hydrated) {
-          sendBuffer(res, hydrated, mimeFor(pathname));
+          sendBuffer(res, hydrated, mimeFor(resolveAssetPath(options.manifest, pathname) ?? pathname));
           return;
         }
 

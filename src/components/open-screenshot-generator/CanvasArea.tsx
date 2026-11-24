@@ -984,6 +984,7 @@ export function CanvasArea({
                 onMoveArtboard={onMoveArtboardFromToolbar}
                 onTranslateArtboard={onTranslateArtboard}
                 onExportArtboard={onExportArtboard}
+                onDropElement={onAddElementToArtboard}
                 canDeleteArtboard={artboards.length > 1}
                 canMoveArtboardLeft={index > 0}
                 canMoveArtboardRight={index < artboards.length - 1}

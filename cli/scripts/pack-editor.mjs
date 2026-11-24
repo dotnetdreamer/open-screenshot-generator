@@ -146,12 +146,18 @@ if (!fs.existsSync(outDir) || !fs.existsSync(path.join(outDir, 'index.html'))) {
     const entries = {};
     const tiers = {};
     let manifestBytes = 0;
+    // Pictures with a WebP made from their PNG: the editor asks for the WebP,
+    // and a project that names the PNG gets the WebP from the local server
+    // (resolveAssetPath in src/editor/assets.ts), so the PNG stays out.
+    const renamed = JSON.parse(fs.readFileSync(path.join(repo, 'src', 'lib', 'pictureRenames.json'), 'utf8'));
+    const webpStems = new Set(Object.entries(renamed).flatMap(([dir, names]) => names.map((name) => `${dir}${name}`)));
 
     // Sorted, so an unchanged out/ produces a byte identical manifest.
     for (const file of walk(outDir).sort()) {
       if (copied.has(file)) continue;
-      const body = fs.readFileSync(file);
       const requestPath = requestPathOf(file);
+      if (requestPath.endsWith('.png') && webpStems.has(requestPath.slice(0, -4))) continue;
+      const body = fs.readFileSync(file);
       entries[requestPath] = { path: requestPath, bytes: body.length, sha256: sha256(body) };
       manifestBytes += body.length;
       const tier = tierOf(requestPath);
@@ -160,7 +166,7 @@ if (!fs.existsSync(outDir) || !fs.existsSync(path.join(outDir, 'index.html'))) {
 
     fs.writeFileSync(
       path.join(cliRoot, 'assets.manifest.json'),
-      `${JSON.stringify({ version: pkg.version, tiers, entries }, null, 2)}\n`
+      `${JSON.stringify({ version: pkg.version, tiers, entries, renamed }, null, 2)}\n`
     );
 
     const mb = (bytes) => `${(bytes / (1024 * 1024)).toFixed(2)} MB`;

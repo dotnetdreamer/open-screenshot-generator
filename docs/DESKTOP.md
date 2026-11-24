@@ -60,6 +60,55 @@ Build artifacts land in `src-tauri/target/release/bundle/`:
 Both installers are immediately usable for direct distribution (download from a
 website, GitHub Releases, etc.). Store submission needs signing, below.
 
+### What each build carries
+
+`beforeBuildCommand` runs `scripts/desktop-assets.mjs` after `npm run build`. It
+splits the static export in `out/` into `out-desktop/`:
+
+| Part | macOS | Windows and Linux |
+| --- | --- | --- |
+| The program: HTML, scripts, template JSON | built into the binary | built into the binary |
+| Pictures the app shows from the start: template previews, palette tiles, 3D tiles, the app screens the built-in designs use, and the background remover's engine | `Contents/Resources/web` | built into the binary |
+| Template art and the image library's pictures | downloaded on first use | downloaded on first use |
+
+The Mac keeps the middle row outside the binary so a universal build (the Mac
+App Store one) holds it once, not once per architecture. Windows and Linux have
+one architecture per build, and the portable exe stays a single file.
+
+Each picture is a PNG with the WebP made from it beside it (`npm run
+pictures:webp`). A build carries or downloads only the WebP and answers a
+request for the PNG's name with it; the PNG stays on the site for anything else
+that asks for it.
+
+A download comes from editor.openscrgen.app, which is this same `out/` folder
+published by `deploy.yml`. It is checked against the sha256 that
+`osg-downloads.json` lists for it and kept in `downloads/` in the app's local
+data folder (`~/Library/Application Support/<identifier>` on a Mac,
+`%LOCALAPPDATA%\<identifier>` on Windows), so each picture downloads once. A
+template opens once its pictures are here, with a count on its card and in the
+status bar; without the internet it says so and opens nothing. Set
+`OSG_DOWNLOADS_URL` to point a build at another copy of the site, such as a local
+server over `out/` while testing pictures that are not on main yet. The code is
+`src-tauri/src/web_assets.rs`, and the rules are in `.agents/AGENTS.md` (89 to 92).
+
+The release workflow builds one Mac app per chip (`_aarch64.dmg` for Apple
+silicon, `_x64.dmg` for Intel) instead of one universal app, so neither download
+carries the program twice. The Mac App Store build stays universal.
+
+Measured on 2026-11-23 from release builds of this layout on an Apple silicon
+Mac, in decimal megabytes (1 MB = 1,000,000 bytes). The update download is the
+.app packed with tar and gzip, as the updater gets it:
+
+| Build | .dmg | .app | Update download |
+| --- | --- | --- | --- |
+| Apple silicon | 26.9 MB | 52.9 MB | 26.9 MB |
+| Intel | 27.2 MB | 53.9 MB | 27.2 MB |
+| Universal (App Store layout) | not built | 64.5 MB | 33.4 MB |
+| v1.0.11, universal, every picture PNG inside the binary | 497.6 MB | | 497.5 MB |
+
+28.8 MB of each .app is the background remover's engine. The template art and
+library pictures a user downloads come to 38.3 MB if they use every one.
+
 Do NOT set `NEXT_PUBLIC_BASE_PATH` when building for desktop. That variable is
 only for the GitHub Pages deploy; with it set, every asset in the bundle 404s.
 

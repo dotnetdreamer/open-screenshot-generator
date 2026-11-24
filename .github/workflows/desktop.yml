@@ -1,7 +1,7 @@
 name: Release desktop app (Tauri)
 
 # Builds the downloadable installers: Windows (.msi + .exe + portable .zip),
-# macOS (universal .dmg) and Linux (.AppImage + .deb).
+# macOS (one .dmg for Apple silicon, one for Intel) and Linux (.AppImage + .deb).
 #
 # Manual only, on purpose. Nothing here fires on a push or a tag: you start a
 # release from the Actions tab, and the run owns the version.
@@ -156,14 +156,24 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # One Mac build per chip, so a download carries the program once
+          # rather than twice, as a universal app does. The Intel one is
+          # cross-built on the same Apple silicon runner. The Mac App Store build
+          # stays universal (.claude/skills/mac-app-store-build).
           - platform: macos-latest
-            args: '--target universal-apple-darwin'
+            name: macos-apple-silicon
+            args: '--target aarch64-apple-darwin'
+          - platform: macos-latest
+            name: macos-intel
+            args: '--target x86_64-apple-darwin'
           - platform: windows-latest
+            name: windows
             args: ''
           # Pinned to 22.04 rather than ubuntu-latest: the AppImage links
           # against the builder's glibc, so building on the oldest supported
           # runner keeps it usable on older distros.
           - platform: ubuntu-22.04
+            name: linux
             args: ''
 
     runs-on: ${{ matrix.platform }}
@@ -199,6 +209,9 @@ jobs:
       - uses: swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
+          # The two Mac legs share a runner type, so without this they would
+          # share one cache and each save over the other's target folder.
+          key: ${{ matrix.name }}
 
       - run: npm ci
 
@@ -305,8 +318,11 @@ jobs:
             | Platform | File |
             | --- | --- |
             | Windows 10/11 | `.exe` (installer), `.msi`, or `_portable.zip` (no install) |
-            | macOS 10.15+ (Intel + Apple silicon) | `.dmg` |
+            | Mac with Apple silicon (M1 or later) | `_aarch64.dmg` |
+            | Mac with an Intel chip (macOS 10.15 or later) | `_x64.dmg` |
             | Linux | `.AppImage` (portable) or `.deb` |
+
+            Not sure which Mac you have? Open the Apple menu, then About This Mac. It says Chip for Apple silicon and Processor for Intel.
 
             The portable Windows build is a single exe: unzip anywhere and run it. It needs the Microsoft Edge WebView2 Runtime, which is preinstalled on Windows 11 and on most Windows 10 systems. The installers set WebView2 up automatically; the portable build does not.
 
@@ -319,6 +335,8 @@ jobs:
             The Linux AppImage runs against your system WebKitGTK when you have one installed, which is what keeps it working on rolling releases such as Arch and Fedora. Without one it falls back to the copy inside the AppImage. Set `OSG_APPIMAGE_STACK=bundled` to force that copy, or `=host` to require the system one.
 
             Projects are stored locally in the app. Nothing is uploaded anywhere.
+
+            Template pictures and the image library download the first time you use them, so that first use needs the internet. After that they work offline.
           # The updater overlay comes last, so it wins where it overlaps.
           args: ${{ matrix.args }} ${{ needs.version.outputs.updates == 'true' && '--config src-tauri/tauri.updater.conf.json' || '' }}
           # Installed copies update from our server, never from GitHub, so no
@@ -326,7 +344,8 @@ jobs:
           includeUpdaterJson: false
 
       # The bare release exe already is the portable build: Tauri embeds the
-      # whole frontend in the binary and this app bundles no resources or
+      # frontend in the binary (template art and library pictures download on
+      # first use, web_assets.rs) and the Windows build bundles no resources or
       # sidecars, so nothing else needs to travel with it. tauri-action only
       # knows installer bundles, so zip it up here. Depending on the Tauri CLI
       # version the exe in target/release carries the product name or the
@@ -449,7 +468,7 @@ jobs:
         if: needs.version.outputs.updates == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: updates-${{ matrix.platform }}
+          name: updates-${{ matrix.name }}
           if-no-files-found: error
           path: updater-files/
 
@@ -460,7 +479,7 @@ jobs:
         if: ${{ inputs.dry_run }}
         uses: actions/upload-artifact@v4
         with:
-          name: bundles-${{ matrix.platform }}
+          name: bundles-${{ matrix.name }}
           if-no-files-found: error
           path: |
             src-tauri/target/**/release/bundle/msi/*.msi

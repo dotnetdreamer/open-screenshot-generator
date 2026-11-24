@@ -44,6 +44,15 @@ export class TauriHarness {
     return this.read<TauriWrittenFile>('files');
   }
 
+  /** The last JSON file the app asked the shell to write, as text, or null. */
+  async lastJson(): Promise<{ path: string; text: string } | null> {
+    if (!this.enabled) return null;
+    const file = await this.page.evaluate(
+      () => (window as unknown as { __E2E_TAURI__?: { lastJson?: { path: string; base64: string } } }).__E2E_TAURI__?.lastJson ?? null
+    );
+    return file ? { path: file.path, text: Buffer.from(file.base64, 'base64').toString('utf8') } : null;
+  }
+
   /** The last PNG the app asked the shell to write, as base64, or null. */
   async lastPng(): Promise<{ path: string; base64: string } | null> {
     if (!this.enabled) return null;
@@ -132,6 +141,23 @@ export class TauriHarness {
       const state = (window as unknown as { __E2E_TAURI__?: { config: { errors: Record<string, string> } } }).__E2E_TAURI__;
       if (state) state.config.errors[arg.cmd] = arg.message;
     }, { cmd, message });
+  }
+
+  /**
+   * Pictures the pretend build has not downloaded yet, and the ones whose
+   * download fails with Rust's message, e.g. "unreachable: offline".
+   */
+  async setMissingPictures(missing: string[], failures: Record<string, string> = {}): Promise<void> {
+    if (!this.enabled) return;
+    await this.page.evaluate((arg) => {
+      const state = (window as unknown as {
+        __E2E_TAURI__?: { config: { missingPictures: string[]; pictureFailures: Record<string, string> } };
+      }).__E2E_TAURI__;
+      if (state) {
+        state.config.missingPictures = arg.missing;
+        state.config.pictureFailures = arg.failures;
+      }
+    }, { missing, failures });
   }
 
   /** Let a command answer again after setError. */

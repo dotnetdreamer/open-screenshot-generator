@@ -1,0 +1,11 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "build": {
+    "frontendDist": "../out-desktop/embed"
+  },
+  "bundle": {
+    "resources": {
+      "../out-desktop/local/": "web/"
+    }
+  }
+}

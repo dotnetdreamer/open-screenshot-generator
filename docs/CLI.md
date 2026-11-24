@@ -629,7 +629,7 @@ and, for the image library, licensed to this project rather than owned by it. Se
 
 So hydration works like this, in `editor/server.ts` and `editor/assets.ts`:
 
-1. The page requests, say, `/elements/images/touch/touch-as110599965.png`.
+1. The page requests, say, `/elements/images/touch/touch-as110599965.webp`.
 2. It is not on disk in the bundle, so the server looks it up in the packaged
    `assets.manifest.json`, which holds a byte count and a sha256 per path.
 3. Not in the manifest at all means a genuine 404.

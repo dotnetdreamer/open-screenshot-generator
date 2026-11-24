@@ -9,6 +9,7 @@
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
     "build": "node scripts/gen-ai-catalog.mjs && node scripts/build-cutout.mjs && next build",
     "gen:ai-catalog": "node scripts/gen-ai-catalog.mjs",
+    "pictures:webp": "node scripts/pictures/to-webp.mjs",
     "build:cutout": "node scripts/build-cutout.mjs",
     "start": "npm run dev",
     "lint": "next lint",
