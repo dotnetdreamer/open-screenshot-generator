@@ -5,9 +5,10 @@
 // Run after `tauri build` with the updater overlay (configure-build.mjs) on
 // the machine that built. Every payload under src-tauri/target/**/bundle that
 // has its .sig beside it is copied into <folder> under the name it will be
-// published as, and fragment-<os>-<arch>.json describes them: the platform
-// keys each one serves, its size, sha256 and signature. The release job
-// merges the fragments from every build leg into one manifest (release.mjs).
+// published as, and a fragment named after the systems they serve
+// (fragment-darwin-aarch64.json) describes them: the platform keys each one
+// serves, its size, sha256 and signature. The release job merges the
+// fragments from every build leg into one manifest (release.mjs).
 //
 // Only bundles of the version in tauri.conf.json are taken, because a cached
 // target folder can still hold the last release's installers and signatures.
@@ -20,6 +21,7 @@ import {
   belongsToVersion,
   decodeMinisign,
   describeBundle,
+  fragmentName as fragmentNameFor,
   parseArgs,
   platformKeys,
   publishedName,
@@ -99,6 +101,6 @@ if (!entries.length) {
   process.exit(1);
 }
 
-const fragmentName = `fragment-${process.platform}-${process.arch}.json`;
+const fragmentName = fragmentNameFor(entries);
 fs.writeFileSync(path.join(outDir, fragmentName), `${JSON.stringify({ version, entries }, null, 2)}\n`);
 console.log(`wrote ${fragmentName} with ${entries.length} file(s)`);

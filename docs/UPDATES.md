@@ -10,7 +10,7 @@ desktop.yml                             openscreengen-updates               src-
                                         updates.openscrgen.app
 build legs: build, sign each update
 payload, collect it               ──►   releases/<version>/<files>
-updates job: after all three legs ──►   releases/<version>/manifest.json
+updates job: after every leg      ──►   releases/<version>/manifest.json
 publish, then move the channel    ──►   channels/stable.json, beta.json
                                                                    ◄──  GET /v1/desktop/{os}/{arch}/{installer}/{version}
                                         204, or the one file that       ?channel=stable&bucket=37
@@ -85,7 +85,7 @@ What happens on the way:
 2. Each build leg writes `src-tauri/tauri.updater.conf.json` (the server's address, the public key, and the switch that makes the build sign its update payloads) and builds with it.
 3. The Linux leg signs the AppImage again after `scripts/patch-appimage.sh` repacks it, because the repack changes the file the first signature was made for.
 4. Each leg collects its signed payloads with `scripts/updates/collect.mjs` and attaches them to the run.
-5. Once all three legs have built, the `updates` job merges what they collected into one manifest, uploads the files, publishes the manifest, and only then moves the channel to the new version. An installed copy never sees half a release, and a release that failed on one platform reaches none.
+5. Once every leg has built (Windows, Linux, and one Mac leg per chip), the `updates` job merges what they collected into one manifest, uploads the files, publishes the manifest, and only then moves the channel to the new version. An installed copy never sees half a release, and a release that failed on one platform reaches none.
 
 A dry run builds and signs everything and attaches the collected files to the run, but publishes nothing. The Microsoft Store and Mac App Store builds are separate: the Microsoft Store gets its MSIX from the **Microsoft Store (Windows)** workflow, and the App Store build comes from the `mac-app-store-build` skill. Neither includes the updater.
 

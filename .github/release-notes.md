@@ -9,15 +9,17 @@ Pick the line for your computer. That one file is all you need.
 | Windows 10 or 11 | [`Open.Screenshot.Generator_<version>_x64-setup.exe`][windows] |
 | Windows, without installing | [`Open.Screenshot.Generator_<version>_x64_portable.zip`][windows-portable] |
 | Windows, for IT teams that need an MSI | [`Open.Screenshot.Generator_<version>_x64_en-US.msi`][windows-msi] |
-| Mac, Apple chip or Intel (macOS 10.15 or newer) | [`Open.Screenshot.Generator_<version>_universal.dmg`][macos] |
+| Mac with an Apple chip (M1 or newer) | [`Open.Screenshot.Generator_<version>_macos_apple-silicon.dmg`][macos-apple-silicon] |
+| Mac with an Intel chip (macOS 10.15 or newer) | [`Open.Screenshot.Generator_<version>_macos_intel.dmg`][macos-intel] |
 | Linux: Ubuntu, Debian, Mint | [`Open.Screenshot.Generator_<version>_amd64.deb`][linux-deb] |
 | Linux: any other | [`Open.Screenshot.Generator_<version>_amd64.AppImage`][linux-appimage] |
 
+- **Not sure which Mac you have?** Open the Apple menu and choose **About This Mac**. If it says **Chip** with Apple M1, M2 or later, take the Apple chip file. If it says **Processor** with Intel, take the Intel one.
 - **Updates:** the installed app updates itself and shows **Restart to update** when a new version is ready. The portable copy only tells you a new version is out.
 - **Windows without installing:** unzip anywhere and run `Open Screenshot Generator.exe`. It needs the Microsoft Edge WebView2 Runtime, which Windows 11 and most Windows 10 PCs already have.
 - **Linux** runs on 64-bit Intel and AMD computers only, for now.
 - **Your projects** stay on your computer, unless you save them to the cloud, Google Drive or GitHub.
-- **You can skip** the `.sig` files and the `.app.tar.gz`. The app uses them to update itself.
+- **You can skip** the `.sig` and `.app.tar.gz` files. The app uses them to update itself.
 
 ### Other ways to get it
 
@@ -73,7 +75,8 @@ OSG_APPIMAGE_STACK=bundled ./Open.Screenshot.Generator_<version>_amd64.AppImage
 [windows]: https://github.com/<repo>/releases/download/v<version>/Open.Screenshot.Generator_<version>_x64-setup.exe
 [windows-portable]: https://github.com/<repo>/releases/download/v<version>/Open.Screenshot.Generator_<version>_x64_portable.zip
 [windows-msi]: https://github.com/<repo>/releases/download/v<version>/Open.Screenshot.Generator_<version>_x64_en-US.msi
-[macos]: https://github.com/<repo>/releases/download/v<version>/Open.Screenshot.Generator_<version>_universal.dmg
+[macos-apple-silicon]: https://github.com/<repo>/releases/download/v<version>/Open.Screenshot.Generator_<version>_macos_apple-silicon.dmg
+[macos-intel]: https://github.com/<repo>/releases/download/v<version>/Open.Screenshot.Generator_<version>_macos_intel.dmg
 [linux-deb]: https://github.com/<repo>/releases/download/v<version>/Open.Screenshot.Generator_<version>_amd64.deb
 [linux-appimage]: https://github.com/<repo>/releases/download/v<version>/Open.Screenshot.Generator_<version>_amd64.AppImage
 

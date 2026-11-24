@@ -1,7 +1,8 @@
 name: Release desktop app (Tauri)
 
 # Builds the downloadable installers: Windows (.msi + .exe + portable .zip),
-# macOS (universal .dmg) and Linux (.AppImage + .deb).
+# macOS (one .dmg for Macs with an Apple chip, one for Intel Macs) and Linux
+# (.AppImage + .deb).
 #
 # Manual only, on purpose. Nothing here fires on a push or a tag: you start a
 # release from the Actions tab, and the run owns the version.
@@ -15,8 +16,8 @@ name: Release desktop app (Tauri)
 #   update_channel, update_rollout, update_notes, update_critical: how the
 #         release reaches installed copies through our update server, once
 #         in-app updates are set up (docs/UPDATES.md). Each leg signs its
-#         update payloads, and the updates job publishes them only after all
-#         three legs built, so an installed app never sees half a release.
+#         update payloads, and the updates job publishes them only after
+#         every leg built, so an installed app never sees half a release.
 #
 # A real run bumps the version across all four files that carry it, commits
 # that to the default branch, tags it, and publishes a release with the
@@ -73,7 +74,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Decides the version once, so the three build legs cannot disagree about it.
+  # Decides the version once, so the build legs cannot disagree about it.
   version:
     runs-on: ubuntu-latest
     outputs:
@@ -189,14 +190,32 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # One Mac app per chip rather than one universal app. A universal app
+          # holds the program twice, once per chip, and the editor and its
+          # pictures are built into the program, so a universal download is
+          # twice the size of one of these. Both legs run on the same Apple
+          # chip runner and the Intel one is cross-compiled. `label` names the
+          # download in Apple's words rather than the CPU's, the way
+          # .github/release-notes.md links to it. The Mac App Store build stays
+          # universal (.claude/skills/mac-app-store-build).
           - platform: macos-latest
-            args: '--target universal-apple-darwin'
+            name: macos-apple-silicon
+            target: aarch64-apple-darwin
+            label: apple-silicon
+            args: '--target aarch64-apple-darwin'
+          - platform: macos-latest
+            name: macos-intel
+            target: x86_64-apple-darwin
+            label: intel
+            args: '--target x86_64-apple-darwin'
           - platform: windows-latest
+            name: windows
             args: ''
           # Pinned to 22.04 rather than ubuntu-latest: the AppImage links
           # against the builder's glibc, so building on the oldest supported
           # runner keeps it usable on older distros.
           - platform: ubuntu-22.04
+            name: linux
             args: ''
 
     runs-on: ${{ matrix.platform }}
@@ -225,13 +244,19 @@ jobs:
             libssl-dev \
             build-essential
 
+      # `--target` needs that target's standard library, and the Intel one is
+      # not the runner's own.
       - uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+          targets: ${{ matrix.target || '' }}
 
       - uses: swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
+          # The two Mac legs run on the same kind of runner, so without this
+          # they would share one cache entry that holds only one leg's build.
+          # Empty for Windows and Linux, which keeps their caches.
+          key: ${{ matrix.target || '' }}
 
       - run: npm ci
 
@@ -318,8 +343,8 @@ jobs:
           # Keep the non-empty value in the `&&` slot.
           tagName: ${{ !inputs.dry_run && format('v{0}', needs.version.outputs.version) || '' }}
           releaseName: ${{ !inputs.dry_run && format('Open Screenshot Generator v{0}', needs.version.outputs.version) || '' }}
-          # Published, not a draft: all three legs append to the same release,
-          # so it stays live while the slower platforms are still uploading.
+          # Published, not a draft: every leg appends to the same release, so
+          # it stays live while the slower platforms are still uploading.
           releaseDraft: false
           prerelease: false
           # The version job already pushed the tag, so this never decides where
@@ -340,6 +365,12 @@ jobs:
           # Installed copies update from our server, never from GitHub, so no
           # latest.json goes on the release.
           includeUpdaterJson: false
+          # The Mac legs publish under the names the release notes link to,
+          # Open.Screenshot.Generator_<version>_macos_apple-silicon.dmg and
+          # _macos_intel.dmg, with each .app.tar.gz and .sig named to match.
+          # tauri-action fills in [ext]. Empty for Windows and Linux, which
+          # keep the bundler's names.
+          assetNamePattern: ${{ matrix.label && format('Open.Screenshot.Generator_{0}_macos_{1}[ext]', needs.version.outputs.version, matrix.label) || '' }}
 
       # The bare release exe already is the portable build: Tauri embeds the
       # whole frontend in the binary and this app bundles no resources or
@@ -456,7 +487,7 @@ jobs:
 
       # Every signed update payload this leg built, under the names the update
       # server publishes them as, and a fragment saying which platforms each
-      # serves. The updates job merges the three legs' fragments.
+      # serves. The updates job merges every leg's fragment.
       - name: Collect the in-app update files
         if: needs.version.outputs.updates == 'true'
         run: node scripts/updates/collect.mjs --out updater-files
@@ -465,7 +496,9 @@ jobs:
         if: needs.version.outputs.updates == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: updates-${{ matrix.platform }}
+          # Per leg, not per runner: the two Mac legs share a runner, and a
+          # second artifact of the same name fails the upload.
+          name: updates-${{ matrix.name }}
           if-no-files-found: error
           path: updater-files/
 
@@ -476,7 +509,7 @@ jobs:
         if: ${{ inputs.dry_run }}
         uses: actions/upload-artifact@v4
         with:
-          name: bundles-${{ matrix.platform }}
+          name: bundles-${{ matrix.name }}
           if-no-files-found: error
           path: |
             src-tauri/target/**/release/bundle/msi/*.msi
