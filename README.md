@@ -27,21 +27,11 @@ https://github.com/user-attachments/assets/1b1d7ff4-5f89-4fc5-8e48-efbe89782562
 
 ## What's new
 
-### 19 November 2026: App icon
+### November 2026
 
-Design your app's icon on the canvas, starting from your app's name and colours or from your logo. See how the icon looks on an iPhone, an Android phone and a Mac, in light, dark and tinted mode and at actual size. The app tells you if anything will be hard to see or cut off. Then save every size for iPhone, Android, Google Play and the Mac in one go. In the desktop app, you can put the new icon straight into your app's folder. Read [how the app icon works](docs/APP-ICON.md).
-
-### 19 November 2026: Remove background
-
-Cut people, products and logos out of photos for your screenshots, right on your computer, even offline once the model is downloaded. On a Mac it starts with your Mac's own cut-out, and you can fix any edge with a brush. Everything you cut out waits in the new **Custom** tab, ready for any project, and backs up to your Google Drive or GitHub. Read [how Remove background works](docs/REMOVE-BACKGROUND.md).
-
-### 17 November 2026: Every device
-
-Make your screenshots once and see them laid out again for the iPad, Android phones and tablets, and the Mac. Pick another layout for any screenshot, add an iPad or Mac screenshot where a device needs its own, and export every set with your project. Read [how Every device works](docs/DEVICES.md).
-
-### 15 November 2026: Growth, Capture and a website for your app
-
-See your App Store and Google Play downloads, ratings and reviews in [Growth](docs/GROWTH.md), keep an eye on competing apps and see where your app shows up in App Store search. In the desktop app, [Capture](docs/CAPTURE.md) takes screenshots of your app in every language, right from your computer or Android phone. [Website](docs/WEBSITE.md) makes your app's home, support and privacy pages and puts the pages online for free on GitHub. [SEO](docs/SEO.md) checks that site, or any other, and tells you what keeps it off Google and out of AI answers, and how to fix it.
+- Make your [app's icon](docs/APP-ICON.md) for every app store, and [remove the background](docs/REMOVE-BACKGROUND.md) from any photo.
+- Design your screenshots once and get them [for iPad, Android and Mac](docs/DEVICES.md) too, and [grab your app's screens](docs/CAPTURE.md) in every language.
+- See your [downloads and reviews](docs/GROWTH.md) in one place, and get a [free website](docs/WEBSITE.md) for your app, with [tips to show up on Google](docs/SEO.md).
 
 ### 14 October 2026: Codex joins Claude Code in the desktop app
 
