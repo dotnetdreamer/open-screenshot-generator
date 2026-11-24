@@ -41,7 +41,8 @@ The rest of this page is for people building or changing the desktop app. It use
 - Node 20+, `npm ci`
 - Rust stable (`winget install Rustlang.Rustup` on Windows, `rustup` on macOS)
 - Windows: Visual Studio 2022 with the "Desktop development with C++" workload
-- macOS: Xcode command line tools. For universal builds also run
+- macOS: Xcode command line tools. To build for the other chip, or the
+  universal app the Mac App Store gets, also run
   `rustup target add aarch64-apple-darwin x86_64-apple-darwin`
   (rustup installs only the host target by default)
 
@@ -59,6 +60,20 @@ Build artifacts land in `src-tauri/target/release/bundle/`:
 
 Both installers are immediately usable for direct distribution (download from a
 website, GitHub Releases, etc.). Store submission needs signing, below.
+
+A plain `tauri:build` makes the app for this Mac's own chip. To make the other
+one, pass its target. Its bundles land in `src-tauri/target/<target>/release/bundle/`:
+
+```sh
+npm run tauri:build -- --target x86_64-apple-darwin    # Intel
+npm run tauri:build -- --target aarch64-apple-darwin   # Apple chip
+```
+
+The release workflow builds one Mac app per chip, published as
+`Open.Screenshot.Generator_<version>_macos_apple-silicon.dmg` and
+`..._macos_intel.dmg`, rather than one universal app. A universal app holds the
+program once per chip, and the editor and its pictures are built into the
+program, so it is twice the download. The Mac App Store build stays universal.
 
 Do NOT set `NEXT_PUBLIC_BASE_PATH` when building for desktop. That variable is
 only for the GitHub Pages deploy; with it set, every asset in the bundle 404s.
@@ -134,7 +149,7 @@ sections below for signing.
 
 Installed copies update themselves from our own update server, once that is
 set up: every release signs its update payloads, publishes them to the server
-after all three platforms built, and the app offers a restart into the new
+after every platform built, and the app offers a restart into the new
 version. The portable zip only links to the download, and the two store
 builds leave updating to their store. [UPDATES.md](UPDATES.md) covers the
 setup, staged rollouts and pausing a bad release.

@@ -4,6 +4,8 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import {
   belongsToVersion,
   buildManifest,
@@ -13,6 +15,7 @@ import {
   decodeMinisign,
   describeBundle,
   endpointTemplate,
+  fragmentName,
   parseArgs,
   platformKeys,
   publishedName,
@@ -166,4 +169,78 @@ test('arguments read as flags with values, bare flags, and words', () => {
     positional: ['publish'],
     flags: { dir: 'out', 'dry-run': true, rollout: '25' },
   });
+});
+
+test('the two Mac builds, made on the same kind of runner, keep their own update files and fragments', () => {
+  // Both Mac legs run on an Apple chip runner; the Intel one cross-builds.
+  const arm = describeBundle('aarch64-apple-darwin/release/bundle/macos/Open Screenshot Generator.app.tar.gz', 'arm64');
+  const intel = describeBundle('x86_64-apple-darwin/release/bundle/macos/Open Screenshot Generator.app.tar.gz', 'arm64');
+  assert.ok(arm && intel);
+  assert.deepEqual(arm.arches, ['aarch64']);
+  assert.deepEqual(intel.arches, ['x86_64']);
+
+  const leg = (kind: { os: string; bundle: string; arches: string[] }, file: string, sha256: string) => ({
+    version: '1.0.12',
+    entries: [{ file, keys: platformKeys(kind), size: 1, sha256, signature: SIGNATURE }],
+  });
+  const armFile = publishedName('Open Screenshot Generator.app.tar.gz', { version: '1.0.12', ...arm });
+  const intelFile = publishedName('Open Screenshot Generator.app.tar.gz', { version: '1.0.12', ...intel });
+  assert.equal(armFile, 'Open.Screenshot.Generator_1.0.12_aarch64.app.tar.gz');
+  assert.equal(intelFile, 'Open.Screenshot.Generator_1.0.12_x86_64.app.tar.gz');
+
+  const legs = [
+    leg(arm, armFile, 'a'.repeat(64)),
+    leg(intel, intelFile, 'b'.repeat(64)),
+    {
+      version: '1.0.12',
+      entries: [
+        { file: 'Open.Screenshot.Generator_1.0.12_x64-setup.exe', keys: ['windows-x86_64-nsis'], size: 1, sha256: 'c'.repeat(64), signature: SIGNATURE },
+        { file: 'Open.Screenshot.Generator_1.0.12_x64_en-US.msi', keys: ['windows-x86_64-msi'], size: 1, sha256: 'd'.repeat(64), signature: SIGNATURE },
+      ],
+    },
+    {
+      version: '1.0.12',
+      entries: [
+        { file: 'Open.Screenshot.Generator_1.0.12_amd64.AppImage', keys: ['linux-x86_64-appimage'], size: 1, sha256: 'e'.repeat(64), signature: SIGNATURE },
+        { file: 'Open.Screenshot.Generator_1.0.12_amd64.deb', keys: ['linux-x86_64-deb'], size: 1, sha256: 'f'.repeat(64), signature: SIGNATURE },
+      ],
+    },
+  ];
+
+  // The updates job downloads every leg's fragment into one folder, so a
+  // shared name would leave one of them behind.
+  const names = legs.map((fragment) => fragmentName(fragment.entries));
+  assert.deepEqual(names, [
+    'fragment-darwin-aarch64.json',
+    'fragment-darwin-x86_64.json',
+    'fragment-windows-x86_64.json',
+    'fragment-linux-x86_64.json',
+  ]);
+  assert.equal(new Set(names).size, legs.length);
+
+  const manifest = buildManifest({ version: '1.0.12', pubDate: 0, fragments: legs });
+  assert.equal(manifest.artifacts['darwin-aarch64-app'].file, armFile);
+  assert.equal(manifest.artifacts['darwin-x86_64-app'].file, intelFile);
+  assert.equal(Object.keys(manifest.artifacts).length, 6);
+
+  // A universal build still serves both Macs from one leg.
+  assert.equal(
+    fragmentName([{ keys: ['darwin-aarch64-app', 'darwin-x86_64-app'] }]),
+    'fragment-darwin-aarch64_darwin-x86_64.json'
+  );
+});
+
+test('the release notes link to the Mac downloads under the names the release workflow gives them', () => {
+  const workflow = fs.readFileSync(path.join(process.cwd(), '.github', 'workflows', 'desktop.yml'), 'utf8');
+  const notes = fs.readFileSync(path.join(process.cwd(), '.github', 'release-notes.md'), 'utf8');
+  const pattern = workflow.match(/assetNamePattern: \$\{\{ matrix\.label && format\('([^']+)'/)?.[1];
+  assert.equal(pattern, 'Open.Screenshot.Generator_{0}_macos_{1}[ext]');
+  const labels = [...workflow.matchAll(/^\s+label: (\S+)$/gm)].map((match) => match[1]);
+  assert.deepEqual(labels, ['apple-silicon', 'intel']);
+  for (const label of labels) {
+    const dmg = pattern.replace('{0}', '<version>').replace('{1}', label).replace('[ext]', '.dmg');
+    assert.ok(notes.includes(`[\`${dmg}\`]`), `the notes show ${dmg}`);
+    assert.ok(notes.includes(`/releases/download/v<version>/${dmg}`), `the notes link to ${dmg}`);
+  }
+  assert.ok(!notes.includes('_universal.dmg'), 'no link to a universal download the release no longer has');
 });

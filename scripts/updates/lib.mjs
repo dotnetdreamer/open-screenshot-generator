@@ -136,6 +136,18 @@ export function platformKeys({ os, bundle, arches }) {
 }
 
 /**
+ * What a build leg calls its fragment: after the systems it serves, such as
+ * fragment-darwin-aarch64.json. The updates job downloads every leg into one
+ * folder, and the two Mac legs run on the same kind of runner, so the name has
+ * to come from what the leg built. Named after the runner, one Mac's fragment
+ * would overwrite the other's and those Macs would never get the update.
+ */
+export function fragmentName(entries) {
+  const systems = new Set(entries.flatMap((entry) => entry.keys.map((key) => key.split('-').slice(0, 2).join('-'))));
+  return `fragment-${[...systems].sort().join('_') || 'empty'}.json`;
+}
+
+/**
  * The name a payload is published under: spaces become dots, the way GitHub
  * names release assets, and the macOS tarball, which the bundler names after
  * the app alone, gains the version and what it runs on.
