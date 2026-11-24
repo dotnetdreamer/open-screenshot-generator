@@ -229,6 +229,10 @@ import { CaptureWorkspace, type CaptureRequest, type ClipOutcome } from './captu
 import { WebsiteWorkspace, type CaptureRequest as WebsiteCaptureRequest, type CapturedBoard } from './website/WebsiteWorkspace';
 import { StoreComplianceWorkspace } from './storeCompliance/StoreComplianceWorkspace';
 import { LazySeoWorkspace } from './seo/LazySeoWorkspace';
+import { LazyDirectorWorkspace } from './director/LazyDirectorWorkspace';
+import { DirectorSidebarItem } from './director/DirectorSidebarItem';
+import { projectAppName, projectColors, projectRecordings } from '@/lib/director/project';
+import { randomProjectName } from '@/lib/projectNames';
 import { CutoutWorkspace, type CutoutRequest } from './cutout/CutoutWorkspace';
 import { placementProps } from './cutout/CustomPaletteTab';
 import { markLibraryImagePlaced, refOf, type LibraryImageRow } from '@/lib/cutout/library';
@@ -280,7 +284,7 @@ import { AgentStartScreen } from './start/AgentStartScreen';
 import { TipsDialog, shouldShowTipsOnStartup } from './TipsDialog';
 import { SettingsDialog } from './SettingsDialog';
 import { DiscoverDialog } from './discover/DiscoverDialog';
-import { isDiscoverConfigured, useDiscoverSession } from '@/lib/discover/session';
+import { getDiscoverSession, isDiscoverConfigured, useDiscoverSession } from '@/lib/discover/session';
 import { CommunityStartPanel } from './discover/CommunityStartPanel';
 import type { DiscoverPost } from '@/types/discover';
 import { CloudSaveConflictDialog } from './cloud/CloudSaveConflictDialog';
@@ -1702,6 +1706,10 @@ export function OpenScreenshotGeneratorLayout() {
   // while the editor is in front. A request picks the picture to show.
   const [cutoutMounted, setCutoutMounted] = useState(false);
   const [cutoutRequest, setCutoutRequest] = useState<CutoutRequest | null>(null);
+  // Director: a screen recording filmed on a 3D phone (src/lib/director).
+  // Mounted on its first visit and kept, so a video being exported carries on
+  // while the editor is in front. Its code loads on that first visit.
+  const [directorMounted, setDirectorMounted] = useState(false);
   const showCutout = useCallback((imageId?: string) => {
     setCutoutMounted(true);
     setCutoutRequest((current) => ({ imageId, nonce: (current?.nonce ?? 0) + 1 }));
@@ -1823,6 +1831,7 @@ export function OpenScreenshotGeneratorLayout() {
         if (next === 'compliance') setComplianceMounted(true);
         if (next === 'seo') setSeoMounted(true);
         if (next === 'cutout') setCutoutMounted(true);
+        if (next === 'director') setDirectorMounted(true);
         setActivity(next);
         return;
       }
@@ -2824,7 +2833,7 @@ export function OpenScreenshotGeneratorLayout() {
         // Generate a new ID only if there is no active project
         projectIdToSave = Date.now().toString();
         // Set a random project name for new projects
-        projectNameToSave = generateRandomProjectName();
+        projectNameToSave = randomProjectName();
         setCurrentProjectName(projectNameToSave);
         // The canvas already holds this project, so the loader effect has
         // nothing to read back (see loadedProjectIdRef), and the start dialog
@@ -10239,27 +10248,6 @@ export function OpenScreenshotGeneratorLayout() {
     document.body.removeChild(fileInput);
   };
 
-  // Function to generate random project names
-const generateRandomProjectName = (): string => {
-  const adjectives = [
-    'Creative', 'Modern', 'Sleek', 'Bold', 'Elegant', 'Dynamic', 'Fresh', 'Vibrant',
-    'Minimal', 'Classic', 'Artistic', 'Professional', 'Stylish', 'Innovative', 'Clean',
-    'Bright', 'Cool', 'Warm', 'Sharp', 'Smooth'
-  ];
-  
-  const nouns = [
-    'Design', 'Project', 'Studio', 'Canvas', 'Vision', 'Concept', 'Layout', 'Draft',
-    'Sketch', 'Mockup', 'Template', 'Framework', 'Blueprint', 'Creation', 'Work',
-    'Portfolio', 'Collection', 'Gallery', 'Showcase', 'Board'
-  ];
-  
-  const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-  const noun = nouns[Math.floor(Math.random() * nouns.length)];
-  const number = Math.floor(Math.random() * 1000) + 1;
-  
-  return `${adjective} ${noun} ${number}`;
-};
-
   // Rendered as an overlay INSIDE the main layout, never as an early return:
   // swapping the whole tree for this dialog used to unmount the palette and
   // canvas (losing tab/drill-in/selection state) whenever the flag flickered
@@ -11136,6 +11124,19 @@ const generateRandomProjectName = (): string => {
     []
   );
   const websiteProject = useMemo(() => ({ id: activeProjectId, name: currentProjectName, artboards }), [activeProjectId, currentProjectName, artboards]);
+  // What Director reads of the open project: its recordings and its colors.
+  const readProjectForDirector = useCallback(
+    () => ({
+      id: activeProjectIdRef.current,
+      name: projectNameRef.current,
+      appName: projectAppName(projectNameRef.current, artboardsRef.current),
+      colors: projectColors(artboardsRef.current),
+      recordings: projectRecordings(artboardsRef.current),
+    }),
+    []
+  );
+  const directorToken = useCallback(() => getDiscoverSession()?.token ?? null, []);
+  const directorBackToEditor = useCallback(() => setActivity('editor'), []);
   // SEO's "Set up with Ask AI" for Google: Growth's assistant, on its SEO job.
   const setUpGoogleForSeo = useCallback(() => showGrowth('ask', { setupGoal: 'seo' }), [showGrowth]);
 
@@ -12489,6 +12490,7 @@ const generateRandomProjectName = (): string => {
               </SidebarMenu>
             </SidebarGroup>
             )}
+            <DirectorSidebarItem onOpen={() => selectActivity('director')} />
             <StoreArtSourceContext.Provider value={storeArtSource}>
               <ElementPalette
                 onAddElement={handlePaletteAddElement}
@@ -13771,6 +13773,17 @@ const generateRandomProjectName = (): string => {
             onBackToEditor={() => setActivity('editor')}
             agentUnavailable={isSecondaryWindow ? 'The agent only works in the main window' : undefined}
             onAskAgent={claudeAgentState.available && !isSecondaryWindow ? handleAskAgentAboutPicture : undefined}
+          />
+        </div>
+      )}
+      {directorMounted && (
+        <div className={cn('fixed inset-0 z-30', BAR_INSET.left, activity !== 'director' && 'hidden')}>
+          <LazyDirectorWorkspace
+            active={activity === 'director'}
+            readProject={readProjectForDirector}
+            getToken={directorToken}
+            onSignIn={() => openAccountDialog('Sign in to connect your phone to Director.')}
+            onBackToEditor={directorBackToEditor}
           />
         </div>
       )}

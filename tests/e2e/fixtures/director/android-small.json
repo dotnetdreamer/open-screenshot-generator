@@ -1,0 +1,457 @@
+{
+ "name": "android-small",
+ "description": "Android-style expenses app (Material 3) — small test copy of a synthetic screen recording with exact ground truth (rendered frame by frame from a virtual clock)",
+ "video": "android-small.mp4",
+ "width": 270,
+ "height": 600,
+ "fps": 15,
+ "frames": 225,
+ "duration": 15,
+ "source": {
+  "video": "android-expenses.mp4",
+  "width": 1080,
+  "height": 2400,
+  "fps": 30,
+  "scaleX": 0.25,
+  "scaleY": 0.25,
+  "note": "every other frame of the 30 fps source (frame j here = source frame 2j), scaled; times are unchanged, positions and sizes multiplied by scaleX / scaleY"
+ },
+ "encoding": {
+  "video": "libx264 (H.264 High), CRF 16, preset veryslow, tune animation, yuv420p, BT.709 limited range",
+  "keyframes": [
+   0.0,
+   1.2667,
+   2.4,
+   5.2,
+   5.3333,
+   7.2,
+   8.6667,
+   8.7333,
+   11.0667,
+   11.1333
+  ],
+  "note": "keyframes are forced at 0 s and inside large transitions (the encoder added a few scene-cut keyframes, also inside transitions); none falls inside a still. After decoding, stills are steady except for a few encoder refinement pixels in the frames right after motion stops"
+ },
+ "conventions": {
+  "units": "times in seconds of the video timeline; positions and sizes in this video's pixels, top-left origin; box = [x, y, width, height]",
+  "frames": "frame i shows the app at exactly t = i / fps; every event boundary is a multiple of 1/15 s, so it lands on a frame in both the 30 fps and 15 fps versions",
+  "tap": "t = finger down, tUp = finger up; (x, y) = touch point; box = the touched control. Press feedback (highlight, dim, ripple, key callout) appears in the frame at t unless the event says otherwise",
+  "toggle": "a tap whose result is a local state change; has the tap fields plus t0..t1, the span of the whole animation",
+  "type": "t0 = first key down, t1 = last character appears; box = text field, keyboard = keyboard or keypad; keys[] = each key press (t, tUp, key box); chars[] = field text after each key up",
+  "scroll": "content moves by (dx, dy) px between t0 and t1 (negative dy = content moves up, i.e. the user scrolls down); box = scrolling viewport; touch = finger path (down at t0, lifts at tUp, momentum carries on to t1)",
+  "screen": "a screen transition (push, pop, sheet, sheet-dismiss, tab, tab-swipe, container-transform, dialog, dialog-dismiss); motion runs from t0 to t1 and the frame at t1 shows the settled screen",
+  "change": "an in-place content animation that is not a screen change (row inserted or removed, snackbar)",
+  "still": "frames with t0 <= t < t1 are pixel-identical; caretBlink = only a blinking text caret inside caretBox changes"
+ },
+ "events": [
+  {
+   "kind": "still",
+   "t0": 0,
+   "t1": 1
+  },
+  {
+   "kind": "screen",
+   "transition": "tab-swipe",
+   "t0": 1,
+   "t1": 1.5333,
+   "from": "Overview tab",
+   "to": "Activity tab",
+   "dx": -270.0,
+   "dy": 0.0,
+   "box": [
+    0.0,
+    108.75,
+    270.0,
+    416.25
+   ],
+   "touch": {
+    "t0": 1,
+    "x0": 217.5,
+    "y0": 322.5,
+    "tUp": 1.2667,
+    "x1": 82.5,
+    "y1": 322.5
+   },
+   "note": "finger drags the pager left (content follows it exactly), releases half way and the page settles; the tab indicator slides from Overview to Activity"
+  },
+  {
+   "kind": "still",
+   "t0": 1.5333,
+   "t1": 2.0667
+  },
+  {
+   "kind": "tap",
+   "t": 2.0667,
+   "tUp": 2.2,
+   "x": 204.68,
+   "y": 493.48,
+   "box": [
+    139.5,
+    471.0,
+    118.5,
+    42.0
+   ],
+   "target": "extended FAB \"Add expense\"",
+   "response": "ripple, then the FAB grows into the New expense screen"
+  },
+  {
+   "kind": "screen",
+   "transition": "container-transform",
+   "t0": 2.2,
+   "t1": 2.6,
+   "from": "Activity tab",
+   "to": "New expense (full-screen dialog)",
+   "note": "Material container transform: the FAB container expands to full screen while its contents cross-fade"
+  },
+  {
+   "kind": "still",
+   "t0": 2.6,
+   "t1": 3,
+   "caretBlink": true,
+   "caretBox": [
+    12.0,
+    96.0,
+    246.0,
+    54.0
+   ],
+   "note": "nothing moves except the blinking caret after the amount"
+  },
+  {
+   "kind": "type",
+   "t0": 3,
+   "t1": 3.8667,
+   "text": "18.75",
+   "box": [
+    12.0,
+    96.0,
+    246.0,
+    54.0
+   ],
+   "keyboard": [
+    12.0,
+    357.0,
+    246.0,
+    210.0
+   ],
+   "keys": [
+    {
+     "key": "1",
+     "t": 3,
+     "tUp": 3.0667,
+     "box": [
+      12.0,
+      357.0,
+      78.0,
+      48.0
+     ]
+    },
+    {
+     "key": "8",
+     "t": 3.2,
+     "tUp": 3.2667,
+     "box": [
+      96.0,
+      465.0,
+      78.0,
+      48.0
+     ]
+    },
+    {
+     "key": ".",
+     "t": 3.4,
+     "tUp": 3.4667,
+     "box": [
+      12.0,
+      519.0,
+      78.0,
+      48.0
+     ]
+    },
+    {
+     "key": "7",
+     "t": 3.6,
+     "tUp": 3.6667,
+     "box": [
+      12.0,
+      465.0,
+      78.0,
+      48.0
+     ]
+    },
+    {
+     "key": "5",
+     "t": 3.8,
+     "tUp": 3.8667,
+     "box": [
+      96.0,
+      411.0,
+      78.0,
+      48.0
+     ]
+    }
+   ],
+   "chars": [
+    {
+     "t": 3.0667,
+     "text": "$1"
+    },
+    {
+     "t": 3.2667,
+     "text": "$18"
+    },
+    {
+     "t": 3.4667,
+     "text": "$18."
+    },
+    {
+     "t": 3.6667,
+     "text": "$18.7"
+    },
+    {
+     "t": 3.8667,
+     "text": "$18.75"
+    }
+   ],
+   "note": "in-app number pad; each key shows a ripple; the digit appears at key up"
+  },
+  {
+   "kind": "toggle",
+   "t": 4.2,
+   "tUp": 4.3333,
+   "x": 94.12,
+   "y": 231.0,
+   "box": [
+    71.83,
+    219.0,
+    55.8,
+    24.0
+   ],
+   "target": "filter chip \"Coffee\"",
+   "control": "filter chip",
+   "from": "unselected",
+   "to": "selected",
+   "t0": 4.2,
+   "t1": 4.5333,
+   "note": "ripple, then the chip fills and a check icon slides in (the chips after it move right)"
+  },
+  {
+   "kind": "still",
+   "t0": 4.5333,
+   "t1": 5,
+   "caretBlink": true,
+   "caretBox": [
+    12.0,
+    96.0,
+    246.0,
+    54.0
+   ],
+   "note": "nothing moves except the blinking caret after the amount"
+  },
+  {
+   "kind": "tap",
+   "t": 5,
+   "tUp": 5.1333,
+   "x": 228.75,
+   "y": 48.0,
+   "box": [
+    199.5,
+    33.0,
+    58.5,
+    30.0
+   ],
+   "target": "\"Save\" button",
+   "response": "ripple, then the screen shrinks back into the FAB"
+  },
+  {
+   "kind": "screen",
+   "transition": "container-transform-return",
+   "t0": 5.1333,
+   "t1": 5.5333,
+   "from": "New expense (full-screen dialog)",
+   "to": "Activity tab",
+   "note": "the full-screen dialog collapses back into the FAB"
+  },
+  {
+   "kind": "change",
+   "t0": 5.5333,
+   "t1": 6.1333,
+   "box": [
+    0.0,
+    180.75,
+    270.0,
+    54.0
+   ],
+   "note": "new row \"Coffee beans −$18.75\" opens up under \"Today\" with a mint highlight that then fades; the rows below move down"
+  },
+  {
+   "kind": "still",
+   "t0": 6.1333,
+   "t1": 6.6667
+  },
+  {
+   "kind": "scroll",
+   "t0": 6.6667,
+   "t1": 7.8667,
+   "dx": 0.0,
+   "dy": -300.0,
+   "box": [
+    0.0,
+    108.75,
+    270.0,
+    416.25
+   ],
+   "screen": "Activity tab",
+   "touch": {
+    "t0": 6.6667,
+    "x0": 157.5,
+    "y0": 450.0,
+    "tUp": 6.9667,
+    "x1": 157.5,
+    "y1": 360.0
+   },
+   "note": "fling; the top app bar takes its scrolled colour and the extended FAB collapses to an icon button during the scroll"
+  },
+  {
+   "kind": "still",
+   "t0": 7.8667,
+   "t1": 8.4
+  },
+  {
+   "kind": "tap",
+   "t": 8.4,
+   "tUp": 8.5333,
+   "x": 112.5,
+   "y": 293.25,
+   "box": [
+    0.0,
+    264.75,
+    270.0,
+    54.0
+   ],
+   "target": "list row \"Weekly groceries\"",
+   "response": "ripple from the touch point, then the detail screen"
+  },
+  {
+   "kind": "screen",
+   "transition": "push",
+   "t0": 8.5333,
+   "t1": 8.9333,
+   "from": "Activity tab",
+   "to": "Expense detail",
+   "note": "Material shared axis X: list fades out sliding 30 dp left, detail fades in from 30 dp right"
+  },
+  {
+   "kind": "still",
+   "t0": 8.9333,
+   "t1": 9.4667
+  },
+  {
+   "kind": "tap",
+   "t": 9.4667,
+   "tUp": 9.6,
+   "x": 243.0,
+   "y": 48.0,
+   "box": [
+    225.0,
+    30.0,
+    36.0,
+    36.0
+   ],
+   "target": "delete icon button (top app bar)",
+   "response": "round ripple, then the dialog"
+  },
+  {
+   "kind": "screen",
+   "transition": "dialog",
+   "t0": 9.6,
+   "t1": 9.8667,
+   "from": "Expense detail",
+   "to": "Delete dialog",
+   "box": [
+    18.0,
+    210.0,
+    234.0,
+    180.0
+   ],
+   "note": "scrim fades in, dialog scales up from 88% and fades in"
+  },
+  {
+   "kind": "still",
+   "t0": 9.8667,
+   "t1": 10.6667
+  },
+  {
+   "kind": "tap",
+   "t": 10.6667,
+   "tUp": 10.8,
+   "x": 218.82,
+   "y": 357.0,
+   "box": [
+    194.62,
+    342.0,
+    48.38,
+    30.0
+   ],
+   "target": "dialog button \"Delete\"",
+   "response": "ripple, dialog fades out, then pop back to the list"
+  },
+  {
+   "kind": "screen",
+   "transition": "dialog-dismiss",
+   "t0": 10.8,
+   "t1": 10.9333,
+   "from": "Delete dialog",
+   "to": "Expense detail",
+   "note": "dialog and scrim fade out"
+  },
+  {
+   "kind": "screen",
+   "transition": "pop",
+   "t0": 10.9333,
+   "t1": 11.3333,
+   "from": "Expense detail",
+   "to": "Activity tab",
+   "note": "shared axis X backwards"
+  },
+  {
+   "kind": "change",
+   "t0": 11.3333,
+   "t1": 11.6667,
+   "box": [
+    0.0,
+    264.75,
+    270.0,
+    54.0
+   ],
+   "snackbar": [
+    12.0,
+    480.0,
+    246.0,
+    36.0
+   ],
+   "note": "deleted row fades and closes up, the rows below move up; a snackbar \"Expense deleted · Undo\" slides up and the FAB moves up above it"
+  },
+  {
+   "kind": "still",
+   "t0": 11.6667,
+   "t1": 13.2
+  },
+  {
+   "kind": "change",
+   "t0": 13.2,
+   "t1": 13.4,
+   "box": [
+    12.0,
+    480.0,
+    246.0,
+    36.0
+   ],
+   "note": "snackbar slides away, the FAB moves back down"
+  },
+  {
+   "kind": "still",
+   "t0": 13.4,
+   "t1": 15
+  }
+ ]
+}

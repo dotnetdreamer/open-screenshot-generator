@@ -222,7 +222,7 @@ interface AudioTrack {
  * so its sound runs from second 0 over the same trim as its picture, and stops
  * where the picture freezes on its last frame.
  */
-interface RecordingSound {
+export interface RecordingSound {
   el: VideoElementProps | VideoDeviceElementProps;
   trimStart: number;
   trimEnd: number;
@@ -238,7 +238,7 @@ interface RecordingSound {
  * video that is quietly missing its soundtrack. A recording that simply has no
  * sound adds nothing.
  */
-async function mixAudio(
+export async function mixAudio(
   layers: AudioElementProps[],
   recordings: RecordingSound[],
   seconds: number
@@ -300,7 +300,7 @@ async function mixAudio(
  * this browser cannot encode one. Never throws: a missing track is worth far
  * less than a failed export, and the caller simply muxes video only.
  */
-async function createAudioTrack(
+export async function createAudioTrack(
   seconds: number,
   mix: Float32Array[] | null,
   bitrate = 128_000
@@ -825,7 +825,7 @@ function storeCodecCandidatesFor(width: number, height: number): string[] {
     : H264_STORE_CODEC_CANDIDATES;
 }
 
-async function pickEncoderConfig(
+export async function pickEncoderConfig(
   width: number,
   height: number,
   fps: number,

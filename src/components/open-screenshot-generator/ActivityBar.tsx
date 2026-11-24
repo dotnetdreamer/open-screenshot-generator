@@ -4,7 +4,9 @@
 // views, the way VS Code's activity bar does, with each view's name under its
 // icon so nobody has to guess from the picture: the editor, where the
 // screenshots are made, Capture, where they are taken from the app running in
-// a simulator or emulator, Remove background, where people and products are
+// a simulator or emulator, Director, where a screen recording becomes a video
+// of a 3D phone with the camera moves worked out from the recording, Remove
+// background, where people and products are
 // cut out of photos for them, Growth, where their numbers come back, Store
 // compliance, what the stores reject apps for and the checks to make before
 // sending one, Website, where the app's own site is made from them, and SEO,
@@ -22,10 +24,10 @@
 // site, sits under Discover, and SEO under Website.
 
 import React from 'react';
-import { CameraIcon, GlobeIcon, PenToolIcon, ScissorsIcon, SearchCheckIcon, ShieldCheckIcon, TrendingUpIcon } from 'lucide-react';
+import { CameraIcon, ClapperboardIcon, GlobeIcon, PenToolIcon, ScissorsIcon, SearchCheckIcon, ShieldCheckIcon, TrendingUpIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type ActivityId = 'editor' | 'capture' | 'cutout' | 'growth' | 'compliance' | 'website' | 'seo';
+export type ActivityId = 'editor' | 'capture' | 'director' | 'cutout' | 'growth' | 'compliance' | 'website' | 'seo';
 
 export interface Activity {
   id: ActivityId;
@@ -41,6 +43,7 @@ export interface Activity {
 export const ACTIVITIES: Activity[] = [
   { id: 'editor', name: 'Editor', label: 'Editor', icon: PenToolIcon },
   { id: 'capture', name: 'Capture screenshots', label: 'Capture screenshots of your app', icon: CameraIcon },
+  { id: 'director', name: 'Director', label: 'Director: phone videos of your app, with the camera moves made for you', icon: ClapperboardIcon },
   { id: 'cutout', name: 'Remove background', label: 'Remove background: cut people and products out of photos', icon: ScissorsIcon },
   { id: 'growth', name: 'Growth', label: 'Growth: downloads, reviews and your store page', icon: TrendingUpIcon },
   { id: 'compliance', name: 'Store compliance', label: 'Store compliance: avoid App Store and Google Play rejections', icon: ShieldCheckIcon },

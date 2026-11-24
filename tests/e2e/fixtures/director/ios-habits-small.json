@@ -1,0 +1,638 @@
+{
+ "name": "ios-habits-small",
+ "description": "iPhone-style habit tracker — small test copy of a synthetic screen recording with exact ground truth (rendered frame by frame from a virtual clock)",
+ "video": "ios-habits-small.mp4",
+ "width": 296,
+ "height": 640,
+ "fps": 15,
+ "frames": 330,
+ "duration": 22,
+ "source": {
+  "video": "ios-habits.mp4",
+  "width": 886,
+  "height": 1920,
+  "fps": 30,
+  "scaleX": 0.334086,
+  "scaleY": 0.333333,
+  "note": "every other frame of the 30 fps source (frame j here = source frame 2j), scaled; times are unchanged, positions and sizes multiplied by scaleX / scaleY"
+ },
+ "encoding": {
+  "video": "libx264 (H.264 High), CRF 21, preset veryslow, tune animation, yuv420p, BT.709 limited range",
+  "keyframes": [
+   0.0,
+   1.8,
+   3.6,
+   5.6,
+   7.0,
+   11.5333,
+   11.6667,
+   15.6,
+   18.5333
+  ],
+  "note": "keyframes are forced at 0 s and inside large transitions (the encoder added a few scene-cut keyframes, also inside transitions); none falls inside a still. After decoding, stills are steady except for a few encoder refinement pixels in the frames right after motion stops"
+ },
+ "conventions": {
+  "units": "times in seconds of the video timeline; positions and sizes in this video's pixels, top-left origin; box = [x, y, width, height]",
+  "frames": "frame i shows the app at exactly t = i / fps; every event boundary is a multiple of 1/15 s, so it lands on a frame in both the 30 fps and 15 fps versions",
+  "tap": "t = finger down, tUp = finger up; (x, y) = touch point; box = the touched control. Press feedback (highlight, dim, ripple, key callout) appears in the frame at t unless the event says otherwise",
+  "toggle": "a tap whose result is a local state change; has the tap fields plus t0..t1, the span of the whole animation",
+  "type": "t0 = first key down, t1 = last character appears; box = text field, keyboard = keyboard or keypad; keys[] = each key press (t, tUp, key box); chars[] = field text after each key up",
+  "scroll": "content moves by (dx, dy) px between t0 and t1 (negative dy = content moves up, i.e. the user scrolls down); box = scrolling viewport; touch = finger path (down at t0, lifts at tUp, momentum carries on to t1)",
+  "screen": "a screen transition (push, pop, sheet, sheet-dismiss, tab, tab-swipe, container-transform, dialog, dialog-dismiss); motion runs from t0 to t1 and the frame at t1 shows the settled screen",
+  "change": "an in-place content animation that is not a screen change (row inserted or removed, snackbar)",
+  "still": "frames with t0 <= t < t1 are pixel-identical; caretBlink = only a blinking text caret inside caretBox changes"
+ },
+ "events": [
+  {
+   "kind": "still",
+   "t0": 0,
+   "t1": 1.5333
+  },
+  {
+   "kind": "tap",
+   "t": 1.5333,
+   "tUp": 1.6667,
+   "x": 126.02,
+   "y": 342.53,
+   "box": [
+    10.69,
+    314.67,
+    274.62,
+    50.67
+   ],
+   "target": "habit card \"Morning walk\"",
+   "response": "card highlight, then push to the habit detail"
+  },
+  {
+   "kind": "screen",
+   "transition": "push",
+   "t0": 1.6667,
+   "t1": 2,
+   "from": "Today",
+   "to": "Morning walk (detail)",
+   "note": "detail slides in from the right, Today moves left 30% and dims"
+  },
+  {
+   "kind": "still",
+   "t0": 2,
+   "t1": 3
+  },
+  {
+   "kind": "scroll",
+   "t0": 3,
+   "t1": 4.2,
+   "dx": 0.0,
+   "dy": -300.0,
+   "box": [
+    0.0,
+    65.33,
+    296.0,
+    519.33
+   ],
+   "screen": "Morning walk (detail)",
+   "touch": {
+    "t0": 3,
+    "x0": 200.45,
+    "y0": 466.67,
+    "tUp": 3.3,
+    "x1": 200.45,
+    "y1": 376.67
+   },
+   "note": "finger drag then fling; content decelerates to rest at t1; the nav bar turns translucent as content passes under it"
+  },
+  {
+   "kind": "still",
+   "t0": 4.2,
+   "t1": 5.3333
+  },
+  {
+   "kind": "tap",
+   "t": 5.3333,
+   "tUp": 5.4667,
+   "x": 21.28,
+   "y": 50.67,
+   "box": [
+    5.35,
+    43.33,
+    39.82,
+    14.67
+   ],
+   "target": "back button \"Today\"",
+   "response": "button dims, then pop"
+  },
+  {
+   "kind": "screen",
+   "transition": "pop",
+   "t0": 5.4667,
+   "t1": 5.8,
+   "from": "Morning walk (detail)",
+   "to": "Today",
+   "note": "detail slides out to the right; the tapped card's highlight fades out"
+  },
+  {
+   "kind": "still",
+   "t0": 5.8,
+   "t1": 6.6667
+  },
+  {
+   "kind": "tap",
+   "t": 6.6667,
+   "tUp": 6.8,
+   "x": 273.28,
+   "y": 50.67,
+   "box": [
+    261.26,
+    38.67,
+    24.05,
+    24.0
+   ],
+   "target": "\"+\" add button",
+   "response": "button dims, then the New Habit sheet"
+  },
+  {
+   "kind": "screen",
+   "transition": "sheet",
+   "t0": 6.8,
+   "t1": 7.2,
+   "from": "Today",
+   "to": "New Habit sheet",
+   "box": [
+    0.0,
+    42.67,
+    296.0,
+    597.33
+   ],
+   "keyboard": [
+    0.0,
+    416.0,
+    296.0,
+    224.0
+   ],
+   "note": "sheet and keyboard slide up together; Today shrinks behind it and the status bar turns white"
+  },
+  {
+   "kind": "still",
+   "t0": 7.2,
+   "t1": 7.7333,
+   "caretBlink": true,
+   "caretBox": [
+    10.69,
+    149.33,
+    274.62,
+    37.33
+   ],
+   "note": "nothing moves except the blinking text caret in the name field"
+  },
+  {
+   "kind": "type",
+   "t0": 7.7333,
+   "t1": 9.6667,
+   "text": "Read 20 pages",
+   "box": [
+    10.69,
+    149.33,
+    274.62,
+    37.33
+   ],
+   "keyboard": [
+    0.0,
+    416.0,
+    296.0,
+    224.0
+   ],
+   "keys": [
+    {
+     "key": "R",
+     "t": 7.7333,
+     "tUp": 7.8,
+     "box": [
+      90.8,
+      450.67,
+      25.59,
+      28.0
+     ]
+    },
+    {
+     "key": "e",
+     "t": 7.8667,
+     "tUp": 7.9333,
+     "box": [
+      61.2,
+      450.67,
+      25.59,
+      28.0
+     ]
+    },
+    {
+     "key": "a",
+     "t": 8,
+     "tUp": 8.0667,
+     "box": [
+      16.8,
+      486.67,
+      25.59,
+      28.0
+     ]
+    },
+    {
+     "key": "d",
+     "t": 8.1333,
+     "tUp": 8.2,
+     "box": [
+      76.0,
+      486.67,
+      25.59,
+      28.0
+     ]
+    },
+    {
+     "key": "space",
+     "t": 8.2667,
+     "tUp": 8.3333,
+     "box": [
+      67.49,
+      558.67,
+      161.03,
+      28.0
+     ]
+    },
+    {
+     "key": "123",
+     "t": 8.4667,
+     "tUp": 8.5333,
+     "box": [
+      2.0,
+      558.67,
+      61.47,
+      28.0
+     ]
+    },
+    {
+     "key": "2",
+     "t": 8.6,
+     "tUp": 8.6667,
+     "box": [
+      31.6,
+      450.67,
+      25.59,
+      28.0
+     ]
+    },
+    {
+     "key": "0",
+     "t": 8.7333,
+     "tUp": 8.8,
+     "box": [
+      268.4,
+      450.67,
+      25.59,
+      28.0
+     ]
+    },
+    {
+     "key": "space",
+     "t": 8.8667,
+     "tUp": 8.9333,
+     "box": [
+      67.49,
+      558.67,
+      161.03,
+      28.0
+     ]
+    },
+    {
+     "key": "p",
+     "t": 9.0667,
+     "tUp": 9.1333,
+     "box": [
+      268.4,
+      450.67,
+      25.59,
+      28.0
+     ]
+    },
+    {
+     "key": "a",
+     "t": 9.2,
+     "tUp": 9.2667,
+     "box": [
+      16.8,
+      486.67,
+      25.59,
+      28.0
+     ]
+    },
+    {
+     "key": "g",
+     "t": 9.3333,
+     "tUp": 9.4,
+     "box": [
+      135.2,
+      486.67,
+      25.59,
+      28.0
+     ]
+    },
+    {
+     "key": "e",
+     "t": 9.4667,
+     "tUp": 9.5333,
+     "box": [
+      61.2,
+      450.67,
+      25.59,
+      28.0
+     ]
+    },
+    {
+     "key": "s",
+     "t": 9.6,
+     "tUp": 9.6667,
+     "box": [
+      46.4,
+      486.67,
+      25.59,
+      28.0
+     ]
+    }
+   ],
+   "chars": [
+    {
+     "t": 7.8,
+     "text": "R"
+    },
+    {
+     "t": 7.9333,
+     "text": "Re"
+    },
+    {
+     "t": 8.0667,
+     "text": "Rea"
+    },
+    {
+     "t": 8.2,
+     "text": "Read"
+    },
+    {
+     "t": 8.3333,
+     "text": "Read "
+    },
+    {
+     "t": 8.6667,
+     "text": "Read 2"
+    },
+    {
+     "t": 8.8,
+     "text": "Read 20"
+    },
+    {
+     "t": 8.9333,
+     "text": "Read 20 "
+    },
+    {
+     "t": 9.1333,
+     "text": "Read 20 p"
+    },
+    {
+     "t": 9.2667,
+     "text": "Read 20 pa"
+    },
+    {
+     "t": 9.4,
+     "text": "Read 20 pag"
+    },
+    {
+     "t": 9.5333,
+     "text": "Read 20 page"
+    },
+    {
+     "t": 9.6667,
+     "text": "Read 20 pages"
+    }
+   ],
+   "note": "each letter shows the iOS key callout while pressed; the character appears at key up; 123 switches to the number keys and space switches back"
+  },
+  {
+   "kind": "still",
+   "t0": 9.6667,
+   "t1": 10.2667,
+   "caretBlink": true,
+   "caretBox": [
+    10.69,
+    149.33,
+    274.62,
+    37.33
+   ],
+   "note": "nothing moves except the blinking text caret in the name field"
+  },
+  {
+   "kind": "toggle",
+   "t": 10.2667,
+   "tUp": 10.4,
+   "x": 257.58,
+   "y": 296.0,
+   "box": [
+    240.54,
+    285.67,
+    34.08,
+    20.67
+   ],
+   "target": "\"Remind me\" switch",
+   "control": "switch",
+   "from": "off",
+   "to": "on",
+   "t0": 10.2667,
+   "t1": 10.6667,
+   "note": "knob stretches while pressed, slides right at key up; a \"Time\" row fades in under it"
+  },
+  {
+   "kind": "still",
+   "t0": 10.6667,
+   "t1": 11.3333,
+   "caretBlink": true,
+   "caretBox": [
+    10.69,
+    149.33,
+    274.62,
+    37.33
+   ],
+   "note": "nothing moves except the blinking text caret in the name field"
+  },
+  {
+   "kind": "tap",
+   "t": 11.3333,
+   "tUp": 11.4667,
+   "x": 272.35,
+   "y": 61.33,
+   "box": [
+    262.06,
+    54.0,
+    20.58,
+    14.67
+   ],
+   "target": "\"Add\" button",
+   "response": "button dims, then the sheet closes"
+  },
+  {
+   "kind": "screen",
+   "transition": "sheet-dismiss",
+   "t0": 11.4667,
+   "t1": 11.8667,
+   "from": "New Habit sheet",
+   "to": "Today",
+   "note": "sheet and keyboard slide down, Today grows back"
+  },
+  {
+   "kind": "change",
+   "t0": 11.8667,
+   "t1": 12.2667,
+   "box": [
+    10.69,
+    200.0,
+    274.62,
+    50.67
+   ],
+   "note": "new card \"Read 20 pages\" pops in at the top of the list; the cards below slide down one row"
+  },
+  {
+   "kind": "still",
+   "t0": 12.2667,
+   "t1": 13.2667
+  },
+  {
+   "kind": "toggle",
+   "t": 13.2667,
+   "tUp": 13.4,
+   "x": 261.26,
+   "y": 455.2,
+   "box": [
+    247.89,
+    441.33,
+    26.73,
+    26.67
+   ],
+   "target": "progress ring on the \"Journal\" card",
+   "control": "habit check",
+   "from": "not done",
+   "to": "done",
+   "t0": 13.2667,
+   "t1": 14.2,
+   "note": "ring shrinks while pressed, fills over 0.53 s, a check pops in and coloured dots burst out; header count and today ring update"
+  },
+  {
+   "kind": "still",
+   "t0": 14.2,
+   "t1": 15.2
+  },
+  {
+   "kind": "scroll",
+   "t0": 15.2,
+   "t1": 16.2,
+   "dx": 0.0,
+   "dy": -200.0,
+   "box": [
+    0.0,
+    65.33,
+    296.0,
+    519.33
+   ],
+   "screen": "Today",
+   "touch": {
+    "t0": 15.2,
+    "x0": 200.45,
+    "y0": 480.0,
+    "tUp": 15.5,
+    "x1": 200.45,
+    "y1": 420.0
+   },
+   "note": "list scrolls down; the large title \"Today\" collapses into the nav bar"
+  },
+  {
+   "kind": "still",
+   "t0": 16.2,
+   "t1": 16.8
+  },
+  {
+   "kind": "scroll",
+   "t0": 16.8,
+   "t1": 17.6,
+   "dx": 0.0,
+   "dy": 80.0,
+   "box": [
+    0.0,
+    65.33,
+    296.0,
+    519.33
+   ],
+   "screen": "Today",
+   "touch": {
+    "t0": 16.8,
+    "x0": 173.72,
+    "y0": 280.0,
+    "tUp": 17.04,
+    "x1": 173.72,
+    "y1": 308.0
+   },
+   "note": "list scrolls back up a little"
+  },
+  {
+   "kind": "still",
+   "t0": 17.6,
+   "t1": 18.5333
+  },
+  {
+   "kind": "tap",
+   "t": 18.4,
+   "tUp": 18.5333,
+   "x": 111.02,
+   "y": 597.1,
+   "box": [
+    74.0,
+    585.33,
+    74.0,
+    32.67
+   ],
+   "target": "tab bar item \"Progress\"",
+   "response": "no press state; the tab switches at touch up"
+  },
+  {
+   "kind": "screen",
+   "transition": "tab",
+   "t0": 18.5333,
+   "t1": 19.1333,
+   "from": "Today",
+   "to": "Progress",
+   "note": "instant cut at t0, then the chart bars grow in (staggered) until t1"
+  },
+  {
+   "kind": "still",
+   "t0": 19.1333,
+   "t1": 20
+  },
+  {
+   "kind": "toggle",
+   "t": 20,
+   "tUp": 20.1333,
+   "x": 148.0,
+   "y": 112.0,
+   "box": [
+    102.66,
+    101.33,
+    90.64,
+    21.33
+   ],
+   "target": "segmented control \"Month\"",
+   "control": "segmented control",
+   "from": "Week",
+   "to": "Month",
+   "t0": 20,
+   "t1": 20.6,
+   "note": "segment highlights while pressed; thumb slides at touch up; weekly bars shrink and 30 daily bars grow"
+  },
+  {
+   "kind": "still",
+   "t0": 20.6,
+   "t1": 22
+  }
+ ]
+}
