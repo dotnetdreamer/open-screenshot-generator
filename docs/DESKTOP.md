@@ -75,6 +75,15 @@ The release workflow builds one Mac app per chip, published as
 program once per chip, and the editor and its pictures are built into the
 program, so it is twice the download. The Mac App Store build stays universal.
 
+Every Mac build is signed ad hoc (`signingIdentity: "-"` in
+`src-tauri/tauri.conf.json`), with hardened runtime off, so the app runs the
+same as an unsigned one. Without it, an Apple silicon app carries only the
+signature the linker gives every arm64 program, which covers no resources:
+macOS then calls a downloaded copy "damaged" and offers no way to open it. The
+Mac App Store build signs with its own identity (`APPLE_SIGNING_IDENTITY`
+overrides the config) and keeps hardened runtime on in
+`tauri.appstore.conf.json`.
+
 Do NOT set `NEXT_PUBLIC_BASE_PATH` when building for desktop. That variable is
 only for the GitHub Pages deploy; with it set, every asset in the bundle 404s.
 

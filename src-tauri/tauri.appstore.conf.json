@@ -5,6 +5,7 @@
     "copyright": "2026 Idrees Khan",
     "macOS": {
       "bundleVersion": "1",
+      "hardenedRuntime": true,
       "entitlements": "./Entitlements.plist",
       "files": {
         "embedded.provisionprofile": "./embedded.provisionprofile"

@@ -244,3 +244,16 @@ test('the release notes link to the Mac downloads under the names the release wo
   }
   assert.ok(!notes.includes('_universal.dmg'), 'no link to a universal download the release no longer has');
 });
+
+test('a downloaded Mac app is signed ad hoc, so macOS does not call it damaged', () => {
+  // An arm64 app with only the linker's signature seals no resources, and
+  // Gatekeeper calls a downloaded copy damaged. "-" has the bundler sign the
+  // whole app ad hoc; hardened runtime stays off so it runs as before.
+  const read = (file: string) => JSON.parse(fs.readFileSync(path.join(process.cwd(), 'src-tauri', file), 'utf8'));
+  const mac = read('tauri.conf.json').bundle.macOS;
+  assert.equal(mac.signingIdentity, '-');
+  assert.equal(mac.hardenedRuntime, false);
+  // The App Store build overrides the identity from APPLE_SIGNING_IDENTITY and
+  // keeps the hardened runtime it was approved with.
+  assert.equal(read('tauri.appstore.conf.json').bundle.macOS.hardenedRuntime, true);
+});
