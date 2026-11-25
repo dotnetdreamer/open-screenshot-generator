@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { ArtboardElement, ElementSelectModifiers } from '@/types/artboard';
-import { TypeIcon, SquareIcon, CircleIcon, TriangleIcon, SmartphoneIcon, ImagePlusIcon, ArrowUpIcon, ArrowDownIcon, ImageIcon, Trash2Icon, ClapperboardIcon, PointerIcon, LayersIcon, MusicIcon, FolderIcon, FolderOpenIcon, ChevronRightIcon, ChevronDownIcon, SquareCheckIcon, SquareDashedIcon, Group as GroupIcon, Ungroup as UngroupIcon } from 'lucide-react';
+import { TypeIcon, SquareIcon, CircleIcon, TriangleIcon, SmartphoneIcon, ImagePlusIcon, ArrowUpIcon, ArrowDownIcon, ImageIcon, Trash2Icon, ClapperboardIcon, PointerIcon, LayersIcon, MusicIcon, EyeIcon, EyeOffIcon, FolderIcon, FolderOpenIcon, ChevronRightIcon, ChevronDownIcon, SquareCheckIcon, SquareDashedIcon, Group as GroupIcon, Ungroup as UngroupIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getElementDisplayName } from '@/lib/historyLabels';
 import { localeName } from '@/lib/i18n/locales';
@@ -36,6 +36,11 @@ interface LayersPanelProps {
   /** Free the group a row points at, whether or not it is selected. */
   onUngroupById?: (groupId: string) => void;
   onRenameGroup?: (groupId: string, name: string) => void;
+  /**
+   * The eye on a row. A layer's own row sends that one layer; a group's row
+   * sends every layer in it, so the group goes and comes back in one step.
+   */
+  onSetLayersHidden?: (elementIds: string[], hidden: boolean) => void;
   /**
    * A layer dragged onto another row: it lands beside `anchorId` in the
    * z-order and joins `groupId`, or leaves its group when that is null.
@@ -164,7 +169,7 @@ const getElementIcon = (element: ArtboardElement) => {
 // Shared with the History panel so a layer reads the same in both.
 const getElementLabel = getElementDisplayName;
 
-export function LayersPanel({ elements, selectedElementId, selectedElementIds = [], onSelectElement, onMoveElementLayer, onDeleteElement, onRenameElement, onGroupElements, onUngroupElements, onUngroupById, onRenameGroup, onDropLayer, activeArtboardName, activeLocale = null, localeStates }: LayersPanelProps) {
+export function LayersPanel({ elements, selectedElementId, selectedElementIds = [], onSelectElement, onMoveElementLayer, onDeleteElement, onRenameElement, onGroupElements, onUngroupElements, onUngroupById, onRenameGroup, onSetLayersHidden, onDropLayer, activeArtboardName, activeLocale = null, localeStates }: LayersPanelProps) {
   const [editing, setEditing] = useState<EditingTarget | null>(null);
   const [editingName, setEditingName] = useState<string>('');
   const [collapsedGroups, setCollapsedGroups] = useState<string[]>([]);
@@ -337,8 +342,9 @@ export function LayersPanel({ elements, selectedElementId, selectedElementIds = 
           e.dataTransfer.effectAllowed = 'copyMove';
           setDraggingId(element.id);
           // Dragging a layer that is already part of a selection must
-          // not throw the rest of it away.
-          if (!selected.has(element.id)) onSelectElement(element.id);
+          // not throw the rest of it away. Otherwise the drag picks up this
+          // one layer, as a click on its row does.
+          if (!selected.has(element.id)) onSelectElement(element.id, { single: true });
         }}
         onDragEnd={() => {
           setDraggingId(null);
@@ -366,7 +372,12 @@ export function LayersPanel({ elements, selectedElementId, selectedElementIds = 
           <Button
             variant="ghost"
             className="flex-grow justify-start p-1 h-auto text-left items-center hover:bg-transparent focus-visible:ring-0 max-w-[160px]"
-            onClick={(e) => onSelectElement(element.id, { toggle: e.shiftKey || e.metaKey || e.ctrlKey, single: e.altKey })}
+            // A row is one layer, so a click on it picks that layer and
+            // Properties shows its own settings, in a group or out of one. On
+            // the canvas a click on a grouped layer brings the whole group,
+            // and here that is what the group's own row is for. Before this,
+            // a text inside a group could only be reached with Alt held down.
+            onClick={(e) => onSelectElement(element.id, { toggle: e.shiftKey || e.metaKey || e.ctrlKey, single: true })}
             onDoubleClick={() => startEditing({ kind: 'element', id: element.id }, element.name || getElementLabel(element))}
             title={`Double-click to rename "${getElementLabel(element)}"`}
             // The name is the drag handle for a finger, which fires none of
@@ -375,11 +386,30 @@ export function LayersPanel({ elements, selectedElementId, selectedElementIds = 
             {...touchDrag.bind({ label: getElementLabel(element), elementId: element.id })}
           >
             {getElementIcon(element)}
-            <span className="truncate flex-grow ml-1">{getElementLabel(element)}</span>
+            <span className={cn('truncate flex-grow ml-1', element.hidden && 'opacity-50')}>{getElementLabel(element)}</span>
           </Button>
         )}
         {localeDot(element)}
         <div className="flex-shrink-0 ml-auto space-x-0.5">
+          {/* A sound has nothing to show, so it has no eye. The button shows
+              on hover, and stays in view while the layer is hidden so there is
+              always a way to bring it back. */}
+          {onSetLayersHidden && element.type !== 'audio' ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              data-touch-reveal
+              className={cn(
+                'h-6 w-6 p-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100',
+                element.hidden ? 'opacity-100' : 'opacity-0'
+              )}
+              title={`${element.hidden ? 'Show' : 'Hide'} "${getElementLabel(element)}"`}
+              aria-pressed={!!element.hidden}
+              onClick={() => onSetLayersHidden([element.id], !element.hidden)}
+            >
+              {element.hidden ? <EyeOffIcon className="w-3 h-3" /> : <EyeIcon className="w-3 h-3" />}
+            </Button>
+          ) : null}
           {/* Shift-click builds a multi-selection with a mouse, and a finger
               has no shift key: this is the only way to pick a second layer on
               a phone, where the canvas marquee is mouse and pen only. Shown on
@@ -393,7 +423,7 @@ export function LayersPanel({ elements, selectedElementId, selectedElementIds = 
               selected.has(element.id) ? 'opacity-100' : 'opacity-0'
             )}
             title={selected.has(element.id) ? 'Take out of the selection' : 'Add to the selection'}
-            onClick={() => onSelectElement(element.id, { toggle: true })}
+            onClick={() => onSelectElement(element.id, { toggle: true, single: true })}
           >
             {selected.has(element.id) ? (
               <SquareCheckIcon className="w-3 h-3" />
@@ -510,6 +540,10 @@ export function LayersPanel({ elements, selectedElementId, selectedElementIds = 
                 const collapsed = collapsedGroups.includes(row.groupId);
                 const wholeGroupSelected = row.members.every((el) => selected.has(el.id));
                 const renaming = editing?.kind === 'group' && editing.id === row.groupId;
+                // What the group's eye speaks for. A sound in the group has
+                // nothing to show and keeps playing either way.
+                const drawn = row.members.filter((el) => el.type !== 'audio');
+                const groupHidden = drawn.length > 0 && drawn.every((el) => el.hidden);
                 return (
                   <div
                     key={row.groupId}
@@ -574,7 +608,7 @@ export function LayersPanel({ elements, selectedElementId, selectedElementIds = 
                           ) : (
                             <FolderOpenIcon className="mr-2 h-4 w-4 shrink-0 text-primary" />
                           )}
-                          <span className="ml-1 flex-grow truncate font-medium">{row.name}</span>
+                          <span className={cn('ml-1 flex-grow truncate font-medium', groupHidden && 'opacity-50')}>{row.name}</span>
                         </Button>
                       )}
                       <span
@@ -583,7 +617,22 @@ export function LayersPanel({ elements, selectedElementId, selectedElementIds = 
                       >
                         {row.members.length}
                       </span>
-                      <div className="ml-auto flex-shrink-0">
+                      <div className="ml-auto flex flex-shrink-0 items-center space-x-0.5">
+                        {/* Hides every layer of the group, or brings them all
+                            back. With only some of them hidden the group still
+                            shows, so the eye offers to hide the rest. */}
+                        {onSetLayersHidden && drawn.length > 0 ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 p-0"
+                            title={`${groupHidden ? 'Show' : 'Hide'} group "${row.name}"`}
+                            aria-pressed={groupHidden}
+                            onClick={() => onSetLayersHidden(drawn.map((el) => el.id), !groupHidden)}
+                          >
+                            {groupHidden ? <EyeOffIcon className="h-3 w-3" /> : <EyeIcon className="h-3 w-3" />}
+                          </Button>
+                        ) : null}
                         <Button
                           variant="ghost"
                           size="icon"

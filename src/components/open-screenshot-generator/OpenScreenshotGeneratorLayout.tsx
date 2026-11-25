@@ -3976,6 +3976,39 @@ export function OpenScreenshotGeneratorLayout() {
   );
 
   /**
+   * The eye in the Layers panel: hide or show one layer from its own row, or
+   * every layer of a group from the group's row. One commit either way, so
+   * one undo brings a whole group back.
+   */
+  const handleSetLayersHidden = useCallback(
+    (elementIds: string[], hidden: boolean) => {
+      if (!activeArtboardId || elementIds.length === 0) return;
+      const board = artboardsRef.current.find((ab) => ab.id === activeArtboardId);
+      if (!board) return;
+      const asked = new Set(elementIds);
+      const changing = board.elements.filter((el) => asked.has(el.id) && !!el.hidden !== hidden);
+      if (changing.length === 0) return;
+      const elements = board.elements.map((el) => {
+        if (!asked.has(el.id) || !!el.hidden === hidden) return el;
+        if (hidden) return { ...el, hidden: true } as ArtboardElement;
+        // Shown is the absence of the flag, as it is in every saved project.
+        const shown = { ...el } as ArtboardElement;
+        delete shown.hidden;
+        return shown;
+      });
+      handleArtboardsUpdate(
+        artboardsRef.current.map((ab) => (ab.id === activeArtboardId ? { ...ab, elements } : ab)),
+        namedChange(
+          hidden ? 'Hide' : 'Show',
+          'edit',
+          changing.length === 1 ? getElementDisplayName(changing[0]) : `${changing.length} layers`
+        )
+      );
+    },
+    [activeArtboardId, handleArtboardsUpdate]
+  );
+
+  /**
    * Put the selection's bounding box at an exact spot on the board.
    *
    * The whole arrangement travels: every member keeps its place relative to the
@@ -8497,8 +8530,9 @@ export function OpenScreenshotGeneratorLayout() {
           e.preventDefault();
           const board = artboardsRef.current.find((ab) => ab.id === activeArtboardId);
           // A sound is never on the canvas, so Select all leaves it out rather
-          // than handing back a selection that cannot be aligned or moved.
-          if (board) setSelectedElementIds(board.elements.filter(hasCanvasBox).map((el) => el.id));
+          // than handing back a selection that cannot be aligned or moved. A
+          // hidden layer is left out for the same reason: nothing of it shows.
+          if (board) setSelectedElementIds(board.elements.filter((el) => hasCanvasBox(el) && !el.hidden).map((el) => el.id));
         }
         return;
       }
@@ -9648,6 +9682,7 @@ export function OpenScreenshotGeneratorLayout() {
     onUpdateSpan: handleUpdateSpan,
     onUngroupById: handleUngroupById,
     onRenameGroup: handleRenameGroup,
+    onSetLayersHidden: handleSetLayersHidden,
     onDropLayer: handleDropLayer,
     onMoveSelectionTo: handleMoveSelectionTo,
     onMoveElementLayer: handleMoveElementLayer,

@@ -839,3 +839,28 @@ test('a background spanned across the artboards is sliced on the device the way 
     assert.equal(board.shown.backgroundImageSlice?.offsetX, 2064 * index);
   });
 });
+
+test('a layer hidden in the Layers panel shapes nothing in a device layout', () => {
+  // A sheet as large as the phone, parked over the headline and switched off.
+  const sheet = rect('sheet', 60, 120, 1100, 1500, { hidden: true });
+  const plain = headlineAndPhone();
+  const withHidden = headlineAndPhone([sheet]);
+
+  // Read as shown it would be part of the picture. Hidden, it is in no row,
+  // no hero and no background.
+  const reading = readBoard(withHidden);
+  const inReading = [...reading.backdrops, ...reading.bands, ...reading.hero, ...reading.rows.flatMap((row) => [...row.texts, ...row.graphics])];
+  assert.ok(!inReading.some((item) => item.el.id === 'sheet'), 'the hidden layer is read as part of the design');
+  assert.ok(reading.decor.some((item) => item.el.id === 'sheet'), 'it is kept, with what is parked off the artboard');
+
+  for (const format of ['ipad-pro-13', 'android', 'mac'] as DeviceFormat[]) {
+    const a = onDevice(plain, format);
+    const b = onDevice(withHidden, format);
+    // Every other layer lands exactly where it does without the hidden one.
+    for (const el of a.elements) {
+      assert.deepEqual(boxOf(placed(b, el.id)), boxOf(el), `${format}: ${el.id} moved because of a hidden layer`);
+    }
+    // The hidden layer is still in the project, still hidden.
+    assert.equal(placed(b, 'sheet').hidden, true);
+  }
+});

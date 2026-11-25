@@ -248,6 +248,80 @@ test.describe('grouping', () => {
     expect((await elementPosition(app.elementsOn(0).nth(0))).left).toBeCloseTo(201, 0);
     expect((await elementPosition(app.elementsOn(0).nth(1))).left).toBeCloseTo(before.left, 0);
   });
+
+  test('in the Layers list a click on one layer of a group picks that layer, and the group row picks them all', async ({ app, page }) => {
+    await threeShapes(app);
+    await spreadOut(page, app);
+    await selectLayer(page, SHAPES[0]);
+    await selectLayer(page, SHAPES[1], 'Shift');
+    await app.activeDockPanel.getByTitle('Group elements (Ctrl+G)').click();
+    await page.waitForTimeout(250);
+    expect(await selectionCount(app)).toBe(2);
+
+    // A row is one layer: its own settings come up, not the arrange section.
+    // This used to bring the whole group, which left a text inside a group
+    // with no way to its font and content short of holding Alt.
+    await page.keyboard.press('Escape');
+    await selectLayer(page, SHAPES[1]);
+    expect(await selectionCount(app)).toBe(0);
+    await expect(app.activeDockPanel.locator('#elementY')).toHaveValue('700');
+
+    // Shift on a second row adds that one layer, in the group or out of it.
+    await selectLayer(page, SHAPES[2], 'Shift');
+    expect(await selectionCount(app)).toBe(2);
+
+    // The group's own row is how the list picks the whole group.
+    await page.keyboard.press('Escape');
+    await page.getByTitle(/^Double-click to rename group "/).click();
+    await page.waitForTimeout(150);
+    expect(await selectionCount(app)).toBe(2);
+
+    // On the canvas a click on one member still brings the group.
+    await page.keyboard.press('Escape');
+    await clickElement(page, app.elementsOn(0).nth(0));
+    expect(await selectionCount(app)).toBe(2);
+  });
+
+  test('the eye on a group row hides the whole group and brings it back, and a layer has one of its own', async ({ app, page }) => {
+    await threeShapes(app);
+    await spreadOut(page, app);
+    await selectLayer(page, SHAPES[0]);
+    await selectLayer(page, SHAPES[1], 'Shift');
+    await app.activeDockPanel.getByTitle('Group elements (Ctrl+G)').click();
+    await page.waitForTimeout(250);
+
+    // A hidden layer is not drawn, so the canvas holds one shape of the three.
+    await page.getByTitle(/^Hide group "/).click();
+    await expect(app.elementsOn(0)).toHaveCount(1);
+    // The rows stay in the list, each with its way back.
+    await expect(page.getByTitle(`Show "${SHAPES[0]}"`)).toBeVisible();
+    await expect(page.getByTitle(`Show "${SHAPES[1]}"`)).toBeVisible();
+
+    // One undo brings the whole group back, since it went in one step.
+    await app.undoButton.click();
+    await expect(app.elementsOn(0)).toHaveCount(3);
+
+    await page.getByTitle(/^Hide group "/).click();
+    await expect(app.elementsOn(0)).toHaveCount(1);
+    await page.getByTitle(/^Show group "/).click();
+    await expect(app.elementsOn(0)).toHaveCount(3);
+
+    // One layer of the group on its own: the group still shows, so its eye
+    // still offers to hide it.
+    await page.getByTitle(`Hide "${SHAPES[0]}"`).click();
+    await expect(app.elementsOn(0)).toHaveCount(2);
+    await expect(page.getByTitle(/^Hide group "/)).toBeVisible();
+    await page.getByTitle(`Show "${SHAPES[0]}"`).click();
+    await expect(app.elementsOn(0)).toHaveCount(3);
+
+    // A layer outside any group has the same button.
+    await page.getByTitle(`Hide "${SHAPES[2]}"`).click();
+    await expect(app.elementsOn(0)).toHaveCount(2);
+    // Select all leaves a hidden layer out: the two shown ones are selected.
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('ControlOrMeta+a');
+    expect(await selectionCount(app)).toBe(2);
+  });
 });
 
 test.describe('the right-click menu', () => {

@@ -912,6 +912,8 @@ export async function exportArtboardVideo(
     if (settings.rawRecordingOnly) {
       // First recording only, full-bleed. Guideline-2.3.4-safe output.
       for (const el of artboard.elements) {
+        // A recording hidden in the Layers panel is not the one to export.
+        if (el.hidden) continue;
         if (el.type === 'video' && (el.mediaId || el.videoSrc)) {
           const source = await loadVideoSource(el, el.trimStart, el.trimEnd);
           if (source) {
@@ -941,7 +943,7 @@ export async function exportArtboardVideo(
         // No capture yet. Stand the mockup's poster in for it so the overlays
         // can be proofed in the shape the store cut will actually take.
         for (const el of artboard.elements) {
-          if (el.type !== 'video-device' || !el.posterSrc) continue;
+          if (el.hidden || el.type !== 'video-device' || !el.posterSrc) continue;
           const image = await loadPosterImage(el.posterSrc);
           if (!image) continue;
           layers.push({
@@ -969,6 +971,7 @@ export async function exportArtboardVideo(
         // capture" and get it rejected.
         for (const el of artboard.elements) {
           throwIfAborted(signal);
+          if (el.hidden) continue;
           if (el.type === 'gesture') {
             layers.push({ kind: 'gesture', el });
             continue;

@@ -41,6 +41,8 @@ export function artboardTimeline(
   let end = 0;
 
   for (const el of ab.elements) {
+    // Hidden in the Layers panel: it is not drawn, so it sets no length either.
+    if (el.hidden) continue;
     if (el.type === 'video' || el.type === 'video-device') {
       // An empty recording mockup still makes this a preview board: you drop
       // the phone on first, and the timeline has to be there to animate the

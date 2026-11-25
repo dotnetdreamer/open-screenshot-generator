@@ -51,6 +51,10 @@ export const ALWAYS_LOCAL_KEYS = [
  * `spanBehind` decide which artboards an element is drawn on at all, so one
  * language continuing a mockup onto the next screenshot while another cuts it
  * off would be two different compositions rather than one design translated.
+ * `hidden` on the element is the eye in the Layers panel, which switches the
+ * layer off in the design itself, so it reaches every language. Leaving a
+ * layer out of ONE language is a different thing with its own home: `hidden`
+ * on that language's override, which drops the layer from the projection.
  */
 const NEVER_DETACHABLE = new Set<string>([
   'id',
@@ -62,6 +66,7 @@ const NEVER_DETACHABLE = new Set<string>([
   'animation',
   'spanArtboards',
   'spanBehind',
+  'hidden',
   ...ALWAYS_LOCAL_KEYS,
 ]);
 

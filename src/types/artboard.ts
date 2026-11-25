@@ -93,6 +93,17 @@ export interface BaseElement {
   // the string to each member; an unnamed group (one the MCP tool made) reads
   // as "Group" in the panel.
   groupName?: string;
+  /**
+   * Switched off with the eye in the Layers panel. The layer keeps its place
+   * in the project, in its group and in the stack, and is drawn nowhere: not
+   * on the canvas, not on a neighbouring artboard it would have carried on
+   * across, not in an export, a preview or a video. Absent means shown. Every
+   * place that draws an artboard takes its list from paintLayers
+   * (src/lib/spanArtboards.ts), which is where a hidden layer is left out, so
+   * no renderer has to know the word. A group is hidden by hiding each of its
+   * layers, since a group is only a tag they share.
+   */
+  hidden?: boolean;
   // The palette tile this element came from, e.g. 'image:touch-as451105828'
   // (see lib/libraryIds.ts). Stamped by the palette and by MCP add_element,
   // shown at the top of the Properties panel so a layer traces back to the

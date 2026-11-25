@@ -290,7 +290,12 @@ export function readBoard(board: ArtboardState, fittedToFrame?: ReadonlySet<stri
   for (const item of items) {
     const { el, box } = item;
     const crossesSide = box.x < -1 || box.x + box.width > width + 1;
-    if (el.spanArtboards && crossesSide) {
+    if (el.hidden) {
+      // Hidden in the Layers panel. It shows nothing, so it is no hero, no
+      // row and no background: it goes with what is parked off the artboard,
+      // and is set down near where it was for the day it is shown again.
+      offstage.push(item);
+    } else if (el.spanArtboards && crossesSide) {
       crossing.push(item);
     } else if (area(box) > 0 && coveredBy(box, frame) < 0.05) {
       // Parked off the artboard, where it shows nothing: kept off it.
@@ -1478,7 +1483,8 @@ function looksRight(board: ArtboardState, ctx: Ctx): boolean {
   const after = new Map<string, Bounds>();
   for (const el of board.elements) {
     const patch = ctx.patches.get(el.id);
-    if (!patch || !hasCanvasBox(el)) continue;
+    // A hidden layer cannot be cut off, so it turns no layout down.
+    if (!patch || !hasCanvasBox(el) || el.hidden) continue;
     const moved = {
       ...el,
       position: patch.position,

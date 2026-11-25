@@ -248,6 +248,9 @@ export function useDockHost(options: DockHostOptions): DockHost {
       case 'renameGroup':
         h.onRenameGroup(intent.groupId, intent.newName);
         break;
+      case 'setLayersHidden':
+        h.onSetLayersHidden(intent.elementIds, intent.hidden);
+        break;
       case 'dropLayer':
         h.onDropLayer(intent.elementId, intent.anchorId, intent.side, intent.groupId);
         break;

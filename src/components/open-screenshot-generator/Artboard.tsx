@@ -790,7 +790,8 @@ export const Artboard = forwardRef<ArtboardRef, ArtboardProps>(({
         height: Math.abs(end.y - origin.y),
       };
       const hits = elements
-        .filter(hasCanvasBox)
+        // A hidden layer is not on the canvas to be swept up.
+        .filter((element) => hasCanvasBox(element) && !element.hidden)
         .filter((element) => boundsIntersect(band, elementVisualBounds(element)))
         .map((element) => element.id);
       const withGroups = [...expandGroups(elements, hits)];

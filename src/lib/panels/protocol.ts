@@ -185,6 +185,7 @@ export type DockIntent =
   | { name: 'updateSpan'; change: SpanChange }
   | { name: 'ungroupById'; groupId: string }
   | { name: 'renameGroup'; groupId: string; newName: string }
+  | { name: 'setLayersHidden'; elementIds: string[]; hidden: boolean }
   | {
       name: 'dropLayer';
       elementId: string;

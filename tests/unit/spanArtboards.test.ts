@@ -194,6 +194,29 @@ test('paint order is behind copies, then the artboard\'s own stack, then front c
   assert.deepEqual(paintLayers(own).map((layer) => layer.element), own);
 });
 
+test('a layer hidden in the Layers panel is drawn nowhere: not on its artboard, not on the one beside it', () => {
+  const shown = phone('shown', 100);
+  const hidden = phone('hidden', 200, { hidden: true });
+  // Every render site takes its list from here, so this is the whole of hiding.
+  assert.deepEqual(paintLayers([shown, hidden]).map((layer) => layer.element.id), ['shown']);
+  // With nothing hidden the list is the very array it was given, element for element.
+  assert.deepEqual(paintLayers([shown]).map((layer) => layer.element), [shown]);
+
+  // Over the right edge it would carry on next door. Hidden, it has no copy there.
+  const crossing = phone('crossing', 1000, { spanArtboards: true });
+  const boards = [board('a', [crossing]), board('b')];
+  assert.equal(spillFor(computeSpill(boards), 'b').front.length, 1);
+  const hiddenBoards = [board('a', [{ ...crossing, hidden: true }]), board('b')];
+  assert.equal(computeSpill(hiddenBoards).size, 0);
+  // And the neighbour's own layers still hide one by one under a copy from next door.
+  const own = [phone('mine', 100), phone('mine-hidden', 300, { hidden: true })];
+  const withCopy = paintLayers(own, spillFor(computeSpill([board('a', [crossing]), board('b', own)]), 'b'));
+  assert.deepEqual(
+    withCopy.map((layer) => `${layer.kind}:${layer.kind === 'span' ? layer.copy.source.id : layer.element.id}`),
+    ['own:mine', 'span:crossing']
+  );
+});
+
 // Two artboards 1000 and 500 wide drawn at 0.3, with a 15px gap between them.
 const rects = [
   { left: 100, top: 50, width: 300 },

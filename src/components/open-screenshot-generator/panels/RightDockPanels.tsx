@@ -80,6 +80,8 @@ export interface DockHandlers {
   /** Free one group the Layers panel points at, selected or not. */
   onUngroupById: (groupId: string) => void;
   onRenameGroup: (groupId: string, name: string) => void;
+  /** The eye in the Layers list: one layer, or every layer of a group at once. */
+  onSetLayersHidden: (elementIds: string[], hidden: boolean) => void;
   /** A layer dragged to a new place in the Layers list, and into or out of a group. */
   onDropLayer: (
     elementId: string,
@@ -396,6 +398,7 @@ export function RightDockPanels({
               onUngroupElements={handlers.onUngroupElements}
               onUngroupById={handlers.onUngroupById}
               onRenameGroup={handlers.onRenameGroup}
+              onSetLayersHidden={handlers.onSetLayersHidden}
               onDropLayer={handlers.onDropLayer}
               activeArtboardName={data.activeArtboardName}
               activeLocale={data.activeLocale}

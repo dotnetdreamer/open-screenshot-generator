@@ -458,7 +458,8 @@ export function computeSpill(
 
   strip.forEach((board, sourceIndex) => {
     for (const stored of board.elements) {
-      if (!spansArtboards(stored)) continue;
+      // A hidden layer is drawn nowhere, so it has no copy next door either.
+      if (stored.hidden || !spansArtboards(stored)) continue;
       const box = live?.get(stored.id);
       const element = withLiveBox(stored, box);
       // Entirely inside its own artboard, so there is nothing to carry over.
@@ -529,14 +530,18 @@ export type PaintLayer =
  * An artboard's layers, back to front: span copies drawn behind, the
  * artboard's own elements in their stack order, then span copies drawn in
  * front. Shared by every render site so they cannot stack them differently.
+ *
+ * A layer hidden in the Layers panel is left out here, which hides it on the
+ * canvas, in the static renders, in exports and in videos at once.
  */
 export function paintLayers(elements: ArtboardElement[], spill: BoardSpill = NO_SPILL): PaintLayer[] {
+  const shown = elements.some((element) => element.hidden) ? elements.filter((element) => !element.hidden) : elements;
   if (spill.behind.length === 0 && spill.front.length === 0) {
-    return elements.map((element) => ({ kind: 'own', element }));
+    return shown.map((element) => ({ kind: 'own', element }));
   }
   return [
     ...spill.behind.map((copy): PaintLayer => ({ kind: 'span', element: copy.element, copy })),
-    ...elements.map((element): PaintLayer => ({ kind: 'own', element })),
+    ...shown.map((element): PaintLayer => ({ kind: 'own', element })),
     ...spill.front.map((copy): PaintLayer => ({ kind: 'span', element: copy.element, copy })),
   ];
 }
