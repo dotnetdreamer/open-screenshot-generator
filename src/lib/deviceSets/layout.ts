@@ -1358,9 +1358,19 @@ export function planBoard(
     // round it. Their corners changed with the fit.
     const refitted = new Set<string>();
     swapped.forEach((el, i) => {
-      if (el === elements[i] || el.id === id) return;
-      refitted.add(el.id);
-      fittedToFrame.add(el.id);
+      const was = elements[i];
+      if (el === was || el.id === id) return;
+      // A rim round a phone that became another phone keeps its box and only
+      // takes the new corner. It is read and placed as it always was.
+      const sameBox =
+        el.position.x === was.position.x &&
+        el.position.y === was.position.y &&
+        el.size.width === was.size.width &&
+        el.size.height === was.size.height;
+      if (!sameBox) {
+        refitted.add(el.id);
+        fittedToFrame.add(el.id);
+      }
       const fitted = el as unknown as Record<string, unknown>;
       if (typeof fitted.borderRadius === 'number') overlayRadii.set(el.id, fitted.borderRadius);
       const corners: Partial<Record<CornerKey, number>> = {};

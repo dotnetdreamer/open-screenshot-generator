@@ -419,6 +419,42 @@ function drawnRoundNextFrame(
 }
 
 /**
+ * A rectangle drawn round a frame that became another frame of the same kind
+ * (an iPhone that became an Android phone). The frame keeps its box, so the
+ * rectangle keeps its own, and takes the new frame's corner. Left with the
+ * iPhone's wide corner, a rim stops short of an Android phone's square one and
+ * the frame's corners stand out past it.
+ *
+ * The corner moves by as much as the frame's own does. A shadow drawn rounder
+ * than its phone stays that much rounder, where scaling it by the two frames'
+ * corners would turn a shadow of 48 round an Android phone into a pill of 269
+ * round an iPhone.
+ */
+function corneredForNextFrame(
+  el: ShapeElementProps,
+  before: DeviceFrameElementProps,
+  after: DeviceFrameElementProps
+): ArtboardElement {
+  const cornerWas = (DEVICE_REGISTRY[before.deviceType]?.bodyRadiusFactor ?? 0) * unturnedBox(before).width;
+  const cornerNow = (DEVICE_REGISTRY[after.deviceType]?.bodyRadiusFactor ?? 0) * unturnedBox(after).width;
+  const shift = cornerNow - cornerWas;
+  // Two iPhones share a corner. The rectangle is then handed back as it came,
+  // so nothing downstream takes it for a layer the swap changed.
+  if (Math.abs(shift) < 0.01) return el;
+  const next: ShapeElementProps = { ...el };
+  let changed = false;
+  for (const key of CORNERS) {
+    const value = el[key];
+    if (typeof value !== 'number') continue;
+    const fitted = Math.max(0, Math.round((value + shift) * 100) / 100);
+    if (fitted === value) continue;
+    next[key] = fitted;
+    changed = true;
+  }
+  return changed ? next : el;
+}
+
+/**
  * Swap one device within an artboard's element list, and with it what was
  * drawn to its measure:
  *
@@ -430,10 +466,12 @@ function drawnRoundNextFrame(
  *   shadow) are drawn round the new one, where the swap gives the frame
  *   another box: a phone that becomes a tablet. Left as it was, a phone's rim
  *   stands out above and below the iPad. Between two frames of one kind the
- *   box does not change and neither does the rim. A laptop or a monitor on a
- *   stand is not a slab to draw round, and a 3D Studio device's box is its
- *   silhouette's, so there the rectangles stay as they are (layersLeftBehind
- *   takes them out where the app makes the swap itself).
+ *   box does not change and neither does the rim's, but the rim takes the new
+ *   frame's corner: an Android phone's is far squarer than an iPhone's. A
+ *   laptop or a monitor on a stand is not a slab to draw round, and a 3D
+ *   Studio device's box is its silhouette's, so there the rectangles stay as
+ *   they are (layersLeftBehind takes them out where the app makes the swap
+ *   itself).
  *
  * Returns null when there is nothing to swap.
  */
@@ -453,11 +491,11 @@ export function swapDeviceInElements(
   // its screen rect with it, so skip overlay adaptation there.
   const oldScreen = !device.rotation ? getDeviceScreenRect(device) : null;
   const newScreen = oldScreen ? getDeviceScreenRect(swappedDevice) : null;
-  const reshaped =
-    !!updates.size &&
+  const slabs =
     !isStudioStyle(device.styleType) &&
     isSlab(DEVICE_REGISTRY[device.deviceType]) &&
     isSlab(DEVICE_REGISTRY[target]);
+  const reshaped = !!updates.size && slabs;
   return elements.map((el) => {
     if (el.id === deviceId) return swappedDevice;
     if (oldScreen && newScreen && isScreenConformingOverlay(el, oldScreen)) {
@@ -469,9 +507,13 @@ export function swapDeviceInElements(
         borderRadius: Math.round(newScreen.radius / scale),
       };
     }
-    if (reshaped && el.type === 'shape') {
+    if (slabs && el.type === 'shape') {
       const sides = sidesRoundFrame(el, device);
-      if (sides) return drawnRoundNextFrame(el, sides, device, swappedDevice);
+      if (sides) {
+        return reshaped
+          ? drawnRoundNextFrame(el, sides, device, swappedDevice)
+          : corneredForNextFrame(el, device, swappedDevice);
+      }
     }
     return el;
   });
