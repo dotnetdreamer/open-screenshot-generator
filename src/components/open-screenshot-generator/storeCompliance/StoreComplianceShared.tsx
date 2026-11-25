@@ -21,7 +21,7 @@ import type { ArtboardState } from '@/types/artboard';
 import { cn } from '@/lib/utils';
 import type { AiChoice } from '../growth/AiPicker';
 
-export type RulesSection = 'overview' | 'ask' | 'checklist' | 'rules' | 'deadlines' | 'guides';
+export type RulesSection = 'overview' | 'ask' | 'checklist' | 'readiness' | 'rules' | 'deadlines' | 'guides';
 
 export interface SectionOptions {
   /** Rejection reasons: show only the rules an update brought. */
@@ -322,8 +322,9 @@ export function RuleSheet({ rule, isNew, onClose, onAsk }: { rule: RejectionRule
                     // The plain words leave out what a developer needs: the playbook's own are exact.
                     <div className="mb-3 space-y-1 rounded-lg border bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground" data-testid="store-rule-original">
                       <p className="font-medium text-foreground">Original wording: {rule.title}</p>
-                      {rule.detection && <p>{rule.detection}</p>}
-                      {rule.fix && <p>Fix: {rule.fix}</p>}
+                      {/* A plain title only: the problem and the fix above are the playbook's own words already. */}
+                      {rule.plain.problem && rule.detection && <p>{rule.detection}</p>}
+                      {rule.plain.fix && rule.fix && <p>Fix: {rule.fix}</p>}
                     </div>
                   )}
                   {rule.signals.length > 0 && (

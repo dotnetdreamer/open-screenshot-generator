@@ -73,6 +73,15 @@ function words(value: unknown, max: number): string | null {
   return text && text.length <= max ? text : null;
 }
 
+/**
+ * A title-only entry: the playbook's words were too long to shorten without
+ * losing a condition, so the file leaves the other fields empty. Half an
+ * entry (a problem but no fix) is neither, and is left out.
+ */
+function titleOnly(entry: Record<string, unknown>, fields: string[]): boolean {
+  return fields.every((field) => entry[field] === undefined || entry[field] === null || (typeof entry[field] === 'string' && !(entry[field] as string).trim()));
+}
+
 function entries(data: Record<string, unknown>, key: string): Array<[string, Record<string, unknown>]> {
   const value = data[key];
   if (!value || typeof value !== 'object' || Array.isArray(value)) return [];
@@ -101,12 +110,14 @@ export function parsePlainLanguage(source: string | null | undefined): PlainLang
     const problem = words(entry.problem, PLAIN_TEXT_MAX);
     const fix = words(entry.fix, PLAIN_TEXT_MAX);
     if (from && title && problem && fix) plain.rules.set(id, { from, title, problem, fix });
+    else if (from && title && titleOnly(entry, ['problem', 'fix'])) plain.rules.set(id, { from, title, problem: null, fix: null });
   }
   for (const [id, entry] of entries(file, 'deadlines')) {
     const from = words(entry.from, 64);
     const title = words(entry.title, PLAIN_TITLE_MAX);
     const summary = words(entry.summary, PLAIN_TEXT_MAX);
     if (from && title && summary) plain.deadlines.set(id, { from, title, summary });
+    else if (from && title && titleOnly(entry, ['summary'])) plain.deadlines.set(id, { from, title, summary: null });
   }
   for (const [id, entry] of entries(file, 'checklist')) {
     const text = words(entry.text, PLAIN_TEXT_MAX);

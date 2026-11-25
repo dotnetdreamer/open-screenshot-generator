@@ -20,6 +20,7 @@ import {
   AppleIcon,
   BookOpenIcon,
   CalendarClockIcon,
+  ClipboardCheckIcon,
   LayoutDashboardIcon,
   ListChecksIcon,
   Loader2Icon,
@@ -44,6 +45,7 @@ import { StoreComplianceDeadlines } from './StoreComplianceDeadlines';
 import { StoreComplianceGuides } from './StoreComplianceGuides';
 import { StoreComplianceLibrary } from './StoreComplianceLibrary';
 import { StoreComplianceOverview } from './StoreComplianceOverview';
+import { StoreComplianceReadiness } from './StoreComplianceReadiness';
 import {
   EmptyState,
   RuleSheet,
@@ -74,6 +76,7 @@ const NAV: Array<{ label?: string; items: NavItem[] }> = [
     label: 'Before you submit',
     items: [
       { section: 'checklist', label: 'Checklist', icon: ListChecksIcon },
+      { section: 'readiness', label: 'Test like a reviewer', icon: ClipboardCheckIcon },
       { section: 'rules', label: 'Why apps get rejected', icon: ShieldAlertIcon },
       { section: 'deadlines', label: 'Deadlines', icon: CalendarClockIcon },
     ],
@@ -272,6 +275,7 @@ export function StoreComplianceWorkspace({ active, readProject }: { active: bool
               {section === 'overview' && <StoreComplianceOverview />}
               {section === 'ask' && <StoreComplianceAsk />}
               {section === 'checklist' && <StoreComplianceChecklist />}
+              {section === 'readiness' && <StoreComplianceReadiness />}
               {section === 'rules' && <StoreComplianceLibrary />}
               {section === 'deadlines' && <StoreComplianceDeadlines />}
               {section === 'guides' && <StoreComplianceGuides />}

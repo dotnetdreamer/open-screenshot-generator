@@ -37,7 +37,30 @@ function monthOf(day: string | null): string {
   return date.toLocaleDateString(undefined, { month: 'long', year: 'numeric', timeZone: 'UTC' });
 }
 
-function DeadlineCard({ deadline, today, open, onToggle, onAsk }: { deadline: Deadline; today: string; open: boolean; onToggle: () => void; onAsk: () => void }) {
+/** A correction the playbook made in the last 30 days, or one an update brought since the last visit. */
+export function recentChange(deadline: Deadline, today: string, changed: string[]): boolean {
+  if (!deadline.change) return false;
+  if (changed.includes(deadline.id)) return true;
+  if (!deadline.change.day) return false;
+  const ago = daysUntil(today, deadline.change.day);
+  return ago >= 0 && ago <= 30;
+}
+
+function DeadlineCard({
+  deadline,
+  today,
+  open,
+  changed,
+  onToggle,
+  onAsk,
+}: {
+  deadline: Deadline;
+  today: string;
+  open: boolean;
+  changed: boolean;
+  onToggle: () => void;
+  onAsk: () => void;
+}) {
   const day = deadlineDay(deadline);
   const days = day ? daysUntil(day, today) : null;
   const date = day ? new Date(`${day}T00:00:00Z`) : null;
@@ -62,6 +85,15 @@ function DeadlineCard({ deadline, today, open, onToggle, onAsk }: { deadline: De
               <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground" title={deadline.jurisdiction}>
                 {placeName(deadline.jurisdiction)}
               </span>
+              {changed && (
+                <span
+                  className="rounded-full bg-[hsl(var(--rules-accent))]/10 px-2 py-0.5 text-[11px] font-medium text-[hsl(var(--rules-accent))]"
+                  title={deadline.change?.day ? `The playbook changed this deadline on ${formatDay(deadline.change.day)}` : 'The playbook changed this deadline'}
+                  data-testid="store-deadline-changed"
+                >
+                  Changed
+                </span>
+              )}
             </span>
             <span className="mt-2 block text-sm font-semibold leading-snug">{deadlineTitle(deadline)}</span>
             {open ? (
@@ -103,13 +135,20 @@ function DeadlineCard({ deadline, today, open, onToggle, onAsk }: { deadline: De
                   <dt className="text-muted-foreground">The law</dt>
                   <dd className="leading-relaxed">{deadline.law}</dd>
                 </div>
-                {deadline.requirement && (
+                {deadline.requirement && deadline.plain.summary && (
                   <div>
                     <dt className="text-muted-foreground">Original wording</dt>
                     <dd className="leading-relaxed">{deadline.requirement}</dd>
                   </div>
                 )}
               </dl>
+            )}
+            {deadline.change && (
+              // The playbook's own note on what it corrected, in its words, as the rest of these details are.
+              <div className="rounded-lg border bg-muted/40 p-3" data-testid="store-deadline-change">
+                <p className="font-medium text-foreground">{deadline.change.day ? `What changed on ${formatDay(deadline.change.day)}` : 'What changed'}</p>
+                <p className="mt-1 leading-relaxed text-muted-foreground">{deadline.change.text}</p>
+              </div>
             )}
             {deadline.sourceNote && <p className="leading-relaxed text-muted-foreground">{deadline.sourceNote}</p>}
             <div className="flex flex-wrap items-center gap-2">
@@ -135,6 +174,7 @@ function DeadlineCard({ deadline, today, open, onToggle, onAsk }: { deadline: De
 export function StoreComplianceDeadlines() {
   const view = useRulesView();
   const { library, stores, today, options } = view;
+  const changedIds = view.state.news && !view.state.news.seen ? view.state.news.changed ?? [] : [];
   const [tab, setTab] = useState<'coming' | 'past'>('coming');
   const [query, setQuery] = useState('');
   const [region, setRegion] = useState<Region | null>(null);
@@ -233,6 +273,7 @@ export function StoreComplianceDeadlines() {
                 deadline={deadline}
                 today={today}
                 open={opened.has(deadline.id)}
+                changed={recentChange(deadline, today, changedIds)}
                 onToggle={() =>
                   setOpened((current) => {
                     const next = new Set(current);

@@ -16,6 +16,7 @@ import type {
   ChecklistGroup,
   ChecklistSection,
   Deadline,
+  DeadlineChange,
   GuideGroup,
   GuideLink,
   RejectionRule,
@@ -151,10 +152,27 @@ export function parseDeadlines(source: string): Deadline[] {
       sourceUrl: webAddress(raw.source_url),
       verifiedOn: day(raw.verified_on),
       sourceNote: textOrNull(raw.source_note),
+      change: changeNote(raw.history),
     });
   }
   if (deadlines.length === 0) throw new BrokenFileError(path, 'has no deadlines with an id and a law');
   return deadlines;
+}
+
+/**
+ * A deadline's `history`: the playbook's note on what it corrected, which
+ * starts with the day ("2026-11-25. The sharing limit was 20 devices..."). A
+ * list of notes gives its newest one, by day, else its last.
+ */
+export function changeNote(value: unknown): DeadlineChange | null {
+  const notes = (Array.isArray(value) ? value : [value]).map(text).filter(Boolean);
+  let newest: DeadlineChange | null = null;
+  for (const note of notes) {
+    const match = /^(\d{4}-\d{2}-\d{2})\b[.:,]?\s*/.exec(note);
+    const change: DeadlineChange = match && note.length > match[0].length ? { day: match[1], text: note.slice(match[0].length).trim() } : { day: null, text: note };
+    if (!newest || !newest.day || (change.day && change.day >= newest.day)) newest = change;
+  }
+  return newest;
 }
 
 /** Only http and https addresses are ever opened. */
@@ -197,6 +215,17 @@ function storeOfTitle(title: string): ShipStore | null {
   const google = /\bgoogle\b|\bandroid\b|\bplay\b/i.test(title);
   if (apple === google) return null;
   return apple ? 'apple' : 'google';
+}
+
+/**
+ * A box about one store only names the store first, as a label of a word or
+ * four ending in a full stop: "Apple. A custom screen...", "Google Play. A
+ * screen...", "China mainland App Store. On App Compliance...". A label that
+ * names no store, like "Biometric." or "Health app.", says nothing about one.
+ */
+export function storeOfItem(text: string): ShipStore | undefined {
+  const label = /^(?:\*\*)?([A-Z][\w-]*(?: [\w-]+){0,3})\.(?:\*\*)?\s/.exec(text.trim())?.[1];
+  return (label && storeOfTitle(label)) || undefined;
 }
 
 const COMMON_WORDS = new Set('a an and are as at be by for from has have in is it its of on or so that the their this to what when with app apps'.split(' '));
@@ -305,7 +334,8 @@ export function parseChecklist(source: string): Checklist {
         body += ` ${lines[++index].trim()}`;
       }
       if (!group) startGroup(null);
-      group!.items.push({ id: itemId(body), text: body.trim() });
+      const store = storeOfItem(body);
+      group!.items.push({ id: itemId(body), text: body.trim(), ...(store ? { store } : {}) });
       continue;
     }
     if (!line.trim()) {
@@ -342,19 +372,22 @@ export function parseChecklist(source: string): Checklist {
 /** Every box of the checklist, in order. */
 export function checklistItems(
   checklist: Checklist | null
-): Array<{ section: ChecklistSection; group: ChecklistGroup; id: string; text: string; plain?: string; always?: boolean }> {
+): Array<{ section: ChecklistSection; group: ChecklistGroup; id: string; text: string; plain?: string; always?: boolean; store?: ShipStore }> {
   if (!checklist) return [];
   return checklist.sections.flatMap((section) =>
     section.groups.flatMap((group) =>
-      group.items.map((item) => ({ section, group, id: item.id, text: item.text, plain: item.plain, always: item.always }))
+      group.items.map((item) => ({ section, group, id: item.id, text: item.text, plain: item.plain, always: item.always, store: item.store }))
     )
   );
 }
 
-/** The boxes for an app on these stores: a section or group about the other store only is left out. */
+/** The boxes for an app on these stores: a section, group or box about the other store only is left out. */
 export function checklistItemsFor(checklist: Checklist | null, stores: ShipStore[]): ReturnType<typeof checklistItems> {
   return checklistItems(checklist).filter(
-    (item) => (!item.section.store || stores.includes(item.section.store)) && (!item.group.store || stores.includes(item.group.store))
+    (item) =>
+      (!item.section.store || stores.includes(item.section.store)) &&
+      (!item.group.store || stores.includes(item.group.store)) &&
+      (!item.store || stores.includes(item.store))
   );
 }
 
@@ -395,18 +428,39 @@ function sentence(value: string): string {
  * so a guide the repository links there shows here too. A table row's first
  * cell describes its link ("About to submit"), and a list item's words after
  * its link do. The section about installing the guard is left out: the guard
- * is a command-line tool this app does not run.
+ * is a command-line tool this app does not run. A guide linked above the
+ * first section, as the page's opening list links "What the scan proves",
+ * joins the first group, described by the words before its link.
  */
 export function parseGuideIndex(source: string): GuideGroup[] {
   const groups: GuideGroup[] = [];
   const seen = new Set<string>();
+  const lead: GuideLink[] = [];
   let current: GuideGroup | null = null;
+  let started = false;
   for (const line of markdownLines(source)) {
     const head = heading(line);
     if (head) {
+      if (head.level >= 2) started = true;
       current = head.level >= 2 ? { title: head.text, guides: [] } : null;
       if (current && !/run the guard|install/i.test(current.title)) groups.push(current);
       else current = null;
+      continue;
+    }
+    if (!current && !started) {
+      for (const link of line.matchAll(MD_LINK)) {
+        const path = docsPath(link[2]);
+        if (!path || lead.some((guide) => guide.path === path)) continue;
+        const before = line
+          .slice(0, link.index ?? 0)
+          .replace(/^\s*(?:[-*+]|\d+\.)\s+/, '')
+          .replace(MD_LINK, '$1')
+          .replace(/[*_`]/g, '')
+          .replace(/[\s,;:]*\b(?:in|see|at|from|read)\s*$/i, '')
+          .replace(/[\s,;:]+$/, '')
+          .trim();
+        lead.push({ path, title: sentence(link[1].replace(/[*_`]/g, '').trim()), description: before.split(/\s+/).length >= 3 ? sentence(before) : null });
+      }
       continue;
     }
     if (!current) continue;
@@ -428,7 +482,14 @@ export function parseGuideIndex(source: string): GuideGroup[] {
       current.guides.push(guide);
     }
   }
-  return groups.filter((group) => group.guides.length > 0);
+  // A section that lists the guide too keeps it, with its own words.
+  const extra = lead.filter((guide) => !seen.has(guide.path));
+  const listed = groups.filter((group) => group.guides.length > 0);
+  if (extra.length > 0) {
+    if (listed.length > 0) listed[0].guides.push(...extra);
+    else listed.push({ title: 'Guides', guides: extra });
+  }
+  return listed;
 }
 
 /** One guide per kind of app, the every-app one first. */
@@ -459,6 +520,24 @@ export function anchorOf(title: string): string {
 
 export const RULES_FILE = 'data/rejection-patterns.json';
 export const DEADLINES_FILE = 'data/regulatory-deadlines.json';
+export const READINESS_TEMPLATE = 'templates/app-review-readiness.json';
+export const REVIEW_NOTES_TEMPLATE = 'templates/REVIEW-NOTES-TEMPLATE.md';
+
+/**
+ * The checks of the readiness file the playbook's guard reads, in the order
+ * its template lists them: the keys of the template's `checks`. Anything that
+ * is not such a file gives none.
+ */
+export function parseReadinessTemplate(source: string | null | undefined): string[] {
+  if (!source) return [];
+  try {
+    const checks = (JSON.parse(source) as { checks?: unknown } | null)?.checks;
+    if (!checks || typeof checks !== 'object' || Array.isArray(checks)) return [];
+    return Object.keys(checks).filter((key) => /^[a-z][a-z0-9_]{0,63}$/.test(key));
+  } catch {
+    return [];
+  }
+}
 
 /**
  * Check the two data files of an update before it is kept. Throws
@@ -492,6 +571,8 @@ export function usableFile(file: Pick<StoredFile, 'path' | 'text'>): boolean {
       return checklistItems(parseChecklist(file.text)).length > 0;
     case 'docs/index.md':
       return parseGuideIndex(file.text).length > 0;
+    case READINESS_TEMPLATE:
+      return parseReadinessTemplate(file.text).length > 0;
     default:
       return file.text.trim().length > 0;
   }
@@ -530,7 +611,8 @@ export function buildLibrary(files: Map<string, Pick<StoredFile, 'path' | 'text'
     appTypes: parseAppTypes([...files.values()].filter((file) => file.path.startsWith('references/guidelines/by-app-type/'))),
     guides: indexFile ? parseGuideIndex(indexFile.text) : [],
     notice: files.get('NOTICE')?.text.trim() || null,
-    reviewNotes: files.get('templates/REVIEW-NOTES-TEMPLATE.md')?.text ?? null,
+    reviewNotes: files.get(REVIEW_NOTES_TEMPLATE)?.text ?? null,
+    readinessChecks: parseReadinessTemplate(files.get(READINESS_TEMPLATE)?.text),
     commit,
   };
 }

@@ -6,11 +6,25 @@
 // section.
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowRightIcon, BookOpenIcon, CalendarClockIcon, CheckIcon, MessageSquareWarningIcon, ShieldAlertIcon, SparklesIcon, XIcon } from 'lucide-react';
+import {
+  AlertTriangleIcon,
+  ArrowRightIcon,
+  BookOpenIcon,
+  CalendarClockIcon,
+  CheckIcon,
+  ClipboardCheckIcon,
+  MessageSquareWarningIcon,
+  ShieldAlertIcon,
+  ShieldCheckIcon,
+  SparklesIcon,
+  XIcon,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { readLastCheck } from '@/lib/storeCompliance/chat';
+import { rulePack, type RulePack } from '@/lib/storeCompliance/freshness';
 import { checklistItemsFor, deadlineDay } from '@/lib/storeCompliance/parse';
 import { checkText, deadlineTitle, placeName, ruleTitle } from '@/lib/storeCompliance/plain';
+import { readinessChecks, summarize, useReadiness } from '@/lib/storeCompliance/readiness';
 import { daysUntil, deadlineStore, deadlinesByDay, ruleForStores } from '@/lib/storeCompliance/search';
 import { markNewsSeen } from '@/lib/storeCompliance/sync';
 import { countsAsDone, DEVICE_LIST, useTicks } from '@/lib/storeCompliance/ticks';
@@ -65,11 +79,47 @@ function Tile({ icon: Icon, value, label, detail, onClick }: { icon: React.Compo
   );
 }
 
+/** "a, b and c". */
+function listWords(parts: string[]): string {
+  return parts.length <= 1 ? parts.join('') : `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
+}
+
+/** How current the rules are, as the playbook's guard says it (freshness.ts). */
+export function RulePackLine({ pack }: { pack: RulePack }) {
+  const version = pack.version ? ` (version ${pack.version})` : '';
+  return (
+    <div className="flex items-start gap-2.5 rounded-xl border bg-card/60 px-4 py-3 text-xs leading-relaxed text-muted-foreground" data-testid="store-compliance-freshness">
+      <ShieldCheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-[hsl(var(--rules-accent))]" />
+      <div className="min-w-0 space-y-0.5">
+        {pack.newest && pack.age !== null ? (
+          <p>
+            The playbook last checked Apple&apos;s, Google&apos;s and the laws&apos; own pages on{' '}
+            <span className="font-medium text-foreground">{formatDay(pack.newest)}</span>
+            {version}.
+          </p>
+        ) : (
+          <p>The playbook doesn&apos;t say when it last checked Apple&apos;s, Google&apos;s and the laws&apos; own pages{version}, so some rules may be out of date.</p>
+        )}
+        {!pack.stale && pack.old > 0 && (
+          <p>
+            {pack.old === 1 ? `1 of ${pack.total} deadlines hasn't` : `${pack.old} of ${pack.total} deadlines haven't`} been checked again for more than {pack.window} days, so{' '}
+            {pack.old === 1 ? 'it' : 'they'} may have changed.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function StoreComplianceOverview() {
   const view = useRulesView();
   const { library, stores, project, today } = view;
   const list = project.id ?? DEVICE_LIST;
   const { ticks, toggle } = useTicks(list);
+  const readiness = useReadiness(list);
+  const readinessList = useMemo(() => readinessChecks(library.readinessChecks), [library.readinessChecks]);
+  const tried = summarize(readiness.record, readinessList, today);
+  const pack = useMemo(() => rulePack(library, today), [library, today]);
   const [lastCheck, setLastCheck] = useState<{ result: CheckResult; projectName: string } | null>(null);
 
   useEffect(() => {
@@ -103,20 +153,39 @@ export function StoreComplianceOverview() {
   const news = view.state.news && !view.state.news.seen ? view.state.news : null;
   const storeWords = stores.length === 2 ? 'App Store and Google Play' : stores[0] === 'apple' ? 'App Store' : 'Google Play';
 
+  const changes = news?.changed?.length ?? 0;
+
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-5 p-4 md:p-6" data-testid="store-compliance-overview">
+      {pack.stale && pack.age !== null && (
+        <div className="flex items-start gap-3 rounded-xl border border-[hsl(var(--rules-high))]/40 bg-[hsl(var(--rules-high))]/10 px-4 py-3" role="status" data-testid="store-compliance-stale">
+          <AlertTriangleIcon className="mt-0.5 h-4 w-4 shrink-0 text-[hsl(var(--rules-high))]" />
+          <p className="min-w-0 flex-1 text-sm">
+            <span className="font-medium">The playbook hasn&apos;t checked Apple&apos;s and Google&apos;s pages for {pack.age} days.</span> Something may have changed since then. The rules here update when the playbook on GitHub does.
+          </p>
+        </div>
+      )}
       {news && (
         <div className="flex flex-wrap items-center gap-3 rounded-xl border border-[hsl(var(--rules-accent))]/30 bg-[hsl(var(--rules-accent))]/5 px-4 py-3" role="status" data-testid="store-compliance-news">
           <SparklesIcon className="h-4 w-4 shrink-0 text-[hsl(var(--rules-accent))]" />
           <p className="min-w-0 flex-1 text-sm">
             <span className="font-medium">New since your last visit:</span>{' '}
-            {[news.rules.length ? `${news.rules.length} rejection reason${news.rules.length === 1 ? '' : 's'}` : '', news.deadlines.length ? `${news.deadlines.length} deadline${news.deadlines.length === 1 ? '' : 's'}` : '']
-              .filter(Boolean)
-              .join(' and ')}
+            {listWords(
+              [
+                news.rules.length ? `${news.rules.length} rejection reason${news.rules.length === 1 ? '' : 's'}` : '',
+                news.deadlines.length ? `${news.deadlines.length} deadline${news.deadlines.length === 1 ? '' : 's'}` : '',
+                changes ? `${changes} change${changes === 1 ? '' : 's'} to deadlines` : '',
+              ].filter(Boolean)
+            )}
           </p>
           {news.rules.length > 0 && (
             <Button size="sm" variant="outline" className="h-8" onClick={() => view.goTo('rules', { onlyNew: true })}>
               See the new rules
+            </Button>
+          )}
+          {(news.deadlines.length > 0 || changes > 0) && (
+            <Button size="sm" variant="outline" className="h-8" onClick={() => view.goTo('deadlines')}>
+              See the deadlines
             </Button>
           )}
           <Button size="icon" variant="ghost" className="h-8 w-8" title="Close" aria-label="Close the note about new rules" onClick={() => void markNewsSeen()}>
@@ -234,7 +303,24 @@ export function StoreComplianceOverview() {
         </section>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Tile
+          icon={ClipboardCheckIcon}
+          value={`${tried.done} of ${tried.total}`}
+          label="Test like a reviewer"
+          detail={
+            tried.failed > 0
+              ? tried.failed === 1
+                ? "1 check didn't work"
+                : `${tried.failed} checks didn't work`
+              : tried.old > 0
+                ? `${tried.old} to try again`
+                : tried.done === tried.total
+                  ? 'Every check works'
+                  : 'What a reviewer tries on your app'
+          }
+          onClick={() => view.goTo('readiness')}
+        />
         <Tile
           icon={ShieldAlertIcon}
           value={String(rules.length)}
@@ -309,6 +395,8 @@ export function StoreComplianceOverview() {
           </ul>
         </section>
       </div>
+
+      <RulePackLine pack={pack} />
     </div>
   );
 }

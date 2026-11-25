@@ -34,17 +34,23 @@ export interface RejectionRule {
   plain?: PlainRule;
 }
 
+/**
+ * A rule in everyday words. A rule too long to shorten without losing a
+ * condition has a plain title only (problem and fix null), and its own words
+ * show under it.
+ */
 export interface PlainRule {
   title: string;
   /** What the reviewer sees and why the app is turned down. */
-  problem: string;
-  fix: string;
+  problem: string | null;
+  fix: string | null;
 }
 
+/** A deadline in everyday words, or a plain title only (summary null), as for a rule. */
 export interface PlainDeadline {
   title: string;
   /** Who it applies to and what they have to do. */
-  summary: string;
+  summary: string | null;
 }
 
 export interface Deadline {
@@ -62,8 +68,18 @@ export interface Deadline {
   sourceUrl: string | null;
   verifiedOn: string | null;
   sourceNote: string | null;
+  /** What the playbook last changed in this entry, and when (its `history`). */
+  change: DeadlineChange | null;
   /** The deadline in everyday words (plain.ts), when the repository has them for this wording. */
   plain?: PlainDeadline;
+}
+
+/** The playbook's note on a deadline it corrected: "2026-11-25. The sharing limit was 20 devices...". */
+export interface DeadlineChange {
+  /** YYYY-MM-DD, when the note starts with one. */
+  day: string | null;
+  /** The note in the playbook's words, without the date. */
+  text: string;
 }
 
 export interface ChecklistItem {
@@ -75,6 +91,8 @@ export interface ChecklistItem {
   plain?: string;
   /** Every app has this check, so it can never be marked as not applying (the checklist's own rule). */
   always?: boolean;
+  /** A box about one store only, whose words start with the store's name: "Apple. A custom screen...". */
+  store?: ShipStore;
 }
 
 export interface ChecklistGroup {
@@ -142,6 +160,11 @@ export interface RulesLibrary {
   notice: string | null;
   /** The App Review notes template, Markdown. */
   reviewNotes: string | null;
+  /**
+   * The checks of the readiness file the playbook's guard reads, in the order
+   * of templates/app-review-readiness.json. Empty when the playbook has none.
+   */
+  readinessChecks: string[];
   /** The commit the files are from. Null for a copy read from the branch without GitHub's API. */
   commit: string | null;
 }
@@ -191,6 +214,8 @@ export interface SyncNews {
   at: number;
   rules: string[];
   deadlines: string[];
+  /** Deadlines the playbook corrected: a new or reworded `history` note. Missing on notes saved before. */
+  changed?: string[];
   /** Set when the user closed the note. */
   seen: boolean;
 }

@@ -10,7 +10,7 @@
 // that only points to a guide, so its links show as buttons under them.
 
 import React, { useMemo, useState } from 'react';
-import { BookOpenIcon, CheckIcon, ChevronDownIcon, InfoIcon, MinusIcon, RotateCcwIcon, SparklesIcon } from 'lucide-react';
+import { BookOpenIcon, CheckIcon, ChevronDownIcon, ClipboardCheckIcon, InfoIcon, MinusIcon, RotateCcwIcon, SparklesIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -22,6 +22,11 @@ import { cn } from '@/lib/utils';
 import { InlineMarkdown } from './RulesMarkdown';
 import { CHECKLIST_PATH, PlainText, useGuideLinks, useRulesView } from './StoreComplianceShared';
 
+/** The box that asks for the playbook's readiness file, which Test like a reviewer writes. */
+export function asksForReadinessFile(item: Pick<ChecklistItem, 'text'>): boolean {
+  return /app-review-readiness\.json/i.test(item.text);
+}
+
 function Item({
   item,
   tick,
@@ -29,6 +34,7 @@ function Item({
   onNotApplying,
   onAsk,
   onLink,
+  onReadiness,
 }: {
   item: ChecklistItem;
   tick: Tick | undefined;
@@ -36,6 +42,7 @@ function Item({
   onNotApplying: (reason: string | null) => void;
   onAsk: () => void;
   onLink: (href: string) => void;
+  onReadiness: () => void;
 }) {
   const [writing, setWriting] = useState(false);
   const [reason, setReason] = useState('');
@@ -101,6 +108,17 @@ function Item({
             <p className="mt-1 text-xs text-muted-foreground">
               <span className="font-medium text-foreground">Doesn&apos;t apply:</span> {tick?.na}
             </p>
+          )}
+          {asksForReadinessFile(item) && (
+            <button
+              type="button"
+              onClick={onReadiness}
+              className="mt-1.5 inline-flex items-center gap-1.5 rounded-full border bg-background px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+              data-testid="store-checklist-readiness"
+            >
+              <ClipboardCheckIcon className="h-3.5 w-3.5" />
+              Answer them in Test like a reviewer
+            </button>
           )}
           {writing && (
             <form
@@ -184,6 +202,7 @@ function Section({
   onNotApplying,
   onAsk,
   onLink,
+  onReadiness,
 }: {
   section: ChecklistSection;
   ticks: Map<string, Tick>;
@@ -193,6 +212,7 @@ function Section({
   onNotApplying: (id: string, reason: string | null) => void;
   onAsk: (item: ChecklistItem) => void;
   onLink: (href: string) => void;
+  onReadiness: () => void;
 }) {
   const groups = section.groups
     .map((group) => ({ ...group, items: group.items.filter((item) => shown.has(item.id)) }))
@@ -255,6 +275,7 @@ function Section({
                     onNotApplying={(reason) => onNotApplying(item.id, reason)}
                     onAsk={() => onAsk(item)}
                     onLink={onLink}
+                    onReadiness={onReadiness}
                   />
                 ))}
               </ul>
@@ -360,6 +381,7 @@ export function StoreComplianceChecklist() {
             onNotApplying={markNotApplying}
             onAsk={(item) => view.ask(`What does this check mean, and how do I check it for my app? "${checkText(item)}"`)}
             onLink={onLink}
+            onReadiness={() => view.goTo('readiness')}
           />
         ))}
     </div>

@@ -14,17 +14,22 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { askPrompt, checkPrompt, checkRules, cleanAnswer, codeFile, historyFor, readCheckAnswer, verifyCodeFindings, type CheckInput } from '@/lib/storeCompliance/ai';
 import { turnsOf, type ChatEntry } from '@/lib/storeCompliance/chat';
 import { folderBlockFromError } from '@/lib/storeCompliance/codeFolder';
+import { rulePack, shiftDay } from '@/lib/storeCompliance/freshness';
 import {
   BrokenFileError,
+  READINESS_TEMPLATE,
   buildLibrary,
+  changeNote,
   checklistItems,
   checklistItemsFor,
   docsPath,
   parseChecklist,
   parseDeadlines,
   parseGuideIndex,
+  parseReadinessTemplate,
   parseRules,
   repoPath,
+  storeOfItem,
   usableFile,
 } from '@/lib/storeCompliance/parse';
 import { artboardPlaces, MAX_CHARACTERS, storePagePlaces } from '@/lib/storeCompliance/places';
@@ -49,11 +54,13 @@ import {
 import { daysUntil, deadlinesByDay, extractsFor, searchRules, termsOf } from '@/lib/storeCompliance/search';
 import { BRANCH_HEAD_URL, RULES_REPO, isCorePath, isGuidePath } from '@/lib/storeCompliance/source';
 import { memoryRulesStore } from '@/lib/storeCompliance/store';
-import { checkDue, openStoreCompliance, readGuide, runSync, setRulesSyncDeps, type SyncDeps } from '@/lib/storeCompliance/sync';
+import { dayOf, readinessChecks, readinessFileText, readRecord, summarize } from '@/lib/storeCompliance/readiness';
+import { checkDue, openStoreCompliance, readGuide, runSync, setRulesSyncDeps, whatsNew, type SyncDeps } from '@/lib/storeCompliance/sync';
 import { countsAsDone } from '@/lib/storeCompliance/ticks';
 import { gitBlobSha } from '@/lib/website/github';
 import { InlineMarkdown, markdownSource, parseBlocks, RulesMarkdown } from '@/components/open-screenshot-generator/storeCompliance/RulesMarkdown';
 import type { ListingSnapshot } from '@/lib/growth/types';
+import type { ShipStore } from '@/lib/storeCompliance/types';
 import type { ArtboardState, TextElementProps } from '@/types/artboard';
 
 // --- a made-up playbook ---------------------------------------------------------
@@ -392,6 +399,9 @@ function plainFile(rulesSource = JSON.stringify(RULES), deadlinesSource = JSON.s
   const deadlines = parseDeadlines(deadlinesSource);
   const demo = rules.find((rule) => rule.id === 'APPLE-2.1-DEMO')!;
   const ai = deadlines.find((deadline) => deadline.id === 'EU-AI-50')!;
+  const sdk = deadlines.find((deadline) => deadline.id === 'APPLE-SDK')!;
+  const other = rules.find((rule) => rule.id === 'BOTH-OTHER-STORE')!;
+  const cookies = rules.find((rule) => rule.id === 'WEB-COOKIES')!;
   const firstBox = checklistItems(parseChecklist(CHECKLIST))[0];
   return JSON.stringify({
     version: 1,
@@ -399,11 +409,16 @@ function plainFile(rulesSource = JSON.stringify(RULES), deadlinesSource = JSON.s
       'APPLE-2.1-DEMO': { from: ruleFingerprint(demo), title: 'Reviewer has no way to sign in', problem: 'The reviewer cannot sign in, so they stop.', fix: 'Give them an account that works.' },
       // Written from words the playbook has since changed.
       'GOOGLE-LISTING-CLAIMS': { from: 'deadbeef', title: 'Old plain words', problem: 'Old.', fix: 'Old.' },
-      // Not a whole entry: left out.
-      'BOTH-OTHER-STORE': { from: 'x', title: 'No problem or fix' },
+      // Half an entry, a problem with no fix, is neither whole nor a title only: left out.
+      'BOTH-OTHER-STORE': { from: ruleFingerprint(other), title: 'Half an entry', problem: 'A problem but no fix.' },
+      // Too long to shorten: a plain title only, the playbook's words under it.
+      'WEB-COOKIES': { from: ruleFingerprint(cookies), title: 'Cookies before people say yes', problem: '', fix: '' },
       'APPLE-5.1.1-DELETE': { from: 'x', title: 'T'.repeat(500), problem: 'p', fix: 'f' },
     },
-    deadlines: { 'EU-AI-50': { from: deadlineFingerprint(ai), title: 'Say when people talk to an AI', summary: 'If your app has an AI chat, say so.' } },
+    deadlines: {
+      'EU-AI-50': { from: deadlineFingerprint(ai), title: 'Say when people talk to an AI', summary: 'If your app has an AI chat, say so.' },
+      'APPLE-SDK': { from: deadlineFingerprint(sdk), title: 'Build with the newest Apple tools', summary: '' },
+    },
     checklist: { [checklistKey(firstBox.id)]: { text: 'Your review notes have a demo account that works.' } },
   });
 }
@@ -422,6 +437,10 @@ test('plain: the plain words show while they match the playbook, its own words o
   assert.equal(rule('APPLE-2.1-DEMO').title, 'No demo account for the reviewer', "the playbook's own words stay for the developer and the AI");
   assert.equal(ruleTitle(rule('GOOGLE-LISTING-CLAIMS')), 'Ranking claims in the listing', 'plain words written from older words are not shown');
   assert.equal(rule('BOTH-OTHER-STORE').plain, undefined, 'an entry missing a field is left out');
+  assert.equal(ruleTitle(rule('WEB-COOKIES')), 'Cookies before people say yes', 'a title-only entry gives the plain title');
+  assert.equal(ruleProblem(rule('WEB-COOKIES')), 'Tracking cookies set at once.', "and the playbook's words for the rest");
+  assert.equal(ruleFix(rule('WEB-COOKIES')), 'Ask first.');
+  assert.deepEqual(searchRules(plain.rules, 'null').map((entry) => entry.id), [], 'an empty part is not searched as text');
   assert.equal(rule('APPLE-5.1.1-DELETE').plain, undefined, 'a title too long to be a title is left out');
   assert.equal(ruleProblem(rule('APPLE-5.1.1-DELETE')), 'Accounts with no way to delete them.');
 
@@ -429,6 +448,9 @@ test('plain: the plain words show while they match the playbook, its own words o
   assert.equal(deadlineTitle(ai), 'Say when people talk to an AI');
   assert.equal(deadlineSummary(ai), 'If your app has an AI chat, say so.');
   assert.equal(ai.law, 'EU AI Act Article 50');
+  const sdk = plain.deadlines.find((deadline) => deadline.id === 'APPLE-SDK')!;
+  assert.equal(deadlineTitle(sdk), 'Build with the newest Apple tools');
+  assert.equal(deadlineSummary(sdk), 'Use the new SDK.', 'a title only keeps the requirement in the playbook words');
   const jp = plain.deadlines.find((deadline) => deadline.id === 'PLAY-JP')!;
   assert.equal(deadlineTitle(jp), 'Play payments form for Japan', 'without plain words, the law names it');
   assert.equal(deadlineSummary(jp), 'Fill in the payments form.');
@@ -1285,4 +1307,203 @@ test('markdown: a numeric entity that names no character becomes a replacement m
     React.createElement(RulesMarkdown, { blocks: parseBlocks(markdownSource('A &#99999999999; B &#xD800; C &#x110000; D &#0; E &#65; F &#x263A;')), onLink: () => undefined })
   );
   assert.match(html, /A \uFFFD B \uFFFD C \uFFFD D \uFFFD E A F \u263A/);
+});
+
+// --- what the playbook added in 2.5 ------------------------------------------------
+
+test('deadlines: a corrected deadline carries the playbook note and its day, the newest of several', () => {
+  assert.deepEqual(changeNote('2026-11-25. The sharing limit was 20 devices.'), { day: '2026-11-25', text: 'The sharing limit was 20 devices.' });
+  assert.deepEqual(changeNote('Corrected in place.'), { day: null, text: 'Corrected in place.' }, 'a note without a day keeps its words');
+  assert.deepEqual(changeNote('2026-11-25'), { day: null, text: '2026-11-25' }, 'a day alone is not a note without words');
+  assert.equal(changeNote(''), null);
+  assert.equal(changeNote({ day: '2026-11-25' }), null, 'only text counts');
+  assert.deepEqual(changeNote(['2026-11-19. First.', '2026-11-25. Second.', '2026-11-20. Third.']), { day: '2026-11-25', text: 'Second.' }, 'the newest by day');
+  assert.deepEqual(changeNote(['Undated.', '2026-11-19. Dated.']), { day: '2026-11-19', text: 'Dated.' });
+  const deadlines = parseDeadlines(
+    JSON.stringify({ deadlines: [{ ...DEADLINES.deadlines[0], history: '2026-11-19. Obligation narrowed in place.' }, DEADLINES.deadlines[1]] })
+  );
+  assert.deepEqual(deadlines[0].change, { day: '2026-11-19', text: 'Obligation narrowed in place.' });
+  assert.equal(deadlines[1].change, null);
+  assert.equal(deadlineFingerprint(deadlines[0]), deadlineFingerprint(parseDeadlines(JSON.stringify(DEADLINES))[0]), 'a note leaves the plain words fresh');
+});
+
+test('checklist: a box that names one store first is only for that store', () => {
+  assert.equal(storeOfItem('Apple. A custom screen before a permission alert has one button.'), 'apple');
+  assert.equal(storeOfItem('Google Play. A screen that explains a permission lets the user decline.'), 'google');
+  assert.equal(storeOfItem('China mainland App Store. On App Compliance, an Account Holder answers.'), 'apple');
+  assert.equal(storeOfItem('**Android.** Every foreground service declares its type.'), 'google');
+  assert.equal(storeOfItem('Biometric. written consent before capture.'), undefined, 'a label that names no store');
+  assert.equal(storeOfItem('Health app. the HIPAA gate.'), undefined);
+  assert.equal(storeOfItem('Apple and Google. Both stores.'), undefined, 'both stores is neither');
+  assert.equal(storeOfItem('Sign in with Apple is offered next to the other logins. Then more.'), undefined, 'a sentence is not a label');
+  assert.equal(storeOfItem('Account deletion tested on a real device. Apple allows records the law requires.'), undefined, 'a store named later says nothing');
+  assert.equal(storeOfItem('Digital goods use the official store billing.'), undefined);
+  const checklist = parseChecklist(`# Checklist
+
+## Shared (both stores)
+
+### Privacy and data
+- [ ] Account creating apps offer in app account deletion.
+- [ ] Apple. A custom screen before a permission alert has one button titled Continue.
+- [ ] Google Play. A screen that explains a permission lets the user decline.
+`);
+  const ids = (stores: ShipStore[]) => checklistItemsFor(checklist, stores).map((item) => item.text.slice(0, 12));
+  assert.deepEqual(ids(['apple', 'google']), ['Account crea', 'Apple. A cus', 'Google Play.']);
+  assert.deepEqual(ids(['apple']), ['Account crea', 'Apple. A cus']);
+  assert.deepEqual(ids(['google']), ['Account crea', 'Google Play.']);
+  const apple = checklist.sections[0].groups[0].items[1];
+  assert.equal(apple.store, 'apple');
+  assert.equal(apple.id, parseChecklist(`# C\n\n## S\n\n- [ ] ${apple.text}\n`).sections[0].groups[0].items[0].id, 'the store leaves the box id as the words make it');
+});
+
+test('guide index: a guide linked above the first section joins the first group, unless a section lists it', () => {
+  const lead = `# Playbook
+
+**The short answer.** Text.
+
+- **An honest split** between what the scan proves and what only a person can check, in [What the scan proves](WHAT-THE-SCAN-PROVES.md). A clean scan is not an approval.
+- [Pre-submission checklist](PRE-SUBMISSION-CHECKLIST.md) up here too.
+- Free to read. Source on [GitHub](https://github.com/x/y).
+
+${INDEX.replace(/^---[\s\S]*?---\n\n# Playbook\n/, '')}`;
+  const groups = parseGuideIndex(lead);
+  assert.deepEqual(groups.map((group) => group.title), ['Start here', 'Laws and deadlines']);
+  assert.deepEqual(groups[0].guides.map((guide) => guide.path), ['docs/PRE-SUBMISSION-CHECKLIST.md', 'docs/APPLE.md', 'docs/WHAT-THE-SCAN-PROVES.md']);
+  assert.deepEqual(groups[0].guides[2], {
+    path: 'docs/WHAT-THE-SCAN-PROVES.md',
+    title: 'What the scan proves',
+    description: 'An honest split between what the scan proves and what only a person can check',
+  });
+  assert.equal(groups[0].guides[0].description, 'About to submit', 'the section that lists a guide keeps its own words for it');
+  assert.deepEqual(parseGuideIndex('# Playbook\n\n- Read [the FAQ](FAQ.md).\n'), [{ title: 'Guides', guides: [{ path: 'docs/FAQ.md', title: 'The FAQ', description: null }] }]);
+  assert.deepEqual(parseGuideIndex(INDEX), parseGuideIndex(INDEX.replace('# Playbook\n', '# Playbook\n\nNo links up here.\n')), 'nothing changes without links above');
+});
+
+test('readiness: the checks come from the template, the guard seven without one', () => {
+  const template = JSON.stringify({ build: '1.0.0 (1)', checked_on: 'YYYY-MM-DD', enforce: false, checks: { demo_account: 'todo', review_notes: 'todo', testflight_link: 'todo', 'Bad Key': 'todo' }, notes: {} });
+  assert.deepEqual(parseReadinessTemplate(template), ['demo_account', 'review_notes', 'testflight_link']);
+  assert.deepEqual(parseReadinessTemplate('{"checks": ["demo_account"]}'), []);
+  assert.deepEqual(parseReadinessTemplate('{"checks": null}'), []);
+  assert.deepEqual(parseReadinessTemplate('{ "checks": '), []);
+  assert.deepEqual(parseReadinessTemplate(null), []);
+  assert.equal(usableFile({ path: READINESS_TEMPLATE, text: template }), true);
+  assert.equal(usableFile({ path: READINESS_TEMPLATE, text: '{"checks": {}}' }), false, 'a template with no checks keeps the copy that worked');
+  assert.ok(isCorePath(READINESS_TEMPLATE), 'the template comes with the other core files');
+  assert.deepEqual(readinessChecks([]).map((check) => check.key), [
+    'demo_account',
+    'live_backend',
+    'review_notes',
+    'screenshots_match_build',
+    'account_deletion_device_test',
+    'privacy_labels_match_runtime',
+    'iap_reachable_by_reviewer',
+  ]);
+  const checks = readinessChecks(parseReadinessTemplate(template));
+  assert.deepEqual(checks.map((check) => [check.key, check.title.slice(0, 20), !!check.how]), [
+    ['demo_account', 'The reviewer can sig', true],
+    ['review_notes', 'Your review notes sa', true],
+    ['testflight_link', 'Testflight link', false],
+  ]);
+  assert.equal(readinessChecks([]).find((check) => check.key === 'privacy_labels_match_runtime')!.naAllowed, false, 'every app has privacy answers');
+  const library = buildLibrary(new Map(Object.entries(repoFiles({ [READINESS_TEMPLATE]: template })).map(([path, text]) => [path, { path, text }])), 'abc')!;
+  assert.deepEqual(library.readinessChecks, ['demo_account', 'review_notes', 'testflight_link']);
+  assert.deepEqual(buildLibrary(new Map(Object.entries(repoFiles()).map(([path, text]) => [path, { path, text }])), 'abc')!.readinessChecks, []);
+});
+
+test('readiness: the file says pass, fail, n/a with its reason, or todo, dated by the oldest answer', () => {
+  const day = (iso: string) => Date.parse(`${iso}T12:00:00`);
+  const checks = readinessChecks([]);
+  const record = readRecord({
+    build: ' 1.2 (14) ',
+    enforce: true,
+    marks: {
+      demo_account: { value: 'pass', at: day('2026-11-20') },
+      live_backend: { value: 'fail', at: day('2026-11-24'), note: 'Server was down' },
+      review_notes: { value: 'na', at: day('2026-11-25') },
+      screenshots_match_build: { value: 'pass', at: day('2026-11-23') },
+      privacy_labels_match_runtime: { value: 'na', at: day('2026-11-22'), note: 'No data' },
+      iap_reachable_by_reviewer: { value: 'na', at: day('2026-11-21'), note: '  Nothing to buy  ' },
+      not_a_check: { value: 'pass', at: day('2026-01-01') },
+      account_deletion_device_test: { value: 'maybe', at: day('2026-11-25') },
+    },
+  });
+  assert.equal(record.marks.review_notes, undefined, 'n/a without a reason is no answer');
+  assert.equal(record.marks.account_deletion_device_test, undefined, 'an unknown value is no answer');
+  const file = JSON.parse(readinessFileText(record, checks, '2026-11-25'));
+  assert.deepEqual(file, {
+    build: '1.2 (14)',
+    checked_on: '2026-11-20',
+    enforce: true,
+    checks: {
+      demo_account: 'pass',
+      live_backend: 'fail',
+      review_notes: 'todo',
+      screenshots_match_build: 'pass',
+      account_deletion_device_test: 'todo',
+      privacy_labels_match_runtime: 'todo',
+      iap_reachable_by_reviewer: 'n/a',
+    },
+    notes: { live_backend: 'Server was down', iap_reachable_by_reviewer: 'Nothing to buy' },
+  });
+  assert.ok(!('not_a_check' in file.checks), 'an answer to a check the playbook no longer has stays out');
+  assert.deepEqual(summarize(record, checks, '2026-11-25'), { total: 7, done: 3, failed: 1, open: 3, old: 0, checkedOn: '2026-11-20' });
+  assert.equal(summarize(record, checks, '2026-12-20').old, 0, '30 days is not old yet');
+  assert.equal(summarize(record, checks, '2026-12-21').old, 1, 'one answer is 31 days old');
+  const ahead = readRecord({ build: '', enforce: false, marks: { demo_account: { value: 'pass', at: day('2026-12-30') } } });
+  const aheadFile = JSON.parse(readinessFileText(ahead, checks, '2026-11-25'));
+  assert.equal(aheadFile.checked_on, '2026-11-25', 'an answer dated after today, from a clock that was wrong, says today');
+  assert.equal('build' in aheadFile, false, 'no version written, none sent');
+  assert.equal(aheadFile.enforce, false);
+  assert.equal(dayOf(day('2026-11-20')), '2026-11-20');
+});
+
+test('freshness: how current the rules are, the way the playbook guard says it', () => {
+  const at = (...days: Array<string | null>) => ({ version: '2.5.2', deadlines: days.map((verifiedOn, index) => ({ ...parseDeadlines(JSON.stringify(DEADLINES))[0], id: `D${index}`, verifiedOn })) });
+  assert.deepEqual(rulePack(at('2026-09-01', '2026-11-25', null, '2026-09-26', '2026-09-25'), '2026-11-25'), {
+    version: '2.5.2',
+    total: 4,
+    oldest: '2026-09-01',
+    newest: '2026-11-25',
+    age: 0,
+    old: 2,
+    stale: false,
+    window: 60,
+  });
+  assert.equal(shiftDay('2026-11-25', -60), '2026-09-26', 'a source checked on the window edge is not old');
+  const stale = rulePack(at('2026-07-13', '2026-09-25'), '2026-11-25');
+  assert.equal(stale.age, 61);
+  assert.equal(stale.stale, true);
+  const edge = rulePack(at('2026-09-26'), '2026-11-25');
+  assert.deepEqual([edge.age, edge.stale, edge.old], [60, false, 0], '60 days is still fresh');
+  const ahead = rulePack(at('2026-12-01'), '2026-11-25');
+  assert.deepEqual([ahead.age, ahead.stale, ahead.old], [null, false, 0], 'a newest day after today cannot be compared');
+  const none = rulePack(at(null), '2026-11-25');
+  assert.deepEqual([none.total, none.newest, none.age, none.stale], [0, null, null, false]);
+});
+
+test('sync: an update that corrects a deadline notes the change, a new deadline only as new', async () => {
+  const hub = fakeGitHub(repoFiles());
+  const store = memoryRulesStore();
+  await runSync(hub.deps(store));
+  const corrected = {
+    deadlines: [
+      { ...DEADLINES.deadlines[0], history: '2026-11-25. The date was read again.' },
+      DEADLINES.deadlines[1],
+      DEADLINES.deadlines[2],
+      { id: 'NEW-ONE', jurisdiction: 'Google Play (Global)', law: 'A new rule', requirement: 'Do it.', mandatory_date: '2027-01-01', priority: 'high', history: '2026-11-25. Added.' },
+    ],
+  };
+  hub.push(repoFiles({ 'data/regulatory-deadlines.json': JSON.stringify(corrected) }), sha40('c9'));
+  await runSync(hub.deps(store));
+  const news = (await store.readNews())!;
+  assert.deepEqual([news.rules, news.deadlines, news.changed], [[], ['NEW-ONE'], ['EU-AI-50']]);
+  hub.push(repoFiles({ 'data/regulatory-deadlines.json': JSON.stringify({ deadlines: [{ ...corrected.deadlines[0] }, ...corrected.deadlines.slice(1, 3), { ...corrected.deadlines[3], history: '2026-11-26. Reworded.' }] }) }), sha40('ca'));
+  await runSync(hub.deps(store));
+  const later = (await store.readNews())!;
+  assert.deepEqual([later.deadlines, later.changed], [['NEW-ONE'], ['EU-AI-50']], 'a deadline still new since the last visit is not counted as changed too');
+  const before = buildLibrary(new Map(Object.entries(repoFiles()).map(([path, text]) => [path, { path, text }])), 'a')!;
+  assert.deepEqual(whatsNew(before, before), { rules: [], deadlines: [], changed: [] });
+  const after = buildLibrary(new Map(Object.entries(repoFiles({ 'data/regulatory-deadlines.json': JSON.stringify(corrected) })).map(([path, text]) => [path, { path, text }])), 'b')!;
+  assert.deepEqual(whatsNew(before, after), { rules: [], deadlines: ['NEW-ONE'], changed: ['EU-AI-50'] }, 'a new deadline with a note is new, not changed');
+  assert.deepEqual(whatsNew(after, after).changed, [], 'the same note again is no change');
 });
