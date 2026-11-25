@@ -79,6 +79,7 @@ Head and shoulders, all licensed 2026-11-25.
 | portrait-as479584352.png | 479584352 | Close up smiling young black man by against background |
 | portrait-as488338515.png | 488338515 | Handsome young man in knitted sweater on white background |
 | portrait-as187373690.png | 187373690 | Studio shot of young man wearing blue turtleneck sweater against |
+| portrait-as572592392.png | 572592392 | Glad woman with curly hair, wears optical glasses, denim jacket, looks straightly at camera, isolated on grey background, enjoys lovely conversation, satisfied with finished work. |
 
 ### Couples
 
@@ -193,13 +194,6 @@ in editable templates, not standalone downloads.
 | calora-as177966215.png | 177966215 | Bottle with protein shake and powder on white background (licensed 2026-07-20) | calora-macros.json |
 | amoura-dating-as321711560.png | 321711560 | Creative mock up image of woman hand holding craft paper coffee cup with copy space isolated on white background in minimalism style. (licensed 2026-08-16) | amoura-dating.json |
 | amoura-dating-as265366403.png | 265366403 | Two coffee cup overhead view flat lay (licensed 2026-08-16) | amoura-dating.json |
-| expertly-woman.png | 568605361 | Crop of the library photo girls-as568605361.png (section 1) | expertly-ai.json |
-| expertly-avatar-1.png | 622285813 | Head crop of girls-as622285813.png (section 1) | expertly-ai.json |
-| expertly-avatar-2.png | 488088494 | Head crop of guys-as488088494.png (section 1) | expertly-ai.json |
-| expertly-avatar-3.png | 176708273 | Head crop of guys-as176708273.png (section 1) | expertly-ai.json |
-| expertly-avatar-4.png | 299117684 | Head crop of guys-as299117684.png (section 1) | expertly-ai.json |
-| expertly-avatar-5.png | 405130341 | Head crop of education-as405130341.png (section 1) | expertly-ai.json |
-| expertly-avatar-6.png | 625425247 | Head crop of guys-as625425247.png (section 1) | expertly-ai.json |
 | wishmint-avatars.png | 479330034, 298905292, 608612382 | Head crops of girls-as479330034, couples-as298905292 and girls-as608612382 (section 1) | wishmint-wishlist.json |
 | wishmint-avatar-beanie.png | 176708273 | Head crop of guys-as176708273.png (section 1) | wishmint-wishlist.json |
 | wishmint-avatar-curly.png | 298905292 | Head crop of couples-as298905292.png (section 1) | wishmint-wishlist.json |
@@ -236,6 +230,9 @@ in editable templates, not standalone downloads.
 | lulu-wingwoman-screen-chat.png, -foryou.png, -opener.png | 133944415, 303512281, 342057151, 488338515, 479584352, 187373690 | App screens with round head crops of those portraits; the for you screen also shows portrait-as133944415 in a card (section 1) | lulu-wingwoman.json |
 | plumfolio-invest-screen-quiz.png | 303512281, 168466766, 133944415, 244803340, 555020605, 342057151, 488338515 | App screen with small round head crops of those portraits beside the answers (section 1) | plumfolio-invest.json |
 | ringnote-calls-screen-call.png, echoline-recorder-screen-call.png | 244803340 | App screens with a round head crop of portrait-as244803340 as the caller (section 1) | ringnote-calls.json, echoline-recorder.json |
+| loopmate-gigs-expert.png | 572592392 | The same cutout as portraits/portrait-as572592392.png at a larger size, for the one artboard where it fills the width (section 1) | loopmate-gigs.json |
+| loopmate-gigs-face-1.png to loopmate-gigs-face-5.png | 133944415, 244803340, 168466766, 342057151, 488338515 | Round head crops of those portrait cutouts, still cut out, one per file in that order; the colour under each face is its own shape layer (section 1) | loopmate-gigs.json |
+| loopmate-gigs-screen-online.png | 203786863 | App screen with a small round head crop of portrait-as203786863 as the profile picture (section 1) | loopmate-gigs.json |
 
 The `fg-screens/*.png` skeleton screens in that folder are original in-house
 artwork (generated placeholders), not licensed stock. So are parsnap-course.png,
@@ -248,7 +245,8 @@ stood, the setting is filled in from its own colours either side.
 
 The Mascots, 3D objects, Stickers, Products, Cards, Drawings and Line art
 groups are original artwork drawn for this project (SVG and HTML written for
-the Hoppi, Expertly, Roamo, Formpal, Sunup, Wishmint, Lavish, Postie, Hummi,
+the Hoppi, Expertly (a template since removed; its robot and dollar sign stay
+in the palette), Roamo, Formpal, Sunup, Wishmint, Lavish, Postie, Hummi,
 Signsy, Traceberry, Paylark, Umdo, Parsnap, Tenpost, Askadeck, Gabwise, Kinloom
 and Kanapon templates, rendered to PNG and trimmed, and 3D scenes written for
 the Owedly template).
@@ -271,7 +269,12 @@ and the pearl heart (object-heart-pearl) are 3D models built in code for the
 Plumfolio and Lulu templates and rendered with Blender's Cycles renderer
 (Blender is under the GNU GPL, which puts no terms on the pictures it
 renders). Their dollar sign and percent sign are built from rods and rings,
-not taken from a font. The pictures on the Hushwave screens (the marbled
+not taken from a font. The glossy blue to orange objects (object-gloss-dollar,
+object-gloss-arrow, object-gloss-ring, object-gloss-ribbon and
+object-gloss-orb) and the glossy robot (mascot-gloss-bot and
+mascot-gloss-bot-head) are built and rendered the same way for the Loopmate
+template. That dollar sign is drawn from two arcs and two bars, and the robot
+is an invented character. The pictures on the Hushwave screens (the marbled
 colour, the ocean, the ridges, the sunflower head and the spiral of coloured
 marks) are generated in code, with no photo in them. The app icons in 3D objects
 are invented designs, not the icons of real apps. Three cards build on library

@@ -45,6 +45,7 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     previewFit: 'contain',
     gridClassName: 'grid-cols-1 lg:grid-cols-2',
     files: [
+      'loopmate-gigs.json',
       'ringnote-calls.json',
       'plumfolio-invest.json',
       'echoline-recorder.json',
@@ -67,7 +68,6 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
       'hummi-cash-gifts.json',
       'hoppi-screen-time.json',
       'roamo-esim.json',
-      'expertly-ai.json',
       'formpal-forms.json',
       'sunup-missions.json',
       'sunup-alarm.json',

@@ -105,6 +105,7 @@ export const IMAGE_CATEGORIES: ImageCategory[] = [
       { id: 'portrait-as479584352', label: 'Big smile, green hoodie', src: '/elements/images/portraits/portrait-as479584352.png', defaultSize: { width: 430, height: 317 } },
       { id: 'portrait-as488338515', label: 'Long hair, green sweater', src: '/elements/images/portraits/portrait-as488338515.png', defaultSize: { width: 424, height: 430 } },
       { id: 'portrait-as187373690', label: 'Smiling, navy turtleneck', src: '/elements/images/portraits/portrait-as187373690.png', defaultSize: { width: 309, height: 430 } },
+      { id: 'portrait-as572592392', label: 'Curls, glasses, denim jacket', src: '/elements/images/portraits/portrait-as572592392.png', defaultSize: { width: 430, height: 401 } },
     ],
   },
   {
@@ -194,6 +195,8 @@ export const IMAGE_CATEGORIES: ImageCategory[] = [
       { id: 'mascot-daruma-wink', label: 'Daruma, wink', src: '/elements/images/mascots/mascot-daruma-wink.png', defaultSize: { width: 430, height: 424 } },
       { id: 'mascot-daruma-headband', label: 'Daruma, headband', src: '/elements/images/mascots/mascot-daruma-headband.png', defaultSize: { width: 430, height: 386 } },
       { id: 'mascot-daruma-goal', label: 'Daruma, one eye', src: '/elements/images/mascots/mascot-daruma-goal.png', defaultSize: { width: 430, height: 424 } },
+      { id: 'mascot-gloss-bot', label: 'Glossy robot, waving', src: '/elements/images/mascots/mascot-gloss-bot.png', defaultSize: { width: 327, height: 430 } },
+      { id: 'mascot-gloss-bot-head', label: 'Glossy robot head', src: '/elements/images/mascots/mascot-gloss-bot-head.png', defaultSize: { width: 430, height: 406 } },
     ],
   },
   {
@@ -279,6 +282,11 @@ export const IMAGE_CATEGORIES: ImageCategory[] = [
       { id: 'object-chrome-heart', label: 'Chrome heart', src: '/elements/images/objects/object-chrome-heart.png', defaultSize: { width: 403, height: 430 } },
       { id: 'object-chrome-sparkle', label: 'Chrome sparkle', src: '/elements/images/objects/object-chrome-sparkle.png', defaultSize: { width: 299, height: 430 } },
       { id: 'object-heart-pearl', label: 'Pearl heart', src: '/elements/images/objects/object-heart-pearl.png', defaultSize: { width: 396, height: 430 } },
+      { id: 'object-gloss-dollar', label: 'Glossy dollar sign', src: '/elements/images/objects/object-gloss-dollar.png', defaultSize: { width: 232, height: 430 } },
+      { id: 'object-gloss-arrow', label: 'Glossy arrow, rising', src: '/elements/images/objects/object-gloss-arrow.png', defaultSize: { width: 430, height: 378 } },
+      { id: 'object-gloss-ring', label: 'Glossy ring', src: '/elements/images/objects/object-gloss-ring.png', defaultSize: { width: 430, height: 303 } },
+      { id: 'object-gloss-ribbon', label: 'Glossy ribbon', src: '/elements/images/objects/object-gloss-ribbon.png', defaultSize: { width: 430, height: 211 } },
+      { id: 'object-gloss-orb', label: 'Glossy green ball', src: '/elements/images/objects/object-gloss-orb.png', defaultSize: { width: 430, height: 430 } },
     ],
   },
   {

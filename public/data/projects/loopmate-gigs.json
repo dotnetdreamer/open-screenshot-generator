@@ -1,0 +1,2929 @@
+{
+  "id": "template_loopmate_gigs",
+  "name": "Loopmate Expert Gigs",
+  "description": "App Store & Play Store screenshots for an expert marketplace, gig or AI agent app. Tight Inter Tight headlines with blue to orange gradient words on white, charcoal and black. A glossy 3D robot helper waves across the first two screenshots, experts circle a phone on orbit rings, a 3D dollar sign and glass pills sit behind a chat, and a ribbon carries the payout screen. Four phones take your own screenshots. Every part sits in named, editable layer groups, with each glow, ring and colour on a layer of its own. The earnings, the payout message and the payout time are sample copy, marked in the layer names: replace them with your own.",
+  "previewImage": "/data/projects/previews/loopmate-gigs.png",
+  "timestamp": "2026-11-25T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "lm-board-1",
+      "name": "Get Paid To Help AI Agents",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "lm-b1-glow-blue-1",
+          "type": "shape",
+          "name": "Glow, blue",
+          "position": {
+            "x": 520,
+            "y": 900
+          },
+          "size": {
+            "width": 900,
+            "height": 900
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#BFE0FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.5,
+          "blur": 170,
+          "groupId": "lm-b1-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "lm-b1-glow-peach-2",
+          "type": "shape",
+          "name": "Glow, peach",
+          "position": {
+            "x": -260,
+            "y": 1750
+          },
+          "size": {
+            "width": 760,
+            "height": 760
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFD9BF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.55,
+          "blur": 170,
+          "groupId": "lm-b1-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "lm-b1-ring-1-3",
+          "type": "shape",
+          "name": "Ring 1",
+          "position": {
+            "x": -24,
+            "y": 1115.19
+          },
+          "size": {
+            "width": 1500,
+            "height": 1500
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#FFD3B8",
+          "strokeWidth": 3,
+          "opacity": 0.9,
+          "groupId": "lm-b1-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "lm-b1-ring-2-4",
+          "type": "shape",
+          "name": "Ring 2",
+          "position": {
+            "x": -254,
+            "y": 885.19
+          },
+          "size": {
+            "width": 1960,
+            "height": 1960
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#FFD3B8",
+          "strokeWidth": 3,
+          "opacity": 0.55,
+          "groupId": "lm-b1-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "lm-b1-ring-3-5",
+          "type": "shape",
+          "name": "Ring 3",
+          "position": {
+            "x": -504,
+            "y": 635.19
+          },
+          "size": {
+            "width": 2460,
+            "height": 2460
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#FFD3B8",
+          "strokeWidth": 3,
+          "opacity": 0.9,
+          "groupId": "lm-b1-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "lm-b1-line-1-6",
+          "type": "text",
+          "name": "Line 1",
+          "position": {
+            "x": 84,
+            "y": 101.71
+          },
+          "size": {
+            "width": 1098,
+            "height": 264
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Get paid",
+          "fontSize": 52.8,
+          "color": "#17181C",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -1.69,
+          "groupId": "lm-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "lm-b1-line-2-7",
+          "type": "text",
+          "name": "Line 2",
+          "position": {
+            "x": 84,
+            "y": 281.23
+          },
+          "size": {
+            "width": 1098,
+            "height": 264
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "to help",
+          "fontSize": 52.8,
+          "color": "#17181C",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -1.69,
+          "groupId": "lm-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "lm-b1-line-3-accent-8",
+          "type": "text",
+          "name": "Line 3, accent",
+          "position": {
+            "x": 84,
+            "y": 456.95
+          },
+          "size": {
+            "width": 1098,
+            "height": 324
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "AI agents",
+          "fontSize": 64.8,
+          "color": "#2D8CFF",
+          "fillGradient": {
+            "color1": "#2D8CFF",
+            "via": [
+              "#62C6FF",
+              "#FFDE8A",
+              "#FFA31F"
+            ],
+            "color2": "#FF5A0A",
+            "angle": 90
+          },
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -2.07,
+          "groupId": "lm-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "lm-b1-arrow-9",
+          "type": "image",
+          "name": "Arrow",
+          "position": {
+            "x": 92,
+            "y": 868
+          },
+          "size": {
+            "width": 262,
+            "height": 230.6
+          },
+          "rotation": -4,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-gloss-arrow.png",
+          "imageAlt": "Arrow",
+          "objectFit": "contain",
+          "shadow": {
+            "x": 0,
+            "y": 30,
+            "blur": 70,
+            "color": "rgba(24,36,70,0.20)"
+          },
+          "groupId": "lm-b1-g-arrow",
+          "groupName": "Arrow"
+        },
+        {
+          "id": "lm-b1-bubble-tail-10",
+          "type": "shape",
+          "name": "Bubble tail",
+          "position": {
+            "x": 939.49,
+            "y": 1027.59
+          },
+          "size": {
+            "width": 70,
+            "height": 70
+          },
+          "rotation": 40,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#22232A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 12,
+          "groupId": "lm-b1-g-speech-bubble",
+          "groupName": "Speech bubble"
+        },
+        {
+          "id": "lm-b1-bubble-11",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 392,
+            "y": 880
+          },
+          "size": {
+            "width": 690,
+            "height": 214
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#22232A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 54,
+          "shadow": {
+            "x": 0,
+            "y": 22,
+            "blur": 48,
+            "color": "rgba(20,30,60,0.22)"
+          },
+          "groupId": "lm-b1-g-speech-bubble",
+          "groupName": "Speech bubble"
+        },
+        {
+          "id": "lm-b1-bubble-text-sample-12",
+          "type": "text",
+          "name": "Bubble text (sample)",
+          "position": {
+            "x": 422,
+            "y": 908
+          },
+          "size": {
+            "width": 630,
+            "height": 158
+          },
+          "rotation": -5,
+          "scale": 1,
+          "content": "$40 to $500 a day,\non the hours you choose",
+          "fontSize": 16.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.22,
+          "letterSpacing": -0.3,
+          "groupId": "lm-b1-g-speech-bubble",
+          "groupName": "Speech bubble"
+        },
+        {
+          "id": "lm-b1-ring-13",
+          "type": "image",
+          "name": "Ring",
+          "position": {
+            "x": -170,
+            "y": 1470
+          },
+          "size": {
+            "width": 1330,
+            "height": 937.65
+          },
+          "rotation": -9,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-gloss-ring.png",
+          "imageAlt": "Ring",
+          "objectFit": "contain",
+          "groupId": "lm-b1-g-ring",
+          "groupName": "Ring"
+        },
+        {
+          "id": "lm-b1-robot-14",
+          "type": "image",
+          "name": "Robot",
+          "position": {
+            "x": 150,
+            "y": 1250
+          },
+          "size": {
+            "width": 1280,
+            "height": 1685.46
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/mascots/mascot-gloss-bot.png",
+          "imageAlt": "Robot",
+          "objectFit": "contain",
+          "shadow": {
+            "x": 0,
+            "y": 36,
+            "blur": 80,
+            "color": "rgba(24,36,70,0.22)"
+          },
+          "spanArtboards": true,
+          "groupId": "lm-b1-g-robot",
+          "groupName": "Robot"
+        },
+        {
+          "id": "lm-b1-icon-tile-15",
+          "type": "shape",
+          "name": "Icon tile",
+          "position": {
+            "x": 40,
+            "y": 1384
+          },
+          "size": {
+            "width": 252,
+            "height": 252
+          },
+          "rotation": -10,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 59,
+          "shadow": {
+            "x": 0,
+            "y": 25,
+            "blur": 71,
+            "color": "rgba(20,30,60,0.24)"
+          },
+          "groupId": "lm-b1-g-app-icon",
+          "groupName": "App icon"
+        },
+        {
+          "id": "lm-b1-logo-16",
+          "type": "shape",
+          "name": "Logo",
+          "position": {
+            "x": 82.84,
+            "y": 1426.84
+          },
+          "size": {
+            "width": 166.32,
+            "height": 166.32
+          },
+          "rotation": -10,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#17181C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M51.64 21.99 A32.5 32.5 0 1 0 78.38 51.17 A6.5 6.5 0 0 0 65.43 52.3 A19.5 19.5 0 1 1 49.39 34.8 A6.5 6.5 0 0 0 51.64 21.99 Z M77.3 33 A8.5 8.5 0 1 0 60.3 33 A8.5 8.5 0 1 0 77.3 33 Z",
+          "specialProps": {
+            "viewBox": "10 15 78 78"
+          },
+          "groupId": "lm-b1-g-app-icon",
+          "groupName": "App icon"
+        },
+        {
+          "id": "lm-b1-glass-pill-17",
+          "type": "shape",
+          "name": "Glass pill",
+          "position": {
+            "x": 776,
+            "y": 1412
+          },
+          "size": {
+            "width": 408,
+            "height": 128
+          },
+          "rotation": 14,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#8A93A3",
+          "fillGradient": {
+            "color1": "#6B7585",
+            "color2": "#BFC7D3",
+            "angle": 160
+          },
+          "strokeColor": "rgba(255,255,255,0.8)",
+          "strokeWidth": 3,
+          "fillOpacity": 0.84,
+          "borderRadius": 64,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 34,
+            "color": "rgba(20,30,60,0.28)"
+          },
+          "groupId": "lm-b1-g-earnings-pills",
+          "groupName": "Earnings pills"
+        },
+        {
+          "id": "lm-b1-amount-sample-18",
+          "type": "text",
+          "name": "Amount (sample)",
+          "position": {
+            "x": 792,
+            "y": 1429.5
+          },
+          "size": {
+            "width": 376,
+            "height": 93
+          },
+          "rotation": 14,
+          "scale": 1,
+          "content": "+$3,180",
+          "fontSize": 18.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": -0.3,
+          "groupId": "lm-b1-g-earnings-pills",
+          "groupName": "Earnings pills"
+        },
+        {
+          "id": "lm-b1-glass-pill-19",
+          "type": "shape",
+          "name": "Glass pill",
+          "position": {
+            "x": 64,
+            "y": 2338
+          },
+          "size": {
+            "width": 296,
+            "height": 112
+          },
+          "rotation": -9,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#8A93A3",
+          "fillGradient": {
+            "color1": "#6B7585",
+            "color2": "#BFC7D3",
+            "angle": 160
+          },
+          "strokeColor": "rgba(255,255,255,0.8)",
+          "strokeWidth": 3,
+          "fillOpacity": 0.84,
+          "borderRadius": 56,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 34,
+            "color": "rgba(20,30,60,0.28)"
+          },
+          "groupId": "lm-b1-g-earnings-pills",
+          "groupName": "Earnings pills"
+        },
+        {
+          "id": "lm-b1-amount-sample-20",
+          "type": "text",
+          "name": "Amount (sample)",
+          "position": {
+            "x": 80,
+            "y": 2353.5
+          },
+          "size": {
+            "width": 264,
+            "height": 81
+          },
+          "rotation": -9,
+          "scale": 1,
+          "content": "+$145",
+          "fontSize": 16.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": -0.3,
+          "groupId": "lm-b1-g-earnings-pills",
+          "groupName": "Earnings pills"
+        }
+      ]
+    },
+    {
+      "id": "lm-board-2",
+      "name": "You Step In When Agents Get Stuck",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#1F2026",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "lm-b2-glow-blue-1",
+          "type": "shape",
+          "name": "Glow, blue",
+          "position": {
+            "x": 520,
+            "y": -320
+          },
+          "size": {
+            "width": 980,
+            "height": 980
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#2D8CFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.34,
+          "blur": 200,
+          "groupId": "lm-b2-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "lm-b2-glow-orange-2",
+          "type": "shape",
+          "name": "Glow, orange",
+          "position": {
+            "x": -420,
+            "y": 1700
+          },
+          "size": {
+            "width": 900,
+            "height": 900
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FF7A1A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.22,
+          "blur": 200,
+          "groupId": "lm-b2-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "lm-b2-line-1-3",
+          "type": "text",
+          "name": "Line 1",
+          "position": {
+            "x": 84,
+            "y": 106.37
+          },
+          "size": {
+            "width": 1098,
+            "height": 246
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "AI agents",
+          "fontSize": 49.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -1.57,
+          "groupId": "lm-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "lm-b2-line-2-4",
+          "type": "text",
+          "name": "Line 2",
+          "position": {
+            "x": 84,
+            "y": 273.65
+          },
+          "size": {
+            "width": 1098,
+            "height": 246
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "get stuck.",
+          "fontSize": 49.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -1.57,
+          "groupId": "lm-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "lm-b2-line-3-accent-5",
+          "type": "text",
+          "name": "Line 3, accent",
+          "position": {
+            "x": 84,
+            "y": 440.93
+          },
+          "size": {
+            "width": 1098,
+            "height": 246
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "You step in.",
+          "fontSize": 49.2,
+          "color": "#2D8CFF",
+          "fillGradient": {
+            "color1": "#2D8CFF",
+            "via": [
+              "#62C6FF",
+              "#FFDE8A",
+              "#FFA31F"
+            ],
+            "color2": "#FF5A0A",
+            "angle": 90
+          },
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -1.57,
+          "groupId": "lm-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "lm-b2-subheadline-6",
+          "type": "text",
+          "name": "Subheadline",
+          "position": {
+            "x": 88,
+            "y": 716
+          },
+          "size": {
+            "width": 1082,
+            "height": 169
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "New requests in your field,\nevery day",
+          "fontSize": 17.4,
+          "color": "#A9ADB8",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.2,
+          "letterSpacing": -0.3,
+          "groupId": "lm-b2-g-subheadline",
+          "groupName": "Subheadline"
+        },
+        {
+          "id": "lm-b2-phone-rim-7",
+          "type": "shape",
+          "name": "Phone rim",
+          "position": {
+            "x": 133,
+            "y": 982
+          },
+          "size": {
+            "width": 940,
+            "height": 1906.65
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#2D8CFF",
+          "fillGradient": {
+            "color1": "#2D8CFF",
+            "via": [
+              "#62C6FF",
+              "#FFDE8A",
+              "#FFA31F"
+            ],
+            "color2": "#FF5A0A",
+            "angle": 100
+          },
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 152,
+          "shadow": {
+            "x": 0,
+            "y": 40,
+            "blur": 110,
+            "color": "rgba(45,140,255,0.30)"
+          },
+          "groupId": "lm-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lm-b2-phone-8",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 161,
+            "y": 1010
+          },
+          "size": {
+            "width": 884,
+            "height": 1850.65
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#FFFFFF",
+          "screenshotSrc": "/data/projects/loopmate-gigs-screen-requests.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "lm-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lm-b2-cursor-9",
+          "type": "shape",
+          "name": "Cursor",
+          "position": {
+            "x": 812,
+            "y": 1896
+          },
+          "size": {
+            "width": 70,
+            "height": 96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#17181C",
+          "strokeColor": "#FFFFFF",
+          "strokeWidth": 5,
+          "customPath": "M4 2 L4 78 L24 60 L38 92 L52 86 L38 55 L66 55 Z",
+          "specialProps": {
+            "viewBox": "0 0 70 96"
+          },
+          "shadow": {
+            "x": 0,
+            "y": 8,
+            "blur": 18,
+            "color": "rgba(0,0,0,0.3)"
+          },
+          "groupId": "lm-b2-g-helper-cursor",
+          "groupName": "Helper cursor"
+        },
+        {
+          "id": "lm-b2-helper-ring-10",
+          "type": "shape",
+          "name": "Helper ring",
+          "position": {
+            "x": 872,
+            "y": 1962
+          },
+          "size": {
+            "width": 118,
+            "height": 118
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "shadow": {
+            "x": 0,
+            "y": 10,
+            "blur": 24,
+            "color": "rgba(0,0,0,0.28)"
+          },
+          "groupId": "lm-b2-g-helper-cursor",
+          "groupName": "Helper cursor"
+        },
+        {
+          "id": "lm-b2-helper-colour-11",
+          "type": "shape",
+          "name": "Helper colour",
+          "position": {
+            "x": 880,
+            "y": 1970
+          },
+          "size": {
+            "width": 102,
+            "height": 102
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFE1A8",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "lm-b2-g-helper-cursor",
+          "groupName": "Helper cursor"
+        },
+        {
+          "id": "lm-b2-helper-12",
+          "type": "image",
+          "name": "Helper",
+          "position": {
+            "x": 880,
+            "y": 1970
+          },
+          "size": {
+            "width": 102,
+            "height": 102
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/loopmate-gigs-face-3.png",
+          "imageAlt": "Helper",
+          "objectFit": "cover",
+          "borderRadius": 51,
+          "groupId": "lm-b2-g-helper-cursor",
+          "groupName": "Helper cursor"
+        }
+      ]
+    },
+    {
+      "id": "lm-board-3",
+      "name": "Go Online When It Suits You",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "lm-b3-glow-blue-1",
+          "type": "shape",
+          "name": "Glow, blue",
+          "position": {
+            "x": 560,
+            "y": 60
+          },
+          "size": {
+            "width": 820,
+            "height": 820
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#CFE7FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.6,
+          "blur": 170,
+          "groupId": "lm-b3-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "lm-b3-glow-peach-2",
+          "type": "shape",
+          "name": "Glow, peach",
+          "position": {
+            "x": -220,
+            "y": 900
+          },
+          "size": {
+            "width": 760,
+            "height": 760
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFE1CC",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.6,
+          "blur": 170,
+          "groupId": "lm-b3-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "lm-b3-ring-1-3",
+          "type": "shape",
+          "name": "Ring 1",
+          "position": {
+            "x": 173,
+            "y": 475.25
+          },
+          "size": {
+            "width": 860,
+            "height": 860
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#FFD3B8",
+          "strokeWidth": 3,
+          "opacity": 0.9,
+          "groupId": "lm-b3-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "lm-b3-ring-2-4",
+          "type": "shape",
+          "name": "Ring 2",
+          "position": {
+            "x": 3,
+            "y": 305.25
+          },
+          "size": {
+            "width": 1200,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#FFD3B8",
+          "strokeWidth": 3,
+          "opacity": 0.55,
+          "groupId": "lm-b3-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "lm-b3-ring-3-5",
+          "type": "shape",
+          "name": "Ring 3",
+          "position": {
+            "x": -177,
+            "y": 125.25
+          },
+          "size": {
+            "width": 1560,
+            "height": 1560
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#FFD3B8",
+          "strokeWidth": 3,
+          "opacity": 0.9,
+          "groupId": "lm-b3-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "lm-b3-ring-4-6",
+          "type": "shape",
+          "name": "Ring 4",
+          "position": {
+            "x": -377,
+            "y": -74.75
+          },
+          "size": {
+            "width": 1960,
+            "height": 1960
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#FFD3B8",
+          "strokeWidth": 3,
+          "opacity": 0.55,
+          "groupId": "lm-b3-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "lm-b3-phone-7",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 333,
+            "y": 340
+          },
+          "size": {
+            "width": 540,
+            "height": 1130.49
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#0E0F12",
+          "screenshotSrc": "/data/projects/loopmate-gigs-screen-online.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "shadow": {
+            "x": 0,
+            "y": 40,
+            "blur": 90,
+            "color": "rgba(24,36,70,0.28)"
+          },
+          "groupId": "lm-b3-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lm-b3-online-light-8",
+          "type": "image",
+          "name": "Online light",
+          "position": {
+            "x": 806,
+            "y": 1350
+          },
+          "size": {
+            "width": 140,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-gloss-orb.png",
+          "imageAlt": "Online light",
+          "objectFit": "contain",
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 30,
+            "color": "rgba(31,196,85,0.45)"
+          },
+          "groupId": "lm-b3-g-online-light",
+          "groupName": "Online light"
+        },
+        {
+          "id": "lm-b3-colour-9",
+          "type": "shape",
+          "name": "Colour",
+          "position": {
+            "x": 89,
+            "y": 201
+          },
+          "size": {
+            "width": 190,
+            "height": 190
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFD6E2",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 36,
+            "color": "rgba(24,36,70,0.18)"
+          },
+          "groupId": "lm-b3-g-expert-1",
+          "groupName": "Expert 1"
+        },
+        {
+          "id": "lm-b3-face-10",
+          "type": "image",
+          "name": "Face",
+          "position": {
+            "x": 89,
+            "y": 201
+          },
+          "size": {
+            "width": 190,
+            "height": 190
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/loopmate-gigs-face-1.png",
+          "imageAlt": "Face",
+          "objectFit": "cover",
+          "borderRadius": 95,
+          "groupId": "lm-b3-g-expert-1",
+          "groupName": "Expert 1"
+        },
+        {
+          "id": "lm-b3-online-dot-11",
+          "type": "shape",
+          "name": "Online dot",
+          "position": {
+            "x": 233.4,
+            "y": 201
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#1FC455",
+          "strokeColor": "#FFFFFF",
+          "strokeWidth": 6,
+          "groupId": "lm-b3-g-expert-1",
+          "groupName": "Expert 1"
+        },
+        {
+          "id": "lm-b3-role-pill-12",
+          "type": "shape",
+          "name": "Role pill",
+          "position": {
+            "x": 56.5,
+            "y": 405
+          },
+          "size": {
+            "width": 255,
+            "height": 68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 34,
+          "shadow": {
+            "x": 0,
+            "y": 8,
+            "blur": 22,
+            "color": "rgba(24,36,70,0.14)"
+          },
+          "groupId": "lm-b3-g-expert-1",
+          "groupName": "Expert 1"
+        },
+        {
+          "id": "lm-b3-role-13",
+          "type": "text",
+          "name": "Role",
+          "position": {
+            "x": 64.5,
+            "y": 413.5
+          },
+          "size": {
+            "width": 239,
+            "height": 51
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Tax advisor",
+          "fontSize": 10.2,
+          "color": "#17181C",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "lm-b3-g-expert-1",
+          "groupName": "Expert 1"
+        },
+        {
+          "id": "lm-b3-colour-14",
+          "type": "shape",
+          "name": "Colour",
+          "position": {
+            "x": 933,
+            "y": 357
+          },
+          "size": {
+            "width": 190,
+            "height": 190
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFE9A6",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 36,
+            "color": "rgba(24,36,70,0.18)"
+          },
+          "groupId": "lm-b3-g-expert-2",
+          "groupName": "Expert 2"
+        },
+        {
+          "id": "lm-b3-face-15",
+          "type": "image",
+          "name": "Face",
+          "position": {
+            "x": 933,
+            "y": 357
+          },
+          "size": {
+            "width": 190,
+            "height": 190
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/loopmate-gigs-face-2.png",
+          "imageAlt": "Face",
+          "objectFit": "cover",
+          "borderRadius": 95,
+          "groupId": "lm-b3-g-expert-2",
+          "groupName": "Expert 2"
+        },
+        {
+          "id": "lm-b3-online-dot-16",
+          "type": "shape",
+          "name": "Online dot",
+          "position": {
+            "x": 1077.4,
+            "y": 357
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#1FC455",
+          "strokeColor": "#FFFFFF",
+          "strokeWidth": 6,
+          "groupId": "lm-b3-g-expert-2",
+          "groupName": "Expert 2"
+        },
+        {
+          "id": "lm-b3-role-pill-17",
+          "type": "shape",
+          "name": "Role pill",
+          "position": {
+            "x": 883,
+            "y": 561
+          },
+          "size": {
+            "width": 290,
+            "height": 68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 34,
+          "shadow": {
+            "x": 0,
+            "y": 8,
+            "blur": 22,
+            "color": "rgba(24,36,70,0.14)"
+          },
+          "groupId": "lm-b3-g-expert-2",
+          "groupName": "Expert 2"
+        },
+        {
+          "id": "lm-b3-role-18",
+          "type": "text",
+          "name": "Role",
+          "position": {
+            "x": 891,
+            "y": 569.5
+          },
+          "size": {
+            "width": 274,
+            "height": 51
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "UX researcher",
+          "fontSize": 10.2,
+          "color": "#17181C",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "lm-b3-g-expert-2",
+          "groupName": "Expert 2"
+        },
+        {
+          "id": "lm-b3-colour-19",
+          "type": "shape",
+          "name": "Colour",
+          "position": {
+            "x": 61,
+            "y": 771
+          },
+          "size": {
+            "width": 190,
+            "height": 190
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#CFE7FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 36,
+            "color": "rgba(24,36,70,0.18)"
+          },
+          "groupId": "lm-b3-g-expert-3",
+          "groupName": "Expert 3"
+        },
+        {
+          "id": "lm-b3-face-20",
+          "type": "image",
+          "name": "Face",
+          "position": {
+            "x": 61,
+            "y": 771
+          },
+          "size": {
+            "width": 190,
+            "height": 190
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/loopmate-gigs-face-4.png",
+          "imageAlt": "Face",
+          "objectFit": "cover",
+          "borderRadius": 95,
+          "groupId": "lm-b3-g-expert-3",
+          "groupName": "Expert 3"
+        },
+        {
+          "id": "lm-b3-online-dot-21",
+          "type": "shape",
+          "name": "Online dot",
+          "position": {
+            "x": 205.4,
+            "y": 771
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#1FC455",
+          "strokeColor": "#FFFFFF",
+          "strokeWidth": 6,
+          "groupId": "lm-b3-g-expert-3",
+          "groupName": "Expert 3"
+        },
+        {
+          "id": "lm-b3-role-pill-22",
+          "type": "shape",
+          "name": "Role pill",
+          "position": {
+            "x": -6.5,
+            "y": 975
+          },
+          "size": {
+            "width": 325,
+            "height": 68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 34,
+          "shadow": {
+            "x": 0,
+            "y": 8,
+            "blur": 22,
+            "color": "rgba(24,36,70,0.14)"
+          },
+          "groupId": "lm-b3-g-expert-3",
+          "groupName": "Expert 3"
+        },
+        {
+          "id": "lm-b3-role-23",
+          "type": "text",
+          "name": "Role",
+          "position": {
+            "x": 1.5,
+            "y": 983.5
+          },
+          "size": {
+            "width": 309,
+            "height": 51
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Cloud architect",
+          "fontSize": 10.2,
+          "color": "#17181C",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "lm-b3-g-expert-3",
+          "groupName": "Expert 3"
+        },
+        {
+          "id": "lm-b3-colour-24",
+          "type": "shape",
+          "name": "Colour",
+          "position": {
+            "x": 957,
+            "y": 951
+          },
+          "size": {
+            "width": 190,
+            "height": 190
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFDCC2",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 36,
+            "color": "rgba(24,36,70,0.18)"
+          },
+          "groupId": "lm-b3-g-expert-4",
+          "groupName": "Expert 4"
+        },
+        {
+          "id": "lm-b3-face-25",
+          "type": "image",
+          "name": "Face",
+          "position": {
+            "x": 957,
+            "y": 951
+          },
+          "size": {
+            "width": 190,
+            "height": 190
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/loopmate-gigs-face-3.png",
+          "imageAlt": "Face",
+          "objectFit": "cover",
+          "borderRadius": 95,
+          "groupId": "lm-b3-g-expert-4",
+          "groupName": "Expert 4"
+        },
+        {
+          "id": "lm-b3-online-dot-26",
+          "type": "shape",
+          "name": "Online dot",
+          "position": {
+            "x": 1101.4,
+            "y": 951
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#1FC455",
+          "strokeColor": "#FFFFFF",
+          "strokeWidth": 6,
+          "groupId": "lm-b3-g-expert-4",
+          "groupName": "Expert 4"
+        },
+        {
+          "id": "lm-b3-role-pill-27",
+          "type": "shape",
+          "name": "Role pill",
+          "position": {
+            "x": 898,
+            "y": 1155
+          },
+          "size": {
+            "width": 308,
+            "height": 68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 34,
+          "shadow": {
+            "x": 0,
+            "y": 8,
+            "blur": 22,
+            "color": "rgba(24,36,70,0.14)"
+          },
+          "groupId": "lm-b3-g-expert-4",
+          "groupName": "Expert 4"
+        },
+        {
+          "id": "lm-b3-role-28",
+          "type": "text",
+          "name": "Role",
+          "position": {
+            "x": 906,
+            "y": 1163.5
+          },
+          "size": {
+            "width": 292,
+            "height": 51
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Legal reviewer",
+          "fontSize": 10.2,
+          "color": "#17181C",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "lm-b3-g-expert-4",
+          "groupName": "Expert 4"
+        },
+        {
+          "id": "lm-b3-colour-29",
+          "type": "shape",
+          "name": "Colour",
+          "position": {
+            "x": 109,
+            "y": 1315
+          },
+          "size": {
+            "width": 190,
+            "height": 190
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#D3F5E0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 36,
+            "color": "rgba(24,36,70,0.18)"
+          },
+          "groupId": "lm-b3-g-expert-5",
+          "groupName": "Expert 5"
+        },
+        {
+          "id": "lm-b3-face-30",
+          "type": "image",
+          "name": "Face",
+          "position": {
+            "x": 109,
+            "y": 1315
+          },
+          "size": {
+            "width": 190,
+            "height": 190
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/loopmate-gigs-face-5.png",
+          "imageAlt": "Face",
+          "objectFit": "cover",
+          "borderRadius": 95,
+          "groupId": "lm-b3-g-expert-5",
+          "groupName": "Expert 5"
+        },
+        {
+          "id": "lm-b3-online-dot-31",
+          "type": "shape",
+          "name": "Online dot",
+          "position": {
+            "x": 253.4,
+            "y": 1315
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#1FC455",
+          "strokeColor": "#FFFFFF",
+          "strokeWidth": 6,
+          "groupId": "lm-b3-g-expert-5",
+          "groupName": "Expert 5"
+        },
+        {
+          "id": "lm-b3-role-pill-32",
+          "type": "shape",
+          "name": "Role pill",
+          "position": {
+            "x": 59,
+            "y": 1519
+          },
+          "size": {
+            "width": 290,
+            "height": 68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 34,
+          "shadow": {
+            "x": 0,
+            "y": 8,
+            "blur": 22,
+            "color": "rgba(24,36,70,0.14)"
+          },
+          "groupId": "lm-b3-g-expert-5",
+          "groupName": "Expert 5"
+        },
+        {
+          "id": "lm-b3-role-33",
+          "type": "text",
+          "name": "Role",
+          "position": {
+            "x": 67,
+            "y": 1527.5
+          },
+          "size": {
+            "width": 274,
+            "height": 51
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Data engineer",
+          "fontSize": 10.2,
+          "color": "#17181C",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "lm-b3-g-expert-5",
+          "groupName": "Expert 5"
+        },
+        {
+          "id": "lm-b3-line-1-accent-34",
+          "type": "text",
+          "name": "Line 1, accent",
+          "position": {
+            "x": 84,
+            "y": 1725.3
+          },
+          "size": {
+            "width": 1098,
+            "height": 312
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Go online",
+          "fontSize": 62.4,
+          "color": "#2D8CFF",
+          "fillGradient": {
+            "color1": "#2D8CFF",
+            "via": [
+              "#62C6FF",
+              "#FFDE8A",
+              "#FFA31F"
+            ],
+            "color2": "#FF5A0A",
+            "angle": 90
+          },
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -2,
+          "groupId": "lm-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "lm-b3-line-2-35",
+          "type": "text",
+          "name": "Line 2",
+          "position": {
+            "x": 84,
+            "y": 1946.01
+          },
+          "size": {
+            "width": 1098,
+            "height": 177
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "when it suits you",
+          "fontSize": 35.4,
+          "color": "#17181C",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -1.13,
+          "groupId": "lm-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "lm-b3-subheadline-36",
+          "type": "text",
+          "name": "Subheadline",
+          "position": {
+            "x": 88,
+            "y": 2226
+          },
+          "size": {
+            "width": 1082,
+            "height": 169
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "One tap to start.\nNo quotas, no shifts.",
+          "fontSize": 17.4,
+          "color": "#4B505B",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.2,
+          "letterSpacing": -0.3,
+          "groupId": "lm-b3-g-subheadline",
+          "groupName": "Subheadline"
+        }
+      ]
+    },
+    {
+      "id": "lm-board-4",
+      "name": "Just Chat And Get Paid",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#050506",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "lm-b4-glow-blue-1",
+          "type": "shape",
+          "name": "Glow, blue",
+          "position": {
+            "x": -380,
+            "y": 620
+          },
+          "size": {
+            "width": 1000,
+            "height": 1000
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#2D8CFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.36,
+          "blur": 210,
+          "groupId": "lm-b4-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "lm-b4-glow-orange-2",
+          "type": "shape",
+          "name": "Glow, orange",
+          "position": {
+            "x": 520,
+            "y": 1900
+          },
+          "size": {
+            "width": 980,
+            "height": 980
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FF7A1A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.28,
+          "blur": 210,
+          "groupId": "lm-b4-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "lm-b4-line-1-3",
+          "type": "text",
+          "name": "Line 1",
+          "position": {
+            "x": 84,
+            "y": 83.86
+          },
+          "size": {
+            "width": 1098,
+            "height": 333
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Just chat.",
+          "fontSize": 66.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -2.13,
+          "groupId": "lm-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "lm-b4-line-2-accent-4",
+          "type": "text",
+          "name": "Line 2, accent",
+          "position": {
+            "x": 84,
+            "y": 310.3
+          },
+          "size": {
+            "width": 1098,
+            "height": 333
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Get paid.",
+          "fontSize": 66.6,
+          "color": "#2D8CFF",
+          "fillGradient": {
+            "color1": "#2D8CFF",
+            "via": [
+              "#62C6FF",
+              "#FFDE8A",
+              "#FFA31F"
+            ],
+            "color2": "#FF5A0A",
+            "angle": 90
+          },
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -2.13,
+          "groupId": "lm-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "lm-b4-dollar-sign-5",
+          "type": "image",
+          "name": "Dollar sign",
+          "position": {
+            "x": -96,
+            "y": 836
+          },
+          "size": {
+            "width": 770,
+            "height": 1428.47
+          },
+          "rotation": -8,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-gloss-dollar.png",
+          "imageAlt": "Dollar sign",
+          "objectFit": "contain",
+          "groupId": "lm-b4-g-dollar-sign",
+          "groupName": "Dollar sign"
+        },
+        {
+          "id": "lm-b4-phone-6",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 524,
+            "y": 1372
+          },
+          "size": {
+            "width": 640,
+            "height": 1339.84
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#F2F3F5",
+          "screenshotSrc": "/data/projects/loopmate-gigs-screen-chat.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "shadow": {
+            "x": 0,
+            "y": 40,
+            "blur": 110,
+            "color": "rgba(0,0,0,0.6)"
+          },
+          "groupId": "lm-b4-g-phone-and-notification",
+          "groupName": "Phone and notification"
+        },
+        {
+          "id": "lm-b4-card-behind-2-7",
+          "type": "shape",
+          "name": "Card behind 2",
+          "position": {
+            "x": 128,
+            "y": 1726
+          },
+          "size": {
+            "width": 672,
+            "height": 226
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#2A2C35",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 54,
+          "opacity": 0.55,
+          "groupId": "lm-b4-g-phone-and-notification",
+          "groupName": "Phone and notification"
+        },
+        {
+          "id": "lm-b4-card-behind-1-8",
+          "type": "shape",
+          "name": "Card behind 1",
+          "position": {
+            "x": 96,
+            "y": 1698
+          },
+          "size": {
+            "width": 736,
+            "height": 226
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#2A2C35",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 54,
+          "opacity": 0.8,
+          "groupId": "lm-b4-g-phone-and-notification",
+          "groupName": "Phone and notification"
+        },
+        {
+          "id": "lm-b4-card-9",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 64,
+            "y": 1668
+          },
+          "size": {
+            "width": 800,
+            "height": 226
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1B1C22",
+          "strokeColor": "rgba(255,255,255,0.16)",
+          "strokeWidth": 3,
+          "borderRadius": 56,
+          "shadow": {
+            "x": 0,
+            "y": 30,
+            "blur": 70,
+            "color": "rgba(0,0,0,0.6)"
+          },
+          "groupId": "lm-b4-g-phone-and-notification",
+          "groupName": "Phone and notification"
+        },
+        {
+          "id": "lm-b4-icon-tile-10",
+          "type": "shape",
+          "name": "Icon tile",
+          "position": {
+            "x": 108,
+            "y": 1712
+          },
+          "size": {
+            "width": 138,
+            "height": 138
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 32,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 39,
+            "color": "rgba(20,30,60,0.24)"
+          },
+          "groupId": "lm-b4-g-phone-and-notification",
+          "groupName": "Phone and notification"
+        },
+        {
+          "id": "lm-b4-logo-11",
+          "type": "shape",
+          "name": "Logo",
+          "position": {
+            "x": 131.46,
+            "y": 1735.46
+          },
+          "size": {
+            "width": 91.08,
+            "height": 91.08
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#17181C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M51.64 21.99 A32.5 32.5 0 1 0 78.38 51.17 A6.5 6.5 0 0 0 65.43 52.3 A19.5 19.5 0 1 1 49.39 34.8 A6.5 6.5 0 0 0 51.64 21.99 Z M77.3 33 A8.5 8.5 0 1 0 60.3 33 A8.5 8.5 0 1 0 77.3 33 Z",
+          "specialProps": {
+            "viewBox": "10 15 78 78"
+          },
+          "groupId": "lm-b4-g-phone-and-notification",
+          "groupName": "Phone and notification"
+        },
+        {
+          "id": "lm-b4-app-name-12",
+          "type": "text",
+          "name": "App name",
+          "position": {
+            "x": 280,
+            "y": 1704
+          },
+          "size": {
+            "width": 400,
+            "height": 66
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Loopmate",
+          "fontSize": 13.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "groupId": "lm-b4-g-phone-and-notification",
+          "groupName": "Phone and notification"
+        },
+        {
+          "id": "lm-b4-message-sample-13",
+          "type": "text",
+          "name": "Message (sample)",
+          "position": {
+            "x": 280,
+            "y": 1768
+          },
+          "size": {
+            "width": 542,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "You were paid $24 for\n6 minutes of help",
+          "fontSize": 10.8,
+          "color": "#C5C9D3",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.22,
+          "groupId": "lm-b4-g-phone-and-notification",
+          "groupName": "Phone and notification"
+        },
+        {
+          "id": "lm-b4-glass-pill-14",
+          "type": "shape",
+          "name": "Glass pill",
+          "position": {
+            "x": 742,
+            "y": 900
+          },
+          "size": {
+            "width": 400,
+            "height": 128
+          },
+          "rotation": 14,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#8E97A8",
+          "fillGradient": {
+            "color1": "#C9D2E3",
+            "color2": "#5D6679",
+            "angle": 160
+          },
+          "strokeColor": "rgba(255,255,255,0.45)",
+          "strokeWidth": 3,
+          "fillOpacity": 0.42,
+          "borderRadius": 64,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 34,
+            "color": "rgba(0,0,0,0.45)"
+          },
+          "groupId": "lm-b4-g-earnings-pills",
+          "groupName": "Earnings pills"
+        },
+        {
+          "id": "lm-b4-amount-sample-15",
+          "type": "text",
+          "name": "Amount (sample)",
+          "position": {
+            "x": 758,
+            "y": 917.5
+          },
+          "size": {
+            "width": 368,
+            "height": 93
+          },
+          "rotation": 14,
+          "scale": 1,
+          "content": "+$2,460",
+          "fontSize": 18.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": -0.3,
+          "groupId": "lm-b4-g-earnings-pills",
+          "groupName": "Earnings pills"
+        },
+        {
+          "id": "lm-b4-glass-pill-16",
+          "type": "shape",
+          "name": "Glass pill",
+          "position": {
+            "x": 56,
+            "y": 2296
+          },
+          "size": {
+            "width": 388,
+            "height": 128
+          },
+          "rotation": -12,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#8E97A8",
+          "fillGradient": {
+            "color1": "#C9D2E3",
+            "color2": "#5D6679",
+            "angle": 160
+          },
+          "strokeColor": "rgba(255,255,255,0.45)",
+          "strokeWidth": 3,
+          "fillOpacity": 0.42,
+          "borderRadius": 64,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 34,
+            "color": "rgba(0,0,0,0.45)"
+          },
+          "groupId": "lm-b4-g-earnings-pills",
+          "groupName": "Earnings pills"
+        },
+        {
+          "id": "lm-b4-amount-sample-17",
+          "type": "text",
+          "name": "Amount (sample)",
+          "position": {
+            "x": 72,
+            "y": 2313.5
+          },
+          "size": {
+            "width": 356,
+            "height": 93
+          },
+          "rotation": -12,
+          "scale": 1,
+          "content": "+$1,075",
+          "fontSize": 18.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": -0.3,
+          "groupId": "lm-b4-g-earnings-pills",
+          "groupName": "Earnings pills"
+        }
+      ]
+    },
+    {
+      "id": "lm-board-5",
+      "name": "Vetted Once And Good To Go",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "lm-b5-glow-blue-1",
+          "type": "shape",
+          "name": "Glow, blue",
+          "position": {
+            "x": -300,
+            "y": 1500
+          },
+          "size": {
+            "width": 900,
+            "height": 900
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#CFE7FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.65,
+          "blur": 170,
+          "groupId": "lm-b5-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "lm-b5-glow-peach-2",
+          "type": "shape",
+          "name": "Glow, peach",
+          "position": {
+            "x": 620,
+            "y": 760
+          },
+          "size": {
+            "width": 820,
+            "height": 820
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFE1CC",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.6,
+          "blur": 170,
+          "groupId": "lm-b5-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "lm-b5-ring-1-3",
+          "type": "shape",
+          "name": "Ring 1",
+          "position": {
+            "x": 0,
+            "y": 1000
+          },
+          "size": {
+            "width": 1280,
+            "height": 1280
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#FFD3B8",
+          "strokeWidth": 3,
+          "opacity": 0.9,
+          "groupId": "lm-b5-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "lm-b5-ring-2-4",
+          "type": "shape",
+          "name": "Ring 2",
+          "position": {
+            "x": -210,
+            "y": 790
+          },
+          "size": {
+            "width": 1700,
+            "height": 1700
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#FFD3B8",
+          "strokeWidth": 3,
+          "opacity": 0.55,
+          "groupId": "lm-b5-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "lm-b5-ring-3-5",
+          "type": "shape",
+          "name": "Ring 3",
+          "position": {
+            "x": -430,
+            "y": 570
+          },
+          "size": {
+            "width": 2140,
+            "height": 2140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "transparent",
+          "strokeColor": "#FFD3B8",
+          "strokeWidth": 3,
+          "opacity": 0.9,
+          "groupId": "lm-b5-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "lm-b5-line-1-accent-6",
+          "type": "text",
+          "name": "Line 1, accent",
+          "position": {
+            "x": 84,
+            "y": 107.92
+          },
+          "size": {
+            "width": 1098,
+            "height": 240
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Vetted once.",
+          "fontSize": 48,
+          "color": "#2D8CFF",
+          "fillGradient": {
+            "color1": "#2D8CFF",
+            "via": [
+              "#62C6FF",
+              "#FFDE8A",
+              "#FFA31F"
+            ],
+            "color2": "#FF5A0A",
+            "angle": 90
+          },
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -1.54,
+          "groupId": "lm-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "lm-b5-line-2-7",
+          "type": "text",
+          "name": "Line 2",
+          "position": {
+            "x": 84,
+            "y": 271.12
+          },
+          "size": {
+            "width": 1098,
+            "height": 240
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Good to go.",
+          "fontSize": 48,
+          "color": "#17181C",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -1.54,
+          "groupId": "lm-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "lm-b5-ring-8",
+          "type": "image",
+          "name": "Ring",
+          "position": {
+            "x": 96,
+            "y": 820
+          },
+          "size": {
+            "width": 1180,
+            "height": 831.9
+          },
+          "rotation": 14,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-gloss-ring.png",
+          "imageAlt": "Ring",
+          "objectFit": "contain",
+          "groupId": "lm-b5-g-ring",
+          "groupName": "Ring"
+        },
+        {
+          "id": "lm-b5-expert-9",
+          "type": "image",
+          "name": "Expert",
+          "position": {
+            "x": -150,
+            "y": 1226
+          },
+          "size": {
+            "width": 1500,
+            "height": 1400
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/data/projects/loopmate-gigs-expert.png",
+          "imageAlt": "Expert",
+          "objectFit": "contain",
+          "groupId": "lm-b5-g-expert-photo",
+          "groupName": "Expert photo"
+        },
+        {
+          "id": "lm-b5-ribbon-10",
+          "type": "image",
+          "name": "Ribbon",
+          "position": {
+            "x": -560,
+            "y": 1986
+          },
+          "size": {
+            "width": 2000,
+            "height": 982.73
+          },
+          "rotation": -4,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-gloss-ribbon.png",
+          "imageAlt": "Ribbon",
+          "objectFit": "contain",
+          "groupId": "lm-b5-g-ribbon",
+          "groupName": "Ribbon"
+        },
+        {
+          "id": "lm-b5-card-11",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 84,
+            "y": 2176
+          },
+          "size": {
+            "width": 770,
+            "height": 318
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 52,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 64,
+            "color": "rgba(24,36,70,0.24)"
+          },
+          "groupId": "lm-b5-g-caption-card",
+          "groupName": "Caption card"
+        },
+        {
+          "id": "lm-b5-caption-12",
+          "type": "text",
+          "name": "Caption",
+          "position": {
+            "x": 136,
+            "y": 2272
+          },
+          "size": {
+            "width": 666,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Pass one skills check.\nGet matched with work\nworth your time.",
+          "fontSize": 14.7,
+          "color": "#17181C",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.22,
+          "letterSpacing": -0.3,
+          "groupId": "lm-b5-g-caption-card",
+          "groupName": "Caption card"
+        },
+        {
+          "id": "lm-b5-robot-head-13",
+          "type": "image",
+          "name": "Robot head",
+          "position": {
+            "x": 118,
+            "y": 2064
+          },
+          "size": {
+            "width": 214,
+            "height": 202.02
+          },
+          "rotation": -6,
+          "scale": 1,
+          "imageSrc": "/elements/images/mascots/mascot-gloss-bot-head.png",
+          "imageAlt": "Robot head",
+          "objectFit": "contain",
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 30,
+            "color": "rgba(24,36,70,0.22)"
+          },
+          "groupId": "lm-b5-g-caption-card",
+          "groupName": "Caption card"
+        },
+        {
+          "id": "lm-b5-arrow-14",
+          "type": "image",
+          "name": "Arrow",
+          "position": {
+            "x": 742,
+            "y": 2070
+          },
+          "size": {
+            "width": 236,
+            "height": 207.71
+          },
+          "rotation": 4,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-gloss-arrow.png",
+          "imageAlt": "Arrow",
+          "objectFit": "contain",
+          "shadow": {
+            "x": 0,
+            "y": 30,
+            "blur": 70,
+            "color": "rgba(24,36,70,0.20)"
+          },
+          "groupId": "lm-b5-g-arrow",
+          "groupName": "Arrow"
+        }
+      ]
+    },
+    {
+      "id": "lm-board-6",
+      "name": "Earned Today And Paid Today",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#FFFFFF",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "lm-b6-glow-blue-1",
+          "type": "shape",
+          "name": "Glow, blue",
+          "position": {
+            "x": 520,
+            "y": 1560
+          },
+          "size": {
+            "width": 900,
+            "height": 900
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#CFE7FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.65,
+          "blur": 170,
+          "groupId": "lm-b6-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "lm-b6-glow-peach-2",
+          "type": "shape",
+          "name": "Glow, peach",
+          "position": {
+            "x": -300,
+            "y": 1300
+          },
+          "size": {
+            "width": 760,
+            "height": 760
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFE1CC",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.6,
+          "blur": 170,
+          "groupId": "lm-b6-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "lm-b6-line-1-3",
+          "type": "text",
+          "name": "Line 1",
+          "position": {
+            "x": 84,
+            "y": 78.43
+          },
+          "size": {
+            "width": 1098,
+            "height": 354
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Earned",
+          "fontSize": 70.8,
+          "color": "#17181C",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -2.27,
+          "groupId": "lm-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "lm-b6-line-2-4",
+          "type": "text",
+          "name": "Line 2",
+          "position": {
+            "x": 84,
+            "y": 319.15
+          },
+          "size": {
+            "width": 1098,
+            "height": 354
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "today.",
+          "fontSize": 70.8,
+          "color": "#17181C",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -2.27,
+          "groupId": "lm-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "lm-b6-line-3-accent-5",
+          "type": "text",
+          "name": "Line 3, accent",
+          "position": {
+            "x": 84,
+            "y": 559.87
+          },
+          "size": {
+            "width": 1098,
+            "height": 354
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Paid",
+          "fontSize": 70.8,
+          "color": "#2D8CFF",
+          "fillGradient": {
+            "color1": "#2D8CFF",
+            "via": [
+              "#62C6FF",
+              "#FFDE8A",
+              "#FFA31F"
+            ],
+            "color2": "#FF5A0A",
+            "angle": 90
+          },
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -2.27,
+          "groupId": "lm-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "lm-b6-line-4-accent-6",
+          "type": "text",
+          "name": "Line 4, accent",
+          "position": {
+            "x": 84,
+            "y": 800.59
+          },
+          "size": {
+            "width": 1098,
+            "height": 354
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "today.",
+          "fontSize": 70.8,
+          "color": "#2D8CFF",
+          "fillGradient": {
+            "color1": "#2D8CFF",
+            "via": [
+              "#62C6FF",
+              "#FFDE8A",
+              "#FFA31F"
+            ],
+            "color2": "#FF5A0A",
+            "angle": 90
+          },
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -2.27,
+          "groupId": "lm-b6-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "lm-b6-subheadline-sample-7",
+          "type": "text",
+          "name": "Subheadline (sample)",
+          "position": {
+            "x": 88,
+            "y": 1196
+          },
+          "size": {
+            "width": 1082,
+            "height": 169
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Money in your bank in hours,\nnot weeks",
+          "fontSize": 17.4,
+          "color": "#4B505B",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.2,
+          "letterSpacing": -0.3,
+          "groupId": "lm-b6-g-subheadline",
+          "groupName": "Subheadline"
+        },
+        {
+          "id": "lm-b6-ribbon-8",
+          "type": "image",
+          "name": "Ribbon",
+          "position": {
+            "x": -130,
+            "y": 1590
+          },
+          "size": {
+            "width": 1500,
+            "height": 737.05
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-gloss-ribbon.png",
+          "imageAlt": "Ribbon",
+          "objectFit": "contain",
+          "groupId": "lm-b6-g-ribbon",
+          "groupName": "Ribbon"
+        },
+        {
+          "id": "lm-b6-phone-9",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 78,
+            "y": 1478
+          },
+          "size": {
+            "width": 580,
+            "height": 1214.23
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#0E0F12",
+          "screenshotSrc": "/data/projects/loopmate-gigs-screen-payout.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "shadow": {
+            "x": 0,
+            "y": 40,
+            "blur": 100,
+            "color": "rgba(24,36,70,0.32)"
+          },
+          "groupId": "lm-b6-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "lm-b6-icon-tile-10",
+          "type": "shape",
+          "name": "Icon tile",
+          "position": {
+            "x": 812,
+            "y": 1900
+          },
+          "size": {
+            "width": 296,
+            "height": 296
+          },
+          "rotation": 12,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 70,
+          "shadow": {
+            "x": 0,
+            "y": 30,
+            "blur": 83,
+            "color": "rgba(20,30,60,0.24)"
+          },
+          "groupId": "lm-b6-g-app-icon",
+          "groupName": "App icon"
+        },
+        {
+          "id": "lm-b6-logo-11",
+          "type": "shape",
+          "name": "Logo",
+          "position": {
+            "x": 862.32,
+            "y": 1950.32
+          },
+          "size": {
+            "width": 195.36,
+            "height": 195.36
+          },
+          "rotation": 12,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#17181C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M51.64 21.99 A32.5 32.5 0 1 0 78.38 51.17 A6.5 6.5 0 0 0 65.43 52.3 A19.5 19.5 0 1 1 49.39 34.8 A6.5 6.5 0 0 0 51.64 21.99 Z M77.3 33 A8.5 8.5 0 1 0 60.3 33 A8.5 8.5 0 1 0 77.3 33 Z",
+          "specialProps": {
+            "viewBox": "10 15 78 78"
+          },
+          "groupId": "lm-b6-g-app-icon",
+          "groupName": "App icon"
+        }
+      ]
+    }
+  ]
+}

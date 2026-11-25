@@ -27,12 +27,12 @@ const MAX_SCREENS = 6;
 
 // The App Screenshots category, in gallery order.
 const SLUGS = [
-  'ringnote-calls', 'plumfolio-invest', 'echoline-recorder', 'lulu-wingwoman', 'hushwave-sleep',
+  'ringnote-calls', 'plumfolio-invest', 'echoline-recorder', 'lulu-wingwoman', 'hushwave-sleep', 'loopmate-gigs',
   'parsnap-golf', 'tenpost-ai-photos', 'askadeck-questions',
   'gabwise-skills', 'owedly-settlements', 'kinloom-family', 'kanapon-japanese',
   'umdo-voice-todo', 'paylark-benefits', 'signsy-asl', 'traceberry-drawing',
   'wishmint-wishlist', 'lavish-creator-wishlist', 'postie-cards', 'hummi-cash-gifts',
-  'hoppi-screen-time', 'roamo-esim', 'expertly-ai', 'formpal-forms',
+  'hoppi-screen-time', 'roamo-esim', 'formpal-forms',
   'sunup-missions', 'sunup-alarm',
   'somnia-sleep', 'kassa-money', 'pixara-ai', 'amoura-dating', 'scrappi-journal',
   'plannio-student',

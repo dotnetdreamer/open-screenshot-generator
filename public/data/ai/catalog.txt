@@ -1,150 +1,150 @@
-VERIFICATION-TOKEN: abs-50925999
+VERIFICATION-TOKEN: abs-21513967
 Open Screenshot Generator template catalog. Templates are t<n>; within each, device slots are d<k> and text slots are x<k>, numbered across the whole template. Refer to templates and slots ONLY by these refs.
 
-t0 | Ringnote Call Recorder | category:screenshots | 5 artboards, 4 device slots | App Store & Play Store screenshots for a call recorder, voice memo or transcription app. A wide Unbounded hea...
+t0 | Loopmate Expert Gigs | category:screenshots | 6 artboards, 4 device slots | App Store & Play Store screenshots for an expert marketplace, gig or AI agent app. Tight Inter Tight headline...
+  artboard 0 "Get Paid To Help AI Agents" devices[] texts[x0:"Get paid", x1:"to help", x2:"AI agents", x3:"$40 to $500 a day, on the hours you choose", x4:"+$3,180", x5:"+$145"]
+  artboard 1 "You Step In When Agents Get Stuck" devices[d0:iphone-15-pro] texts[x6:"AI agents", x7:"get stuck.", x8:"You step in.", x9:"New requests in your field, every day"]
+  artboard 2 "Go Online When It Suits You" devices[d1:iphone-15-pro] texts[x10:"Tax advisor", x11:"UX researcher", x12:"Cloud architect", x13:"Legal reviewer", x14:"Data engineer", x15:"Go online", x16:"when it suits you", x17:"One tap to start. No quotas, no shifts."]
+  artboard 3 "Just Chat And Get Paid" devices[d2:iphone-15-pro] texts[x18:"Just chat.", x19:"Get paid.", x20:"Loopmate", x21:"You were paid $24 for 6 minutes of help", x22:"+$2,460", x23:"+$1,075"]
+  artboard 4 "Vetted Once And Good To Go" devices[] texts[x24:"Vetted once.", x25:"Good to go.", x26:"Pass one skills check. Get matched with wor..."]
+  artboard 5 "Earned Today And Paid Today" devices[d3:iphone-15-pro] texts[x27:"Earned", x28:"today.", x29:"Paid", x30:"today.", x31:"Money in your bank in hours, not weeks"]
+t1 | Ringnote Call Recorder | category:screenshots | 5 artboards, 4 device slots | App Store & Play Store screenshots for a call recorder, voice memo or transcription app. A wide Unbounded hea...
   artboard 0 "Record Phone Calls" devices[] texts[x0:"Ringnote", x1:"RECORD", x2:"PHONE", x3:"CALLS", x4:"Recording 4:34", x5:"Incoming call", x6:"Daniel R.", x7:"The clearest call recordings I have ever us..."]
   artboard 1 "Get Call Transcripts" devices[d0:iphone-15-pro] texts[x8:"Transcribe", x9:"Get call transcripts"]
   artboard 2 "Record Calls In One Tap" devices[d1:iphone-15-pro] texts[x10:"Calls", x11:"Record calls in one tap", x12:"4:34"]
   artboard 3 "Record Voice Notes" devices[d2:iphone-15-pro] texts[x13:"Notes", x14:"Record voice notes", x15:"Memo_014.m4a", x16:"12 Mar 2026 · 14:01", x17:"1x", x18:"Trim"]
   artboard 4 "Get An AI Summary" devices[d3:iphone-15-pro] texts[x19:"Summary", x20:"Get an AI summary", x21:"3 key points", x22:"Ready in 4 seconds"]
-t1 | Plumfolio Invest | category:screenshots | 5 artboards, 4 device slots | App Store & Play Store screenshots for an investing, savings or personal finance app for beginners. Condensed...
+t2 | Plumfolio Invest | category:screenshots | 5 artboards, 4 device slots | App Store & Play Store screenshots for an investing, savings or personal finance app for beginners. Condensed...
   artboard 0 "Investing Made Simple" devices[] texts[x0:"500K+ INVESTORS", x1:"NO HIDDEN FEES", x2:"INVESTING MADE SIMPLE,", x3:"NO JARGON"]
   artboard 1 "Grow Wealth On Autopilot" devices[d0:iphone-15-pro] texts[x4:"GROW WEALTH", x5:"ON AUTOPILOT", x6:"MAYA & ZOE", x7:"Plumfolio founders"]
   artboard 2 "Up To 12 Percent Yearly Growth" devices[d1:iphone-15-pro] texts[x8:"UP TO 12%*", x9:"YEARLY GROWTH", x10:"$840,000 at 60", x11:"$50 a week at 22", x12:"* Sample figures. Past returns do not guara..."]
   artboard 3 "Made For Beginners" devices[d2:iphone-15-pro] texts[x13:"MADE FOR", x14:"BEGINNERS"]
   artboard 4 "Your Money, Protected" devices[d3:iphone-15-pro] texts[x15:"YOUR MONEY,", x16:"PROTECTED", x17:"256-BIT ENCRYPTION", x18:"24/7 FRAUD WATCH"]
-t2 | Echoline Call Recorder | category:screenshots | 5 artboards, 4 device slots | App Store & Play Store screenshots for a call recorder, transcription or voice memo app. Rounded Outfit headl...
+t3 | Echoline Call Recorder | category:screenshots | 5 artboards, 4 device slots | App Store & Play Store screenshots for a call recorder, transcription or voice memo app. Rounded Outfit headl...
   artboard 0 "Record Every Call" devices[d0:iphone-17-pro] texts[x0:"Record every call", x1:"4:34", x2:"2M+", x3:"people record with Echoline"]
   artboard 1 "With One Simple App" devices[] texts[x4:"With one simple app"]
   artboard 2 "Get Full Transcripts" devices[d1:iphone-15-pro] texts[x5:"Get full transcripts", x6:"Hi Daniel, great to finally talk", x7:"Likewise. Mind if I record this so I can sh..."]
   artboard 3 "Save Voice Notes Too" devices[d2:iphone-15-pro] texts[x8:"Save voice notes too", x9:"Memo_014.m4a", x10:"12 Mar 2026 · 14:01", x11:"1x", x12:"Trim"]
   artboard 4 "Find Any Call In Seconds" devices[d3:iphone-15-pro] texts[x13:"Find any call in seconds", x14:"launch timeline", x15:"3 matches", x16:"in 2 recordings"]
-t3 | Lulu AI Wingwoman | category:screenshots | 5 artboards, 4 device slots | App Store & Play Store screenshots for a dating, matchmaking or AI companion app. Instrument Serif headlines ...
+t4 | Lulu AI Wingwoman | category:screenshots | 5 artboards, 4 device slots | App Store & Play Store screenshots for a dating, matchmaking or AI companion app. Instrument Serif headlines ...
   artboard 0 "Meet Your Crush" devices[] texts[x0:"Meet your", x1:"crush"]
   artboard 1 "Your Personal AI Wingwoman" devices[d0:iphone-15-pro] texts[x2:"I'm Lulu", x3:"your", x4:"personal", x5:"AI wingwoman", x6:"CRUSH ALERT", x7:"· SURFS"]
   artboard 2 "Tell Lulu Your Type" devices[d1:iphone-15-pro] texts[x8:"Tell Lulu", x9:"your type", x10:"in a chat"]
   artboard 3 "The Best Matches For You" devices[d2:iphone-15-pro] texts[x11:"I handpick", x12:"the best", x13:"matches", x14:"for you", x15:"Profiles for you", x16:"9", x17:"Ask what you want"]
   artboard 4 "The Perfect First Line" devices[d3:iphone-15-pro] texts[x18:"Break the ice", x19:"with", x20:"the perfect", x21:"first line", x22:"So where is that secret kite spot?", x23:"A bad pun for a good photo?", x24:"Coffee or waves first, this weekend?"]
-t4 | Hushwave Sleep | category:screenshots | 5 artboards, 4 device slots | App Store & Play Store screenshots for a sleep, meditation or relaxation app. Rounded Merriweather Sans headl...
+t5 | Hushwave Sleep | category:screenshots | 5 artboards, 4 device slots | App Store & Play Store screenshots for a sleep, meditation or relaxation app. Rounded Merriweather Sans headl...
   artboard 0 "Quiet Your Mind" devices[] texts[x0:"Quiet your mind", x1:"APP OF THE DAY WELLNESS PICK"]
   artboard 1 "Hypnotic Visuals" devices[d0:iphone-15-pro] texts[x2:"48K+ REVIEWS AVG. 4.8 RATING", x3:"Hypnotic visuals"]
   artboard 2 "Fall Asleep Faster" devices[d1:iphone-15-pro] texts[x4:"Fall asleep faster", x5:"SLEEP SOUNDS", x6:"SLEEP MEDITATIONS", x7:"SLEEP STORIES"]
   artboard 3 "Calm Anxiety With Guided Meditation" devices[d2:iphone-15-pro] texts[x8:"Calm anxiety with guided meditation"]
   artboard 4 "Rain, Ocean And White Noise" devices[d3:iphone-15-pro] texts[x9:"Rain, ocean & white noise"]
-t5 | Parsnap Golf Scores | category:screenshots | 5 artboards, 3 device slots | App Store & Play Store screenshots for a golf scorecard, stats or handicap tracker app. Condensed Bebas Neue ...
+t6 | Parsnap Golf Scores | category:screenshots | 5 artboards, 3 device slots | App Store & Play Store screenshots for a golf scorecard, stats or handicap tracker app. Condensed Bebas Neue ...
   artboard 0 "Snap Your Scorecard, Skip The Math" devices[] texts[x0:"SNAP YOUR SCORECARD", x1:"SKIP THE MATH"]
   artboard 1 "Your Game In Numbers" devices[] texts[x2:"136 yds", x3:"YOUR GAME IN NUMBERS", x4:"Putts per round, scoring averages, fairways..."]
   artboard 2 "AI That Reads Your Rounds" devices[d0:iphone-15-pro] texts[x5:"PAR 3", x6:"3.9", x7:"Strokes", x8:"PAR 4", x9:"4.4", x10:"Strokes", x11:"PAR 5", x12:"5.0", x13:"Strokes", x14:"AI THAT READS YOUR ROUNDS"]
   artboard 3 "A Handicap That Updates Every Round" devices[d1:iphone-15-pro] texts[x15:"3", x16:"24", x17:"A HANDICAP THAT UPDATES EVERY ROUND"]
   artboard 4 "Play The Course Smarter" devices[d2:iphone-15-pro] texts[x18:"Where you drop shots", x19:"Approach shots", x20:"72%", x21:"Putting", x22:"48%", x23:"PLAY THE COURSE SMARTER", x24:"Helping golfers see where they lose strokes"]
-t6 | Tenpost AI Photos | category:screenshots | 5 artboards, 3 device slots | App Store & Play Store screenshots for an AI photo generator, selfie editor or social media content app. Heav...
+t7 | Tenpost AI Photos | category:screenshots | 5 artboards, 3 device slots | App Store & Play Store screenshots for an AI photo generator, selfie editor or social media content app. Heav...
   artboard 0 "Make Viral Posts In Seconds" devices[d0:iphone-15-pro] texts[x0:"Make", x1:"viral", x2:"posts", x3:"in", x4:"seconds"]
   artboard 1 "Add One Photo, Get 10+ Posts" devices[] texts[x5:"Add One Photo, Get", x6:"10+", x7:"Posts"]
   artboard 2 "Endless Looks From One Selfie" devices[d1:iphone-15-pro] texts[x8:"Endless", x9:"looks", x10:"from", x11:"one", x12:"selfie"]
   artboard 3 "Looks Like A Real Photoshoot" devices[] texts[x13:"Detailed hair strands", x14:"Clear skin texture", x15:"A man on a phone call in a park, soft natur...", x16:"Generate", x17:"Looks like a real photoshoot"]
   artboard 4 "Keep Your Face, Change The Scene" devices[d2:iphone-15-pro] texts[x18:"Keep your face. Change the whole scene."]
-t7 | Askadeck Party Questions | category:screenshots | 5 artboards, 1 device slots | App Store & Play Store screenshots for a party game, conversation starter or couples question app. Rounded Pl...
+t8 | Askadeck Party Questions | category:screenshots | 5 artboards, 1 device slots | App Store & Play Store screenshots for a party game, conversation starter or couples question app. Rounded Pl...
   artboard 0 "Every Hangout Needs A Spark" devices[] texts[x0:"Friends group", x1:"Couples", x2:"Askadeck", x3:"Questions for friends and couples", x4:"Get", x5:"Every Hangout Needs", x6:"a", x7:"Spark"]
   artboard 1 "Melt The Silence" devices[] texts[x8:"COUPLES", x9:"What's a compliment from me that stuck with...", x10:"Melt the", x11:"Silence"]
   artboard 2 "Pick A Mode, Set The Mood" devices[d0:iphone-15-pro] texts[x12:"Pick a Mode, Set the Mood", x13:"Romantic", x14:"Friendship", x15:"Wild", x16:"Flirty", x17:"Spicy", x18:"Challenge", x19:"Deep talk", x20:"Emotional"]
   artboard 3 "Date Night Just Got Deeper" devices[] texts[x21:"Date Night Just Got", x22:"Deeper"]
   artboard 4 "Bring Everyone A Little Closer" devices[] texts[x23:"Maya", x24:"Online", x25:"What's a compliment from me that stuck with...", x26:"Type your answer", x27:"Askadeck", x28:"Questions for friends and couples", x29:"Get", x30:"Never run out of things to talk about", x31:"Bring Everyone a Little", x32:"Closer"]
-t8 | Gabwise Skills | category:screenshots | 5 artboards, 4 device slots | App Store & Play Store screenshots for a communication skills, public speaking, soft skills, coaching or micr...
+t9 | Gabwise Skills | category:screenshots | 5 artboards, 4 device slots | App Store & Play Store screenshots for a communication skills, public speaking, soft skills, coaching or micr...
   artboard 0 "Level Up Your People Skills" devices[d0:iphone-15-pro] texts[x0:"Level up your people skills in", x1:"5 minutes a day", x2:"Rated", x3:"4.8 out of 5", x4:"by 120,000 learners", x5:"Small talk", x6:"Persuasion", x7:"Listening", x8:"Humor", x9:"Confidence", x10:"Public speaking"]
   artboard 1 "Practice Out Loud With Your AI Voice Coach" devices[d1:iphone-15-pro] texts[x11:"Practice out loud with your AI", x12:"voice coach", x13:"Great energy!"]
   artboard 2 "Rehearse Tough Talks With AI Role Plays" devices[d2:iphone-15-pro] texts[x14:"Rehearse tough talks with AI", x15:"role plays", x16:"Got a minute?", x17:"Sure, go on."]
   artboard 3 "Loved By People Who Used To Hate Small Talk" devices[] texts[x18:"Loved by people who used to hate", x19:"small talk", x20:"I used to dread networking nights. Two week...", x21:"Maya", x22:"sales lead", x23:"I rehearsed my raise talk four times with t...", x24:"Jonas", x25:"engineer", x26:"Short, fun and oddly addictive. My team not...", x27:"Priya", x28:"team lead"]
   artboard 4 "Small Daily Wins Big Confidence" devices[d3:iphone-15-pro] texts[x29:"Small daily wins,", x30:"big confidence", x31:"Streaks, levels and weekly stats keep you c...", x32:"12", x33:"day streak", x34:"Level up!", x35:"Storytelling, level 4"]
-t9 | Owedly Settlements | category:screenshots | 5 artboards, 3 device slots | App Store & Play Store screenshots for a class action settlement, refund finder, cash back or money claim app...
+t10 | Owedly Settlements | category:screenshots | 5 artboards, 3 device slots | App Store & Play Store screenshots for a class action settlement, refund finder, cash back or money claim app...
   artboard 0 "Big Companies Owe You Money" devices[] texts[x0:"$2.4B", x1:"left unclaimed", x2:"Big companies", x3:"owe you", x4:"money.", x5:"New settlements every week"]
   artboard 1 "From Brands You Already Use" devices[d0:iphone-15-pro] texts[x6:"Popreel", x7:"Privacy settlement", x8:"Up to $100", x9:"About $100 a claim", x10:"45 days left", x11:"No proof needed", x12:"From brands you already use.", x13:"Find class action settlements you can still..."]
   artboard 2 "11 Matches Up To 634" devices[d1:iphone-15-pro] texts[x14:"11 matches.", x15:"Up to", x16:"$634"]
   artboard 3 "Search Match Get Paid" devices[d2:iphone-15-pro] texts[x17:"Search. Match.", x18:"Get paid."]
   artboard 4 "Payouts Land In Your Bank" devices[] texts[x19:"Payouts land", x20:"in your bank.", x21:"Track every claim from filed to paid.", x22:"Sprintu", x23:"Delivery fee refund", x24:"+$48.00", x25:"Paid", x26:"Grocera", x27:"Pricing settlement", x28:"+$120.00", x29:"Paid", x30:"Popreel", x31:"Privacy settlement", x32:"+$100.00", x33:"Paid", x34:"Paid out this year", x35:"$268.00"]
-t10 | Kinloom Family | category:screenshots | 5 artboards, 3 device slots | App Store & Play Store screenshots for a shared family calendar, family organizer, chores or grocery list app...
+t11 | Kinloom Family | category:screenshots | 5 artboards, 3 device slots | App Store & Play Store screenshots for a shared family calendar, family organizer, chores or grocery list app...
   artboard 0 "The Whole Family In Sync" devices[] texts[x0:"The whole family, in sync", x1:"One shared calendar for everyone's plans", x2:"Soccer practice", x3:"Sat 10:00 to 11:30", x4:"Dad", x5:"Leo", x6:"Grocery run", x7:"Sun 11:00 to 12:00", x8:"Mom", x9:"Mia"]
   artboard 1 "Every Plan In One Week" devices[d0:iphone-15-pro] texts[x10:"House tidy-up", x11:"Sat 1:00 to 3:00 pm", x12:"Dad", x13:"Mom", x14:"Friday game night", x15:"Fri 6:30 to 8:30 pm", x16:"Dad", x17:"Mom", x18:"Mia"]
   artboard 2 "Twelve Family Tools In One App" devices[] texts[x19:"12", x20:"family tools in one app", x21:"Lists, chores, meals, trips and more", x22:"To-dos", x23:"Events", x24:"Calendar", x25:"Notes", x26:"Groceries", x27:"Chores", x28:"Birthdays", x29:"Trips", x30:"Budget", x31:"Meal plan", x32:"Reminders", x33:"Recipes"]
   artboard 3 "Out Of Milk Its On The List" devices[d1:iphone-15-pro] texts[x34:"Out of milk? It's on the list.", x35:"One grocery list the whole family adds to", x36:"Oat milk", x37:"Bananas", x38:"Pasta"]
   artboard 4 "Chores Get Done Really" devices[d2:iphone-15-pro] texts[x39:"Chores get done. Really.", x40:"Kids tick them off and earn stars", x41:"Feed Biscuit", x42:"Leo earned 1 star", x43:"Water the plants", x44:"Mia earned 1 star", x45:"20 stars", x46:"unlock pizza night"]
-t11 | Kanapon Japanese | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a Japanese learning, kana flashcard or language app. White and warm ye...
+t12 | Kanapon Japanese | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a Japanese learning, kana flashcard or language app. White and warm ye...
   artboard 0 "Hello Japanese Free Forever" devices[d0:iphone-15-pro] texts[x0:"Hello, Japanese!", x1:"Free forever", x2:"2M+", x3:"LEARNERS", x4:"4.9", x5:"ねこ", x6:"すし", x7:"ありがとう", x8:"ラーメン"]
   artboard 1 "Train Your Ear With Real Voices" devices[d1:iphone-15-pro] texts[x9:"Check my answer", x10:"Train your ear", x11:"with", x12:"real voices"]
   artboard 2 "Unlock Kana One Row At A Time" devices[d2:iphone-15-pro] texts[x13:"Unlock kana", x14:"one row at a time", x15:"あ", x16:"a", x17:"か", x18:"ka", x19:"さ", x20:"sa", x21:"た", x22:"ta"]
   artboard 3 "Tap The Right Word And It Sticks" devices[d3:iphone-15-pro] texts[x23:"Tap the right word", x24:"and it sticks!", x25:"くま", x26:"ねこ"]
   artboard 4 "Set A Goal Keep The Streak" devices[d4:iphone-15-pro] texts[x27:"Set a goal,", x28:"keep the", x29:"streak", x30:"Goal set", x31:"Goal reached!", x32:"Paint one eye when you start, the other whe...", x33:"七転び八起き", x34:"Fall seven times, get up eight"]
-t12 | Umdo Voice To-Do | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a voice to-do list, task manager or productivity app. Bold rounded hea...
+t13 | Umdo Voice To-Do | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a voice to-do list, task manager or productivity app. Bold rounded hea...
   artboard 0 "The Laziest Simplest To Do App" devices[d0:iphone-15-pro] texts[x0:"The", x1:"Laziest, Simplest To Do App!", x2:"Smartest"]
   artboard 1 "Just Rant About All The Stuff" devices[] texts[x3:"Just rant about all the stuff you have to g...", x4:"Okay so I really need to", x5:"finish my essay", x6:"before", x7:"Monday, and uhh", x8:"clean the", x9:"kitchen,", x10:"umm...", x11:"call", x12:"Grandma back,", x13:"and maybe", x14:"grab some lunch", x15:"first", x16:"Talk like you talk. Ums, ahs and all!"]
   artboard 2 "Rambling Into Sorted To Dos" devices[d1:iphone-15-pro] texts[x17:"Umdo turns your", x18:"rambling into sorted to-dos!"]
   artboard 3 "Watch Your Tasks Move" devices[] texts[x19:"Watch your tasks go from started to done", x20:"Cheer every small step, not just the last o...", x21:"To do", x22:"Clean the kitchen", x23:"Started", x24:"Clean the kitchen", x25:"Halfway", x26:"Clean the kitchen", x27:"DONE!", x28:"Clean the kitchen"]
   artboard 4 "A Look For Every Mood" devices[d2:iphone-15-pro, d3:iphone-15-pro, d4:iphone-15-pro] texts[x29:"A look for every mood!", x30:"Pick from handmade themes"]
-t13 | Paylark Benefits | category:screenshots | 6 artboards, 6 device slots | App Store & Play Store screenshots for an earned pay, employee benefits, payday or workplace perks app. Light...
+t14 | Paylark Benefits | category:screenshots | 6 artboards, 6 device slots | App Store & Play Store screenshots for an earned pay, employee benefits, payday or workplace perks app. Light...
   artboard 0 "Get Rewarded For Your Work" devices[d0:iphone-15-pro] texts[x0:"paylark", x1:"Get rewarded for your work"]
   artboard 1 "Now With Dark Mode" devices[d1:iphone-15-pro] texts[x2:"Now with dark mode!"]
   artboard 2 "Earnings" devices[d2:iphone-15-pro] texts[x3:"Earnings", x4:"Access your earnings before payday"]
   artboard 3 "Insurance" devices[d3:iphone-15-pro] texts[x5:"Insurance", x6:"Submit a claim with ease"]
   artboard 4 "Marketplace" devices[d4:iphone-15-pro] texts[x7:"Marketplace", x8:"Save with discounts at major brands"]
   artboard 5 "Wellbeing" devices[d5:iphone-15-pro] texts[x9:"Wellbeing", x10:"Access a range of health services"]
-t14 | Signsy ASL | category:screenshots | 6 artboards, 2 device slots | App Store & Play Store screenshots for a sign language, language learning or kids education app. Sky blue, gr...
+t15 | Signsy ASL | category:screenshots | 6 artboards, 2 device slots | App Store & Play Store screenshots for a sign language, language learning or kids education app. Sky blue, gr...
   artboard 0 "Learn ASL The Easy Way" devices[] texts[x0:"Learn", x1:"ASL", x2:"The", x3:"Way", x4:"Easy", x5:"What does this sign mean?", x6:"1,500+", x7:"ASL Flashcards"]
   artboard 1 "Progress Step by Step" devices[d0:iphone-15-pro] texts[x8:"Progress", x9:"Step by Step", x10:"12 units · 72 lessons"]
   artboard 2 "Practice Your Skills Every Day" devices[] texts[x11:"Practice", x12:"Every Day", x13:"Your Skills", x14:"Fix Mistakes", x15:"Review what you missed", x16:"Quick Quiz", x17:"Mixed questions, all topics", x18:"Match Pairs", x19:"Signs to meanings", x20:"99%", x21:"SIGNS", x22:"MASTERED"]
   artboard 3 "Watch The Sign And Answer" devices[d1:iphone-15-pro] texts[x23:"Watch the", x24:"& Answer", x25:"Sign", x26:"Correct!"]
   artboard 4 "Learn 10 Signs Every Lesson" devices[] texts[x27:"Learn", x28:"10+ Signs", x29:"Every Lesson", x30:"Lesson complete!", x31:"+5", x32:"New Phrases", x33:"+10", x34:"New signs", x35:"90%", x36:"Accuracy"]
   artboard 5 "Learn Every Day Grow Your Streak" devices[] texts[x37:"Learn Every Day", x38:"Streak", x39:"Grow Your", x40:"17", x41:"Mo", x42:"Tu", x43:"We", x44:"Th", x45:"Fr", x46:"Sa", x47:"Su", x48:"Best: 17 days", x49:"45", x50:"Signs learned", x51:"9", x52:"Lessons", x53:"74", x54:"Minutes"]
-t15 | Traceberry AR Drawing | category:screenshots | 6 artboards, 4 device slots | App Store & Play Store screenshots for an AR drawing, tracing, sketching or art lesson app. Violet boards wit...
+t16 | Traceberry AR Drawing | category:screenshots | 6 artboards, 4 device slots | App Store & Play Store screenshots for an AR drawing, tracing, sketching or art lesson app. Violet boards wit...
   artboard 0 "Draw With Your Camera" devices[] texts[x0:"Draw", x1:"With Your", x2:"Camera", x3:"Drawing Levels:", x4:"Easy", x5:"Medium", x6:"Hard"]
   artboard 1 "Sketch Like A Pro" devices[d0:iphone-15-pro] texts[x7:"Sketch", x8:"Like a PRO", x9:"Animals", x10:"Portraits", x11:"Nature", x12:"Arch", x13:"Anime", x14:"Cars & Bikes"]
   artboard 2 "1000 Templates" devices[] texts[x15:"1000+", x16:"Templates"]
   artboard 3 "Upload Your Photo" devices[d1:iphone-15-pro] texts[x17:"Upload Your", x18:"Photo", x19:"Upload Your Image"]
   artboard 4 "Step By Step Drawing" devices[d2:iphone-15-pro] texts[x20:"Step-by-Step", x21:"Drawing"]
   artboard 5 "Share Art With Friends" devices[d3:iphone-15-pro] texts[x22:"Share Art", x23:"with Friends", x24:"Share Art Work"]
-t16 | Wishmint Wishlist | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a wishlist, gifting or shopping app. Five bold color blocks (forest an...
+t17 | Wishmint Wishlist | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a wishlist, gifting or shopping app. Five bold color blocks (forest an...
   artboard 0 "Create Your Wishlist" devices[d0:iphone-15-pro] texts[x0:"Create Your Wishlist", x1:"Join millions of users worldwide"]
   artboard 1 "Add Items From Any Store" devices[d1:iphone-15-pro] texts[x2:"Add Items From Any Store"]
   artboard 2 "Shop Your Favorite Brands" devices[d2:iphone-15-pro] texts[x3:"Shop Your Favorite Brands", x4:"Brimly", x5:"KELDA", x6:"ruvo", x7:"Storella", x8:"NOVIK'S"]
   artboard 3 "Compare Prices Instantly" devices[d3:iphone-15-pro] texts[x9:"Q", x10:"$165", x11:"L", x12:"$132", x13:"R", x14:"$126", x15:"Compare Prices Instantly"]
   artboard 4 "Share With Friends" devices[d4:iphone-15-pro] texts[x16:"Share With Friends"]
-t17 | Lavish Creator Wishlist | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a creator wishlist, gifting or fan support app. A soft cream backdrop ...
+t18 | Lavish Creator Wishlist | category:screenshots | 5 artboards, 5 device slots | App Store & Play Store screenshots for a creator wishlist, gifting or fan support app. A soft cream backdrop ...
   artboard 0 "Privacy-Focused Wishlist" devices[d0:iphone-15-pro] texts[x0:"Privacy-focused wishlist for creators", x1:"Let your fans spoil you"]
   artboard 1 "Receive Gifts" devices[d1:iphone-15-pro] texts[x2:"Receive gifts, easy payouts", x3:"You get money to buy a real thing!", x4:"+$3,800", x5:"+$1,250"]
   artboard 2 "Add Wishes From Anywhere" devices[d2:iphone-15-pro] texts[x6:"Add wishes from anywhere", x7:"See it, snap it, add it. From any photo or ...", x8:"Nadia", x9:"Butter Knit Sweater - Yellow", x10:"$175", x11:"Add to wishlist", x12:"Recognized"]
   artboard 3 "Discover Curated Inspiration" devices[d3:iphone-15-pro] texts[x13:"Discover curated inspiration", x14:"Build a wishlist that is all-you"]
   artboard 4 "About To Get Spoiled" devices[d4:iphone-15-pro] texts[x15:"You’re about to get spoiled", x16:"lavish.to/yourname"]
-t18 | Postie Cards | category:screenshots | 5 artboards, 4 device slots | App Store & Play Store screenshots for a greeting card, postcard or snail mail app. Retro print style with ha...
+t19 | Postie Cards | category:screenshots | 5 artboards, 4 device slots | App Store & Play Store screenshots for a greeting card, postcard or snail mail app. Retro print style with ha...
   artboard 0 "Real Cards Like Texts" devices[] texts[x0:"Send real cards, like texts."]
   artboard 1 "Never Forget A Date" devices[d0:iphone-15-pro] texts[x1:"Never forget an important date ever again"]
   artboard 2 "Customize Your Cards" devices[d1:iphone-15-pro, d2:iphone-15-pro] texts[x2:"Customize your cards"]
   artboard 3 "Send Physical Mail" devices[d3:iphone-15-pro] texts[x3:"Send physical mail to everyone you care abo..."]
   artboard 4 "Designs From Artists" devices[] texts[x4:"Designs from your favorite artists", x5:"Theo Marsh", x6:"Ines Varga", x7:"Odette Lane", x8:"Ruth Okafor", x9:"Noa Bell", x10:"Kai Lindqvist", x11:"Mira Solis", x12:"Rosa Hu", x13:"Clara Wren"]
-t19 | Hummi Cash Gifts | category:screenshots | 5 artboards, 0 device slots | App Store & Play Store screenshots for a cash gift, payments or greeting card app. Midnight, violet and coral...
+t20 | Hummi Cash Gifts | category:screenshots | 5 artboards, 0 device slots | App Store & Play Store screenshots for a cash gift, payments or greeting card app. Midnight, violet and coral...
   artboard 0 "Cash Gifts Just Got Good" devices[] texts[x0:"hummi", x1:"Cash gifts just got good", x2:"$", x3:"200", x4:"From", x5:"JL", x6:"Jordan Lee", x7:"@jordanlee"]
   artboard 1 "Gift Up To 2000" devices[] texts[x8:"Gift up to $2,000,", x9:"instantly & securely", x10:"To:", x11:"Sam Rivera", x12:"Gift Amount:", x13:"$200.00", x14:"$100", x15:"$200", x16:"$500", x17:"$1,000"]
   artboard 2 "Curated Greetings" devices[] texts[x18:"Curated greetings", x19:"by independent artists"]
   artboard 3 "Get Updates" devices[] texts[x20:"Get updates when", x21:"your gift is viewed", x22:"Hummi", x23:"Sam Rivera just viewed your gift!", x24:"23m ago"]
   artboard 4 "Feel The Love" devices[] texts[x25:"Feel the love", x26:"from the perfect gift", x27:"KD", x28:"Every wedding gift came through Hummi, and ...", x29:"— Kira D.", x30:"send!! So sweet", x31:"IS", x32:"Sending money finally feels like a real pre...", x33:"— Idris S.", x34:"BL", x35:"Used it for my nephew's birthday and he lov...", x36:"— Bea L.", x37:"gift idea", x38:"DK", x39:"The cards are gorgeous and the money arrive...", x40:"— Dev K.", x41:"NH", x42:"It's my go-to for graduations and every bir...", x43:"— Noor H.", x44:"best gift app!! So thoughtful", x45:"LM", x46:"Five stars, the cards make it feel so thoug...", x47:"— Lia M.", x48:"IN", x49:"Such pretty card designs inside", x50:"— Ivy N."]
-t20 | Hoppi Screen Time | category:screenshots | 6 artboards, 5 device slots | App Store & Play Store screenshots for a screen time, habit or rewards app made playful. Bright blue and whit...
+t21 | Hoppi Screen Time | category:screenshots | 6 artboards, 5 device slots | App Store & Play Store screenshots for a screen time, habit or rewards app made playful. Bright blue and whit...
   artboard 0 "Turn Life Into A Game" devices[] texts[x0:"Turn", x1:"Your", x2:"Life", x3:"into a", x4:"Game"]
   artboard 1 "Block Distracting Apps" devices[d0:iphone-17-pro-max] texts[x5:"29", x6:"Block", x7:"Distracting", x8:"Apps"]
   artboard 2 "Build Habits Earn Coins" devices[d1:iphone-17-pro-max] texts[x9:"Build Habits", x10:"&", x11:"Earn", x12:"C", x13:"ins"]
   artboard 3 "Coins Unlock Screen Time" devices[d2:iphone-17-pro-max] texts[x14:"Coins", x15:"Unlock", x16:"Screen Time", x17:"300", x18:"10 min", x19:"15 mins", x20:"20 min", x21:"Buy Screentime"]
   artboard 4 "Reps Into Screen Time" devices[d3:iphone-17-pro-max] texts[x22:"Turn", x23:"Reps into", x24:"Screen Time"]
   artboard 5 "Track Screen Time" devices[d4:iphone-17-pro-max] texts[x25:"Track screen", x26:"Time &", x27:"Habits", x28:"64", x29:"Best Streak", x30:"STREAK!"]
-t21 | Roamo eSIM | category:screenshots | 6 artboards, 4 device slots | App Store & Play Store screenshots for a travel, eSIM or second number app. Bright sky blue boards with gloss...
+t22 | Roamo eSIM | category:screenshots | 6 artboards, 4 device slots | App Store & Play Store screenshots for a travel, eSIM or second number app. Bright sky blue boards with gloss...
   artboard 0 "Travel eSIM" devices[] texts[x0:"travel", x1:"eSIM", x2:"WITH YOUR UK NUMBER", x3:"R", x4:"Rated", x5:"4.8", x6:"in the App Store"]
   artboard 1 "Around The World" devices[d0:iphone-17-pro-max] texts[]
   artboard 2 "Worldwide Plans" devices[d1:iphone-17-pro-max] texts[x7:"Worldwide Data", x8:"plans", x9:"190 COUNTRIES"]
   artboard 3 "Receive Calls" devices[d2:iphone-17-pro-max] texts[x10:"Swipe To Answer", x11:"Receive", x12:"calls", x13:"while abroad"]
   artboard 4 "One Click" devices[d3:iphone-17-pro-max] texts[x14:"In", x15:"1", x16:"ne", x17:"click"]
   artboard 5 "A Number For Travel" devices[] texts[x18:"1m+", x19:"Users", x20:"+44 1234 5678", x21:"a number", x22:"travel", x23:"for", x24:"Numbers - SMS - Calls"]
-t22 | Expertly AI | category:screenshots | 6 artboards, 0 device slots | App Store & Play Store screenshots for a gig, marketplace or AI app. Crisp Noto Sans headlines with rainbow g...
-  artboard 0 "Earn Helping AI" devices[] texts[x0:"Earn money", x1:"helping", x2:"Ai Agents", x3:"+$4,330", x4:"+$230", x5:"Earn $40 to $500 per day, on your schedule."]
-  artboard 1 "Experts Needed" devices[] texts[x6:"AI agents", x7:"need", x8:"experts", x9:"like you", x10:"New requests, every day, in your domain.", x11:"Accept Request"]
-  artboard 2 "Online When You Want" devices[] texts[x12:"Product Strategist", x13:"Mobile Developer", x14:"Security Engineer", x15:"Data Scientist", x16:"Backend/API Engineer", x17:"Online", x18:"when", x19:"you want", x20:"One tap. No commitments, no quotas."]
-  artboard 3 "Vetted Experts" devices[] texts[x21:"Vetted", x22:"experts.", x23:"Quality work.", x24:"Pass once. Get matched to high signal work."]
-  artboard 4 "Chat And Get Paid" devices[] texts[x25:"Just", x26:"chat like", x27:"always,", x28:"but", x29:"Paid", x30:"+$4,330", x31:"+$1,230", x32:"Expertly", x33:"You have just been credited. Your funds are..."]
-  artboard 5 "Cash Out Same Day" devices[] texts[x34:"Cash", x35:"out", x36:"the", x37:"same", x38:"day!", x39:"Paid out fast. Money in your bank, hours no..."]
 t23 | Formpal Forms | category:screenshots | 6 artboards, 3 device slots | App Store & Play Store screenshots for a forms, survey or productivity app. Clean white, blue, purple and gre...
   artboard 0 "No Hassle" devices[] texts[x0:"Finally, forms", x1:"without the hassle", x2:"Creating", x3:"Forms, made", x4:"simple", x5:"Create forms", x6:"Easy To Use", x7:"A form in minutes", x8:"Free To Start", x9:"No card needed"]
   artboard 1 "AI Builds It" devices[] texts[x10:"Describe it.", x11:"AI builds it.", x12:"A ready form in seconds, no templates, no d...", x13:"100% FREE TO USE"]
@@ -695,29 +695,29 @@ t120 | Productivity Tasks | category:play-feature-graphic | 1 artboards, 1 devic
   artboard 0 "Productivity Tasks" devices[d0:iphone-15] texts[x0:"Get things done, faster", x1:"Tasks, notes and reminders, all in one plac...", x2:"Start free"]
 
 Template previews (PNG):
-t0 preview: https://editor.openscrgen.app/data/projects/previews/ringnote-calls.png
-t1 preview: https://editor.openscrgen.app/data/projects/previews/plumfolio-invest.png
-t2 preview: https://editor.openscrgen.app/data/projects/previews/echoline-recorder.png
-t3 preview: https://editor.openscrgen.app/data/projects/previews/lulu-wingwoman.png
-t4 preview: https://editor.openscrgen.app/data/projects/previews/hushwave-sleep.png
-t5 preview: https://editor.openscrgen.app/data/projects/previews/parsnap-golf.png
-t6 preview: https://editor.openscrgen.app/data/projects/previews/tenpost-ai-photos.png
-t7 preview: https://editor.openscrgen.app/data/projects/previews/askadeck-questions.png
-t8 preview: https://editor.openscrgen.app/data/projects/previews/gabwise-skills.png
-t9 preview: https://editor.openscrgen.app/data/projects/previews/owedly-settlements.png
-t10 preview: https://editor.openscrgen.app/data/projects/previews/kinloom-family.png
-t11 preview: https://editor.openscrgen.app/data/projects/previews/kanapon-japanese.png
-t12 preview: https://editor.openscrgen.app/data/projects/previews/umdo-voice-todo.png
-t13 preview: https://editor.openscrgen.app/data/projects/previews/paylark-benefits.png
-t14 preview: https://editor.openscrgen.app/data/projects/previews/signsy-asl.png
-t15 preview: https://editor.openscrgen.app/data/projects/previews/traceberry-drawing.png
-t16 preview: https://editor.openscrgen.app/data/projects/previews/wishmint-wishlist.png
-t17 preview: https://editor.openscrgen.app/data/projects/previews/lavish-creator-wishlist.png
-t18 preview: https://editor.openscrgen.app/data/projects/previews/postie-cards.png
-t19 preview: https://editor.openscrgen.app/data/projects/previews/hummi-cash-gifts.png
-t20 preview: https://editor.openscrgen.app/data/projects/previews/hoppi-screen-time.png
-t21 preview: https://editor.openscrgen.app/data/projects/previews/roamo-esim.png
-t22 preview: https://editor.openscrgen.app/data/projects/previews/expertly-ai.png
+t0 preview: https://editor.openscrgen.app/data/projects/previews/loopmate-gigs.png
+t1 preview: https://editor.openscrgen.app/data/projects/previews/ringnote-calls.png
+t2 preview: https://editor.openscrgen.app/data/projects/previews/plumfolio-invest.png
+t3 preview: https://editor.openscrgen.app/data/projects/previews/echoline-recorder.png
+t4 preview: https://editor.openscrgen.app/data/projects/previews/lulu-wingwoman.png
+t5 preview: https://editor.openscrgen.app/data/projects/previews/hushwave-sleep.png
+t6 preview: https://editor.openscrgen.app/data/projects/previews/parsnap-golf.png
+t7 preview: https://editor.openscrgen.app/data/projects/previews/tenpost-ai-photos.png
+t8 preview: https://editor.openscrgen.app/data/projects/previews/askadeck-questions.png
+t9 preview: https://editor.openscrgen.app/data/projects/previews/gabwise-skills.png
+t10 preview: https://editor.openscrgen.app/data/projects/previews/owedly-settlements.png
+t11 preview: https://editor.openscrgen.app/data/projects/previews/kinloom-family.png
+t12 preview: https://editor.openscrgen.app/data/projects/previews/kanapon-japanese.png
+t13 preview: https://editor.openscrgen.app/data/projects/previews/umdo-voice-todo.png
+t14 preview: https://editor.openscrgen.app/data/projects/previews/paylark-benefits.png
+t15 preview: https://editor.openscrgen.app/data/projects/previews/signsy-asl.png
+t16 preview: https://editor.openscrgen.app/data/projects/previews/traceberry-drawing.png
+t17 preview: https://editor.openscrgen.app/data/projects/previews/wishmint-wishlist.png
+t18 preview: https://editor.openscrgen.app/data/projects/previews/lavish-creator-wishlist.png
+t19 preview: https://editor.openscrgen.app/data/projects/previews/postie-cards.png
+t20 preview: https://editor.openscrgen.app/data/projects/previews/hummi-cash-gifts.png
+t21 preview: https://editor.openscrgen.app/data/projects/previews/hoppi-screen-time.png
+t22 preview: https://editor.openscrgen.app/data/projects/previews/roamo-esim.png
 t23 preview: https://editor.openscrgen.app/data/projects/previews/formpal-forms.png
 t24 preview: https://editor.openscrgen.app/data/projects/previews/sunup-missions.png
 t25 preview: https://editor.openscrgen.app/data/projects/previews/sunup-alarm.png
