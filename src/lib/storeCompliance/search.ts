@@ -46,7 +46,7 @@ export function scoreRule(rule: RejectionRule, terms: string[]): number {
   const code = [...rule.signals, ...rule.counterSignals].join(' ').toLowerCase();
   // The plain words too (plain.ts), so "face scan" finds what the playbook calls biometrics.
   const plainTitle = rule.plain?.title.toLowerCase() ?? '';
-  const plainBody = rule.plain ? `${rule.plain.problem} ${rule.plain.fix}`.toLowerCase() : '';
+  const plainBody = rule.plain ? [rule.plain.problem, rule.plain.fix].filter(Boolean).join(' ').toLowerCase() : '';
   let score = 0;
   for (const term of terms) {
     if (hits(guideline, term)) score += /^\d/.test(term) ? 8 : 3;
@@ -58,7 +58,7 @@ export function scoreRule(rule: RejectionRule, terms: string[]): number {
 }
 
 function deadlineText(deadline: Deadline): string {
-  const plain = deadline.plain ? ` ${deadline.plain.title} ${deadline.plain.summary}` : '';
+  const plain = deadline.plain ? ` ${deadline.plain.title} ${deadline.plain.summary ?? ''}` : '';
   return `${deadline.jurisdiction} ${deadline.law} ${deadline.requirement} ${deadline.id}${plain}`.toLowerCase();
 }
 

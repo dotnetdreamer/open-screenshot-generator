@@ -16,6 +16,8 @@ The playbook is written for developers and lawyers. Where it has a plain-words v
 
 When the playbook changes a rule's words, you see its own words for that rule until the plain version is updated too, so the plain words never say something the playbook no longer does.
 
+A few rules and deadlines are too long to say in a few short lines without losing a condition. Those get a plain title, and the playbook's own words under it.
+
 ## Pick your stores
 
 At the top right, pick **App Store**, **Google Play** or both. The checklist, the rules, the deadlines and the AI only show what's about the stores you pick.
@@ -24,8 +26,9 @@ At the top right, pick **App Store**, **Google Play** or both. The checklist, th
 
 - **Ready for review?** shows how much of the checklist is done for the project that's open in the editor. Tick the two checks under it first: they stop most rejections.
 - **Let AI check your app** opens Ask AI with the check ready to run.
-- The numbers below go straight to why apps get rejected, the deadlines in the next 90 days and the guides.
-- After the playbook gets new rules or deadlines, a note says what's new. Click **See the new rules** to see only those.
+- The numbers below go straight to Test like a reviewer, why apps get rejected, the deadlines in the next 90 days and the guides.
+- After the playbook gets new rules or deadlines, or corrects a deadline, a note says what's new. Click **See the new rules** to see only the new rules, or **See the deadlines**.
+- At the bottom, a line says when the playbook last checked Apple's, Google's and the laws' own pages, and how many deadlines it hasn't checked again for more than 60 days. If even its newest check is older than 60 days, a warning at the top says so: something may have changed since.
 
 ## Ask AI
 
@@ -50,6 +53,30 @@ In the desktop app, click **Add your app's code** above the message box and pick
 - Reading code uses your Claude plan, and a check can take a few minutes.
 - To stop Claude Code reading the folder, click the **x** on it.
 
+## Test like a reviewer
+
+Apple and Google try a few things on the version you send that no check of your words or your code can prove. Try them yourself first:
+
+- The reviewer can sign in with your demo account.
+- Your live server is up and has test data in it.
+- Your review notes say where to find every feature. Click **See what to write** for the playbook's notes template, then **Copy the notes**.
+- Your screenshots show this version, in use, on every device you support.
+- Deleting an account works on a real phone.
+- Your privacy answers match what the app collects. Every app has this one, so it can't be skipped.
+- The reviewer can find and buy everything you sell.
+
+Answer each one **Yes**, **No** or **Doesn't apply** with a reason. A **No** means fix it before you send your app. Write the version you tried at the top, like 1.2 (14). The answers stay with the project that's open in the editor.
+
+An answer older than 30 days asks you to try it again, because a test of last month's version says nothing about this one. Click the same answer again to say it still holds today. Click a fresh answer again to take it back. **Start over** clears every answer for your next version.
+
+### For your AI coding tool
+
+If you use Claude Code, Codex or another AI tool with the playbook's guard, it reads these answers from a file called `.app-review-readiness.json` in your app's code folder, and stops an upload while an answer says No. Switch on **Also stop the upload while a check isn't done** to stop it until every check is done too.
+
+- In the desktop app, **Save the file** asks where to save it. Pick your app's code folder. macOS may say names that start with a dot are hidden: keep the dot.
+- On the web, **Download the file** saves `app-review-readiness.json`. Browsers drop the dot at the start of a name, so add it back.
+- Or click **Copy the file**, paste it to your AI tool and ask it to save the file in your app's folder.
+
 ## Checklist
 
 The playbook's checklist, box by box, for the project that's open in the editor. Your ticks stay with that project, so each app's project has its own checklist.
@@ -59,6 +86,8 @@ The playbook's checklist, box by box, for the project that's open in the editor.
 - Boxes marked **Every app** can't be skipped: every app needs a privacy declaration that matches what it collects, and a privacy policy people can open from the app.
 - Point at a box and click the sparkle to ask the AI what the box means and how to check it.
 - **Start over** unticks every box, for your app's next version.
+- A box about one store only (it starts with Apple or Google Play) hides when you pick only the other store.
+- The box about the readiness file has a button that opens Test like a reviewer, where you answer those checks.
 
 ## Why apps get rejected
 
@@ -68,9 +97,11 @@ Every rule in the playbook, the most serious first: **Critical**, then **High ri
 
 The dates new laws and store rules start, month by month, soonest first. Pick a region to see only its deadlines. Click a deadline to see all its dates, the law's full name, read the law itself, or ask the AI what it means for your app. **Already started** lists the ones that have begun.
 
+When the playbook corrects a deadline, the deadline shows **Changed** for 30 days, and opening it shows **What changed** with the day, in the playbook's words.
+
 ## Guides
 
-The playbook's guides: Apple's and Google's rejection maps, how to appeal a rejection, the rules by kind of app, and the laws in the EU, the USA and other countries. A guide downloads the first time you open it and then opens offline too. Links inside a guide open the other guide right there. The guides are in the playbook's own words.
+The playbook's guides: Apple's and Google's rejection maps, how to appeal a rejection, the rules by kind of app, the laws in the EU, the USA and other countries, what a scan can prove and what only you can check, and answers to common questions. A guide downloads the first time you open it and then opens offline too. Links inside a guide open the other guide right there. The guides are in the playbook's own words.
 
 ## Updates
 

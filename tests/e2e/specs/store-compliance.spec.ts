@@ -501,6 +501,201 @@ test.describe('Store compliance', () => {
     await expect(view.getByTestId('store-compliance-checklist')).toBeVisible();
   });
 
+  test('Test like a reviewer keeps each answer with the project, asks again after 30 days, and saves the file the guard reads', async ({ page, app, isDesktop, tauri, browserName }) => {
+    test.setTimeout(180_000);
+    const template = JSON.stringify({
+      build: '1.0.0 (1)',
+      checked_on: 'YYYY-MM-DD',
+      enforce: false,
+      checks: {
+        demo_account: 'todo',
+        live_backend: 'todo',
+        review_notes: 'todo',
+        screenshots_match_build: 'todo',
+        account_deletion_device_test: 'todo',
+        privacy_labels_match_runtime: 'todo',
+        iap_reachable_by_reviewer: 'todo',
+      },
+      notes: {},
+    });
+    const notes = '# Review Notes Template\n\nCopy the block below.\n\n```text\n1. SCREEN RECORDING\nDemo video URL: <link>\n```\n';
+    const repo = new FakeRepo(files({ 'templates/app-review-readiness.json': template, 'templates/REVIEW-NOTES-TEMPLATE.md': notes }), browserName !== 'webkit');
+    await repo.install(page);
+    await app.startBlankProject();
+    let view = await openRules(page);
+    await expect(view.getByTestId('store-compliance-overview')).toBeVisible({ timeout: 30_000 });
+    expect(repo.downloads()).toContain('templates/app-review-readiness.json');
+    await section(view, 'Test like a reviewer').click();
+    const screen = view.getByTestId('store-compliance-readiness');
+    const count = screen.getByTestId('store-readiness-count');
+    await expect(count).toHaveText('0 of 7');
+    const check = (key: string) => screen.locator(`[data-readiness-check="${key}"]`);
+    // Nothing answered, nothing to save.
+    await expect(screen.getByTestId('store-readiness-file').getByRole('button', { name: isDesktop ? 'Save the file' : 'Download the file' })).toBeDisabled();
+
+    await check('demo_account').getByRole('button', { name: 'Yes', exact: true }).click();
+    await check('live_backend').getByRole('button', { name: 'No', exact: true }).click();
+    await expect(check('live_backend')).toContainText("Didn't work today. Fix this before you send your app");
+    await expect(screen.getByTestId('store-readiness-warnings')).toContainText("1 check didn't work");
+    await check('iap_reachable_by_reviewer').getByRole('button', { name: "Doesn't apply" }).click();
+    await check('iap_reachable_by_reviewer').getByLabel("Why the check doesn't apply").fill('Nothing to buy in the app');
+    await check('iap_reachable_by_reviewer').getByRole('button', { name: 'Save' }).click();
+    await expect(check('iap_reachable_by_reviewer')).toContainText("Doesn't apply: Nothing to buy in the app");
+    // Every app has privacy answers, so that check can't be skipped.
+    await expect(check('privacy_labels_match_runtime')).toContainText('Every app');
+    await expect(check('privacy_labels_match_runtime').getByRole('button', { name: "Doesn't apply" })).toHaveCount(0);
+    await expect(count).toHaveText('2 of 7');
+    await screen.getByLabel('Version you tried').fill('1.2 (14)');
+    await screen.getByLabel('Version you tried').press('Enter');
+
+    // The review notes check shows the playbook's template.
+    await check('review_notes').getByRole('button', { name: 'See what to write' }).click();
+    const sheet = page.getByTestId('store-review-notes');
+    await expect(sheet.getByTestId('store-review-notes-text')).toContainText('1. SCREEN RECORDING');
+    await expect(sheet).not.toContainText('Copy the block below');
+    await page.keyboard.press('Escape');
+
+    const file = screen.getByTestId('store-readiness-file');
+    await file.getByLabel("Also stop the upload while a check isn't done").click();
+    if (isDesktop) {
+      await file.getByRole('button', { name: 'Save the file' }).click();
+      const [written] = await tauri.waitForFiles(1);
+      expect(written.path.endsWith('/.app-review-readiness.json')).toBe(true);
+      expect(written.bytes).toBeGreaterThan(100);
+    } else {
+      const downloading = page.waitForEvent('download');
+      await file.getByRole('button', { name: 'Download the file' }).click();
+      const download = await downloading;
+      // Browsers drop a leading dot from a download's name, so the file is named without it.
+      expect(download.suggestedFilename()).toBe('app-review-readiness.json');
+      const saved = JSON.parse(await (await import('node:fs/promises')).readFile((await download.path())!, 'utf8'));
+      expect(saved).toEqual({
+        build: '1.2 (14)',
+        checked_on: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
+        enforce: true,
+        checks: {
+          demo_account: 'pass',
+          live_backend: 'fail',
+          review_notes: 'todo',
+          screenshots_match_build: 'todo',
+          account_deletion_device_test: 'todo',
+          privacy_labels_match_runtime: 'todo',
+          iap_reachable_by_reviewer: 'n/a',
+        },
+        notes: { iap_reachable_by_reviewer: 'Nothing to buy in the app' },
+      });
+    }
+
+    // The answers stay with the project, and the Overview counts them.
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await app.waitForBoot();
+    view = await openRules(page);
+    await expect(view.getByTestId('store-compliance-overview')).toContainText('2 of 7');
+    await section(view, 'Test like a reviewer').click();
+    await expect(view.getByTestId('store-readiness-count')).toHaveText('2 of 7');
+    await expect(view.getByLabel('Version you tried')).toHaveValue('1.2 (14)');
+    await expect(view.getByLabel("Also stop the upload while a check isn't done")).toBeChecked();
+
+    // Forty days on, every answer asks to be tried again.
+    await page.clock.install({ time: new Date(Date.now() + 40 * 86_400_000) });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await app.waitForBoot();
+    view = await openRules(page);
+    await section(view, 'Test like a reviewer').click();
+    await expect(view.getByTestId('store-readiness-warnings')).toContainText('3 answers are more than 30 days old');
+    await expect(view.locator('[data-readiness-check="demo_account"]')).toContainText("Tried 40 days ago. Try it again on the version you're sending");
+    await view.locator('[data-readiness-check="demo_account"]').getByRole('button', { name: 'Yes', exact: true }).click();
+    await expect(view.locator('[data-readiness-check="demo_account"]')).toContainText('Worked today');
+    await expect(view.getByTestId('store-readiness-warnings')).toContainText('2 answers are more than 30 days old');
+    await expect(view.getByTestId('store-readiness-count')).toHaveText('2 of 7');
+    // A fresh answer clicked again is taken back.
+    await view.locator('[data-readiness-check="demo_account"]').getByRole('button', { name: 'Yes', exact: true }).click();
+    await expect(view.getByTestId('store-readiness-count')).toHaveText('1 of 7');
+    await expect(view.locator('[data-readiness-check="demo_account"]').getByTestId('store-readiness-when')).toHaveCount(0);
+  });
+
+  test('boxes for one store, a corrected deadline, how old the rules are, and the guide on what a scan proves', async ({ page, app, browserName }) => {
+    test.setTimeout(180_000);
+    // Days in the local time zone, as the app counts them.
+    const day = (ago: number) => {
+      const at = new Date(Date.now() - ago * 86_400_000);
+      return `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, '0')}-${String(at.getDate()).padStart(2, '0')}`;
+    };
+    const checklist = `${CHECKLIST}
+## Shared (both stores)
+
+### Privacy and data
+- [ ] Apple. A custom screen before a permission alert has one button titled Continue.
+- [ ] Google Play. A screen that explains a permission lets the user decline.
+- [ ] These checks are recorded in \`.app-review-readiness.json\` in the app folder.
+`;
+    const corrected = (history: string) => ({
+      deadlines: [
+        { ...DEADLINES.deadlines[0], verified_on: day(100) },
+        { ...DEADLINES.deadlines[1], verified_on: day(90), history },
+      ],
+    });
+    const index = `# Playbook\n\n- **An honest split** between what the scan proves and what only a person can check, in [What the scan proves](WHAT-THE-SCAN-PROVES.md).\n\n${INDEX.replace('# Playbook\n\n', '')}`;
+    const repo = new FakeRepo(
+      files({
+        'docs/PRE-SUBMISSION-CHECKLIST.md': checklist,
+        'data/regulatory-deadlines.json': JSON.stringify(corrected(`${day(2)}. The date was read again.`)),
+        'docs/index.md': index,
+        'docs/WHAT-THE-SCAN-PROVES.md': '# What the scan proves\n\n## The two halves\n\nA clean scan is not an approval.\n',
+      }),
+      browserName !== 'webkit'
+    );
+    await repo.install(page);
+    await app.startBlankProject();
+    let view = await openRules(page);
+    const overview = view.getByTestId('store-compliance-overview');
+    await expect(overview).toBeVisible({ timeout: 30_000 });
+    // The newest source is 90 days old, past the playbook's 60.
+    await expect(overview.getByTestId('store-compliance-stale')).toContainText("The playbook hasn't checked Apple's and Google's pages for 90 days.");
+
+    await section(view, 'Checklist').click();
+    const boxes = view.getByTestId('store-compliance-checklist');
+    await expect(boxes.locator('li', { hasText: 'A custom screen before a permission alert' })).toHaveCount(1);
+    await view.getByRole('group', { name: 'Stores your app is on' }).getByRole('button', { name: 'App Store' }).click();
+    await expect(boxes.locator('li', { hasText: 'A custom screen before a permission alert' })).toHaveCount(0);
+    await expect(boxes.locator('li', { hasText: 'A screen that explains a permission' })).toHaveCount(1);
+    await view.getByRole('group', { name: 'Stores your app is on' }).getByRole('button', { name: 'App Store' }).click();
+    await boxes.getByTestId('store-checklist-readiness').click();
+    await expect(view.getByTestId('store-compliance-readiness')).toBeVisible();
+
+    await section(view, 'Deadlines').click();
+    const changed = view.locator('[data-deadline="FAR-AHEAD"]');
+    await expect(changed.getByTestId('store-deadline-changed')).toHaveText('Changed');
+    await changed.locator('button[aria-expanded]').click();
+    await expect(changed.getByTestId('store-deadline-change')).toContainText('The date was read again.');
+    await expect(changed.getByTestId('store-deadline-change')).toContainText('What changed on');
+
+    await section(view, 'Guides').click();
+    await expect(view.locator('[data-guide="docs/WHAT-THE-SCAN-PROVES.md"]')).toContainText('An honest split between what the scan proves');
+    await view.locator('[data-guide="docs/WHAT-THE-SCAN-PROVES.md"]').click();
+    await expect(view.getByTestId('store-compliance-guide').getByRole('heading', { name: 'What the scan proves' })).toBeVisible();
+
+    // A fresh check and a reworded correction: the rules are current again, and the change is pointed out.
+    repo.push(
+      files({
+        'docs/PRE-SUBMISSION-CHECKLIST.md': checklist,
+        'data/regulatory-deadlines.json': JSON.stringify({ deadlines: [{ ...corrected('').deadlines[0], verified_on: day(0) }, { ...corrected(`${day(0)}. Read again today.`).deadlines[1] }] }),
+        'docs/index.md': index,
+        'docs/WHAT-THE-SCAN-PROVES.md': '# What the scan proves\n\n## The two halves\n\nA clean scan is not an approval.\n',
+      })
+    );
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await app.waitForBoot();
+    view = await openRules(page);
+    const news = view.getByTestId('store-compliance-news');
+    await expect(news).toContainText('New since your last visit: 1 change to deadlines');
+    await expect(view.getByTestId('store-compliance-stale')).toHaveCount(0);
+    await expect(view.getByTestId('store-compliance-freshness')).toContainText("The playbook last checked Apple's, Google's and the laws' own pages on");
+    await expect(view.getByTestId('store-compliance-freshness')).toContainText("1 of 2 deadlines hasn't been checked again for more than 60 days");
+    await news.getByRole('button', { name: 'See the deadlines' }).click();
+    await expect(view.locator('[data-deadline="FAR-AHEAD"]').getByTestId('store-deadline-changed')).toBeVisible();
+  });
+
   test.describe('with Claude Code', () => {
     test.use({ tauriConfig: { responses: { abs_claude_detect: CLAUDE_READY } } });
 

@@ -148,14 +148,22 @@ function waitFrom(response: Response, now: number): number {
   return now + 15 * 60_000;
 }
 
-/** New rules and deadlines in `next` that `before` did not have. */
-function whatsNew(before: RulesLibrary | null, next: RulesLibrary | null): { rules: string[]; deadlines: string[] } {
-  if (!before || !next) return { rules: [], deadlines: [] };
+/**
+ * New rules and deadlines in `next` that `before` did not have, and the
+ * deadlines both have whose note on what the playbook corrected (`history`)
+ * is new or reworded.
+ */
+export function whatsNew(before: RulesLibrary | null, next: RulesLibrary | null): { rules: string[]; deadlines: string[]; changed: string[] } {
+  if (!before || !next) return { rules: [], deadlines: [], changed: [] };
   const oldRules = new Set(before.rules.map((rule) => rule.id));
-  const oldDeadlines = new Set(before.deadlines.map((deadline) => deadline.id));
+  const oldDeadlines = new Map(before.deadlines.map((deadline) => [deadline.id, deadline]));
+  const noteOf = (deadline: RulesLibrary['deadlines'][number] | undefined) => (deadline?.change ? `${deadline.change.day ?? ''} ${deadline.change.text}` : '');
   return {
     rules: next.rules.filter((rule) => !oldRules.has(rule.id)).map((rule) => rule.id),
     deadlines: next.deadlines.filter((deadline) => !oldDeadlines.has(deadline.id)).map((deadline) => deadline.id),
+    changed: next.deadlines
+      .filter((deadline) => oldDeadlines.has(deadline.id) && deadline.change && noteOf(deadline) !== noteOf(oldDeadlines.get(deadline.id)))
+      .map((deadline) => deadline.id),
   };
 }
 
@@ -318,13 +326,16 @@ export async function runSync(
   let news: SyncNews | null | undefined;
   if (haveCopy && taken.some((file) => file.path === RULES_FILE || file.path === DEADLINES_FILE)) {
     const fresh = whatsNew(buildLibrary(byPath, head.commit), buildLibrary(next, commit));
-    if (fresh.rules.length > 0 || fresh.deadlines.length > 0) {
+    if (fresh.rules.length > 0 || fresh.deadlines.length > 0 || fresh.changed.length > 0) {
       const earlier = await store.readNews();
       const unseen = earlier && !earlier.seen ? earlier : null;
+      const deadlines = [...new Set([...(unseen?.deadlines ?? []), ...fresh.deadlines])];
       news = {
         at: started,
         rules: [...new Set([...(unseen?.rules ?? []), ...fresh.rules])],
-        deadlines: [...new Set([...(unseen?.deadlines ?? []), ...fresh.deadlines])],
+        deadlines,
+        // A deadline new since the last visit counts as new, not as changed too.
+        changed: [...new Set([...(unseen?.changed ?? []), ...fresh.changed])].filter((id) => !deadlines.includes(id)),
         seen: false,
       };
     }

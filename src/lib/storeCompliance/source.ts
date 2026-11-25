@@ -68,6 +68,7 @@ export const CORE_FILES = [
   'docs/PRE-SUBMISSION-CHECKLIST.md',
   'docs/index.md',
   'templates/REVIEW-NOTES-TEMPLATE.md',
+  'templates/app-review-readiness.json',
   'NOTICE',
   'VERSION',
 ] as const;

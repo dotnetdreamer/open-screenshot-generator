@@ -173,6 +173,22 @@ export async function writeMetaValue(key: string, value: unknown): Promise<void>
   else await db().meta.put({ key, value });
 }
 
+/**
+ * Read a value and write what `change` makes of it, in one transaction, so a
+ * change made in another window at the same moment is read first, not lost.
+ * `change` returning null deletes the value.
+ */
+export async function updateMetaValue<T>(key: string, change: (value: T | null) => T | null): Promise<T | null> {
+  const database = db();
+  return database.transaction('rw', database.meta, async () => {
+    const row = await database.meta.get(key);
+    const next = change((row?.value as T | undefined) ?? null);
+    if (next === null) await database.meta.delete(key);
+    else await database.meta.put({ key, value: next });
+    return next;
+  });
+}
+
 /** Every value whose key starts with `prefix`, such as each project's code folder. */
 export async function readMetaValues<T>(prefix: string): Promise<Array<{ key: string; value: T }>> {
   const rows = await db().meta.where('key').startsWith(prefix).toArray();
