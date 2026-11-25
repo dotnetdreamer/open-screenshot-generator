@@ -1000,8 +1000,32 @@ fn useful_cap(name: &str, rel: &str, parent: &str) -> (String, usize) {
 /// deep ones. Links are never followed, and neither listed nor walked into:
 /// Claude Code refuses a path that leads outside the folder anyway.
 fn walk(root: &Path, limits: &MapLimits) -> Walked {
-    let started = Instant::now();
     let mut walked = Walked::default();
+    // The App Store build may list a folder only in the session it was
+    // picked in; after that the helper lists the whole tree at once.
+    let listed = match std::fs::read_dir(root) {
+        Err(error) if error.kind() == std::io::ErrorKind::PermissionDenied => {
+            let prune: Vec<&str> = SECRET_FILES.iter().chain(SECRET_DIRS).chain(NOISE_DIRS).chain(NOISE_FILES).copied().collect();
+            // Twice the walk's own time: starting the helper takes some of it.
+            match crate::outside::tree(root, limits.depth, &prune, limits.time * 2) {
+                Some(listed) => Some(listed),
+                // Nothing could be listed. The map says so with MORE rather
+                // than telling the agent the folder is empty.
+                None if crate::outside::sandboxed() => {
+                    walked.cut = true;
+                    walked.top_cut = true;
+                    return walked;
+                }
+                None => None,
+            }
+        }
+        _ => None,
+    };
+    if let Some((_, true)) = &listed {
+        walked.cut = true;
+        walked.top_cut = true;
+    }
+    let started = Instant::now();
     let mut queue: VecDeque<(PathBuf, String, usize)> = VecDeque::from([(root.to_path_buf(), String::new(), 1)]);
     let mut seen = 0usize;
     while let Some((dir, prefix, depth)) = queue.pop_front() {
@@ -1010,22 +1034,27 @@ fn walk(root: &Path, limits: &MapLimits) -> Walked {
             walked.top_cut |= depth == 1;
             break;
         }
-        let Ok(reader) = std::fs::read_dir(&dir) else {
-            continue;
-        };
         let mut entries: Vec<(String, bool)> = Vec::new();
-        for entry in reader.flatten() {
-            let Ok(name) = entry.file_name().into_string() else {
+        if let Some((tree, _)) = &listed {
+            let names = tree.get(&dir).map(Vec::as_slice).unwrap_or_default();
+            entries.extend(names.iter().filter(|(name, _)| listable(name)).cloned());
+        } else {
+            let Ok(reader) = std::fs::read_dir(&dir) else {
                 continue;
             };
-            if !listable(&name) || hidden_on_disk(&entry) {
-                continue;
-            }
-            let Ok(kind) = entry.file_type() else {
-                continue;
-            };
-            if kind.is_dir() || kind.is_file() {
-                entries.push((name, kind.is_dir()));
+            for entry in reader.flatten() {
+                let Ok(name) = entry.file_name().into_string() else {
+                    continue;
+                };
+                if !listable(&name) || hidden_on_disk(&entry) {
+                    continue;
+                }
+                let Ok(kind) = entry.file_type() else {
+                    continue;
+                };
+                if kind.is_dir() || kind.is_file() {
+                    entries.push((name, kind.is_dir()));
+                }
             }
         }
         // Folders first, then by name, so the same folder gives the same map.
@@ -1294,9 +1323,8 @@ fn unresolved_image(given: &Path, roots: &[PathBuf]) -> &'static str {
 
 /// The file's bytes, refused past the size cap even if it grew since the check.
 pub fn read_project_image(path: &Path) -> Result<Vec<u8>, &'static str> {
-    let file = std::fs::File::open(path).map_err(|_| IMAGE_UNREADABLE)?;
-    let mut bytes = Vec::new();
-    file.take(MAX_IMAGE_BYTES + 1).read_to_end(&mut bytes).map_err(|_| IMAGE_UNREADABLE)?;
+    // Through the helper in the App Store build once the pick's grant is gone.
+    let bytes = crate::outside::read_file(path, MAX_IMAGE_BYTES + 1).map_err(|_| IMAGE_UNREADABLE)?;
     if bytes.len() as u64 > MAX_IMAGE_BYTES {
         return Err(IMAGE_TOO_BIG);
     }

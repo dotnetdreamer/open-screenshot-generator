@@ -821,8 +821,11 @@ environment the agent gets, so the tab reports the login the agent will actually
 use ("Uses your Claude Max plan"). A build without `auth status` leaves the login
 unknown rather than signed out. The Mac App Store build is sandboxed
 (`APP_SANDBOX_CONTAINER_ID`) and a child process inherits the sandbox, so it
-could read neither `~/.local/bin` nor the login in `~/.claude`: detection reports
-it unavailable and a start is refused.
+could read neither `~/.local/bin` nor the login in `~/.claude`. That build starts
+every program through the helper script the user saves once (below, "Programs
+outside the App Store sandbox"); until it is saved, detection reports
+`unavailable: "helper-missing"` (or `"helper-outdated"`) and a start is refused
+with a sentence that says to add it.
 
 **Launching it.** The flags are fixed in Rust. The page supplies only the model,
 the conversation to resume and the paths of the chat's code folders, all
@@ -1079,6 +1082,59 @@ scratch `CARGO_TARGET_DIR` so a running `tauri dev` is not disturbed. A name
 filter runs only the tests whose path holds it, so `cargo test claude_code`
 misses nearly all of `code_folders.rs`.
 
+### Programs outside the App Store sandbox
+
+[outside.rs](../src-tauri/src/outside.rs). The Mac App Store build can't start
+Claude Code or Codex itself: a sandboxed app's child stays in the sandbox. macOS
+runs a script the user saved in the app's own folder,
+`~/Library/Application Scripts/<bundle id>/`, outside the sandbox
+(`NSUserUnixTask`), and the app can read that folder but not write it. So the
+agent card ("Let this app start Claude Code") offers "Add the helper", which opens a save dialog on that folder with
+the name `Open Screenshot Generator helper.sh` filled in (`abs_add_app_store_helper`);
+the dialog's grant lets the app write [helper.sh](../src-tauri/app-store-helper/helper.sh)
+there and make it runnable. A save anywhere else, or under another name, is refused.
+
+From then on `outside::spawn` starts every program the agents need through
+`helper.sh run <folder> -- <program> <args>`: the agents, `--version` and
+`auth status`, the login shell's PATH, the folder look and the Codex probe.
+The environment changes travel on the script's stdin, one line each, ended by an
+empty line, so Codex's MCP token never shows in a process list; the script
+prints its pid on stderr and `exec`s the program, which keeps that pid and leads
+a process group. A stop is `helper.sh signal <TERM|KILL> <pid or -group>`,
+since the sandbox gets EPERM signalling a process outside it. Elsewhere, and in
+the GitHub build, `outside::spawn` is `Command::spawn`.
+
+A code folder is the sandbox's to read only in the session it was picked in
+(the dialog's grant ends with the app; validating it later needs only its
+metadata, which the sandbox may read). After that the app's own reads of it go
+through the helper too: the agent's picture import (`outside::read_file`,
+`/bin/cat`) and the folder map in the prompt (`outside::tree`, one `find` that
+leaves out dot names and the deny list's names, folders then files). Without the
+map the agent was told the folder was empty and took 52 s on a question it
+answers in 4 s with it; a 60,805-file project with `node_modules` and `Pods`
+mapped in 234 ms. The listing gets twice the walk's time; one that runs past it
+keeps what it read and the map marks it cut (`(more not listed)`), and one that
+gives nothing marks the map incomplete rather than empty.
+
+Until the helper is saved, detection answers "helper-missing" after a file
+check, and that answer is never reused (`isFresh` in the agent store,
+`detectAgentWriters` in agentPrompt.ts, `refreshGrowthAi`): one helper serves
+both CLIs, so saving it from the Claude Code card must also clear Codex's card
+at its next look. A look at one CLI that finds the helper in place looks at the
+other again when the newest answer for it still says the helper is missing
+(`lookAgainAfterHelper` in the store), so Growth, which reads the newest
+answers, doesn't keep Codex off after the helper is saved from the Claude Code
+card. Calls made while such a look runs share it.
+
+Measured on macOS 26.6 with a sandboxed test app (2026-11-24): the script runs
+unsandboxed with the real HOME and TMPDIR, the app's PATH and none of the app's
+other variables; the pipes work both ways at once; it reads and writes the app's
+container with no macOS question; the completion handler says "exited with
+status N" or carries the signal as its POSIX code. `helper.sh` names its version
+on its second line, and a build that needs a newer one bumps `HELPER_VERSION`, so
+the card asks to update it. zsh reads a script as it runs it, so the file is
+never rewritten while the tests run it (each test run writes its own copy).
+
 ## Codex agent (desktop only)
 
 The agent screen's second tab, **Codex**, and any Agent tab chat switched to
@@ -1107,7 +1163,10 @@ login (below), and then a short `codex app-server` probe that answers
 then is killed. The probe starts no conversation and uses no plan usage. It
 reports the plan ("Uses your ChatGPT Plus plan"), whether it is an API key
 instead, and the models the login has; the e-mail address stays in Rust. The
-Mac App Store build reports it unavailable, as for Claude Code.
+Mac App Store build starts it through the helper, as for Claude Code. There
+the sandbox may look at a file outside the container but not list a folder, so
+the search of the editors' extension folders lists them with `/bin/ls` through
+the helper (`outside::folder_names`).
 
 **The Codex home.** Codex reads its settings, skills, plugins, MCP servers,
 hooks, AGENTS.md and memories from its home folder, `~/.codex`. None of the
@@ -1132,8 +1191,8 @@ permission, environment, apps and collaboration instructions left out, the
 skill list left out and Codex's bundled skills not installed, the user-input
 tool off, and the features for the shell, unified exec, shell snapshots, apps,
 plugins, hooks, memories, image generation, image viewing, the browser,
-computer use, multi-agent, goals, the sleep tool, tool suggestions, skill
-search, realtime, worktrees and the guardian off. A feature this Codex does not
+computer use, goals, the sleep tool, tool suggestions, skill search,
+realtime, worktrees and the guardian off. A feature this Codex does not
 know is ignored, so one file serves old and new versions. `code_mode_host`
 stays on: the current models reach every tool, the design tools too, by writing
 JavaScript for `exec`, which runs in a V8 isolate with no file system, no
@@ -1141,9 +1200,58 @@ network and no Node (checked: `require`, `fetch`, `process` and `import('fs')`
 all fail). What `exec` can call is the design tools, three MCP resource tools
 for the design server, a clock, and `apply_patch`, which the read-only sandbox
 refuses ("writing is blocked by read-only sandbox; rejected by user approval
-settings"). The sub-agent tools come with the model and cannot be switched off;
-a sub-agent would have the same tools, and the brief tells the model not to use
-them.
+settings"). Sub-agents are off as well, in the form the installed Codex reads
+(`config_toml`, picked by the version `--version` prints): `[agents] enabled =
+false` from 0.145.0-alpha.17, the first build with that key, and `[features]
+multi_agent = false` before it, since older Codex, the earlier 0.145.0 alphas
+too, reads an unknown `[agents]` key as an agent role and the config would not
+load. Versions compare in semver's order (alpha.9 before alpha.17, a
+prerelease before its release). The version is only a first guess (none at all
+for an unreadable one, or 0.0.0, which a build from any of Codex's development
+revisions prints, while a build from a release tag prints that release).
+Detection asks Codex itself: after `initialize` the probe sends `config/read`,
+which reads the config again and refuses with the reason when it can't. That
+matters because an app-server that can't read its config starts on its
+defaults with only a `configWarning` ("Invalid configuration; using
+defaults."), answers the login check, and fails when a chat starts. When Codex
+refuses the `[agents]` table, `detect_in` writes the other key and probes once
+more; the form Codex read is kept for that file until it changes, and comes
+before the version's guess. The answer is read by its JSON-RPC code and the
+field Codex names, never by searching the text. config/read's validation step
+refuses with -32603 "invalid configuration: <error>\nin `<field>`" in both
+0.145.0-alpha.16 (its source) and 0.171 (measured); `refuses_agents_key` switches
+only for a type error at `agents.enabled`, or the older build's exact
+"invalid type: boolean `false`, expected struct AgentRoleToml" at `agents`
+(measured with a copy of that build's table and its toml 0.9.11 and serde
+1.0.228). Any other refusal is shown as Codex put it and switches nothing: an
+unreadable file answers -32603 "failed to read configuration layers: ...
+Permission denied" (a folder named `[agents]` in its path included), and moving
+a modern Codex to the older key would leave its sub-agents on. A Codex with no
+`config/read` answers -32600 "Invalid request: unknown variant `config/read`,
+..." (0.62.0's source; 0.171 answers any unknown method that way, measured), so
+`unknown_config_read` takes that code with that start, or -32601, and the probe
+goes on to the account with the version's guess unconfirmed; a setting whose
+value reads config/read (`approval_policy = "config/read"` gives -32603 at
+`approval_policy`) is a refusal, so the app doesn't say Ready for a Codex whose
+chats can't start. A Codex that stopped or hung is reported as it is. Checked
+through `detect_in` with the installed 0.171.0-alpha.13.2 behind small wrapper
+scripts, offline (an API-key login, OpenAI's address on a closed local port),
+2026-11-25: as installed it read the current key and kept it; made to refuse
+the `[agents]` value it switched to the older key, kept it, and the next look
+started it once; with its config unreadable on the first start (also inside a
+folder named `[agents]`) it showed the error and switched nothing, and the next
+look read and kept the current key; with `approval_policy = "config/read"` it
+was not Ready and showed Codex's reason.
+Measured on 0.171.0-alpha.13.2 (2026-11-25), through the app's own probe: both
+forms read (the older one with a deprecation `configWarning`), and
+`enabled = "nope"` was refused with -32603 "invalid configuration: invalid
+type: string "nope", expected a boolean / in `agents.enabled`", shown on one
+line. The 0.145.0-alpha.16 source reloads the config for `config/read` the same
+way. `multi_agent = false` alone no longer does it: measured on 0.171.0-alpha
+against a stand-in Responses API (2026-11-25), the model's request then carried
+`spawn_agent`, `wait_agent`, `list_agents` and the `collaboration` namespace, and
+Codex printed a deprecation warning that reached every chat; with `[agents]
+enabled = false` none of them, no warning, and a request a fifth smaller.
 
 **Launching it.** The page supplies only the model, the conversation to resume
 and its page count, all validated:

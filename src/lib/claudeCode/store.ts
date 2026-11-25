@@ -24,9 +24,10 @@
 import { useSyncExternalStore } from 'react';
 import { db } from '@/database';
 import { isTauri } from '@/lib/desktop';
+import { helperNeed } from '@/lib/appStoreHelper';
 import { clipText } from '@/lib/clipText';
 import { OperationRecorder, type OperationStatus } from '@/lib/ai/operationLog';
-import { beginAgentLook, noteClaudeDetection, noteCodexDetection } from '@/lib/ai/agentPrompt';
+import { beginAgentLook, knownAgentWriters, noteClaudeDetection, noteCodexDetection } from '@/lib/ai/agentPrompt';
 import { codexTransport } from '@/lib/codex/desktopTransport';
 import { clampCodexEffort } from '@/lib/codex/effort';
 import { describeCodexExit, failCodexTurn, reduceCodexNotification } from '@/lib/codex/reducer';
@@ -122,8 +123,6 @@ export interface ClaudeAgentSnapshot {
   codexEffort: CodexEffortChoice;
   /** The agent a new chat starts with: the one the user picked last. */
   newChatAgent: AgentKind;
-  /** The Agent tab is in the dock. Turned on the first time the agent is picked. */
-  panelEnabled: boolean;
   /** Which saved chat the conversation on screen is, and the project it belongs to. */
   chat: AgentChatMeta;
   /** Past chats, newest first. Empty outside the desktop app. */
@@ -204,7 +203,6 @@ const CODEX_MODEL_KEY = 'osg-codex-agent-model';
 const CODEX_EFFORT_KEY = 'osg-codex-agent-effort';
 /** The agent a new chat starts with. Nothing until the user picks Codex once, which means Claude Code. */
 const AGENT_KEY = 'osg-agent-kind';
-const PANEL_KEY = 'osg-claude-agent-panel';
 /** The context window each model reported, so a new chat's ring shows from its first call. */
 const WINDOWS_KEY = 'osg-claude-agent-windows';
 /** Items kept across a reload. The rest of a long chat is still in Claude Code's own file. */
@@ -235,7 +233,6 @@ const SERVER_SNAPSHOT: ClaudeAgentSnapshot = {
   codexModel: 'default',
   codexEffort: DEFAULT_CODEX_EFFORT,
   newChatAgent: 'claude-code',
-  panelEnabled: false,
   chat: NO_CHAT,
   chats: [],
   folderPicking: false,
@@ -647,7 +644,6 @@ function hydrate(): void {
   const codexEffort =
     storedCodexEffort && CODEX_EFFORTS.includes(storedCodexEffort) ? storedCodexEffort : DEFAULT_CODEX_EFFORT;
   const newChatAgent = sanitizeAgent(readStorage(AGENT_KEY));
-  const panelEnabled = readStorage(PANEL_KEY) === '1';
   try {
     contextWindows = sanitizeContextWindows(JSON.parse(readStorage(WINDOWS_KEY) ?? 'null'));
   } catch {
@@ -703,7 +699,6 @@ function hydrate(): void {
     codexModel,
     codexEffort,
     newChatAgent,
-    panelEnabled,
     session,
     chat,
   });
@@ -1885,15 +1880,26 @@ async function followProject(projectId: string | null, projectName: string | nul
 }
 
 /**
- * Take the Agent tab away. Any turn in progress is stopped and the process
- * ends, but the conversation stays, so turning the tab on again later can
- * carry on from it.
+ * Whether a detection from `at` can be handed out again. One that found the
+ * App Store helper missing or old never is: the user saves the helper once
+ * for both CLIs, and looking again is only a file check until it's there.
  */
-function hidePanel(): void {
-  hydrate();
-  leaveChat();
-  setSession(markExited(snapshot.session, Date.now()), { immediate: true });
-  setPanelEnabled(false);
+function isFresh(unavailable: string | null | undefined, at: number): boolean {
+  return !helperNeed(unavailable) && Date.now() - at < DETECT_TTL_MS;
+}
+
+/**
+ * The helper is one file for both CLIs. When a look at one finds it in place
+ * and the newest look at the other found it missing or old, the other is
+ * looked at again. Otherwise Growth and translation, which read the newest
+ * answers, keep saying to add the helper after it's been saved.
+ */
+function lookAgainAfterHelper(found: 'claude' | 'codex', result: ClaudeDetection | CodexDetection | null): void {
+  if (!result || typeof result !== 'object' || helperNeed(result.unavailable)) return;
+  const other = found === 'claude' ? 'codex' : 'claude';
+  if (!knownAgentWriters()?.[other].helper) return;
+  if (other === 'codex') void detectCodex(true);
+  else void detect(true);
 }
 
 async function detect(force = false): Promise<ClaudeDetection | null> {
@@ -1902,7 +1908,7 @@ async function detect(force = false): Promise<ClaudeDetection | null> {
   if (!t) return null;
   if (detecting) return detecting;
   const { detection } = snapshot;
-  if (!force && detection.status === 'done' && detection.result && Date.now() - detectedAt < DETECT_TTL_MS) {
+  if (!force && detection.status === 'done' && detection.result && isFresh(detection.result.unavailable, detectedAt)) {
     return detection.result;
   }
   set({ detection: { status: 'checking', result: detection.result, error: null } }, { immediate: true });
@@ -1914,6 +1920,7 @@ async function detect(force = false): Promise<ClaudeDetection | null> {
       // Translation and Growth read the same answer (agentPrompt.ts).
       noteClaudeDetection(result, look);
       set({ detection: { status: 'done', result, error: null } }, { immediate: true });
+      lookAgainAfterHelper('claude', result);
       return result;
     })
     .catch((error) => {
@@ -1933,7 +1940,7 @@ async function detectCodex(force = false): Promise<CodexDetection | null> {
   if (!t) return null;
   if (codexDetecting) return codexDetecting;
   const detection = snapshot.codexDetection;
-  if (!force && detection.status === 'done' && detection.result && Date.now() - codexDetectedAt < DETECT_TTL_MS) {
+  if (!force && detection.status === 'done' && detection.result && isFresh(detection.result.unavailable, codexDetectedAt)) {
     return detection.result;
   }
   set({ codexDetection: { status: 'checking', result: detection.result, error: null } }, { immediate: true });
@@ -1944,6 +1951,7 @@ async function detectCodex(force = false): Promise<CodexDetection | null> {
       codexDetectedAt = Date.now();
       noteCodexDetection(result, look);
       set({ codexDetection: { status: 'done', result, error: null } }, { immediate: true });
+      lookAgainAfterHelper('codex', result);
       return result;
     })
     .catch((error) => {
@@ -1987,13 +1995,6 @@ function setEffort(effort: ClaudeEffortChoice): void {
   set({ effort }, { immediate: true });
 }
 
-function setPanelEnabled(enabled: boolean): void {
-  hydrate();
-  if (enabled === snapshot.panelEnabled) return;
-  writeStorage(PANEL_KEY, enabled ? '1' : null);
-  set({ panelEnabled: enabled }, { immediate: true });
-}
-
 function subscribe(listener: () => void): () => void {
   hydrate();
   listeners.add(listener);
@@ -2026,8 +2027,6 @@ export const claudeAgent = {
   setEffort,
   setCodexModel,
   setCodexEffort,
-  setPanelEnabled,
-  hidePanel,
   pickFolder,
   addFolder,
   removeFolder,
@@ -2040,16 +2039,6 @@ export const claudeAgent = {
     contextProvider = provider;
   },
 };
-
-/**
- * Whether the Agent tab was on when the editor last ran, straight from storage.
- * For code that runs before anything has subscribed, such as the dock
- * restoring its last tab before first paint.
- */
-export function readAgentPanelEnabled(): boolean {
-  if (typeof window === 'undefined') return false;
-  return readStorage(PANEL_KEY) === '1' && isTauri();
-}
 
 export function useClaudeAgent(): ClaudeAgentSnapshot {
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);

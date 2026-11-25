@@ -298,6 +298,10 @@ if (info.CFBundleShortVersionString !== version || info.CFBundleVersion !== Stri
   fail(`Info.plist says ${info.CFBundleIdentifier} ${info.CFBundleShortVersionString} (${info.CFBundleVersion}).`);
 }
 ok(`Info.plist says ${version} (${build})`);
+// src-tauri/Info.appstore.plist, merged by tauri.appstore.conf.json. Without it
+// App Store Connect holds the build until someone answers the encryption question.
+if (info.ITSAppUsesNonExemptEncryption === false) ok('Info.plist says the app uses no non-exempt encryption');
+else warn('Info.plist does not declare ITSAppUsesNonExemptEncryption, so App Store Connect will ask about encryption for this build');
 const binary = path.join(appPath, 'Contents', 'MacOS', tauriConf.mainBinaryName ?? 'open-screenshot-generator');
 const archs = run('lipo', ['-archs', binary]).trim();
 if (!archs.includes('arm64') || !archs.includes('x86_64')) fail(`The binary only has ${archs}.`);

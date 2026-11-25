@@ -101,7 +101,6 @@ export interface DockHandlers {
   onAgentSetAgent: (agent: AgentKind) => void;
   onAgentSetCodexModel: (model: string) => void;
   onAgentSetCodexEffort: (effort: CodexEffortChoice) => void;
-  onAgentHide: () => void;
   onAgentOpenChat: (chatId: string) => void;
   onAgentDeleteChat: (chatId: string) => void;
   onAgentOpenLink: (url: string) => void;
@@ -312,7 +311,6 @@ export function RightDockPanels({
                 onSetAgent: handlers.onAgentSetAgent,
                 onSetCodexModel: handlers.onAgentSetCodexModel,
                 onSetCodexEffort: handlers.onAgentSetCodexEffort,
-                onHide: handlers.onAgentHide,
                 onOpenChat: handlers.onAgentOpenChat,
                 onDeleteChat: handlers.onAgentDeleteChat,
                 onOpenLink: handlers.onAgentOpenLink,
