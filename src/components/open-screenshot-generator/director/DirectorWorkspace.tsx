@@ -35,6 +35,7 @@ import {
   editMoment,
   filmMoments,
   MAX_FILM_SECONDS,
+  MIN_CLIP_SECONDS,
   moveClip,
   removeClip,
   removeMoment,
@@ -149,18 +150,18 @@ type Step = { kind: 'templates' } | { kind: 'begin'; template: FilmTemplate | nu
 
 /** The moves-first card's words for each state of the phone link, so it never asks for a code that isn't there. */
 const MOVES_FIRST_WORDS: Record<PhoneLinkState, string> = {
-  off: 'Connect your phone, then record a take while the stand-in screen plays. Add your recording after.',
-  signin: 'Sign in to connect your phone, then record a take while the stand-in screen plays. Add your recording after.',
-  starting: 'Getting the code for your phone ready.',
-  code: 'Scan the code with your phone, then press Record a take. Add your recording after.',
-  failed: "Your phone couldn't connect. Try again, then record a take while the stand-in screen plays.",
-  connected: 'Your phone is connected. Press Record a take and move it while the stand-in screen plays. Add your recording after.',
+  off: 'Connect your phone to record the angles for your video before you add a screen recording',
+  signin: 'Sign in to connect your phone and record its movements',
+  starting: 'Preparing the QR code for your phone',
+  code: 'Scan the QR code with the camera on your phone',
+  failed: "Your phone couldn't connect\nCheck your internet connection and try again",
+  connected: 'Your phone is connected\nChoose Start recording, then tilt your phone left or right',
 };
 
 const PICK_TITLES: Record<Exclude<PickAction['kind'], 'new'>, string> = {
-  add: 'Add a recording',
-  replace: 'Change this recording',
-  from: 'Change the recording from here',
+  add: 'Add a screen recording',
+  replace: 'Replace this recording',
+  from: 'Replace the recording from this point',
 };
 
 /** The film's name follows its first recording until the user names it. */
@@ -314,12 +315,12 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
       if (cancelled) return;
       if (missing.length) {
         const names = (filmRef.current?.clips ?? []).filter((clip) => missing.includes(clip.mediaId)).map((clip) => clip.name);
-        toast({ title: 'A recording in this video is missing', description: `${names[0] ?? 'A recording'} is no longer on this device. Pick its clip and change the recording.` });
+        toast({ title: 'A screen recording is missing', description: `Select the clip for ${names[0] ?? 'the missing recording'} on the timeline and replace it with the original file` });
       }
       try {
         await player.load(urls);
       } catch (error) {
-        if (!cancelled) toast({ title: "A recording can't be played here", description: error instanceof Error ? error.message : 'Try an MP4 file.' });
+        if (!cancelled) toast({ title: "Director couldn't play the recording", description: error instanceof Error ? error.message : 'Try an MP4 file' });
         return;
       }
       if (!cancelled) setLoadedMedia(`${filmId}|${mediaKey}`);
@@ -354,7 +355,7 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
       readAbort.current = controller;
       try {
         const url = await getMediaUrl(clip.mediaId);
-        if (!url) throw new Error(`${clip.name} is no longer on this device.`);
+        if (!url) throw new Error(`${clip.name} is no longer on this device`);
         // Progress at most five times a second: each one draws the editor again,
         // and the reader needs the page's time for its frames.
         let shownAt = 0;
@@ -372,7 +373,7 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
         if ((error as { name?: string })?.name === 'AbortError') return;
         failedReads.current.add(key);
         console.error('Director could not read the recording', error);
-        toast({ title: "Director couldn't read a recording", description: error instanceof Error ? error.message : 'Try another recording.' });
+        toast({ title: "Director couldn't find moments in the recording", description: error instanceof Error ? error.message : 'Choose another screen recording' });
       } finally {
         if (readingRef.current === clip.id) {
           readingRef.current = null;
@@ -417,8 +418,12 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
     [player, history]
   );
 
-  const full = useCallback(() => {
-    toast({ title: 'There is no room for that recording', description: `A video can be up to ${MAX_FILM_SECONDS} seconds. Trim a recording or take one out first.` });
+  const explainClipLength = useCallback((duration: number) => {
+    if (duration < MIN_CLIP_SECONDS) {
+      toast({ title: 'This recording is too short', description: `Choose a recording that lasts at least ${MIN_CLIP_SECONDS} seconds` });
+    } else {
+      toast({ title: 'Your video is full', description: `Shorten or remove a clip to keep your video within ${MAX_FILM_SECONDS} seconds` });
+    }
   }, [toast]);
 
   /** A recording picked in the file chooser or from the project, used for what was asked. */
@@ -431,7 +436,7 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
         const made = newFilm({ projectId: project?.id ?? null, title: project?.appName ?? '', colors: project?.colors ?? null, template: action.template });
         const added = addClip(made, source);
         if (!added) {
-          full();
+          explainClipLength(source.duration);
           return;
         }
         const ready = namedAfter(fitPhone(added.film), source);
@@ -450,7 +455,7 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
             ? { film: replaceClip(current, action.clipId, source), clipId: action.clipId }
             : changeRecordingFrom(current, action.t, source);
       if (!result) {
-        full();
+        explainClipLength(source.duration);
         return;
       }
       // The first recording in a film made moves first plays once it's read, as a new film does.
@@ -460,23 +465,23 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
       const span = clipSpans(result.film).find((s) => s.clip.id === result.clipId);
       if (span && player) void player.seek(span.start);
     },
-    [project, full, open, update, player]
+    [project, explainClipLength, open, update, player]
   );
 
   const addFile = useCallback(
     async (file: File) => {
       if (!file.type.startsWith('video/') && !/\.(mp4|mov|m4v|webm)$/i.test(file.name)) {
-        toast({ title: "That isn't a video", description: 'Choose a screen recording, an MP4 or MOV file.' });
+        toast({ title: 'Choose a video file', description: 'Select a screen recording saved as an MP4, MOV, M4V or WebM file' });
         return;
       }
       try {
         const { id, probe } = await saveMedia(file, file.name);
         if (probe.width > probe.height) {
-          toast({ title: 'This recording is sideways', description: 'Director shows it on a phone held upright. Record in portrait for the best result.' });
+          toast({ title: 'This recording is wider than the phone', description: 'Hold your phone upright when you record your screen to match the shape of the phone in the video' });
         }
         await applySource({ mediaId: id, name: file.name, width: probe.width, height: probe.height, duration: probe.duration });
       } catch (error) {
-        toast({ title: "That recording couldn't be read", description: error instanceof Error ? error.message : 'Use an MP4 or MOV file.' });
+        toast({ title: "Director couldn't open that screen recording", description: error instanceof Error ? error.message : 'Try an MP4 or MOV file' });
       }
     },
     [applySource, toast]
@@ -486,7 +491,7 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
     async (recording: DirectorRecording) => {
       const asset = await getMediaAsset(recording.mediaId);
       if (!asset) {
-        toast({ title: 'That recording is no longer on this device', description: 'Add it to the project again.' });
+        toast({ title: 'This device no longer has that recording', description: 'Add the original file to your project again' });
         return;
       }
       await applySource({ mediaId: recording.mediaId, name: recording.name, width: asset.width ?? 886, height: asset.height ?? 1920, duration: asset.duration ?? 10 });
@@ -616,7 +621,7 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
   const selectedMoment = film && selection?.kind === 'moment' ? moments.find((m) => m.id === selection.id) ?? null : null;
   const selectedClip = film && selection?.kind === 'clip' ? film.clips.find((c) => c.id === selection.id) ?? null : null;
   const readingClip = reading && film ? film.clips.find((clip) => clip.id === reading.clipId) : null;
-  const busy = reading ? `Finding the moments in ${readingClip?.name.replace(/\.[a-z0-9]{2,4}$/i, '') ?? 'your recording'}, ${Math.round(reading.fraction * 100)}%` : null;
+  const busy = reading ? `Looking for taps, scrolls and other activity in ${readingClip?.name.replace(/\.[a-z0-9]{2,4}$/i, '') ?? 'your recording'}, ${Math.round(reading.fraction * 100)}%` : null;
   const noRecording = !!film && film.clips.length === 0;
 
   const onDrop = (event: React.DragEvent) => {
@@ -702,7 +707,7 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
           ) : (
             <>
               <h1 className="text-sm font-semibold">Director</h1>
-              <p className="truncate text-xs text-muted-foreground">Phone videos of your app, filmed for you</p>
+              <p className="truncate text-xs text-muted-foreground">Make an app video</p>
             </>
           )}
         </div>
@@ -721,7 +726,7 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
                 className="h-8 gap-1.5"
                 onClick={() => setExportOpen(true)}
                 disabled={reading !== null || noRecording}
-                title={noRecording ? 'Add a recording first' : reading !== null ? 'Wait until the recording has been read' : undefined}
+                title={noRecording ? 'Add a screen recording to export your video' : reading !== null ? 'You can export once Director finishes finding moments' : undefined}
                 data-testid="director-export"
               >
                 {exporting ? <Loader2Icon className="h-3.5 w-3.5 animate-spin" /> : <DownloadIcon className="h-3.5 w-3.5" />}
@@ -730,9 +735,9 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
             </>
           )}
           {!film && step.kind === 'pick' && (
-            <Button type="button" size="sm" className="h-8 gap-1.5" onClick={() => ask({ kind: 'new', template: step.template })}>
+            <Button type="button" size="sm" className="hidden h-8 gap-1.5 sm:inline-flex" onClick={() => ask({ kind: 'new', template: step.template })}>
               <UploadIcon className="h-3.5 w-3.5" />
-              Choose a recording
+              Choose a screen recording
             </Button>
           )}
           {onBackToEditor && (
@@ -784,7 +789,7 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
         <div className="min-h-0 flex-1 overflow-y-auto md:flex md:flex-row md:overflow-hidden" data-testid="director-film">
           <div className="flex min-w-0 flex-col md:min-h-0 md:flex-1">
             <div className="h-[52svh] min-h-[18rem] p-3 sm:p-5 md:h-auto md:flex-1">
-              <DirectorViewport film={film} plan={plan} player={player} active={active} live={live} busy={busy} onError={(message) => toast({ title: "The 3D picture couldn't start", description: message })} />
+              <DirectorViewport film={film} plan={plan} player={player} active={active} live={live} busy={busy} onError={(message) => toast({ title: "The video preview couldn't open", description: message })} />
             </div>
             {noRecording && (
               <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t bg-amber-500/[0.06] px-4 py-2.5" data-testid="director-moves-first-card">
@@ -792,8 +797,8 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
                   <HandIcon className="h-4 w-4" />
                 </span>
                 <div className="min-w-[14rem] flex-1 text-xs">
-                  <p className="font-semibold">{film.take ? 'Your moves are recorded' : 'Moves first'}</p>
-                  <p className="text-muted-foreground">{film.take ? 'Add your recording to see it on the phone.' : MOVES_FIRST_WORDS[linkState]}</p>
+                  <p className="font-semibold">{film.take ? 'Camera movement saved' : 'Record camera movement'}</p>
+                  <p className="whitespace-pre-line text-muted-foreground">{film.take ? 'Add your screen recording to use the angles you saved' : MOVES_FIRST_WORDS[linkState]}</p>
                 </div>
                 <div className="flex gap-1.5">
                   {!film.take && linkState === 'signin' && onSignIn && (
@@ -804,12 +809,12 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
                   {!film.take && (linkState === 'off' || linkState === 'failed') && (
                     <Button type="button" size="sm" variant="outline" className="h-8 gap-1.5" onClick={() => linkActions.current?.connect()}>
                       <QrCodeIcon className="h-3.5 w-3.5" />
-                      {linkState === 'failed' ? 'Try again' : 'Use your phone'}
+                      {linkState === 'failed' ? 'Try again' : 'Connect a phone'}
                     </Button>
                   )}
                   <Button type="button" size="sm" className="h-8 gap-1.5" onClick={() => ask({ kind: 'add' })}>
                     <FilmIcon className="h-3.5 w-3.5" />
-                    Add recording
+                    Add screen recording
                   </Button>
                 </div>
               </div>
@@ -883,11 +888,11 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
         <DialogContent className="sm:max-w-lg" data-testid="director-recording-picker">
           <DialogHeader>
             <DialogTitle>{picker ? PICK_TITLES[picker.kind] : ''}</DialogTitle>
-            <DialogDescription>Choose a file, or a recording already in this project.</DialogDescription>
+            <DialogDescription>Choose a video file from your device or a recording from this project</DialogDescription>
           </DialogHeader>
           <Button type="button" className="w-full gap-1.5" onClick={() => fileRef.current?.click()}>
             <UploadIcon className="h-4 w-4" />
-            Choose a file
+            Browse files
           </Button>
           {project && project.recordings.length > 0 && <RecordingList recordings={project.recordings} onUse={(recording) => void applyRecording(recording)} />}
         </DialogContent>

@@ -43,7 +43,7 @@ export interface Activity {
 export const ACTIVITIES: Activity[] = [
   { id: 'editor', name: 'Editor', label: 'Editor', icon: PenToolIcon },
   { id: 'capture', name: 'Capture screenshots', label: 'Capture screenshots of your app', icon: CameraIcon },
-  { id: 'director', name: 'Director', label: 'Director: phone videos of your app, with the camera moves made for you', icon: ClapperboardIcon },
+  { id: 'director', name: 'Director', label: 'Director: make an app video from a screen recording', icon: ClapperboardIcon },
   { id: 'cutout', name: 'Remove background', label: 'Remove background: cut people and products out of photos', icon: ScissorsIcon },
   { id: 'growth', name: 'Growth', label: 'Growth: downloads, reviews and your store page', icon: TrendingUpIcon },
   { id: 'compliance', name: 'Store compliance', label: 'Store compliance: avoid App Store and Google Play rejections', icon: ShieldCheckIcon },

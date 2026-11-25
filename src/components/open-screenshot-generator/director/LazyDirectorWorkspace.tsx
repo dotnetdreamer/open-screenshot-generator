@@ -15,7 +15,8 @@ type View = typeof DirectorWorkspaceView;
 
 function Loading() {
   return (
-    <div className="flex h-full w-full items-center justify-center bg-background">
+    <div role="status" className="flex h-full w-full items-center justify-center bg-background">
+      <span className="sr-only">Opening Director</span>
       <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary/30 border-t-primary" />
     </div>
   );
@@ -25,7 +26,7 @@ function Failed({ onRetry }: { onRetry: () => void }) {
   return (
     <div role="alert" className="flex h-full w-full flex-col items-center justify-center gap-3 bg-background p-6 text-center">
       <h2 className="text-base font-semibold">Director couldn&apos;t open</h2>
-      <p className="max-w-sm text-sm text-muted-foreground">The rest of the app works as before. Try again, or restart the app if it keeps happening.</p>
+      <p className="max-w-sm text-sm text-muted-foreground">Try again or restart the app if Director still won&apos;t open</p>
       <Button variant="outline" size="sm" onClick={onRetry}>
         Try again
       </Button>

@@ -1,108 +1,113 @@
 # Director
 
-Director turns a screen recording of your app into a video of a 3D phone. You don't place a single keyframe: Director watches your recording, finds the taps, the typing, the scrolling and the new screens, and moves the camera to each one, a little before it happens so nobody misses it. Or you move the phone yourself, by moving your own phone.
+Director makes a video of your app playing on a 3D phone. Start with a screen recording and Director can zoom in when someone taps, types or scrolls. You can also tilt your own phone to choose the angles yourself.
 
-The video is for ads, social posts, your website and launch pages. It isn't an App Store preview: Apple wants previews to show the app's screen only, without a phone around it.
+Use these videos in ads, social posts, websites and launch pages. For an App Store preview, use a recording of the app screen on its own. Apple asks for previews without a phone around the screen.
 
 To start, click **Director** on the bar at the left. On a phone, open the menu and tap **Director**. Director works in the desktop app on Mac, Windows and Linux, and in the web app on computers, iPhones and Android phones.
 
 ## Make a video
 
-1. Pick a template. Each one is a video shape, a camera, a background and words that go together, and most play a short sample when you point at it (**Your colors** is made from your project's colors, so it shows a still). You can change all of it later.
-   - **Cinematic**: like a launch film. It opens close on your screen at a steep angle and pulls back fast. Big warm words sit over black, and it ends on a white card with your icon and the store badges.
-   - **Pop promo**: for ads. Two violet circles on a pale background, bold captions at the bottom with a yellow word, your icon in the corner, and a card at the end with your icon, name and the store badges.
-   - **Launch**: tall, for Reels, TikTok and Shorts.
-   - **Feature tour**: calm close-ups on each feature, for your website.
-   - **Social ad**: quick, big moves in a square, for any feed.
-   - **Website hero**: wide, with your words beside the phone.
-   - **Just the phone**: no words, only your app on a phone.
-   - **Your colors**: made from your project's colors, when it has some.
-2. Choose how to start:
-   - **Add the recording first** when you have one. Drop it on the window or choose it. MP4 and MOV both work, from an iPhone, an Android phone or the Capture screenshots view. Director reads it in a few seconds and finds its moments.
-   - **Record the moves first** when your app isn't finished yet. The code for your phone shows right away. Film the camera's moves with your phone against a stand-in screen, and add the recording later (see below).
-3. The video plays. Each moment Director found is on the timeline under the picture: **Tap**, **Typing**, **Scroll**, **New screen** and **Pause**. The ones with a magnifier get a close-up.
-4. Click **Export video** at the top.
+1. Under **Choose a video template**, pick a look you like. Each template sets the video shape, camera movement, background and text. Hover over a template to see a sample. **Your colors** shows a still image using your project colors. You can change these settings later.
 
-Every video you've made on this device is on the first screen too, under **Your videos**, whichever project was open when you made it. The recordings already in your project are offered whenever you add one.
+   - **Cinematic** opens close to the screen at an angle, then pulls back. It has large titles on black and a white ending screen with room for your app icon and store badges.
+   - **Pop promo** uses a pale background with violet circles, bold captions with a yellow highlight and an ending screen for your app name, icon and store badges.
+   - **Launch** makes a tall video for Reels, TikTok and Shorts.
+   - **Feature tour** uses gentle close-ups to show features on a website.
+   - **Social ad** makes a square video with quick camera movements.
+   - **Website banner** makes a wide video with text beside the phone.
+   - **Just the phone** shows your app without titles or captions.
+   - **Your colors** uses your project colors when they're available.
+
+2. Choose what to start with.
+
+   - **Use a screen recording** if you have a video of your app in use. Choose a video file, drop it on the window or select a recording from your project. Director finds activity in the recording and adds close-ups.
+   - **Set the camera angles with your phone** if you want to record camera movement first. Tilt the phone in your hand left or right to show your app from different angles. You can add your screen recording later.
+
+3. Watch the preview. The **Moments** row below it marks activity such as taps, scrolling, typing, animations and new screens. A magnifying glass marks a close-up.
+4. When you're ready to save the finished video, choose **Export video**.
+
+To reopen a video on this device, go to **Your saved videos** on Director's first screen. This list includes videos from your other projects.
 
 ### Record your phone's screen
 
-- **iPhone**: open Control Center and tap the record button. If it isn't there, add **Screen Recording** in **Settings**, **Control Center**.
-- **Android**: swipe down twice from the top and tap **Screen record**. Turn on **Show touches** if you want your taps in the recording too.
-- **Simulator or emulator**: record it in **Capture screenshots**, then pick the recording in Director.
+- On **iPhone**, open Control Center and tap **Screen Recording**. If it's missing, touch and hold an empty area in Control Center, choose **Add a Control** and add **Screen Recording**. The video saves to Photos.
+- On **Android**, swipe down twice and tap **Screen recorder**. Turn on **Show touches** if you want the recording to show where you tap.
+- On a **simulator or emulator**, record in **Capture screenshots**, then select the recording from your project in Director.
 
-On a phone you can make the whole video there: open Director, tap **Choose a recording**, pick the recording from your photos, and export.
+You can make the whole video on your phone. Open Director, choose **Use a screen recording**, then select the saved video from your photos or files.
 
 ## Edit the timeline
 
-The timeline under the picture has four rows: **Screen** (your recordings), **Camera** (how close the camera is, and where your own moves turn the phone), **Moments** and **Words**. Zoom in with the slider, or with **Ctrl** or **Cmd** and the scroll wheel.
+The timeline under the preview shows when each part of the video plays. The **Clips** row holds your screen recordings. **Camera** shows how close the camera is and when your recorded movements play. **Moments** marks activity inside each clip. **Text** shows when titles and captions appear. To see a shorter stretch in more detail, zoom in using the timeline slider or hold **Ctrl** or **Cmd** while you scroll.
 
-A video can use several recordings, one after another, up to 90 seconds together:
+You can use up to 90 seconds of screen recordings in one video. A clip is the part of a recording you include in the timeline.
 
-- **Change recording here** shows another recording from the playhead on. Put the playhead where the change should happen, click it, and pick the recording. The recordings after that point stay where they are.
-- **Add recording** puts a recording after the others.
-- **Split** (or the **S** key) cuts the recording under the playhead in two, so each part can be moved or changed on its own.
-- Drag a recording along the Screen row to move it before or after another. Drag its ends to show more or less of it.
-- Click a recording to see it in the panel on the right: **Change recording**, the part of the recording it shows, **From** and **Split at** the playhead, **Read again**, the arrows to move it, and **Take out of the video**. **Delete** takes out whatever is picked. When you read a recording again, the moments you moved, changed or deleted stay the way you left them, and a close-up you added never hides a moment Director finds.
-
-Director finds the moments while its window is in view. If you hide or cover the window, it waits and carries on when you come back.
+- **Replace from here** switches to another recording at the time you select on the timeline. Clips that come after the one you're editing stay in place.
+- **Add screen recording** puts another recording at the end.
+- **Split** (or **S**) divides the clip at the selected time. You can move or replace each part separately.
+- Drag a clip on the **Clips** row to move it earlier or later. Drag its ends to choose how much of the recording to show.
+- Select a clip to open its settings. **Replace entire clip** changes the recording for that clip. **Replace from** and **Split at** use the time shown on their buttons. **Remove clip from video** takes that clip off the timeline.
+- **Find moments again** looks for activity in the selected clip again and keeps your moment edits and custom close-ups. Director pauses this work when its window is hidden and continues when you return.
+- **Delete selection** or the **Delete** key removes the selected moment or clip.
 
 Where one recording gives way to the next, the camera swings to a new angle, the way it does for a new screen, and no close-up runs across the change.
 
 ## Change the camera
 
-- **Camera**: **Calm** moves slowly and gently, good for apps people read. **Lively** follows every tap, good for most apps. **Bold** moves fast and far, good for games and ads. **Cinematic** opens close on the screen at a steep angle and pulls back fast, holds the phone big and low under your words, and spins the phone in when a new recording starts. It never closes up while words show, so your words always sit over the background, not the screen. Fast moves blur in the exported video, as they would through a real camera.
-- Click a moment on the timeline to change it. **Let Director choose** is the default. **Close-up** always moves in. **Whole phone** stays back. **Leave out** skips the moment as if Director never found it: the camera doesn't move for it or keep still for it, and its caption and tap ring don't show.
-- For a close-up, drag the box on the picture to what the close-up should show. Drag its corner to make it bigger or smaller.
-- Drag a moment along the timeline to move it, or drag its ends to make it longer or shorter.
-- **Close-up here** puts a new close-up where the playhead is.
-- **Undo** and **Redo** work too, with **Cmd+Z** and **Shift+Cmd+Z** (**Ctrl** on Windows and Linux). **Space** plays and pauses, and the arrow keys step a frame (a second with **Shift**).
+- Under **Automatic camera movement**, choose **Calm** for slow turns that leave time to read, **Lively** for a mix of close-ups and views of the whole phone, or **Bold** for quick zooms and bigger turns. **Cinematic** starts at an angle and pulls back quickly. It leaves room for text above the phone and turns the phone into view when a new recording starts. Fast camera movements have a slight blur in the exported video.
+- Select a moment on the timeline. **Let Director choose** uses the automatic camera setting. **Close-up** zooms in. **Show whole phone** keeps the whole device in view. **Skip this moment** keeps the screen recording playing through that point and leaves out the camera movement, caption and tap circle for the moment.
+- For a close-up, drag the box over the area you want to show. Drag a corner to resize it.
+- Drag a moment along the timeline to change when it happens. Drag its ends to change how long it lasts. To add your own close-up, select a time and choose **Add close-up**.
+- **Undo** and **Redo** work with **Cmd+Z** and **Shift+Cmd+Z** (use **Ctrl** on Windows and Linux). **Space** plays or pauses. The arrow keys move one frame at a time, or one second if you hold **Shift**.
 
-## Move the phone with your own phone
+## Control the camera with your phone
 
-This is the fun part. Your phone becomes the camera rig: tilt it, and the phone in the video tilts the same way. There's nothing to install, on iPhone or Android.
+Tilt your phone and the phone in the video turns the same way. On an iPhone or Android phone, the controls open in the browser.
 
-1. In **Move it by hand**, click **Use your phone**. A code shows up.
-2. Point your phone's camera at the code and open the link.
-3. Tap **Start**. On an iPhone, tap **Allow** when Safari asks about motion.
-4. Hold your phone the way the phone in the video should face, and tap **Center**.
-5. Move your phone. The phone in the video follows straight away. Pinch with two fingers to move closer.
-6. Want the phone in the video to come closer when you bring your phone toward you? Turn on **Forward and back**, under **Move it by hand** or on your phone (the two stay in step). It's off at first: a hand's push isn't always clean, and leaving it off keeps the picture steady. Turning it off later also takes it out of a take you already recorded.
-7. Tap **Record a take**. The video plays from the start and keeps your moves until the end, or until you tap **Stop**.
+1. On your computer, open **Control the camera with your phone** and choose **Connect a phone**. If you see **Sign in**, sign in and choose **Connect a phone** again.
+2. Point your phone's camera at the QR code on your computer, then open the link on your phone.
+3. Tap **Turn on tilt controls**. On an iPhone, tap **Allow** if Safari asks to use motion.
+4. Hold your phone comfortably and tap **Set starting angle**. Tilt the phone to try the movement in the preview.
+5. Spread two fingers on the phone screen to zoom in, or pinch to zoom out. To zoom by bringing your phone toward you or moving it away, turn on **Zoom by moving your phone** on either device. It's off to begin with. Turning it off also removes that forward-and-back movement from the preview of a saved recording.
+6. Choose **Start recording**. The video plays from the beginning while Director saves how you move your phone. Choose **Stop recording** to finish early, or let the video reach the end.
 
-Then **Use my take** turns your moves on or off, and **How much it turns** makes them calmer (under 100%) or bigger (over 100%). Director still does the close-ups. Your take only moves the phone.
+In the settings, **Use my saved phone movements** turns your saved movement on or off. **Amount of tilt** controls how far the phone in the video turns. At 100% it follows the tilt you recorded. Director still adds automatic close-ups.
 
-Connecting a phone needs you to be signed in, because the app's connection server only lets signed-in people in. Your moves go straight from your phone to your computer when both are on the same network. When they can't, they go through the connection server.
+The phone and computer can connect directly on the same network. When a direct connection is unavailable, Director sends your movement through its connection server.
 
-If Director runs on your phone itself, **Move this phone** does the same with the phone in your hand: the video plays on its screen while you move it.
+If you're making the video on your phone, choose **Use this phone**. You can watch the preview and control the movement on the same device.
 
-### Moves first, recording later
+### Add a screen recording after recording movement
 
-When you choose **Record the moves first**, the phone in the video shows a stand-in screen and, on a computer, the code for your phone comes up by itself. If you aren't signed in, you'll see **Sign in** there instead; sign in, then click **Use your phone**. If your phone can't connect, the card under the video says so; click **Try again**. Pick how long the video runs until the recording comes (15 seconds to begin with), connect your phone, and record a take. If you stop the take early, the video takes its length. When your recording is ready, click **Add recording**: it plays inside the moves you made.
+If you choose **Set the camera angles with your phone**, the preview starts with a sample screen. On a computer, Director prepares a QR code for your phone. If you see **Sign in**, sign in and choose **Connect a phone**. If the connection fails, choose **Try again**.
+
+Use **Preview length** to choose how long to record camera movement. It starts at 15 seconds. If you stop recording early, the preview uses the length of the movement you recorded. When you have your screen recording, choose **Add screen recording** under the preview to see your app play with those camera angles.
 
 ## Make it yours
 
-- **Background**: pick a backdrop. **Your colors** is made from the colors in your project.
-- **Phone**: an iPhone or an Android phone, and its color. Director picks one that matches your recording's shape. An iPhone recording gets an iPhone, an Android recording gets a Pixel.
-- **Video shape**: **Tall** (9:16) for Reels, TikTok and Shorts, **Portrait** (4:5) for Instagram and Facebook posts, **Square** (1:1) for any feed, **Wide** (16:9) for YouTube and websites.
-- **Words**: a title at the start, words at the end, and a caption for any moment. The title starts as your app's name: the one you typed for your app icon, or else your project's name if you've named it. The phone moves aside to make room while words show.
-  - Three looks: **Soft** rises in at the top, good for most videos. **Headline** is big and set to the left, good on dark backgrounds. **Bold captions** are capitals at the bottom with an outline, popping in word by word, good for ads.
-  - Put stars around words to color them, like `*one tap*`. Without stars, **Soft** and **Bold captions** color the last word. The line on the end card is one color.
-  - **Words** and **Highlight** change the two colors. **Reset colors** goes back to the ones that suit the background.
-  - With **Cinematic**, the title waits for the pull-back, and a caption that would come too soon waits its turn.
-- **Icon and end card**:
-  - **Add your app icon** takes a PNG, JPEG or WebP. A picture that isn't square is cut to its middle square.
-  - **Icon at the top** shows it in the top corner while the video plays, with rings going out from it in the wide shots.
-  - **End card** shows your icon, your app's name, the words at the end and the store badges for the last two and a half seconds. **White card** covers the video in white. With it off, the card sits over your background and the phone moves down under it.
-  - The App Store and Google Play badges are Apple's and Google's own. They show as they come, all at once and never animated, App Store first, with space around them. Pick which ones under **Store badges**.
-- **Show where taps land** draws a soft ring where each tap most likely happened.
-- **Sound**: keep the recording's own sound or leave it out.
+- **Background** changes the colors behind the phone. **Your colors** uses your project colors.
+- **Phone in the video** lets you pick a phone model and color. Director starts with a model that fits the recording. For example, it can show an iPhone recording on an iPhone and an Android recording on a Pixel.
+- **Video shape** controls the shape of the finished video. Choose **Tall** (9:16) for Reels, TikTok or Shorts, **Portrait** (4:5) for Instagram or Facebook posts, **Square** (1:1) for a square post or **Wide** (16:9) for YouTube or a website.
+- In **Text in your video**, enter a **Title at the start of the video** and a **Message at the end of the video**. The opening title can start with your app name or project name. Turn on **Show my captions**, then select a moment on the timeline to write its caption. The phone moves aside to make room for text.
+  - **Slide in** slides the text into view. **Headline** uses large, left-aligned text. **Bold captions** brings in outlined capital letters one word at a time.
+  - Type a star on each side of a word or phrase to highlight it, like `*one tap*`. Without stars, **Slide in** and **Bold captions** highlight the last word of a phrase. The closing message on an ending screen uses one color.
+  - **Text color** sets the main text color. **Highlight color** sets the color of highlighted words. **Reset colors** restores the defaults for the background.
+  - With **Cinematic**, the opening title appears as the camera pulls back. Captions wait until the title clears.
+- Under **App icon and ending screen**, choose **Add app icon** and select a PNG, JPEG or WebP image. Director crops the center of the image to a square.
+  - **Show icon in the top left** displays the icon in the top left while the video plays. Rings appear around it in wide shots.
+  - **Add an ending screen** adds your app name, icon, closing message and selected store badges for the final two and a half seconds. **Make the ending screen white** fills the ending screen with white. With this off, the ending screen uses the video background and the phone moves down.
+  - Under **Choose which store logos appear at the end**, choose **App Store**, **Google Play** or both. The official badges appear together with space around them. App Store appears first when both are selected.
+- **Show where someone tapped** draws a ring where Director finds a tap.
+- Under **Sound**, turn **Play the recording's sound** on or off.
 
 ## Export
 
-**Export video** makes an MP4 file, 1080 pixels wide or tall, at 30 or 60 frames a second. In the desktop app you pick where to save it first. In a browser on a computer it lands in your downloads. On a phone, tap **Share or save** to put it in Photos or send it to an app.
+Choose **Export video** to save an MP4 file. The export window shows the length and dimensions. The shorter side is 1080 pixels. **Standard** uses 30 frames per second and takes less time to export. **Smoother motion** uses 60 frames per second and takes longer.
 
-Exporting needs a browser that can make video files: the desktop app, Chrome, Edge, or Safari 16.4 or newer.
+In the desktop app, choose where to save the file. In a browser on a computer, the video goes to your downloads. On a phone that supports sharing video, choose **Share or save** to keep a copy or send it to another app.
+
+Use the desktop app or a browser with video export support, such as Chrome, Edge or Safari 16.4 or newer.
 
 ## Easy on your computer
 

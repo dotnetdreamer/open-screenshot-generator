@@ -222,7 +222,7 @@ export function brandBackdrop(colors: [string, string, string]): Backdrop {
   const glowB = Math.abs(h2 - h) < 0.04 ? fromHsl((h + 0.12) % 1, sat, light ? 0.75 : 0.58) : fromHsl(h2, Math.max(0.4, s2), light ? 0.74 : 0.56);
   return {
     id: 'brand',
-    name: 'Your colours',
+    name: 'Your colors',
     top: toHex(top),
     bottom: toHex(bottom),
     glows: [

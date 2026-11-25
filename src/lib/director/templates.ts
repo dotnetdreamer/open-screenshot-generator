@@ -38,7 +38,7 @@ export const FILM_TEMPLATES: FilmTemplate[] = [
     // steep on the screen, fast pull-backs, big warm words, a white end card.
     id: 'cinematic',
     name: 'Cinematic',
-    when: 'Dramatic close-ups and big words on black, like a launch film',
+    when: 'Close-ups of your app with large titles on a black background',
     format: 'vertical',
     style: 'cinematic',
     backdrop: 'noir',
@@ -54,7 +54,7 @@ export const FILM_TEMPLATES: FilmTemplate[] = [
     // a highlighted word, the icon at the top, the badges at the end.
     id: 'pop',
     name: 'Pop promo',
-    when: 'Bright colors, bold captions and your icon, for ads',
+    when: 'A colorful ad with bold captions and your app icon',
     format: 'vertical',
     style: 'bold',
     backdrop: 'bloom',
@@ -69,7 +69,7 @@ export const FILM_TEMPLATES: FilmTemplate[] = [
   {
     id: 'launch',
     name: 'Launch',
-    when: 'A tall video for Reels, TikTok and Shorts',
+    when: 'Introduce your app on Reels, TikTok or YouTube Shorts',
     format: 'vertical',
     style: 'lively',
     backdrop: 'aurora',
@@ -81,7 +81,7 @@ export const FILM_TEMPLATES: FilmTemplate[] = [
   {
     id: 'feature-tour',
     name: 'Feature tour',
-    when: 'Calm close-ups on each feature, for your website',
+    when: 'Show visitors how a feature works, one step at a time',
     format: 'portrait',
     style: 'calm',
     backdrop: 'studio',
@@ -93,7 +93,7 @@ export const FILM_TEMPLATES: FilmTemplate[] = [
   {
     id: 'social-ad',
     name: 'Social ad',
-    when: 'Quick, big moves in a square, for any feed',
+    when: 'A square ad for social feeds, with close-ups of the action',
     format: 'square',
     style: 'bold',
     backdrop: 'sunrise',
@@ -104,8 +104,8 @@ export const FILM_TEMPLATES: FilmTemplate[] = [
   },
   {
     id: 'website-hero',
-    name: 'Website hero',
-    when: 'Wide, with your words beside the phone',
+    name: 'Website banner',
+    when: 'A wide video for the top of a web page, with space for text beside the phone',
     format: 'landscape',
     style: 'calm',
     backdrop: 'midnight',
@@ -117,7 +117,7 @@ export const FILM_TEMPLATES: FilmTemplate[] = [
   {
     id: 'just-the-phone',
     name: 'Just the phone',
-    when: 'No words, only your app on a phone',
+    when: 'Show your app on its own, without titles or captions',
     format: 'vertical',
     style: 'calm',
     backdrop: 'mint',
@@ -129,7 +129,7 @@ export const FILM_TEMPLATES: FilmTemplate[] = [
   {
     id: 'your-colors',
     name: 'Your colors',
-    when: "Made from your project's colors",
+    when: 'Use your project colors for the background',
     format: 'vertical',
     style: 'lively',
     backdrop: 'brand',

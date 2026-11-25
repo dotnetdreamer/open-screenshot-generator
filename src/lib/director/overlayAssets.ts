@@ -67,7 +67,7 @@ export async function iconFromFile(file: Blob): Promise<string> {
     canvas.width = size;
     canvas.height = size;
     const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error("This browser can't read pictures here.");
+    if (!ctx) throw new Error("Try another image for your app icon or open Director in another browser");
     ctx.imageSmoothingQuality = 'high';
     // The middle square of a picture that isn't square.
     const sx = (bitmap.width - side) / 2;

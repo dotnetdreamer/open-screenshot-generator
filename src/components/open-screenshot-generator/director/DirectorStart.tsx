@@ -22,17 +22,18 @@ import { InfoTip } from '../capture/InfoTip';
 import type { DirectorProject, DirectorRecording } from './DirectorWorkspace';
 
 const RATIO: Record<FilmFormat, { label: string; css: string }> = {
-  vertical: { label: '9:16', css: '9 / 16' },
-  portrait: { label: '4:5', css: '4 / 5' },
-  square: { label: '1:1', css: '1 / 1' },
-  landscape: { label: '16:9', css: '16 / 9' },
+  vertical: { label: 'Tall 9:16', css: '9 / 16' },
+  portrait: { label: 'Portrait 4:5', css: '4 / 5' },
+  square: { label: 'Square 1:1', css: '1 / 1' },
+  landscape: { label: 'Wide 16:9', css: '16 / 9' },
 };
 
-const STYLE_WORDS = { calm: 'Calm camera', lively: 'Lively camera', bold: 'Bold camera', cinematic: 'Cinematic camera' } as const;
+const STYLE_WORDS = { calm: 'Slow, gentle movement', lively: 'Smooth turns and zooms', bold: 'Quick turns and zooms', cinematic: 'Steep angles and fast zooms' } as const;
 
 function formatLength(seconds: number): string {
   const s = Math.round(seconds);
-  return s < 60 ? `${s}s` : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  if (s < 60) return `${s} sec`;
+  return s % 60 ? `${Math.floor(s / 60)} min ${s % 60} sec` : `${Math.floor(s / 60)} min`;
 }
 
 /** A template's card: its loop plays while the pointer is over it (or it has focus); the still shows otherwise. */
@@ -102,14 +103,14 @@ export function TemplateStep({
         <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white shadow-lg">
           <ClapperboardIcon className="h-6 w-6" />
         </div>
-        <h1 className="text-xl font-semibold sm:text-2xl">Make a phone video of your app</h1>
+        <h1 className="text-xl font-semibold sm:text-2xl">Show how your app works</h1>
         <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">
-          Pick a starting point. Director films your screen recording on a 3D phone and moves the camera to every tap, or you move it with your own phone.
+          Show your screen recording on a 3D phone with automatic close-ups, or choose the angles yourself
         </p>
       </div>
 
       <section className="space-y-3">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Start from a template</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Choose a video template</h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3" data-testid="director-templates">
           {templates.map((template) => (
             <TemplateCard key={template.id} template={template} colors={colors} onPick={() => onPick(template)} />
@@ -119,7 +120,7 @@ export function TemplateStep({
 
       {films.length > 0 && (
         <section className="space-y-2">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Your videos</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Your saved videos</h2>
           <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3" data-testid="director-films">
             {films.map((film) => {
               const thumb = film.clips.find((clip) => clip.strip?.length)?.strip;
@@ -135,14 +136,14 @@ export function TemplateStep({
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-medium">{film.name}</span>
                       <span className="block text-xs text-muted-foreground">
-                        {film.clips.length ? formatLength(filmDuration(film)) : 'No recording yet'}, {new Date(film.updatedAt).toLocaleDateString()}
+                        {film.clips.length ? formatLength(filmDuration(film)) : 'No screen recording yet'} · Edited {new Date(film.updatedAt).toLocaleDateString()}
                       </span>
                     </span>
                   </button>
                   <button
                     type="button"
                     aria-label={`Delete ${film.name}`}
-                    title="Delete"
+                    title="Delete video"
                     className="text-muted-foreground opacity-60 transition-opacity hover:text-destructive group-hover:opacity-100"
                     onClick={() => onDeleteFilm(film)}
                   >
@@ -162,14 +163,12 @@ function Choice({
   icon: Icon,
   title,
   body,
-  when,
   onClick,
   testId,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   title: string;
   body: string;
-  when: string;
   onClick: () => void;
   testId: string;
 }) {
@@ -184,8 +183,7 @@ function Choice({
         <Icon className="h-5 w-5" />
       </span>
       <span className="text-base font-semibold">{title}</span>
-      <span className="text-sm text-muted-foreground">{body}</span>
-      <span className="mt-auto text-xs font-medium text-primary">{when}</span>
+      <span className="whitespace-pre-line text-sm text-muted-foreground">{body}</span>
     </button>
   );
 }
@@ -196,25 +194,23 @@ export function BeginStep({ template, onBack, onRecordingFirst, onMovesFirst }: 
       <div>
         <Button type="button" variant="ghost" size="sm" className="-ml-2 h-8 gap-1 px-2 text-muted-foreground" onClick={onBack}>
           <ArrowLeftIcon className="h-4 w-4" />
-          Templates
+          Back to templates
         </Button>
-        <h1 className="mt-2 text-xl font-semibold sm:text-2xl">How do you want to start?</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{template ? `${template.name}: ${template.when.charAt(0).toLowerCase()}${template.when.slice(1)}.` : 'Either way you can change everything later.'}</p>
+        <h1 className="mt-2 text-xl font-semibold sm:text-2xl">What would you like to start with?</h1>
+        {template && <p className="mt-1 text-sm text-muted-foreground"><span className="font-medium">{template.name}</span> · {template.when}</p>}
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <Choice
           icon={WandSparklesIcon}
-          title="Add the recording first"
-          body="Director finds the taps, typing and scrolling, and moves the camera to each one. You can move it by hand after."
-          when="Pick this when you have a recording"
+          title="Use a screen recording"
+          body="Choose a video of your app in use and let Director add close-ups where you tap, type or scroll"
           onClick={onRecordingFirst}
           testId="director-recording-first"
         />
         <Choice
           icon={HandIcon}
-          title="Record the moves first"
-          body="Move your phone to film the camera's moves now, against a stand-in screen. Add your recording when it's ready."
-          when="Pick this when the app isn't finished yet"
+          title="Set the camera angles with your phone"
+          body={"Tilt the phone in your hand left or right to show your app from different angles\nRecord those movements now and add your screen recording later"}
           onClick={onMovesFirst}
           testId="director-moves-first"
         />
@@ -241,9 +237,9 @@ export function PickRecordingStep({
       <div>
         <Button type="button" variant="ghost" size="sm" className="-ml-2 h-8 gap-1 px-2 text-muted-foreground" onClick={onBack}>
           <ArrowLeftIcon className="h-4 w-4" />
-          Back
+          Back to start options
         </Button>
-        <h1 className="mt-2 text-xl font-semibold sm:text-2xl">Add your screen recording</h1>
+        <h1 className="mt-2 text-xl font-semibold sm:text-2xl">Choose your screen recording</h1>
       </div>
       <button
         type="button"
@@ -255,24 +251,29 @@ export function PickRecordingStep({
         data-testid="director-drop"
       >
         <UploadIcon className="h-6 w-6 text-muted-foreground" />
-        <span className="text-sm font-semibold">Drop a screen recording here, or choose one</span>
-        <span className="text-xs text-muted-foreground">MP4 or MOV, from an iPhone, an Android phone or the Capture screenshots view. Up to {MAX_FILM_SECONDS} seconds in a video</span>
+        <span className="text-sm font-semibold">Choose a video file or drop it here</span>
+        <span className="text-xs text-muted-foreground">Choose an MP4 or MOV file for a video up to {MAX_FILM_SECONDS} seconds long</span>
       </button>
       <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
         <span className="flex items-center gap-1">
-          Recording on iPhone
+          How to record on iPhone
           <InfoTip label="How to record your screen on iPhone">
-            Open Control Center and tap the record button. If it isn&apos;t there, add Screen Recording in Settings, Control Center.
+            <span className="block">Open Control Center and tap Screen Recording to start</span>
+            <span className="block">If the button is missing, touch and hold an empty space in Control Center, choose Add a Control and add Screen Recording</span>
+            <span className="block">Find the finished recording in Photos</span>
           </InfoTip>
         </span>
         <span className="flex items-center gap-1">
-          Recording on Android
-          <InfoTip label="How to record your screen on Android">Swipe down twice from the top and tap Screen record. Turn on Show touches if you want your taps in the video too.</InfoTip>
+          How to record on Android
+          <InfoTip label="How to record your screen on Android">
+            <span className="block">Swipe down twice and tap Screen recorder</span>
+            <span className="block">To show where you tap, turn on Show touches before recording</span>
+          </InfoTip>
         </span>
       </div>
       {project && project.recordings.length > 0 && (
         <section className="space-y-2">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Recordings in this project</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Choose a recording from this project</h2>
           <RecordingList recordings={project.recordings} onUse={onUseRecording} />
         </section>
       )}
@@ -295,7 +296,7 @@ export function RecordingList({ recordings, onUse }: { recordings: DirectorRecor
             <span className="block truncate text-sm font-medium">{recording.name}</span>
             <span className="block truncate text-xs text-muted-foreground">{recording.where}</span>
           </span>
-          <span className="text-xs font-medium text-primary">Use this</span>
+          <span className="text-xs font-medium text-primary">Use recording</span>
         </button>
       ))}
     </div>

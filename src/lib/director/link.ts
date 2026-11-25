@@ -36,7 +36,7 @@ export function isLinkConfigured(): boolean {
 
 export class LinkSignInRequired extends Error {
   constructor() {
-    super('Sign in to connect a phone');
+    super('Sign in to Director to connect your phone');
   }
 }
 
@@ -46,10 +46,10 @@ export async function getTicket(token: string | null): Promise<string | null> {
   try {
     response = await fetch(`${RELAY}/collab/ticket`, { method: 'POST', headers: token ? { Authorization: `Bearer ${token}` } : {} });
   } catch {
-    throw new Error("The connection server couldn't be reached. Check your internet connection.");
+    throw new Error("Check your internet connection and try connecting your phone again");
   }
   if (response.status === 401) throw new LinkSignInRequired();
-  if (!response.ok) throw new Error('The connection server turned the phone link down. Try again in a moment.');
+  if (!response.ok) throw new Error("Try connecting your phone again in a moment");
   const payload = (await response.json().catch(() => ({}))) as { ticket?: string };
   return payload.ticket ?? null;
 }
@@ -208,8 +208,8 @@ export class RoomLink {
       socket.onclose = () => {
         if (this.closed) return;
         if (!opened) {
-          this.setStatus('failed', "The connection server couldn't be reached.");
-          reject(new Error("The connection server couldn't be reached. Check your internet connection."));
+          this.setStatus('failed', 'Check your internet connection and try again');
+          reject(new Error("Check your internet connection and try connecting your phone again"));
           return;
         }
         // A blip: join again with the same pass, a few times.
@@ -219,7 +219,7 @@ export class RoomLink {
             if (!this.closed) this.connect().catch(() => undefined);
           }, 800 * this.reconnects);
         } else if (!this.channel || this.channel.readyState !== 'open') {
-          this.setStatus('failed', 'The link to the connection server dropped.');
+          this.setStatus('failed', 'Check the internet connection on both devices and connect again');
         }
       };
     });

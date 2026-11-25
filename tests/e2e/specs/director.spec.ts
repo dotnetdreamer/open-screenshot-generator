@@ -95,7 +95,7 @@ async function pause(page: Page) {
 
 /** Moves the film to `t` seconds by clicking the strip. */
 async function seek(page: Page, t: number) {
-  const strip = page.getByRole('slider', { name: 'Move through the film' });
+  const strip = page.getByRole('slider', { name: 'Video position' });
   const box = (await strip.boundingBox())!;
   const duration = Number(await strip.getAttribute('aria-valuemax'));
   await page.mouse.click(box.x + (Math.min(t, duration) / duration) * box.width, box.y + box.height / 2);
@@ -279,7 +279,7 @@ test.describe('Director', () => {
     await expect(page.getByTestId('director-style').getByRole('button', { name: /^Bold/ })).toHaveAttribute('aria-pressed', 'true');
     await expect(page.getByTestId('director-end')).toHaveValue('Get it today');
     // The recording still picks the phone: an Android one gets a Pixel.
-    await expect(page.getByTestId('director-phone').getByRole('combobox', { name: 'Phone' })).toContainText('Pixel');
+    await expect(page.getByTestId('director-phone').getByRole('combobox', { name: 'Phone model in the video' })).toContainText('Pixel');
   });
 
   test('Cinematic: its camera, background and words, the icon, a white end card, and words styled and coloured', async ({ page }) => {
@@ -298,19 +298,19 @@ test.describe('Director', () => {
     await expect(page.getByTestId('director-background').getByRole('button', { name: 'Noir' })).toHaveAttribute('aria-pressed', 'true');
     await expect(page.getByTestId('director-words-headline')).toHaveAttribute('aria-pressed', 'true');
     const card = page.getByTestId('director-card');
-    await expect(card.getByRole('switch', { name: 'End card' })).toHaveAttribute('aria-checked', 'true');
-    await expect(card.getByRole('switch', { name: 'White card' })).toHaveAttribute('aria-checked', 'true');
+    await expect(card.getByRole('switch', { name: 'Add an ending screen' })).toHaveAttribute('aria-checked', 'true');
+    await expect(card.getByRole('switch', { name: 'Make the ending screen white' })).toHaveAttribute('aria-checked', 'true');
     // The icon at the top needs an icon first.
-    await expect(card.getByRole('switch', { name: 'Icon at the top' })).toBeDisabled();
+    await expect(card.getByRole('switch', { name: 'Show icon in the top left' })).toBeDisabled();
     await page.getByTestId('director-icon-file').setInputFiles(ICON);
     await expect(page.getByTestId('director-icon')).toBeVisible();
-    await expect(card.getByRole('switch', { name: 'Icon at the top' })).toBeEnabled();
+    await expect(card.getByRole('switch', { name: 'Show icon in the top left' })).toBeEnabled();
 
     // The end: the white card. Over the film instead, the end is Noir's black.
-    const duration = Number(await page.getByRole('slider', { name: 'Move through the film' }).getAttribute('aria-valuemax'));
+    const duration = Number(await page.getByRole('slider', { name: 'Video position' }).getAttribute('aria-valuemax'));
     await seek(page, duration);
     await expect.poll(async () => brightness(page, await filmPicture(page)), { timeout: 15_000 }).toBeGreaterThan(200);
-    await card.getByRole('switch', { name: 'White card' }).click();
+    await card.getByRole('switch', { name: 'Make the ending screen white' }).click();
     await expect.poll(async () => brightness(page, await filmPicture(page)), { timeout: 15_000 }).toBeLessThan(110);
 
     // Bold captions: the title at the bottom, its starred word in yellow; Soft has no yellow.
@@ -347,8 +347,8 @@ test.describe('Director', () => {
     await expect(page.getByTestId('director-words-punchy')).toHaveAttribute('aria-pressed', 'true');
     await page.getByTestId('director-icon-file').setInputFiles(ICON);
     const card = page.getByTestId('director-card');
-    await expect(card.getByRole('switch', { name: 'Icon at the top' })).toHaveAttribute('aria-checked', 'true');
-    await expect(card.getByRole('switch', { name: 'White card' })).toHaveAttribute('aria-checked', 'false');
+    await expect(card.getByRole('switch', { name: 'Show icon in the top left' })).toHaveAttribute('aria-checked', 'true');
+    await expect(card.getByRole('switch', { name: 'Make the ending screen white' })).toHaveAttribute('aria-checked', 'false');
     await page.getByTestId('director-title').fill('Daily habits');
     // Partway in: the violet discs, and the title's last word in yellow.
     await seek(page, 1.4);
@@ -357,13 +357,13 @@ test.describe('Director', () => {
     expect(await shareOf(page, during, VIOLET)).toBeGreaterThan(0.05);
     expect(await shareOf(page, during, YELLOW, [0.6, 0.85])).toBeGreaterThan(0.002);
     // The end: the card, with the discs gone and the room pale behind it.
-    const duration = Number(await page.getByRole('slider', { name: 'Move through the film' }).getAttribute('aria-valuemax'));
+    const duration = Number(await page.getByRole('slider', { name: 'Video position' }).getAttribute('aria-valuemax'));
     await seek(page, duration);
     await expect.poll(async () => shareOf(page, await filmPicture(page), VIOLET), { timeout: 15_000 }).toBeLessThan(0.01);
     expect(await brightness(page, await filmPicture(page))).toBeGreaterThan(150);
     // Turning the card off keeps the discs to the end.
-    await card.getByRole('switch', { name: 'End card' }).click();
-    const newEnd = Number(await page.getByRole('slider', { name: 'Move through the film' }).getAttribute('aria-valuemax'));
+    await card.getByRole('switch', { name: 'Add an ending screen' }).click();
+    const newEnd = Number(await page.getByRole('slider', { name: 'Video position' }).getAttribute('aria-valuemax'));
     expect(newEnd).toBeLessThan(duration);
     await seek(page, newEnd);
     await expect.poll(async () => shareOf(page, await filmPicture(page), VIOLET), { timeout: 15_000 }).toBeGreaterThan(0.05);
@@ -377,7 +377,7 @@ test.describe('Director', () => {
     await openDirector(page);
     await addRecording(page, IOS);
     await pause(page);
-    const ruler = page.getByRole('slider', { name: 'Move through the film' });
+    const ruler = page.getByRole('slider', { name: 'Video position' });
     const length = async () => Number(await ruler.getAttribute('aria-valuemax'));
     const clips = page.getByTestId('director-clip');
     const whole = await length();
@@ -420,7 +420,7 @@ test.describe('Director', () => {
     await editor.startBlankProject();
     await openDirector(page);
     await addRecording(page, ANDROID);
-    await expect(page.getByTestId('director-phone').getByRole('combobox', { name: 'Phone' })).toContainText('Pixel');
+    await expect(page.getByTestId('director-phone').getByRole('combobox', { name: 'Phone model in the video' })).toContainText('Pixel');
   });
 
   test('a moment left out loses its close-up, and undo brings it back', async ({ page }) => {
@@ -437,10 +437,10 @@ test.describe('Director', () => {
     await close.getByRole('button').click();
     const panel = page.getByTestId('director-moment-panel');
     await expect(panel).toBeVisible();
-    await panel.getByRole('button', { name: 'Leave out' }).click();
+    await panel.getByRole('button', { name: 'Skip this moment' }).click();
     const pill = page.locator(`[data-testid="director-moment"][data-moment-id="${id}"]`);
     await expect(pill).toHaveAttribute('data-close', 'false');
-    await expect(pill.getByRole('button')).toHaveAccessibleName(/left out/);
+    await expect(pill.getByRole('button')).toHaveAccessibleName(/skipped/);
 
     await page.getByRole('button', { name: 'Undo' }).click();
     await expect(pill).toHaveAttribute('data-close', 'true');
@@ -486,7 +486,7 @@ test.describe('Director', () => {
     await expect(mine).not.toHaveAttribute('data-moment-id', before!);
 
     // Delete straight away, nothing picked again: the close-up goes.
-    await page.getByRole('button', { name: "Delete what's picked" }).click();
+    await page.getByRole('button', { name: 'Delete selection' }).click();
     await expect(mine).toHaveCount(0);
   });
 
@@ -505,7 +505,7 @@ test.describe('Director', () => {
 
     // The recording read again while the film plays, and the editor shown before the reading is done.
     await page.getByTestId('director-clip').first().click();
-    await page.getByRole('button', { name: 'Read again' }).click();
+    await page.getByRole('button', { name: 'Find moments again' }).click();
     await expect(page.getByTestId('director-busy')).toBeVisible();
     await page.getByRole('button', { name: 'Back to the editor' }).click();
     await expect(page.getByTestId('director-view')).toBeHidden();
@@ -627,11 +627,11 @@ test.describe('Director', () => {
     await page.getByTestId('director-icon-file').setInputFiles(ICON);
     await expect(page.getByTestId('director-icon')).toBeVisible();
     const card = page.getByTestId('director-card');
-    await card.getByRole('switch', { name: 'End card' }).click();
-    await card.getByRole('switch', { name: 'White card' }).click();
-    await expect(card.getByRole('switch', { name: 'White card' })).toHaveAttribute('aria-checked', 'true');
+    await card.getByRole('switch', { name: 'Add an ending screen' }).click();
+    await card.getByRole('switch', { name: 'Make the ending screen white' }).click();
+    await expect(card.getByRole('switch', { name: 'Make the ending screen white' })).toHaveAttribute('aria-checked', 'true');
     // Read before the dialog opens: a modal dialog hides the page behind it from these queries.
-    const duration = Number(await page.getByRole('slider', { name: 'Move through the film' }).getAttribute('aria-valuemax'));
+    const duration = Number(await page.getByRole('slider', { name: 'Video position' }).getAttribute('aria-valuemax'));
 
     await page.getByTestId('director-export').click();
     const dialog = page.getByTestId('director-export-dialog');
@@ -793,7 +793,7 @@ async function pushPhone(phone: Page, metres: number, seconds: number) {
 test.describe('Director with a phone', () => {
   test('the phone page says how to open it when it has no link', async ({ page }) => {
     await page.goto('/remote');
-    await expect(page.getByRole('heading', { name: 'Open this page from Director' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Connect this phone to Director' })).toBeVisible();
   });
 
   test('signed out, moves first asks for a sign-in at once, with its button, and asks the server no more', async ({ page, context }) => {
@@ -811,15 +811,15 @@ test.describe('Director with a phone', () => {
     await page.getByTestId('director-moves-first').click();
 
     const hand = page.getByTestId('director-hand');
-    await expect(hand.getByText('Sign in to connect your phone.')).toBeVisible();
+    await expect(hand.getByText('Sign in and choose Connect a phone to get your QR code')).toBeVisible();
     await expect(hand.getByRole('button', { name: 'Sign in', exact: true })).toBeVisible();
     // Nothing in the way of it: no "Not connected" and no Cancel to press first.
     await expect(hand.getByTestId('director-link-status')).toHaveCount(0);
     await expect(hand.getByRole('button', { name: 'Cancel' })).toHaveCount(0);
-    await expect(hand.getByRole('button', { name: 'Use your phone' })).toBeEnabled();
+    await expect(hand.getByRole('button', { name: 'Connect a phone' })).toBeEnabled();
     // The card under the picture says to sign in, with its own button, never to scan a code that isn't there.
     const card = page.getByTestId('director-moves-first-card');
-    await expect(card).not.toContainText('Scan the code');
+    await expect(card).not.toContainText('Scan the QR code');
     await expect(card).toContainText('Sign in to connect your phone');
     await expect(card.getByRole('button', { name: 'Sign in', exact: true })).toBeVisible();
     const asked = tickets;
@@ -846,9 +846,9 @@ test.describe('Director with a phone', () => {
     await page.getByTestId('director-moves-first').click();
     const hand = page.getByTestId('director-hand');
     const card = page.getByTestId('director-moves-first-card');
-    await expect(hand.getByTestId('director-link-status')).toHaveText("Couldn't connect");
+    await expect(hand.getByTestId('director-link-status')).toHaveText("Couldn't connect your phone");
     await expect(card).toContainText("Your phone couldn't connect");
-    await expect(card).not.toContainText('Scan the code');
+    await expect(card).not.toContainText('Scan the QR code');
     // Try again from the card asks the server again (still refusing here).
     const asked = tickets;
     await card.getByRole('button', { name: 'Try again' }).click();
@@ -857,12 +857,12 @@ test.describe('Director with a phone', () => {
     // Cancel in the panel: the card asks to connect, with its button.
     await hand.getByRole('button', { name: 'Cancel' }).click();
     await expect(card).toContainText('Connect your phone');
-    await expect(card).not.toContainText('Scan the code');
+    await expect(card).not.toContainText('Scan the QR code');
     // Tried again from the card, with the server answering: the code comes up, and the card says to scan it.
     refuse = false;
-    await card.getByRole('button', { name: 'Use your phone' }).click();
+    await card.getByRole('button', { name: 'Connect a phone' }).click();
     await expect(hand.getByTestId('director-qr')).toBeVisible();
-    await expect(card).toContainText('Scan the code');
+    await expect(card).toContainText('Scan the QR code');
   });
 
   test('moves first: the phone\'s code shows at once, and the recording added later takes over', async ({ page, context }) => {
@@ -881,7 +881,7 @@ test.describe('Director with a phone', () => {
     await expect(page.getByTestId('director-no-recording')).toBeVisible();
     await expect(page.getByTestId('director-export')).toBeDisabled();
     const card = page.getByTestId('director-moves-first-card');
-    await expect(card).toContainText('Scan the code');
+    await expect(card).toContainText('Scan the QR code');
 
     // The phone opens the code's link: the card stops asking for the code.
     const link = await hand.getByTestId('director-qr').getAttribute('data-link');
@@ -891,18 +891,18 @@ test.describe('Director with a phone', () => {
     await phone.getByTestId('remote-start').click();
     await expect(hand.getByTestId('director-link-status')).toContainText('connected', { timeout: 30_000 });
     await expect(card).toContainText('Your phone is connected');
-    await expect(card).not.toContainText('Scan the code');
-    await expect(card.getByRole('button', { name: 'Use your phone' })).toHaveCount(0);
+    await expect(card).not.toContainText('Scan the QR code');
+    await expect(card.getByRole('button', { name: 'Connect a phone' })).toHaveCount(0);
     // Disconnected: no code on screen, so the card asks to connect again, with its button.
     await hand.getByRole('button', { name: 'Disconnect' }).click();
     await expect(card).toContainText('Connect your phone');
-    await expect(card).not.toContainText('Scan the code');
-    await expect(card.getByRole('button', { name: 'Use your phone' })).toBeVisible();
+    await expect(card).not.toContainText('Scan the QR code');
+    await expect(card.getByRole('button', { name: 'Connect a phone' })).toBeVisible();
     await phone.close();
 
     // The stand-in runs as long as asked, the end words after it.
-    const ruler = page.getByRole('slider', { name: 'Move through the film' });
-    await page.getByTestId('director-no-recording').getByRole('button', { name: '20s' }).click();
+    const ruler = page.getByRole('slider', { name: 'Video position' });
+    await page.getByTestId('director-no-recording').getByRole('button', { name: '20 sec' }).click();
     await expect(ruler).toHaveAttribute('aria-valuemax', '21.8');
     // It plays with no recording: the clock runs on the stand-in.
     await page.getByTestId('director-viewport').getByRole('button', { name: 'Play' }).click();
@@ -935,7 +935,7 @@ test.describe('Director with a phone', () => {
     await pause(page);
     await seek(page, 1);
     const hand = page.getByTestId('director-hand');
-    await hand.getByRole('button', { name: 'Use your phone' }).click();
+    await hand.getByRole('button', { name: 'Connect a phone' }).click();
     const link = await hand.getByTestId('director-qr').getAttribute('data-link');
     const phone = await context.newPage();
     await phone.setViewportSize({ width: 390, height: 844 });
@@ -943,10 +943,10 @@ test.describe('Director with a phone', () => {
     await phone.getByTestId('remote-start').click();
     await expect(phone.getByTestId('remote-live')).toBeVisible();
     await expect(hand.getByTestId('director-link-status')).toContainText('connected', { timeout: 30_000 });
-    const onDesk = hand.getByRole('switch', { name: 'Forward and back' });
+    const onDesk = hand.getByRole('switch', { name: 'Zoom by moving your phone' });
     const onPhone = phone.getByTestId('remote-depth');
     await expect(onDesk).toHaveAttribute('aria-checked', 'false');
-    await expect(onPhone).toHaveText('Forward and back: off');
+    await expect(onPhone).toHaveText('Zoom by moving your phone (off)');
     for (let i = 0; i < 5; i++) await tilt(phone, 0, 80, 0);
     await phone.getByTestId('remote-center').click();
     await tilt(phone, 0, 80, 0);
@@ -962,7 +962,7 @@ test.describe('Director with a phone', () => {
 
     // On at the computer: the phone shows it and starts from where it is, so nothing jumps.
     await onDesk.click();
-    await expect(onPhone).toHaveText('Forward and back: on');
+    await expect(onPhone).toHaveText('Zoom by moving your phone (on)');
     await tilt(phone, 0, 80, 0);
     await page.waitForTimeout(400);
     expect(await changed()).toBeLessThan(0.5);
@@ -977,7 +977,7 @@ test.describe('Director with a phone', () => {
     // A take, held that close the whole way.
     const record = hand.getByTestId('director-record-take');
     await record.click();
-    await expect(record).toHaveText('Stop');
+    await expect(record).toHaveText('Stop recording');
     for (let i = 0; i < 40; i++) {
       await tilt(phone, 0, 80, 0);
       await page.waitForTimeout(50);
@@ -992,7 +992,7 @@ test.describe('Director with a phone', () => {
     // Off on the phone: the computer follows, and the take is back at the planned distance.
     await onPhone.click();
     await expect(onDesk).toHaveAttribute('aria-checked', 'false');
-    await expect(onPhone).toHaveText('Forward and back: off');
+    await expect(onPhone).toHaveText('Zoom by moving your phone (off)');
     await page.waitForTimeout(400);
     expect(await changed(closer)).toBeGreaterThan(3);
     expect(await changed()).toBeLessThan(0.5);
@@ -1019,17 +1019,17 @@ test.describe('Director with a phone', () => {
     await page.getByTestId('director-moves-first').click();
     const hand = page.getByTestId('director-hand');
     const card = page.getByTestId('director-moves-first-card');
-    await expect(hand.getByTestId('director-link-status')).toHaveText('Getting ready');
-    await expect(card).toContainText('Getting the code for your phone ready');
-    await expect(card).not.toContainText('Scan the code');
+    await expect(hand.getByTestId('director-link-status')).toHaveText('Preparing the QR code');
+    await expect(card).toContainText('Preparing the QR code');
+    await expect(card).not.toContainText('Scan the QR code');
     await expect(page.getByTestId('director-qr')).toHaveCount(0);
 
     // Cancel, then try again from the card: this time the code comes, and a phone connects.
     await hand.getByRole('button', { name: 'Cancel' }).click();
     answerNow = true;
-    await card.getByRole('button', { name: 'Use your phone' }).click();
+    await card.getByRole('button', { name: 'Connect a phone' }).click();
     const link = await hand.getByTestId('director-qr').getAttribute('data-link');
-    await expect(card).toContainText('Scan the code');
+    await expect(card).toContainText('Scan the QR code');
     const phone = await context.newPage();
     await phone.setViewportSize({ width: 390, height: 844 });
     await phone.goto(link!.replace(/^https?:\/\/[^/]+/, ''));
@@ -1044,7 +1044,7 @@ test.describe('Director with a phone', () => {
     await expect(hand.getByTestId('director-link-status')).toContainText('connected');
     await expect(hand.getByRole('button', { name: 'Disconnect' })).toBeVisible();
     await expect(card).toContainText('Your phone is connected');
-    await expect(hand.getByText('Sign in to connect your phone.')).toHaveCount(0);
+    await expect(hand.getByText('Sign in and choose Connect a phone to get your QR code')).toHaveCount(0);
     await phone.close();
   });
 
@@ -1059,9 +1059,9 @@ test.describe('Director with a phone', () => {
     await pause(page);
     await seek(page, 2);
     // Found by its attributes, not its role: a role lookup skips it while Director is hidden.
-    const ruler = page.locator('[role="slider"][aria-label="Move through the film"]');
+    const ruler = page.locator('[role="slider"][aria-label="Video position"]');
     const hand = page.getByTestId('director-hand');
-    await hand.getByRole('button', { name: 'Use your phone' }).click();
+    await hand.getByRole('button', { name: 'Connect a phone' }).click();
     const link = await hand.getByTestId('director-qr').getAttribute('data-link');
     const phone = await context.newPage();
     await phone.setViewportSize({ width: 390, height: 844 });
@@ -1083,7 +1083,7 @@ test.describe('Director with a phone', () => {
     // Back in Director: paused at the same place, and no take began.
     await page.getByRole('button', { name: /^Director: / }).click();
     await expect(page.getByTestId('director-viewport').getByRole('button', { name: 'Play' })).toBeVisible();
-    await expect(hand.getByTestId('director-record-take')).toHaveText('Record a take');
+    await expect(hand.getByTestId('director-record-take')).toHaveText('Start recording');
     expect(await ruler.getAttribute('aria-valuenow')).toBe(before);
     await phone.close();
   });
@@ -1101,7 +1101,7 @@ test.describe('Director with a phone', () => {
     await seek(page, 1);
 
     const hand = page.getByTestId('director-hand');
-    await hand.getByRole('button', { name: 'Use your phone' }).click();
+    await hand.getByRole('button', { name: 'Connect a phone' }).click();
     const qr = hand.getByTestId('director-qr');
     await expect(qr).toBeVisible();
     const link = await qr.getAttribute('data-link');
@@ -1140,7 +1140,7 @@ test.describe('Director with a phone', () => {
     }
     await phone.getByTestId('remote-record').click();
     await expect(hand.getByTestId('director-take')).toBeVisible({ timeout: 30_000 });
-    await expect(hand.getByRole('switch', { name: 'Use my take' })).toBeChecked();
+    await expect(hand.getByRole('switch', { name: 'Use my saved phone movements' })).toBeChecked();
     await phone.close();
   });
 });

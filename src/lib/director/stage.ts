@@ -411,7 +411,7 @@ export class DirectorStage {
     const key = `${deviceType}/${finishId ?? ''}`;
     if (key === this.phoneKey) return;
     const model = studioModelFor(deviceType);
-    if (!model) throw new Error(`No 3D model for ${deviceType}`);
+    if (!model) throw new Error('Choose another phone model in the video settings');
     this.clearPhone();
     this.phoneKey = key;
     this.model = model;

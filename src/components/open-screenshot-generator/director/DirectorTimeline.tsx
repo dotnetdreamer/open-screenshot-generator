@@ -465,40 +465,40 @@ export function DirectorTimeline({
     <div className="select-none pb-2" data-testid="director-timeline">
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-1 border-b px-2 py-1.5 sm:px-3" role="toolbar" aria-label="Timeline">
-        <Button type="button" variant="ghost" size="icon" className="h-8 w-8" aria-label={now.playing ? 'Pause the film' : 'Play the film'} title={now.playing ? 'Pause (Space)' : 'Play (Space)'} onClick={() => void player.toggle()}>
+        <Button type="button" variant="ghost" size="icon" className="h-8 w-8" aria-label={now.playing ? 'Pause video' : 'Play video'} title={now.playing ? 'Pause (Space)' : 'Play (Space)'} onClick={() => void player.toggle()}>
           {now.playing ? <PauseIcon className="h-4 w-4" /> : <PlayIcon className="h-4 w-4" />}
         </Button>
         <span className="min-w-[6.5rem] px-1 font-mono text-xs tabular-nums text-muted-foreground" data-testid="director-time">
           {formatTime(now.t)} / {formatTime(duration)}
         </span>
         <span className="mx-1 hidden h-5 w-px bg-border sm:block" aria-hidden />
-        <Button type="button" variant="ghost" size="sm" className="h-8 gap-1.5 px-2" onClick={onSplit} disabled={!canSplit} title="Split the recording at the playhead (S)" data-testid="director-split">
+        <Button type="button" variant="ghost" size="sm" className="h-8 gap-1.5 px-2" onClick={onSplit} disabled={!canSplit} title="Split this clip into two at the current time (S)" data-testid="director-split">
           <ScissorsIcon className="h-3.5 w-3.5" />
           <span className="hidden md:inline">Split</span>
         </Button>
-        <Button type="button" variant="ghost" size="sm" className="h-8 gap-1.5 px-2" onClick={onChangeFrom} title="Show another recording from the playhead on" data-testid="director-change-from">
+        <Button type="button" variant="ghost" size="sm" className="h-8 gap-1.5 px-2" onClick={onChangeFrom} title={film.clips.length ? 'Use another screen recording from this point in the clip' : 'Choose a screen recording for your video'} data-testid="director-change-from">
           <RepeatIcon className="h-3.5 w-3.5" />
-          <span className="hidden md:inline">{film.clips.length ? 'Change recording here' : 'Add recording'}</span>
+          <span className="hidden md:inline">{film.clips.length ? 'Replace from here' : 'Add screen recording'}</span>
         </Button>
         {film.clips.length > 0 && (
-          <Button type="button" variant="ghost" size="sm" className="h-8 gap-1.5 px-2" onClick={onAddRecording} title="Add a recording after the others" data-testid="director-add-recording">
+          <Button type="button" variant="ghost" size="sm" className="h-8 gap-1.5 px-2" onClick={onAddRecording} title="Add a screen recording at the end of the video" data-testid="director-add-recording">
             <FilmIcon className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">Add recording</span>
+            <span className="hidden md:inline">Add screen recording</span>
           </Button>
         )}
-        <Button type="button" variant="ghost" size="sm" className="h-8 gap-1.5 px-2" onClick={onAddCloseUp} disabled={!film.clips.length} title={film.clips.length ? 'Add a close-up at the playhead' : 'Add a recording first'} data-testid="director-add-closeup">
+        <Button type="button" variant="ghost" size="sm" className="h-8 gap-1.5 px-2" onClick={onAddCloseUp} disabled={!film.clips.length} title={film.clips.length ? 'Add a close-up at the current time' : 'Add a screen recording first'} data-testid="director-add-closeup">
           <ZoomInIcon className="h-3.5 w-3.5" />
-          <span className="hidden md:inline">Close-up here</span>
+          <span className="hidden md:inline">Add close-up</span>
         </Button>
-        <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={onDeleteSelected} disabled={!selection} aria-label="Delete what's picked" title="Delete what's picked (Delete)" data-testid="director-delete-selected">
+        <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={onDeleteSelected} disabled={!selection} aria-label="Delete selection" title="Delete selection (Delete)" data-testid="director-delete-selected">
           <Trash2Icon className="h-3.5 w-3.5" />
         </Button>
         <div className="ml-auto flex items-center gap-1">
-          <Button type="button" variant="ghost" size="icon" className="h-7 w-7" aria-label="Zoom out" title="Zoom out" onClick={() => setZoom((z) => Math.max(1, z / 1.5))} disabled={zoom <= 1}>
+          <Button type="button" variant="ghost" size="icon" className="h-7 w-7" aria-label="Zoom out on the timeline" title="Show more time on the timeline" onClick={() => setZoom((z) => Math.max(1, z / 1.5))} disabled={zoom <= 1}>
             <MinusIcon className="h-3.5 w-3.5" />
           </Button>
           <Slider className="w-16 sm:w-24" min={1} max={12} step={0.1} value={[zoom]} onValueChange={([z]) => setZoom(z)} aria-label="Timeline zoom" />
-          <Button type="button" variant="ghost" size="icon" className="h-7 w-7" aria-label="Zoom in" title="Zoom in (Ctrl or Cmd and scroll)" onClick={() => setZoom((z) => Math.min(12, z * 1.5))} disabled={zoom >= 12}>
+          <Button type="button" variant="ghost" size="icon" className="h-7 w-7" aria-label="Zoom in on the timeline" title="Show more detail on the timeline (Ctrl or Cmd and scroll)" onClick={() => setZoom((z) => Math.min(12, z * 1.5))} disabled={zoom >= 12}>
             <PlusIcon className="h-3.5 w-3.5" />
           </Button>
         </div>
@@ -507,12 +507,12 @@ export function DirectorTimeline({
       <div className="flex">
         {/* Track names */}
         <div className="w-9 shrink-0 border-r pt-5 sm:w-[88px]" aria-hidden>
-          {trackLabel(VideoIcon, 'Screen', 'h-14')}
+          {trackLabel(VideoIcon, 'Clips', 'h-14')}
           {trackLabel(SmartphoneIcon, 'Camera', 'mt-1.5 h-7')}
           <div style={{ height: momentsHeight }} className="mt-1.5">
             {trackLabel(HandIcon, 'Moments', 'h-[26px]')}
           </div>
-          {trackLabel(TypeIcon, 'Words', 'mt-1.5 h-6')}
+          {trackLabel(TypeIcon, 'Text', 'mt-1.5 h-6')}
         </div>
 
         <div ref={scrollRef} className="relative min-w-0 flex-1 overflow-x-auto overflow-y-hidden" onScroll={(e) => setScrollLeft(e.currentTarget.scrollLeft)}>
@@ -523,7 +523,7 @@ export function DirectorTimeline({
               onPointerDown={scrub}
               onPointerMove={(e) => e.buttons === 1 && !drag && void player.seek(timeAt(e.clientX))}
               role="slider"
-              aria-label="Move through the film"
+              aria-label="Video position"
               aria-valuemin={0}
               aria-valuemax={Math.round(duration * 10) / 10}
               aria-valuenow={Math.round(now.t * 10) / 10}
@@ -553,7 +553,7 @@ export function DirectorTimeline({
                   data-testid="director-add-first-recording"
                 >
                   <PlusIcon className="h-4 w-4" />
-                  Add your recording
+                  Add screen recording
                 </button>
               )}
               {spans.map((span) => {
@@ -650,11 +650,11 @@ export function DirectorTimeline({
                     film.motion === 'hand' ? 'border-amber-500/60 bg-amber-500/15 text-amber-700 dark:text-amber-300' : 'border-dashed border-muted-foreground/40 text-muted-foreground'
                   )}
                   style={{ left: take.samples[0].t * pps, width: Math.max(24, (Math.min(takeEnd, duration) - take.samples[0].t) * pps) }}
-                  title={film.motion === 'hand' ? 'Your moves turn the phone here' : 'Your moves, turned off'}
+                  title={film.motion === 'hand' ? 'The camera follows your recorded phone movements here' : 'Your recorded camera movement is turned off'}
                   data-testid="director-take-band"
                 >
                   <HandIcon className="h-3 w-3 shrink-0" />
-                  {(takeEnd - take.samples[0].t) * pps > 80 && <span className="truncate">{film.motion === 'hand' ? 'Your moves' : 'Your moves, off'}</span>}
+                  {(takeEnd - take.samples[0].t) * pps > 80 && <span className="truncate">{film.motion === 'hand' ? 'Recorded movement' : 'Recorded movement off'}</span>}
                 </div>
               )}
             </div>
@@ -669,7 +669,7 @@ export function DirectorTimeline({
                 const skipped = moment.shot === 'skip';
                 const left = shown.start * pps;
                 const picked = selection?.kind === 'moment' && selection.id === moment.id;
-                const label = `${MOMENT_WORDS[moment.kind]} at ${shown.start.toFixed(1)} seconds${close ? ', close-up' : ''}${skipped ? ', left out' : ''}`;
+                const label = `${MOMENT_WORDS[moment.kind]} at ${shown.start.toFixed(1)} seconds${close ? ', close-up' : ''}${skipped ? ', skipped' : ''}`;
                 const onKey = (e: React.KeyboardEvent) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();

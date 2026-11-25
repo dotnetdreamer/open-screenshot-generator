@@ -15,7 +15,7 @@ export function DirectorSidebarItem({ onOpen }: { onOpen: () => void }) {
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton
-            tooltip="Director, phone videos of your app"
+            tooltip="Director, turn a screen recording into an app video"
             className="w-full"
             onClick={() => {
               setOpenMobile(false);

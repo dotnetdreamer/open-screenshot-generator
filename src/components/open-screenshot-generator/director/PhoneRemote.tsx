@@ -122,10 +122,10 @@ export function PhoneRemote() {
     if (access !== 'granted') {
       setNote(
         access === 'denied'
-          ? 'Motion is off for this page. Reload it and tap Allow when your phone asks.'
+          ? 'Reload this page, tap Turn on tilt controls and allow access to motion when asked'
           : access === 'insecure'
-            ? "This page needs https to read the phone's movement."
-            : "This browser doesn't share the phone's movement. Try Safari or Chrome."
+            ? 'To use tilt controls, open this page at a secure address beginning with https://'
+            : 'For tilt controls, open this link in Safari on iPhone or Chrome on Android'
       );
       return;
     }
@@ -151,7 +151,7 @@ export function PhoneRemote() {
           setShownZoom(total);
         }
       },
-      () => setNote("No movement is coming from this phone's sensors.")
+      () => setNote("Tilt your phone to check that the preview turns with it")
     );
     releaseRef.current = await keepScreenOn();
     setStage('live');
@@ -192,8 +192,9 @@ export function PhoneRemote() {
     return (
       <main className={shell}>
         <SmartphoneIcon className="h-8 w-8 text-white/60" />
-        <h1 className="text-lg font-semibold">Open this page from Director</h1>
-        <p className="max-w-xs text-sm text-white/60">On your computer, open Director, press Use your phone, and scan the code with this phone&apos;s camera.</p>
+        <h1 className="text-lg font-semibold">Connect this phone to Director</h1>
+        <p className="max-w-xs text-sm text-white/60">On your computer, open your video in Director and choose <strong>Connect a phone</strong></p>
+        <p className="max-w-xs text-sm text-white/60">On this phone, scan the QR code with the camera and tap the link</p>
       </main>
     );
   }
@@ -201,7 +202,7 @@ export function PhoneRemote() {
     return (
       <main className={shell}>
         <Loader2Icon className="h-7 w-7 animate-spin text-white/70" />
-        <p className="text-sm text-white/70">Connecting to your computer</p>
+        <p className="text-sm text-white/70">Connecting to Director on your computer</p>
       </main>
     );
   }
@@ -209,8 +210,8 @@ export function PhoneRemote() {
     return (
       <main className={shell}>
         <SmartphoneIcon className="h-8 w-8 text-white/60" />
-        <h1 className="text-lg font-semibold">{stage === 'gone' ? 'Your computer closed the link' : "Couldn't connect"}</h1>
-        <p className="max-w-xs text-sm text-white/60">{note ?? 'Press Use your phone in Director again and scan the new code.'}</p>
+        <h1 className="text-lg font-semibold">{stage === 'gone' ? 'Your computer disconnected' : "This phone couldn't connect"}</h1>
+        <p className="max-w-xs text-sm text-white/60">{note ?? 'Choose Connect a phone on your computer, then scan the new QR code with this phone'}</p>
       </main>
     );
   }
@@ -221,16 +222,16 @@ export function PhoneRemote() {
           <SmartphoneIcon className="h-8 w-8" />
         </div>
         <h1 className="text-xl font-semibold">Connected to Director</h1>
-        <p className="max-w-xs text-sm text-white/65">Move this phone and the phone in the video moves the same way. Your phone will ask to share its movement.</p>
+        <p className="max-w-xs text-sm text-white/65">To control the camera by tilting this phone, tap Allow if your browser asks for access to motion</p>
         <button type="button" onClick={() => void start()} className="w-full max-w-xs rounded-2xl bg-white px-6 py-4 text-base font-semibold text-black active:scale-[0.98]" data-testid="remote-start">
-          Start
+          Turn on tilt controls
         </button>
         {note && <p className="max-w-xs text-sm text-amber-300">{note}</p>}
       </main>
     );
   }
 
-  const seconds = (v: number) => `${v.toFixed(1)}s`;
+  const seconds = (v: number) => `${v.toFixed(1)} s`;
   return (
     <main
       className="flex min-h-[100dvh] touch-none select-none flex-col bg-[#07080d] text-white"
@@ -246,7 +247,7 @@ export function PhoneRemote() {
       <div className="flex items-center justify-between px-5 pt-[max(1rem,env(safe-area-inset-top))] text-xs text-white/70">
         <span className="flex items-center gap-2">
           <span className={cn('h-2 w-2 rounded-full', recording ? 'animate-pulse bg-red-500' : 'bg-emerald-400')} />
-          {recording ? `Recording ${seconds(clock.t)} of ${seconds(clock.duration)}` : status === 'direct' ? 'Connected' : 'Connected through the internet'}
+          {recording ? `Recording phone movements · ${seconds(clock.t)} of ${seconds(clock.duration)}` : status === 'direct' ? 'Connected to Director' : 'Connected to Director over the internet'}
         </span>
         <span className="tabular-nums" data-testid="remote-zoom">
           Zoom {shownZoom.toFixed(1)}x
@@ -262,7 +263,10 @@ export function PhoneRemote() {
       </div>
 
       <p className="px-6 text-center text-xs text-white/55">
-        Hold the phone the way the phone in the video should face, then press Center. {depthOn ? 'Bring it closer, or pinch, to move in.' : 'Pinch to move in.'}
+        <span className="block">{recording
+          ? 'Tilt your phone while the video plays to record its angles'
+          : 'Hold your phone comfortably and tap Set starting angle before you tilt it'}</span>
+        <span className="block">{depthOn ? 'Bring your phone toward you to zoom in or move it away to zoom out' : 'Spread two fingers to zoom in or pinch to zoom out'}</span>
       </p>
       {note && <p className="px-6 pt-2 text-center text-xs text-amber-300">{note}</p>}
       <div className="flex justify-center pt-3">
@@ -282,7 +286,7 @@ export function PhoneRemote() {
           data-testid="remote-depth"
         >
           <span className={cn('h-2 w-2 rounded-full', depthOn ? 'bg-emerald-400' : 'bg-white/30')} />
-          Forward and back: {depthOn ? 'on' : 'off'}
+          Zoom by moving your phone ({depthOn ? 'on' : 'off'})
         </button>
       </div>
 
@@ -294,7 +298,7 @@ export function PhoneRemote() {
           data-testid="remote-center"
         >
           <CrosshairIcon className="h-4 w-4" />
-          Center
+          Set starting angle
         </button>
         <button
           type="button"
@@ -303,7 +307,7 @@ export function PhoneRemote() {
           data-testid="remote-record"
         >
           {recording ? <SquareIcon className="h-4 w-4 fill-current" /> : <CircleIcon className="h-4 w-4 fill-current" />}
-          {recording ? 'Stop' : 'Record a take'}
+          {recording ? 'Stop recording' : 'Start recording'}
         </button>
       </div>
     </main>

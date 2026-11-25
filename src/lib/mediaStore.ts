@@ -99,7 +99,7 @@ export function probeVideoBlob(blob: Blob): Promise<VideoProbeResult> {
     };
     video.onerror = () => {
       cleanup();
-      reject(new Error('Could not read this video file. Use an MP4, MOV or WebM recording.'));
+      reject(new Error('Try another copy of the video saved as an MP4, MOV or WebM file'));
     };
     video.src = url;
   });

@@ -183,7 +183,7 @@ export function DirectorViewport({
       } catch (error) {
         console.error('Director could not start its 3D stage', error);
         canvas.dataset.spent = '1';
-        onErrorRef.current?.("This browser couldn't start the 3D picture. Try another browser, or the desktop app.");
+        onErrorRef.current?.("Try opening the video in another browser or in the desktop app");
         return;
       }
     }

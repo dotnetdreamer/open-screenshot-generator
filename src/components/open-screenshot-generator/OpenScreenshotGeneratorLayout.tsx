@@ -13782,7 +13782,7 @@ export function OpenScreenshotGeneratorLayout() {
             active={activity === 'director'}
             readProject={readProjectForDirector}
             getToken={directorToken}
-            onSignIn={() => openAccountDialog('Sign in to connect your phone to Director.')}
+            onSignIn={() => openAccountDialog('Sign in to connect your phone to Director')}
             onBackToEditor={directorBackToEditor}
           />
         </div>

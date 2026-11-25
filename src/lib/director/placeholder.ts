@@ -104,10 +104,10 @@ export function placeholderScreen(): HTMLCanvasElement {
   ctx.textAlign = 'center';
   ctx.fillStyle = '#1b1e27';
   ctx.font = '700 46px -apple-system, "SF Pro Display", system-ui, sans-serif';
-  ctx.fillText('Your recording', w / 2, py + 190);
+  ctx.fillText('Your screen recording', w / 2, py + 190);
   ctx.fillStyle = '#6b7183';
   ctx.font = '500 34px -apple-system, "SF Pro Text", system-ui, sans-serif';
-  ctx.fillText('goes here', w / 2, py + 240);
+  ctx.fillText('will appear here', w / 2, py + 240);
 
   cached = canvas;
   return canvas;

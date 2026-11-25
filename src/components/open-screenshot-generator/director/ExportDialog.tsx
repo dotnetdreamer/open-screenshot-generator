@@ -36,7 +36,7 @@ export function ExportDialog({ film, open, onOpenChange, onExporting }: { film: 
   const [phase, setPhase] = useState<Phase>({ kind: 'ready' });
   const [fps, setFps] = useState<30 | 60>(film.fps);
   const abortRef = useRef<AbortController | null>(null);
-  const blocker = film.clips.length ? exportBlocker() : 'Add a recording first. The video is made from it.';
+  const blocker = film.clips.length ? exportBlocker() : 'Add a screen recording before you export your video';
   const size = FILM_SIZES[film.format];
   const seconds = Math.round(filmDuration(film) * 10) / 10;
   const name = filmFileName(film);
@@ -79,7 +79,7 @@ export function ExportDialog({ film, open, onOpenChange, onExporting }: { film: 
         return;
       }
       console.error('Director could not export the video', error);
-      setPhase({ kind: 'failed', message: error instanceof Error ? error.message : 'Try again, or pick a shorter part of the recording.' });
+      setPhase({ kind: 'failed', message: error instanceof Error ? error.message : 'Try exporting again or choose a shorter clip' });
     } finally {
       abortRef.current = null;
       onExporting?.(false);
@@ -109,13 +109,13 @@ export function ExportDialog({ film, open, onOpenChange, onExporting }: { film: 
         <DialogHeader>
           <DialogTitle>Export video</DialogTitle>
           <DialogDescription>
-            An MP4 file, {size.width} by {size.height}, {seconds} seconds long.
+            Your MP4 video will be {seconds} seconds long and {size.width} by {size.height} pixels
           </DialogDescription>
         </DialogHeader>
 
         {phase.kind === 'ready' && (
           <div className="space-y-3">
-            <div className="flex gap-2" role="radiogroup" aria-label="Smoothness">
+            <div className="flex gap-2" role="radiogroup" aria-label="How smooth the video looks">
               {([30, 60] as const).map((rate) => (
                 <button
                   key={rate}
@@ -125,8 +125,8 @@ export function ExportDialog({ film, open, onOpenChange, onExporting }: { film: 
                   onClick={() => setFps(rate)}
                   className={cn('flex-1 rounded-lg border px-3 py-2 text-left transition-colors', fps === rate ? 'border-primary bg-primary/10' : 'hover:bg-muted')}
                 >
-                  <span className="block text-xs font-semibold">{rate} frames a second</span>
-                  <span className="block text-[11px] text-muted-foreground">{rate === 30 ? 'Smaller file, quicker to make' : 'Smoother moves, takes twice as long'}</span>
+                  <span className="block text-xs font-semibold">{rate === 30 ? 'Standard' : 'Smoother motion'} ({rate} frames per second)</span>
+                  <span className="block text-[11px] text-muted-foreground">{rate === 30 ? 'Exports faster and uses less storage' : 'Shows more detail in fast movement and takes longer to export'}</span>
                 </button>
               ))}
             </div>
@@ -138,7 +138,8 @@ export function ExportDialog({ film, open, onOpenChange, onExporting }: { film: 
           <div className="space-y-2" data-testid="director-export-progress">
             <Progress value={percent} className="h-2" />
             <p className="text-xs text-muted-foreground">
-              Making the video, {percent}% done. You can keep working in other views.
+              <span className="block">Exporting your video, {percent}% complete</span>
+              You can use other parts of the app while you wait
             </p>
           </div>
         )}
@@ -147,7 +148,7 @@ export function ExportDialog({ film, open, onOpenChange, onExporting }: { film: 
           <div className="space-y-2 text-sm" data-testid="director-export-done">
             <p className="font-medium">Your video is ready</p>
             {phase.path && <p className="break-all text-xs text-muted-foreground">Saved to {phase.path}</p>}
-            {phase.blob && canShareVideo(phase.blob, name) && <p className="text-xs text-muted-foreground">Save it to Photos or send it straight to an app.</p>}
+            {phase.blob && canShareVideo(phase.blob, name) && <p className="text-xs text-muted-foreground">Choose Share or save to keep a copy on this device or send the video to another app</p>}
           </div>
         )}
 
@@ -167,7 +168,7 @@ export function ExportDialog({ film, open, onOpenChange, onExporting }: { film: 
           {working && (
             <Button type="button" variant="outline" onClick={() => abortRef.current?.abort()} className="gap-1.5">
               <Loader2Icon className="h-4 w-4 animate-spin" />
-              Stop
+              Stop export
             </Button>
           )}
           {phase.kind === 'done' && phase.blob && canShareVideo(phase.blob, name) && (

@@ -46,7 +46,7 @@ export interface ExportOptions {
 /** Why this browser can't make the file, or null when it can. */
 export function exportBlocker(): string | null {
   if (typeof VideoEncoder === 'undefined' || typeof VideoFrame === 'undefined') {
-    return "This browser can't make video files. Use the desktop app, Chrome, Edge or Safari 16.4 or later.";
+    return "To export this video, open Director in the desktop app, Chrome, Edge or Safari 16.4 or later";
   }
   return null;
 }
@@ -57,7 +57,7 @@ function stopped(): DOMException {
 
 /** How long the encoder may take no frames before the export gives up. */
 const STALL_MS = 10_000;
-const STALLED = "This device stopped making the video partway. Try again, or export on a computer.";
+const STALLED = "The export stopped before the video was ready, so try again or export on a computer";
 
 /** `promise`, or an error after `ms`, or a stop when `signal` aborts. */
 function withLimit<T>(promise: Promise<T>, ms: number, signal?: AbortSignal): Promise<T> {
@@ -104,7 +104,7 @@ async function checkEncoder(config: VideoEncoderConfig, canvas: HTMLCanvasElemen
       if ((error as { name?: string })?.name === 'AbortError') throw error;
     });
     if (failure || outputs === 0) {
-      throw new Error("This browser can't make video files on this device. Export on a computer, or in the desktop app.");
+      throw new Error("Try exporting with Director on a computer that can create MP4 files");
     }
   } finally {
     try {
@@ -161,13 +161,13 @@ export async function exportFilm(film: Film, options: ExportOptions = {}): Promi
   const plan = planFor(film);
   const backdrop = backdropFor(film.look);
 
-  if (!film.clips.length) throw new Error('Add a recording first. A video needs at least one.');
+  if (!film.clips.length) throw new Error('Add a screen recording before you export your video');
   const spans = clipSpans(film);
   const urls = new Map<string, string>();
   for (const span of spans) {
     if (urls.has(span.clip.mediaId)) continue;
     const url = await getMediaUrl(span.clip.mediaId);
-    if (!url) throw new Error(`"${span.clip.name}" is no longer on this device. Add it again.`);
+    if (!url) throw new Error(`Select the clip for "${span.clip.name}" and add the missing recording again`);
     urls.set(span.clip.mediaId, url);
   }
   const videos = new Map<string, FrameCallbackVideo>();
@@ -197,7 +197,7 @@ export async function exportFilm(film: Film, options: ExportOptions = {}): Promi
     composite.width = width;
     composite.height = height;
     const ctx = composite.getContext('2d');
-    if (!ctx) throw new Error('Could not make a drawing surface for the video.');
+    if (!ctx) throw new Error('Close other tabs or apps to free up memory, then try exporting again');
 
     const config = await pickEncoderConfig(width, height, fps, bitrate);
     const mix = film.sound.recording

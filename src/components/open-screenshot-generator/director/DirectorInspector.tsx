@@ -25,7 +25,6 @@ import type { DeviceType } from '@/types/artboard';
 import { cn } from '@/lib/utils';
 import { FocusEditor } from './FocusEditor';
 import { PhoneLinkPanel, type PhoneLinkActions, type PhoneLinkState } from './PhoneLinkPanel';
-import { InfoTip } from '../capture/InfoTip';
 import type { LiveTurn } from './DirectorViewport';
 import { formatTime } from './DirectorTimeline';
 
@@ -39,16 +38,16 @@ function Section({ title, children, testId }: { title: string; children: React.R
 }
 
 const STYLES: { id: DirectorStyle; name: string; when: string }[] = [
-  { id: 'calm', name: 'Calm', when: 'Slow, gentle moves. Good for apps people read' },
-  { id: 'lively', name: 'Lively', when: 'Follows every tap. Good for most apps' },
-  { id: 'bold', name: 'Bold', when: 'Fast, big moves. Good for games and ads' },
-  { id: 'cinematic', name: 'Cinematic', when: 'Close, steep angles and fast pull-backs. Good for launches' },
+  { id: 'calm', name: 'Calm', when: 'Slow camera movements give viewers time to read' },
+  { id: 'lively', name: 'Lively', when: 'Moves between the whole phone and close-ups of the action' },
+  { id: 'bold', name: 'Bold', when: 'Zooms in quickly and turns the phone farther' },
+  { id: 'cinematic', name: 'Cinematic', when: 'Shows the phone from an angle, then pulls back to show the whole phone' },
 ];
 
 const WORD_STYLES: { id: WordsStyle; name: string; when: string }[] = [
-  { id: 'soft', name: 'Soft', when: 'Rises in at the top. Good for most videos' },
-  { id: 'headline', name: 'Headline', when: 'Big words on the left. Good on dark backgrounds' },
-  { id: 'punchy', name: 'Bold captions', when: 'Capitals at the bottom. Good for ads' },
+  { id: 'soft', name: 'Slide in', when: 'The words fade in and slide up together' },
+  { id: 'headline', name: 'Headline', when: 'Large text lines up along the left edge' },
+  { id: 'punchy', name: 'Bold captions', when: 'Bold capital letters pop in one word at a time' },
 ];
 
 /** The card a film gets when the switch is first turned on. */
@@ -61,9 +60,28 @@ function ColorPick({ label, value, onChange, testId }: { label: string; value: s
   return (
     <label className="flex cursor-pointer items-center gap-1.5 text-xs">
       <span className="relative h-6 w-6 overflow-hidden rounded-md ring-1 ring-black/15 dark:ring-white/20" style={{ background: hex }}>
-        <input type="color" value={hex} onChange={(e) => onChange(e.target.value)} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" aria-label={`${label} color`} data-testid={testId} />
+        <input type="color" value={hex} onChange={(e) => onChange(e.target.value)} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" aria-label={label} data-testid={testId} />
       </span>
       {label}
+    </label>
+  );
+}
+
+function SwitchSetting({ label, hint, checked, disabled, onCheckedChange }: {
+  label: string;
+  hint?: string;
+  checked: boolean;
+  disabled?: boolean;
+  onCheckedChange: (on: boolean) => void;
+}) {
+  const hintId = React.useId();
+  return (
+    <label className="flex items-center justify-between gap-3 text-xs">
+      <span className="min-w-0">
+        <span className="block">{label}</span>
+        {hint && <span id={hintId} className="mt-0.5 block text-[11px] text-muted-foreground">{hint}</span>}
+      </span>
+      <Switch aria-label={label} aria-describedby={hint ? hintId : undefined} checked={checked} disabled={disabled} onCheckedChange={onCheckedChange} />
     </label>
   );
 }
@@ -83,17 +101,17 @@ function BadgeChip({ label, on, onChange }: { label: string; on: boolean; onChan
 }
 
 const SHAPES: { id: FilmFormat; name: string; ratio: string; when: string }[] = [
-  { id: 'vertical', name: 'Tall', ratio: '9:16', when: 'Reels, TikTok, Shorts' },
+  { id: 'vertical', name: 'Tall', ratio: '9:16', when: 'Reels, TikTok and Shorts' },
   { id: 'portrait', name: 'Portrait', ratio: '4:5', when: 'Instagram and Facebook posts' },
-  { id: 'square', name: 'Square', ratio: '1:1', when: 'Any feed' },
+  { id: 'square', name: 'Square', ratio: '1:1', when: 'Square social posts' },
   { id: 'landscape', name: 'Wide', ratio: '16:9', when: 'YouTube and websites' },
 ];
 
 const SHOTS: { id: ShotChoice; name: string }[] = [
   { id: 'auto', name: 'Let Director choose' },
   { id: 'close', name: 'Close-up' },
-  { id: 'wide', name: 'Whole phone' },
-  { id: 'skip', name: 'Leave out' },
+  { id: 'wide', name: 'Show whole phone' },
+  { id: 'skip', name: 'Skip this moment' },
 ];
 
 /** A glow in the swatch: soft where it's soft, a solid disc where the backdrop has one, where it sits. */
@@ -143,8 +161,8 @@ function PartSlider({ max, value, onChange, onCommit }: { max: number; value: [n
       <SliderPrimitive.Track className="relative h-1.5 w-full grow overflow-hidden rounded-full bg-secondary">
         <SliderPrimitive.Range className="absolute h-full bg-primary" />
       </SliderPrimitive.Track>
-      <SliderPrimitive.Thumb className={thumb} aria-label="Start of the part" />
-      <SliderPrimitive.Thumb className={thumb} aria-label="End of the part" />
+      <SliderPrimitive.Thumb className={thumb} aria-label="Clip start time" />
+      <SliderPrimitive.Thumb className={thumb} aria-label="Clip end time" />
     </SliderPrimitive.Root>
   );
 }
@@ -160,11 +178,11 @@ const LENGTHS = [10, 15, 20, 30, 45, 60];
 
 function NoRecordingPanel({ film, update }: { film: Film; update: (change: (film: Film) => Film) => void }) {
   return (
-    <Section title="No recording yet" testId="director-no-recording">
+    <Section title="Preview length" testId="director-no-recording">
       <p className="text-xs text-muted-foreground">
-        Record your moves with your phone first, then add the recording. Until then the video is {film.placeholderLength} seconds long.
+        Choose how long to record your phone&apos;s movements before adding your screen recording
       </p>
-      <div className="flex flex-wrap gap-1.5" role="group" aria-label="Length before the recording">
+      <div className="flex flex-wrap gap-1.5" role="group" aria-label="Preview length in seconds">
         {LENGTHS.map((seconds) => (
           <button
             key={seconds}
@@ -173,7 +191,7 @@ function NoRecordingPanel({ film, update }: { film: Film; update: (change: (film
             onClick={() => update((f) => ({ ...f, placeholderLength: seconds }))}
             className={cn('rounded-md border px-2 py-1 text-xs font-medium tabular-nums transition-colors', film.placeholderLength === seconds ? 'border-primary bg-primary/10' : 'hover:bg-muted')}
           >
-            {seconds}s
+            {seconds} sec
           </button>
         ))}
       </div>
@@ -220,7 +238,7 @@ function ClipPanel({ film, clip, player, actions }: { film: Film; clip: FilmClip
       </div>
       <div className="space-y-1.5">
         <div className="flex items-center justify-between text-[11px]">
-          <span>Part of the recording</span>
+          <span>Choose where the clip starts and ends</span>
           <span className="font-mono tabular-nums text-muted-foreground">
             {formatTime(range[0])} to {formatTime(range[1])}
           </span>
@@ -230,33 +248,33 @@ function ClipPanel({ film, clip, player, actions }: { film: Film; clip: FilmClip
       <div className="grid grid-cols-2 gap-1.5">
         <Button type="button" size="sm" variant="outline" className="h-8 gap-1.5" onClick={() => actions.onReplace(clip.id)} data-testid="director-replace-clip">
           <RefreshCwIcon className="h-3.5 w-3.5" />
-          Change recording
+          Replace entire clip
         </Button>
-        <Button type="button" size="sm" variant="outline" className="h-8 gap-1.5" onClick={actions.onChangeFrom} disabled={!inClip} title={inClip ? undefined : 'Move the playhead into this recording first'}>
+        <Button type="button" size="sm" variant="outline" className="h-8 gap-1.5" onClick={actions.onChangeFrom} disabled={!inClip} title={inClip ? undefined : 'Select a time within this clip first'}>
           <RepeatIcon className="h-3.5 w-3.5" />
-          From {formatTime(t)}
+          Replace from {formatTime(t)}
         </Button>
-        <Button type="button" size="sm" variant="outline" className="h-8 gap-1.5" onClick={actions.onSplit} disabled={!canSplit} title={canSplit ? undefined : 'Move the playhead inside this recording to split it'}>
+        <Button type="button" size="sm" variant="outline" className="h-8 gap-1.5" onClick={actions.onSplit} disabled={!canSplit} title={canSplit ? undefined : 'Select a time away from either end of this clip'}>
           <ScissorsIcon className="h-3.5 w-3.5" />
           Split at {formatTime(t)}
         </Button>
-        <Button type="button" size="sm" variant="outline" className="h-8 gap-1.5" onClick={() => actions.onReadAgain(clip.id)} title="Find the moments in this recording again">
+        <Button type="button" size="sm" variant="outline" className="h-8 gap-1.5" onClick={() => actions.onReadAgain(clip.id)} title="Look for taps, scrolling and other activity in this clip again">
           <RefreshCwIcon className="h-3.5 w-3.5" />
-          Read again
+          Find moments again
         </Button>
       </div>
       <div className="flex items-center justify-between">
         <div className="flex gap-1">
-          <Button type="button" size="icon" variant="ghost" className="h-7 w-7" disabled={index <= 0} onClick={() => actions.onMove(clip.id, index - 1)} aria-label="Move earlier" title="Move earlier">
+          <Button type="button" size="icon" variant="ghost" className="h-7 w-7" disabled={index <= 0} onClick={() => actions.onMove(clip.id, index - 1)} aria-label="Move clip earlier" title="Move clip earlier">
             <ArrowLeftIcon className="h-3.5 w-3.5" />
           </Button>
-          <Button type="button" size="icon" variant="ghost" className="h-7 w-7" disabled={index >= film.clips.length - 1} onClick={() => actions.onMove(clip.id, index + 1)} aria-label="Move later" title="Move later">
+          <Button type="button" size="icon" variant="ghost" className="h-7 w-7" disabled={index >= film.clips.length - 1} onClick={() => actions.onMove(clip.id, index + 1)} aria-label="Move clip later" title="Move clip later">
             <ArrowRightIcon className="h-3.5 w-3.5" />
           </Button>
         </div>
         <button type="button" className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-destructive" onClick={() => actions.onRemove(clip.id)}>
           <Trash2Icon className="h-3.5 w-3.5" />
-          Take out of the video
+          Remove clip from video
         </button>
       </div>
     </Section>
@@ -284,13 +302,13 @@ function MomentPanel({ film, moment, player, update, onRemove }: { film: Film; m
       </div>
       {moment.focus && moment.shot !== 'skip' && moment.shot !== 'wide' && (
         <div className="space-y-1.5">
-          <p className="text-[11px] text-muted-foreground">Drag the box to what the close-up should show</p>
+          <p className="text-[11px] text-muted-foreground">Drag the box over the area you want to show</p>
           {player.video && <FocusEditor video={player.video} focus={moment.focus} onChange={(focus: Rect01) => update(moment.id, { focus, shot: moment.shot === 'auto' ? 'close' : moment.shot })} />}
         </div>
       )}
       {film.text.captions && (
         <label className="block space-y-1">
-          <span className="text-[11px] text-muted-foreground">Caption while it plays</span>
+          <span className="text-[11px] text-muted-foreground">Caption for this moment</span>
           <Input
             value={moment.caption ?? ''}
             placeholder="Book a table in two taps"
@@ -359,7 +377,7 @@ export function DirectorInspector({
   ];
 
   const handSection = (
-    <Section title="Move it by hand" testId="director-hand">
+    <Section title="Control the camera with your phone" testId="director-hand">
       <PhoneLinkPanel
         film={film}
         player={player}
@@ -390,7 +408,7 @@ export function DirectorInspector({
       {selectedClip && <ClipPanel film={film} clip={selectedClip} player={player} actions={clipActions} />}
       {selected && <MomentPanel film={film} moment={selected} player={player} update={editMoment} onRemove={() => removeMoment(selected.id)} />}
 
-      <Section title="Camera" testId="director-style">
+      <Section title="Automatic camera movement" testId="director-style">
         <div className="space-y-1.5">
           {STYLES.map((style) => (
             <button
@@ -427,12 +445,12 @@ export function DirectorInspector({
         </div>
       </Section>
 
-      <Section title="Phone" testId="director-phone">
+      <Section title="Phone in the video" testId="director-phone">
         <Select
           value={film.phone.deviceType}
           onValueChange={(value) => update((f) => ({ ...f, phone: { deviceType: value as DeviceType, picked: true } }))}
         >
-          <SelectTrigger className="h-8 text-sm" aria-label="Phone">
+          <SelectTrigger className="h-8 text-sm" aria-label="Phone model in the video">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -488,68 +506,73 @@ export function DirectorInspector({
         </div>
       </Section>
 
-      <Section title="Words" testId="director-words">
-        <div className="grid grid-cols-3 gap-1.5" role="group" aria-label="How the words look">
+      <Section title="Text in your video" testId="director-words">
+        <div className="grid gap-1.5" role="group" aria-label="How the words appear">
           {WORD_STYLES.map((style) => (
             <button
               key={style.id}
               type="button"
               aria-pressed={wordsStyle === style.id}
-              title={style.when}
               onClick={() => update((f) => ({ ...f, text: { ...f.text, style: style.id } }))}
-              className={cn('rounded-lg border px-2 py-1.5 text-left text-xs font-semibold transition-colors', wordsStyle === style.id ? 'border-primary bg-primary/10' : 'hover:bg-muted')}
+              className={cn('rounded-lg border px-2.5 py-1.5 text-left transition-colors', wordsStyle === style.id ? 'border-primary bg-primary/10' : 'hover:bg-muted')}
               data-testid={`director-words-${style.id}`}
             >
-              {style.name}
+              <span className="block text-xs font-semibold">{style.name}</span>
+              <span className="block text-[11px] text-muted-foreground">{style.when}</span>
             </button>
           ))}
         </div>
-        <p className="text-[11px] text-muted-foreground">{WORD_STYLES.find((s) => s.id === wordsStyle)?.when}</p>
         <label className="block space-y-1">
-          <span className="text-[11px] text-muted-foreground">Title at the start</span>
+          <span className="text-xs">Title at the start of the video</span>
           <Input value={film.text.title} placeholder="Your app's name" maxLength={60} onChange={(e) => update((f) => ({ ...f, text: { ...f.text, title: e.target.value } }))} className="h-8 text-sm" data-testid="director-title" />
         </label>
         <label className="block space-y-1">
-          <span className="text-[11px] text-muted-foreground">Words at the end</span>
+          <span className="text-xs">Message at the end of the video</span>
           <Input value={film.text.end} placeholder="Download it free" maxLength={60} onChange={(e) => update((f) => ({ ...f, text: { ...f.text, end: e.target.value } }))} className="h-8 text-sm" data-testid="director-end" />
         </label>
-        <p className="text-[11px] text-muted-foreground">Put stars around words to color them, like *this*.</p>
+        {card?.on && <p className="text-[11px] text-muted-foreground">Your closing message appears below the app name on the ending screen</p>}
         <div className="flex flex-wrap items-center gap-3">
-          <ColorPick label="Words" value={colors.ink} onChange={(ink) => update((f) => ({ ...f, text: { ...f.text, ink } }))} testId="director-ink" />
-          <ColorPick label="Highlight" value={colors.highlight} onChange={(accent) => update((f) => ({ ...f, text: { ...f.text, accent } }))} testId="director-accent" />
+          <ColorPick label="Text color" value={colors.ink} onChange={(ink) => update((f) => ({ ...f, text: { ...f.text, ink } }))} testId="director-ink" />
+          <ColorPick label="Highlight color" value={colors.highlight} onChange={(accent) => update((f) => ({ ...f, text: { ...f.text, accent } }))} testId="director-accent" />
           {(film.text.ink || film.text.accent) && (
             <button type="button" className="text-[11px] text-muted-foreground underline-offset-2 hover:text-foreground hover:underline" onClick={() => update((f) => ({ ...f, text: { ...f.text, ink: undefined, accent: undefined } }))}>
               Reset colors
             </button>
           )}
         </div>
-        <label className="flex items-center justify-between gap-2 text-xs">
-          <span>Captions on moments</span>
-          <Switch checked={film.text.captions} onCheckedChange={(on) => update((f) => ({ ...f, text: { ...f.text, captions: on } }))} aria-label="Captions on moments" />
-        </label>
-        <label className="flex items-center justify-between gap-2 text-xs">
-          <span>Show where taps land</span>
-          <Switch checked={film.text.taps} onCheckedChange={(on) => update((f) => ({ ...f, text: { ...f.text, taps: on } }))} aria-label="Show where taps land" />
-        </label>
+        <p className="text-[11px] text-muted-foreground">In a title or caption, type <code>*free*</code> to show <strong>free</strong> in the highlight color</p>
+        <SwitchSetting
+          label="Show my captions"
+          hint="To add a caption, turn this on and choose a tap or another moment on the timeline"
+          checked={film.text.captions}
+          onCheckedChange={(on) => update((f) => ({ ...f, text: { ...f.text, captions: on } }))}
+        />
+        <SwitchSetting
+          label="Show where someone tapped"
+          hint="A circle briefly appears on the screen recording where Director finds a tap"
+          checked={film.text.taps}
+          onCheckedChange={(on) => update((f) => ({ ...f, text: { ...f.text, taps: on } }))}
+        />
       </Section>
 
-      <Section title="Icon and end card" testId="director-card">
+      <Section title="App icon and ending screen" testId="director-card">
+        <p className="text-[11px] text-muted-foreground">For your app icon, choose the picture people tap to open your app</p>
         <div className="flex items-center gap-3">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[11px] border border-dashed bg-muted/40">
             {film.text.icon ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={film.text.icon} alt="Your app's icon" className="h-full w-full object-cover" data-testid="director-icon" />
+              <img src={film.text.icon} alt="Current app icon" className="h-full w-full object-cover" data-testid="director-icon" />
             ) : (
               <ImagePlusIcon className="h-4 w-4 text-muted-foreground" />
             )}
           </span>
           <div className="flex flex-wrap gap-1.5">
             <Button type="button" size="sm" variant="outline" className="h-8" onClick={() => iconInput.current?.click()} data-testid="director-icon-pick">
-              {film.text.icon ? 'Change icon' : 'Add your app icon'}
+              {film.text.icon ? 'Change app icon' : 'Add app icon'}
             </Button>
             {film.text.icon && (
               <Button type="button" size="sm" variant="ghost" className="h-8" onClick={() => update((f) => ({ ...f, text: { ...f.text, icon: undefined, logo: false } }))}>
-                Remove
+                Remove icon
               </Button>
             )}
           </div>
@@ -568,35 +591,29 @@ export function DirectorInspector({
                 .then((icon) => update((f) => ({ ...f, text: { ...f.text, icon } })))
                 .catch((error) => {
                   console.error('Director could not read the icon', error);
-                  setIconNote("That picture couldn't be read. Try a PNG or JPEG.");
+                  setIconNote('Choose a PNG, JPEG or WebP image for your app icon');
                 });
             }}
           />
         </div>
         {iconNote && <p className="text-[11px] text-amber-600 dark:text-amber-400">{iconNote}</p>}
-        <label className="flex items-center justify-between gap-2 text-xs">
-          <span className="flex items-center gap-1">
-            Icon at the top
-            <InfoTip label="About the icon at the top">Your app&apos;s icon at the top while the video plays, with rings going out from it. Add the icon first.</InfoTip>
-          </span>
-          <Switch
-            checked={!!film.text.logo && !!film.text.icon}
-            disabled={!film.text.icon}
-            onCheckedChange={(on) => update((f) => ({ ...f, text: { ...f.text, logo: on } }))}
-            aria-label="Icon at the top"
-          />
-        </label>
-        <label className="flex items-center justify-between gap-2 text-xs">
-          <span className="flex items-center gap-1">
-            End card
-            <InfoTip label="About the end card">The last seconds show your icon, your app&apos;s name, the words at the end and where to get it.</InfoTip>
-          </span>
-          <Switch checked={!!card?.on} onCheckedChange={(on) => setCard({ on })} aria-label="End card" />
-        </label>
+        <SwitchSetting
+          label="Show icon in the top left"
+          hint={film.text.icon ? 'The icon appears in the corner while the video plays' : 'Add an app icon above to turn this on'}
+          checked={!!film.text.logo && !!film.text.icon}
+          disabled={!film.text.icon}
+          onCheckedChange={(on) => update((f) => ({ ...f, text: { ...f.text, logo: on } }))}
+        />
+        <SwitchSetting
+          label="Add an ending screen"
+          hint="Finish the video with your app name, icon and a message for viewers"
+          checked={!!card?.on}
+          onCheckedChange={(on) => setCard({ on })}
+        />
         {card?.on && (
           <div className="space-y-2.5 rounded-md border bg-muted/30 p-2.5" data-testid="director-card-options">
             <label className="block space-y-1">
-              <span className="text-[11px] text-muted-foreground">Name on the card</span>
+              <span className="text-[11px] text-muted-foreground">App name on the ending screen</span>
               <Input
                 value={card.name}
                 placeholder={plainWords(film.text.title) || "Your app's name"}
@@ -605,17 +622,17 @@ export function DirectorInspector({
                 className="h-8 text-sm"
                 data-testid="director-card-name"
               />
+              {film.text.title.trim() && <span className="block text-[11px] text-muted-foreground">Leave this blank to use the title from the start of the video</span>}
             </label>
-            <label className="flex items-center justify-between gap-2 text-xs">
-              <span className="flex items-center gap-1">
-                White card
-                <InfoTip label="About the white card">A white card covers the video at the end. Off keeps your background and moves the phone down under the card.</InfoTip>
-              </span>
-              <Switch checked={card.light} onCheckedChange={(light) => setCard({ light })} aria-label="White card" />
-            </label>
+            <SwitchSetting
+              label="Make the ending screen white"
+              hint="Leave this off to keep the video background behind your app name"
+              checked={card.light}
+              onCheckedChange={(light) => setCard({ light })}
+            />
             <div className="space-y-1">
-              <span className="text-[11px] text-muted-foreground">Store badges</span>
-              <div className="flex flex-wrap gap-1.5" role="group" aria-label="Store badges">
+              <span className="text-xs">Choose which store logos appear at the end</span>
+              <div className="flex flex-wrap gap-1.5" role="group" aria-label="Store logos on the ending screen">
                 <BadgeChip label="App Store" on={card.appStore} onChange={(appStore) => setCard({ appStore })} />
                 <BadgeChip label="Google Play" on={card.googlePlay} onChange={(googlePlay) => setCard({ googlePlay })} />
               </div>
@@ -625,17 +642,15 @@ export function DirectorInspector({
       </Section>
 
       <Section title="Sound" testId="director-sound">
-        <label className="flex items-center justify-between gap-2 text-xs">
-          <span>Keep the recording&apos;s sound</span>
-          <Switch
-            checked={film.sound.recording}
-            onCheckedChange={(on) => {
-              player.sound = on;
-              update((f) => ({ ...f, sound: { recording: on } }));
-            }}
-            aria-label="Keep the recording's sound"
-          />
-        </label>
+        <SwitchSetting
+          label="Play the recording's sound"
+          hint="Turn this off for a silent video"
+          checked={film.sound.recording}
+          onCheckedChange={(on) => {
+            player.sound = on;
+            update((f) => ({ ...f, sound: { recording: on } }));
+          }}
+        />
       </Section>
     </div>
   );

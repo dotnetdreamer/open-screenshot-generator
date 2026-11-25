@@ -5,7 +5,7 @@
 //    from it, and the 3D phone follows the real one live. Nothing to install.
 //  - This phone: when Director itself runs on a phone, the phone's own
 //    movement moves the 3D phone.
-// Either way "Record a take" plays the film from the start and keeps every
+// Either way "Record movement" plays the film from the start and keeps every
 // movement until the end, and the film then moves the way the hand did.
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -36,7 +36,7 @@ function QrCode({ text }: { text: string }) {
   if (!qr) return null;
   const size = qr.size + 8;
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} className="h-40 w-40 rounded-lg bg-white p-1 shadow-sm" role="img" aria-label="QR code for your phone" data-testid="director-qr" data-link={text}>
+    <svg viewBox={`0 0 ${size} ${size}`} className="h-40 w-40 rounded-lg bg-white p-1 shadow-sm" role="img" aria-label="QR code to connect your phone" data-testid="director-qr" data-link={text}>
       <rect width={size} height={size} fill="#fff" />
       <path d={qrPath(qr, 4)} fill="#0b0b0f" />
     </svg>
@@ -55,7 +55,7 @@ function useThisPhoneCanMove(): boolean {
 
 /** What the view can ask of the panel from outside it. */
 export interface PhoneLinkActions {
-  /** Shows the code for a phone to scan, as Use your phone does; after a failed try, tries again. */
+  /** Shows the QR code for a phone to scan, including after an earlier attempt failed. */
   connect: () => void;
 }
 
@@ -67,12 +67,12 @@ export interface PhoneLinkActions {
 export type PhoneLinkState = 'off' | 'signin' | 'starting' | 'code' | 'failed' | 'connected';
 
 const STATUS_WORDS: Record<LinkStatus, string> = {
-  starting: 'Getting ready',
-  waiting: 'Scan the code with your phone',
+  starting: 'Preparing the QR code',
+  waiting: 'Scan the QR code with your phone',
   direct: 'Your phone is connected',
-  relayed: 'Your phone is connected through the internet',
-  closed: 'Not connected',
-  failed: "Couldn't connect",
+  relayed: 'Your phone is connected over the internet',
+  closed: 'Phone disconnected',
+  failed: "Couldn't connect your phone",
 };
 
 export function PhoneLinkPanel({
@@ -302,14 +302,14 @@ export function PhoneLinkPanel({
       if (seq !== connectSeq.current) return;
       if (error instanceof LinkSignInRequired) {
         // Signing in is the way forward: the note and its button show at once,
-        // with Use your phone above them for after.
+        // with the option to connect a phone above them.
         setNeedsSignIn(true);
         setMode('off');
         setStatus('closed');
         return;
       }
       setStatus('failed');
-      setDetail(error instanceof Error ? error.message : 'Try again in a moment.');
+      setDetail(error instanceof Error ? error.message : 'Try connecting again');
     }
   };
 
@@ -319,10 +319,10 @@ export function PhoneLinkPanel({
     if (access !== 'granted') {
       setMotionNote(
         access === 'denied'
-          ? 'Motion is turned off for this page. Reload the page and tap Allow when Safari asks.'
+          ? 'Reload this page, tap Use this phone and allow access to motion when asked'
           : access === 'insecure'
-            ? 'Phones only share their movement with pages that use https.'
-            : "This browser doesn't share the phone's movement."
+            ? 'To use tilt controls, open Director at a secure address beginning with https://'
+            : 'For tilt controls, open Director in Safari on iPhone or Chrome on Android'
       );
       return;
     }
@@ -342,7 +342,7 @@ export function PhoneLinkPanel({
         // Bringing this phone closer moves in, with forward and back on, as on the phone page.
         onReading(q, 1, filmRef.current.handDepth ? depth : undefined);
       },
-      () => setMotionNote("No movement came from this phone's sensors.")
+      () => setMotionNote("Tilt your phone to check that the preview turns with it")
     );
     releaseWakeRef.current = await keepScreenOn();
   };
@@ -379,7 +379,7 @@ export function PhoneLinkPanel({
     <div className="space-y-3" data-testid="director-phone-panel">
       {mode === 'off' && (
         <div className="space-y-2">
-          <p className="text-xs text-muted-foreground">Move your phone and the phone in the video moves the same way. Nothing to install.</p>
+          <p className="text-xs text-muted-foreground">Tilt your phone to try different camera angles in the preview before you record</p>
           <div className="flex flex-wrap gap-2">
             <Button
               type="button"
@@ -387,23 +387,23 @@ export function PhoneLinkPanel({
               className="h-8 gap-1.5"
               onClick={() => void connectPhone()}
               disabled={!isLinkConfigured()}
-              title={isLinkConfigured() ? undefined : "Connecting a phone isn't set up in this copy of the app"}
+              title={isLinkConfigured() ? undefined : 'This version of Director cannot connect to another phone'}
             >
               <QrCodeIcon className="h-3.5 w-3.5" />
-              Use your phone
+              Connect a phone
             </Button>
             {thisPhone && (
               <Button type="button" size="sm" variant="outline" className="h-8 gap-1.5" onClick={() => void useThisPhone()}>
                 <SmartphoneIcon className="h-3.5 w-3.5" />
-                Move this phone
+                Use this phone
               </Button>
             )}
           </div>
-          {!isLinkConfigured() && <p className="text-[11px] text-muted-foreground">Connecting a phone isn&apos;t set up in this copy of the app.</p>}
+          {!isLinkConfigured() && <p className="text-[11px] text-muted-foreground">This version of Director cannot connect to another phone</p>}
           {motionNote && <p className="text-[11px] text-amber-600 dark:text-amber-400">{motionNote}</p>}
           {needsSignIn && (
             <div className="rounded-md border bg-muted/40 p-2 text-[11px]">
-              <p>Sign in to connect your phone. The connection server only lets signed-in people in.</p>
+              <p>Sign in and choose Connect a phone to get your QR code</p>
               {onSignIn && (
                 <Button type="button" size="sm" variant="outline" className="mt-2 h-7" onClick={onSignIn}>
                   Sign in
@@ -423,7 +423,7 @@ export function PhoneLinkPanel({
           </p>
           {status === 'waiting' && (
             <p className="text-[11px] text-muted-foreground">
-              Point your phone&apos;s camera at the code and open the link. Works on iPhone and Android.
+              Point your phone camera at the code, then tap the link on your phone
             </p>
           )}
           {detail && status === 'failed' && <p className="text-[11px] text-muted-foreground">{detail}</p>}
@@ -438,11 +438,12 @@ export function PhoneLinkPanel({
         <div className="space-y-2.5">
           <div className="flex items-center gap-2 text-xs font-medium" data-testid="director-link-status">
             <span className={cn('h-2 w-2 rounded-full', recording ? 'animate-pulse bg-red-500' : 'bg-emerald-500')} />
-            {recording ? 'Recording your moves' : mode === 'this' ? 'This phone moves the video' : STATUS_WORDS[status]}
+            {recording ? 'Recording your phone movements' : mode === 'this' ? 'Tilt this phone to turn the preview' : STATUS_WORDS[status]}
           </div>
           <p className="text-[11px] text-muted-foreground">
-            Hold the phone the way the phone in the video should face, then press Center.{' '}
-            {film.handDepth ? 'Bring your phone closer or pinch on it to move in.' : 'Pinch on your phone to move closer.'}
+            {recording
+              ? 'Tilt your phone while the video plays, then choose Stop recording when you finish'
+              : 'Set the starting angle on your phone, then choose Start recording to play the video from the beginning and record how you tilt your phone'}
           </p>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -453,12 +454,12 @@ export function PhoneLinkPanel({
               data-testid="director-record-take"
             >
               {recording ? <SquareIcon className="h-3 w-3 fill-current" /> : <CircleIcon className="h-3 w-3 fill-red-500 text-red-500" />}
-              {recording ? 'Stop' : 'Record a take'}
+              {recording ? 'Stop recording' : 'Start recording'}
             </Button>
             {mode === 'this' && (
               <Button type="button" size="sm" variant="outline" className="h-8 gap-1.5" onClick={() => motionRef.current?.center()}>
                 <CrosshairIcon className="h-3.5 w-3.5" />
-                Center
+                Set starting angle
               </Button>
             )}
             <Button type="button" size="sm" variant="ghost" className="h-8" onClick={disconnect}>
@@ -467,7 +468,7 @@ export function PhoneLinkPanel({
           </div>
           {!recording && (
             <label className="flex items-center justify-between gap-2 text-xs">
-              <span>Follow my phone now</span>
+              <span>Follow my phone in the preview</span>
               <Switch
                 checked={following}
                 onCheckedChange={(on) => {
@@ -484,12 +485,12 @@ export function PhoneLinkPanel({
       {(connected || take) && (
         <div className="flex items-center justify-between gap-2 text-xs" data-testid="director-depth">
           <span className="flex items-center gap-1">
-            Forward and back
-            <InfoTip label="About forward and back">
-              Bring your phone toward you and the phone in the video comes closer. Take it away and it goes back. Leave this off if the picture jumps around.
+            Zoom by moving your phone
+            <InfoTip label="How to zoom by moving your phone">
+              Bring your phone toward you to zoom in or move it away to zoom out
             </InfoTip>
           </span>
-          <Switch checked={!!film.handDepth} onCheckedChange={(on) => update((f) => ({ ...f, handDepth: on }))} aria-label="Forward and back" />
+          <Switch checked={!!film.handDepth} onCheckedChange={(on) => update((f) => ({ ...f, handDepth: on }))} aria-label="Zoom by moving your phone" />
         </div>
       )}
 
@@ -497,27 +498,27 @@ export function PhoneLinkPanel({
         <div className="space-y-2 rounded-md border bg-muted/30 p-2.5" data-testid="director-take">
           <div className="flex items-center justify-between gap-2">
             <label className="flex items-center gap-2 text-xs font-medium">
-              <Switch checked={film.motion === 'hand'} onCheckedChange={(on) => update((f) => ({ ...f, motion: on ? 'hand' : 'auto' }))} aria-label="Use my take" />
-              Use my take
+              <Switch checked={film.motion === 'hand'} onCheckedChange={(on) => update((f) => ({ ...f, motion: on ? 'hand' : 'auto' }))} aria-label="Use my saved phone movements" />
+              Use my saved phone movements
             </label>
             <button
               type="button"
               className="text-muted-foreground hover:text-foreground"
-              aria-label="Delete the take"
-              title="Delete the take"
+              aria-label="Delete saved phone movements"
+              title="Delete saved phone movements"
               onClick={() => update((f) => ({ ...f, take: null, motion: 'auto' }))}
             >
               <Trash2Icon className="h-3.5 w-3.5" />
             </button>
           </div>
           <p className="text-[11px] text-muted-foreground">
-            {Math.round(take.samples[take.samples.length - 1]?.t ?? 0)} seconds of moves, recorded {take.source === 'this-phone' ? 'on this phone' : 'with your phone'}
+            Recorded {take.source === 'this-phone' ? 'on this phone' : 'with your phone'} · {Math.round(take.samples[take.samples.length - 1]?.t ?? 0)} s
           </p>
           <div className="space-y-1">
             <div className="flex items-center justify-between text-[11px]">
               <span className="flex items-center gap-1">
-                How much it turns
-                <InfoTip label="About how much it turns">Under 100% calms your moves down. Over 100% makes them bigger.</InfoTip>
+                Amount of tilt
+                <InfoTip label="How tilt affects your video">Use 100% to match your tilt or a lower setting for a gentler turn</InfoTip>
               </span>
               <span className="tabular-nums text-muted-foreground">{Math.round(film.takeStrength * 100)}%</span>
             </div>
@@ -527,7 +528,7 @@ export function PhoneLinkPanel({
               step={5}
               value={[Math.round(film.takeStrength * 100)]}
               onValueChange={([v]) => update((f) => ({ ...f, takeStrength: v / 100 }))}
-              aria-label="How much it turns"
+              aria-label="Amount of tilt"
             />
           </div>
         </div>

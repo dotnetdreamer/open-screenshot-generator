@@ -121,7 +121,7 @@ function waitFor(video: HTMLVideoElement, event: string, signal?: AbortSignal, t
       clearTimeout(timer);
       video.removeEventListener(event, onEvent);
       signal?.removeEventListener('abort', aborted);
-      reject(new Error('This recording could not be read. Use an MP4 or MOV file.'));
+      reject(new Error('Choose another copy of your screen recording saved as an MP4 or MOV file'));
     };
     const aborted = () => {
       clearTimeout(timer);
@@ -433,7 +433,7 @@ export async function sampleRecording(url: string, options: SampleOptions): Prom
   try {
     await whenSeen(signal);
     await loadVideo(video, url, signal);
-    if (!video.videoWidth) throw new Error('This recording could not be read. Use an MP4 or MOV file.');
+    if (!video.videoWidth) throw new Error('Choose another copy of your screen recording saved as an MP4 or MOV file');
     const reader = new FrameReader(video, options.maxSide ?? 160, options.thumbHeight ?? 112);
     await seekTo(video, start, signal);
     const seekMs: number[] = [];

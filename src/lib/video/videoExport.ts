@@ -287,7 +287,7 @@ export async function mixAudio(
       audio = await decodeRecordingAudio(blob, context, trimStart, end);
     } catch (error) {
       console.error('Recording sound could not be decoded', error);
-      throw new Error(`The sound in "${name}" could not be read. Turn off its sound in Properties to export without it.`);
+      throw new Error(`Turn off the sound for "${name}" to export without its unreadable audio`);
     }
     if (!audio) continue;
     play(audio.buffer, el.volume, at + audio.lead, audio.offset, audio.duration);
@@ -836,7 +836,7 @@ export async function pickEncoderConfig(
   candidates: string[] = H264_CODEC_CANDIDATES
 ): Promise<VideoEncoderConfig> {
   if (typeof VideoEncoder === 'undefined') {
-    throw new Error('This browser has no WebCodecs video encoder. Use the desktop app, Chrome or Edge.');
+    throw new Error("Try exporting your video in the desktop app, Chrome or Edge");
   }
   for (const codec of candidates) {
     const config: VideoEncoderConfig = {
@@ -855,7 +855,7 @@ export async function pickEncoderConfig(
       // try the next profile
     }
   }
-  throw new Error('This browser cannot encode H.264 MP4. Use the desktop app, Chrome or Edge.');
+  throw new Error("To save this video as an MP4 file, try the desktop app, Chrome or Edge");
 }
 
 function throwIfAborted(signal?: AbortSignal) {

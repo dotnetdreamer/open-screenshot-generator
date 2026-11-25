@@ -79,7 +79,7 @@ export function FocusEditor({ video, focus, onChange }: { video: HTMLVideoElemen
       <div
         role="button"
         tabIndex={0}
-        aria-label="Move what the close-up shows"
+        aria-label="Move the close-up area with the arrow keys"
         className="absolute cursor-move rounded-[3px] border-2 border-white shadow-[0_0_0_1px_rgba(0,0,0,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         style={{ left: `${shown.x * 100}%`, top: `${shown.y * 100}%`, width: `${shown.w * 100}%`, height: `${shown.h * 100}%` }}
         onPointerDown={(e) => begin(e, 'move')}

@@ -22,7 +22,7 @@ function once(video: HTMLVideoElement, events: string[], timeoutMs: number, sign
       clearTimeout(timer);
       for (const event of events) video.removeEventListener(event, handlers[event]);
       signal?.removeEventListener('abort', aborted);
-      reject(new Error("This recording can't be played here. Use an MP4 or MOV file."));
+      reject(new Error("Try another copy of the recording saved as an MP4 or MOV file"));
     };
     const aborted = () => {
       clearTimeout(timer);
@@ -60,7 +60,7 @@ export async function loadVideo(video: HTMLVideoElement, url: string, signal?: A
   const meta = once(video, ['loadedmetadata'], META_WAIT_MS, signal);
   video.src = url;
   video.load();
-  if ((await meta) === 'timeout' && video.readyState < 1) throw new Error("This recording can't be played here. Use an MP4 or MOV file.");
+  if ((await meta) === 'timeout' && video.readyState < 1) throw new Error("Try another copy of the recording saved as an MP4 or MOV file");
   if (video.readyState >= 2) return;
   const data = once(video, ['loadeddata', 'canplay'], DATA_WAIT_MS, signal);
   const muted = video.muted;
@@ -71,5 +71,5 @@ export async function loadVideo(video: HTMLVideoElement, url: string, signal?: A
   await data;
   video.pause();
   video.muted = muted;
-  if (video.readyState < 2) throw new Error("This recording can't be played here. Use an MP4 or MOV file.");
+  if (video.readyState < 2) throw new Error("Try another copy of the recording saved as an MP4 or MOV file");
 }
