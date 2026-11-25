@@ -8,6 +8,11 @@ const path = require('path');
 const { launch, startBlankProject, sleep, exportArtboards, clickTab, dismissTipsDialog, waitForProjectFonts, APP_URL } = require('./lib');
 
 const TEMPLATES = [
+  { slug: 'ringnote-calls', card: 'Ringnote Call Recorder', boards: 5 },
+  { slug: 'plumfolio-invest', card: 'Plumfolio Invest', boards: 5 },
+  { slug: 'echoline-recorder', card: 'Echoline Call Recorder', boards: 5 },
+  { slug: 'lulu-wingwoman', card: 'Lulu AI Wingwoman', boards: 5 },
+  { slug: 'hushwave-sleep', card: 'Hushwave Sleep', boards: 5 },
   { slug: 'parsnap-golf', card: 'Parsnap Golf Scores', boards: 5 },
   { slug: 'tenpost-ai-photos', card: 'Tenpost AI Photos', boards: 5 },
   { slug: 'askadeck-questions', card: 'Askadeck Party Questions', boards: 5 },

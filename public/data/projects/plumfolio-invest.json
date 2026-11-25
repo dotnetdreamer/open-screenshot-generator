@@ -1,0 +1,1368 @@
+{
+  "id": "template_plumfolio_invest",
+  "name": "Plumfolio Invest",
+  "description": "App Store & Play Store screenshots for an investing, savings or personal finance app for beginners. Condensed Anton headlines in black and orchid on a pale grey ground. Lilac clay 3D objects (a rising arrow, a dollar coin, a robot, a puzzle piece, a percent sign and a shield) sit on white phones drawn with a black outline, a cut-out portrait stands on a soft colour panel, and goal chips and proof pills pop off the screens. Every part sits in named, editable layer groups, with each backdrop colour on a layer of its own. The figures, the claims and the founders are sample copy, marked in the layer names: replace them with your own.",
+  "previewImage": "/data/projects/previews/plumfolio-invest.png",
+  "timestamp": "2026-11-25T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "pf-board-1",
+      "name": "Investing Made Simple",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#E1E8EE",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "pf-b1-photo-backdrop-1",
+          "type": "shape",
+          "name": "Photo backdrop",
+          "position": {
+            "x": 145,
+            "y": 223
+          },
+          "size": {
+            "width": 987,
+            "height": 1534
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#F4C9DC",
+          "fillGradient": {
+            "color1": "#F9E6D2",
+            "color2": "#F2B9DE",
+            "angle": 180
+          },
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "pf-b1-g-photo",
+          "groupName": "Photo"
+        },
+        {
+          "id": "pf-b1-backdrop-light-2",
+          "type": "shape",
+          "name": "Backdrop light",
+          "position": {
+            "x": 335,
+            "y": 283
+          },
+          "size": {
+            "width": 620,
+            "height": 620
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.5,
+          "blur": 110,
+          "groupId": "pf-b1-g-photo",
+          "groupName": "Photo"
+        },
+        {
+          "id": "pf-b1-person-3",
+          "type": "image",
+          "name": "Person",
+          "position": {
+            "x": 145,
+            "y": 373
+          },
+          "size": {
+            "width": 987,
+            "height": 1384
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/girls/girls-as479330034.png",
+          "imageAlt": "Person",
+          "objectFit": "cover",
+          "groupId": "pf-b1-g-photo",
+          "groupName": "Photo"
+        },
+        {
+          "id": "pf-b1-arrow-4",
+          "type": "image",
+          "name": "Arrow",
+          "position": {
+            "x": 34,
+            "y": 44
+          },
+          "size": {
+            "width": 410,
+            "height": 346
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-clay-arrow.png",
+          "imageAlt": "Arrow",
+          "objectFit": "contain",
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 46,
+            "color": "rgba(120,40,150,0.22)"
+          },
+          "groupId": "pf-b1-g-clay-arrow",
+          "groupName": "Clay arrow"
+        },
+        {
+          "id": "pf-b1-coin-5",
+          "type": "image",
+          "name": "Coin",
+          "position": {
+            "x": 846,
+            "y": 1150
+          },
+          "size": {
+            "width": 440,
+            "height": 463
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-clay-coin.png",
+          "imageAlt": "Coin",
+          "objectFit": "contain",
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 46,
+            "color": "rgba(120,40,150,0.22)"
+          },
+          "spanArtboards": true,
+          "groupId": "pf-b1-g-clay-coin",
+          "groupName": "Clay coin"
+        },
+        {
+          "id": "pf-b1-pill-6",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 54,
+            "y": 1356
+          },
+          "size": {
+            "width": 620,
+            "height": 134
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#0A0A0C",
+          "strokeWidth": 5,
+          "borderRadius": 67,
+          "groupId": "pf-b1-g-proof-pills",
+          "groupName": "Proof pills"
+        },
+        {
+          "id": "pf-b1-label-sample-7",
+          "type": "text",
+          "name": "Label (sample)",
+          "position": {
+            "x": 74,
+            "y": 1363
+          },
+          "size": {
+            "width": 580,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "500K+ INVESTORS",
+          "fontSize": 24,
+          "color": "#0A0A0C",
+          "fontFamily": "Anton",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": -0.3,
+          "groupId": "pf-b1-g-proof-pills",
+          "groupName": "Proof pills"
+        },
+        {
+          "id": "pf-b1-pill-8",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 54,
+            "y": 1516
+          },
+          "size": {
+            "width": 586,
+            "height": 134
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#0A0A0C",
+          "strokeWidth": 5,
+          "borderRadius": 67,
+          "groupId": "pf-b1-g-proof-pills",
+          "groupName": "Proof pills"
+        },
+        {
+          "id": "pf-b1-label-sample-9",
+          "type": "text",
+          "name": "Label (sample)",
+          "position": {
+            "x": 74,
+            "y": 1523
+          },
+          "size": {
+            "width": 546,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "NO HIDDEN FEES",
+          "fontSize": 24,
+          "color": "#0A0A0C",
+          "fontFamily": "Anton",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": -0.3,
+          "groupId": "pf-b1-g-proof-pills",
+          "groupName": "Proof pills"
+        },
+        {
+          "id": "pf-b1-lines-1-and-2-10",
+          "type": "text",
+          "name": "Lines 1 and 2",
+          "position": {
+            "x": 20,
+            "y": 1806
+          },
+          "size": {
+            "width": 1166,
+            "height": 506
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "INVESTING\nMADE SIMPLE,",
+          "fontSize": 58.8,
+          "color": "#0A0A0C",
+          "fontFamily": "Anton",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -0.6,
+          "groupId": "pf-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "pf-b1-line-3-11",
+          "type": "text",
+          "name": "Line 3",
+          "position": {
+            "x": 20,
+            "y": 2213.68
+          },
+          "size": {
+            "width": 1166,
+            "height": 302
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "NO JARGON",
+          "fontSize": 58.8,
+          "color": "#AD45C7",
+          "fontFamily": "Anton",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -0.6,
+          "groupId": "pf-b1-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    },
+    {
+      "id": "pf-board-2",
+      "name": "Grow Wealth On Autopilot",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#E1E8EE",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "pf-b2-line-1-1",
+          "type": "text",
+          "name": "Line 1",
+          "position": {
+            "x": 20,
+            "y": 132
+          },
+          "size": {
+            "width": 1166,
+            "height": 284
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "GROW WEALTH",
+          "fontSize": 55.2,
+          "color": "#AD45C7",
+          "fontFamily": "Anton",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -0.6,
+          "groupId": "pf-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "pf-b2-line-2-2",
+          "type": "text",
+          "name": "Line 2",
+          "position": {
+            "x": 20,
+            "y": 323.36
+          },
+          "size": {
+            "width": 1166,
+            "height": 284
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "ON AUTOPILOT",
+          "fontSize": 55.2,
+          "color": "#0A0A0C",
+          "fontFamily": "Anton",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -0.6,
+          "groupId": "pf-b2-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "pf-b2-phone-outline-3",
+          "type": "shape",
+          "name": "Phone outline",
+          "position": {
+            "x": 107,
+            "y": 681
+          },
+          "size": {
+            "width": 996,
+            "height": 2065.44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0A0A0C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 146,
+          "groupId": "pf-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "pf-b2-phone-4",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 116,
+            "y": 690
+          },
+          "size": {
+            "width": 978,
+            "height": 2047.44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#FFFFFF",
+          "screenshotSrc": "/data/projects/plumfolio-invest-screen-portfolio.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "pf-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "pf-b2-ground-cover-match-the-backg-5",
+          "type": "shape",
+          "name": "Ground cover (match the background)",
+          "position": {
+            "x": 0,
+            "y": 2160
+          },
+          "size": {
+            "width": 1206,
+            "height": 462
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#E1E8EE",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "pf-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "pf-b2-ground-line-6",
+          "type": "shape",
+          "name": "Ground line",
+          "position": {
+            "x": 86,
+            "y": 2155
+          },
+          "size": {
+            "width": 1034,
+            "height": 10
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0A0A0C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 5,
+          "groupId": "pf-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "pf-b2-robot-7",
+          "type": "image",
+          "name": "Robot",
+          "position": {
+            "x": 884,
+            "y": 860
+          },
+          "size": {
+            "width": 312,
+            "height": 337
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-clay-robot.png",
+          "imageAlt": "Robot",
+          "objectFit": "contain",
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 46,
+            "color": "rgba(120,40,150,0.22)"
+          },
+          "groupId": "pf-b2-g-clay-robot",
+          "groupName": "Clay robot"
+        },
+        {
+          "id": "pf-b2-card-8",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 94,
+            "y": 2262
+          },
+          "size": {
+            "width": 424,
+            "height": 264
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#C79BFF",
+          "fillGradient": {
+            "color1": "#B48CFF",
+            "color2": "#FF8FCB",
+            "angle": 120
+          },
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 64,
+          "groupId": "pf-b2-g-founders",
+          "groupName": "Founders"
+        },
+        {
+          "id": "pf-b2-founder-1-9",
+          "type": "image",
+          "name": "Founder 1",
+          "position": {
+            "x": 94,
+            "y": 2226
+          },
+          "size": {
+            "width": 250,
+            "height": 300
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/portraits/portrait-as171305309.png",
+          "imageAlt": "Founder 1",
+          "objectFit": "cover",
+          "borderRadius": 64,
+          "groupId": "pf-b2-g-founders",
+          "groupName": "Founders"
+        },
+        {
+          "id": "pf-b2-founder-2-10",
+          "type": "image",
+          "name": "Founder 2",
+          "position": {
+            "x": 286,
+            "y": 2206
+          },
+          "size": {
+            "width": 232,
+            "height": 320
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/portraits/portrait-as555020605.png",
+          "imageAlt": "Founder 2",
+          "objectFit": "cover",
+          "borderRadius": 64,
+          "groupId": "pf-b2-g-founders",
+          "groupName": "Founders"
+        },
+        {
+          "id": "pf-b2-names-sample-11",
+          "type": "text",
+          "name": "Names (sample)",
+          "position": {
+            "x": 556,
+            "y": 2256
+          },
+          "size": {
+            "width": 620,
+            "height": 183
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "MAYA & ZOE",
+          "fontSize": 36.6,
+          "color": "#0A0A0C",
+          "fontFamily": "Anton",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -0.3,
+          "groupId": "pf-b2-g-founders",
+          "groupName": "Founders"
+        },
+        {
+          "id": "pf-b2-role-12",
+          "type": "text",
+          "name": "Role",
+          "position": {
+            "x": 560,
+            "y": 2412
+          },
+          "size": {
+            "width": 620,
+            "height": 90
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Plumfolio founders",
+          "fontSize": 16.8,
+          "color": "#8C939C",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "pf-b2-g-founders",
+          "groupName": "Founders"
+        }
+      ]
+    },
+    {
+      "id": "pf-board-3",
+      "name": "Up To 12 Percent Yearly Growth",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#E1E8EE",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "pf-b3-line-1-sample-1",
+          "type": "text",
+          "name": "Line 1 (sample)",
+          "position": {
+            "x": 20,
+            "y": 132
+          },
+          "size": {
+            "width": 1166,
+            "height": 284
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "UP TO 12%*",
+          "fontSize": 55.2,
+          "color": "#AD45C7",
+          "fontFamily": "Anton",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -0.6,
+          "groupId": "pf-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "pf-b3-lines-2-and-3-2",
+          "type": "text",
+          "name": "Lines 2 and 3",
+          "position": {
+            "x": 20,
+            "y": 323.36
+          },
+          "size": {
+            "width": 1166,
+            "height": 475
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "YEARLY\nGROWTH",
+          "fontSize": 55.2,
+          "color": "#0A0A0C",
+          "fontFamily": "Anton",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -0.6,
+          "groupId": "pf-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "pf-b3-phone-outline-3",
+          "type": "shape",
+          "name": "Phone outline",
+          "position": {
+            "x": 103,
+            "y": 881
+          },
+          "size": {
+            "width": 996,
+            "height": 2065.44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0A0A0C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 146,
+          "groupId": "pf-b3-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "pf-b3-phone-4",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 112,
+            "y": 890
+          },
+          "size": {
+            "width": 978,
+            "height": 2047.44
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#FFFFFF",
+          "screenshotSrc": "/data/projects/plumfolio-invest-screen-growth.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "pf-b3-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "pf-b3-ground-cover-match-the-backg-5",
+          "type": "shape",
+          "name": "Ground cover (match the background)",
+          "position": {
+            "x": 0,
+            "y": 2378
+          },
+          "size": {
+            "width": 1206,
+            "height": 244
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#E1E8EE",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "pf-b3-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "pf-b3-ground-line-6",
+          "type": "shape",
+          "name": "Ground line",
+          "position": {
+            "x": 82,
+            "y": 2373
+          },
+          "size": {
+            "width": 1042,
+            "height": 10
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0A0A0C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 5,
+          "groupId": "pf-b3-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "pf-b3-pointer-7",
+          "type": "shape",
+          "name": "Pointer",
+          "position": {
+            "x": 938,
+            "y": 1706
+          },
+          "size": {
+            "width": 52,
+            "height": 52
+          },
+          "rotation": 45,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#A63FCB",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 8,
+          "groupId": "pf-b3-g-goal-chip",
+          "groupName": "Goal chip"
+        },
+        {
+          "id": "pf-b3-chip-8",
+          "type": "shape",
+          "name": "Chip",
+          "position": {
+            "x": 452,
+            "y": 1590
+          },
+          "size": {
+            "width": 600,
+            "height": 150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#B14AD6",
+          "fillGradient": {
+            "color1": "#BC57DC",
+            "color2": "#A63FCB",
+            "angle": 180
+          },
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 36,
+          "shadow": {
+            "x": 0,
+            "y": 16,
+            "blur": 50,
+            "color": "rgba(177,74,214,0.55)"
+          },
+          "groupId": "pf-b3-g-goal-chip",
+          "groupName": "Goal chip"
+        },
+        {
+          "id": "pf-b3-label-sample-9",
+          "type": "text",
+          "name": "Label (sample)",
+          "position": {
+            "x": 472,
+            "y": 1618
+          },
+          "size": {
+            "width": 560,
+            "height": 94
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "$840,000 at 60",
+          "fontSize": 19.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": -0.3,
+          "groupId": "pf-b3-g-goal-chip",
+          "groupName": "Goal chip"
+        },
+        {
+          "id": "pf-b3-pointer-10",
+          "type": "shape",
+          "name": "Pointer",
+          "position": {
+            "x": 196,
+            "y": 2190
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 45,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0A0A0C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 6,
+          "groupId": "pf-b3-g-start-chip",
+          "groupName": "Start chip"
+        },
+        {
+          "id": "pf-b3-chip-11",
+          "type": "shape",
+          "name": "Chip",
+          "position": {
+            "x": 146,
+            "y": 2104
+          },
+          "size": {
+            "width": 470,
+            "height": 112
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0A0A0C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 30,
+          "groupId": "pf-b3-g-start-chip",
+          "groupName": "Start chip"
+        },
+        {
+          "id": "pf-b3-label-sample-12",
+          "type": "text",
+          "name": "Label (sample)",
+          "position": {
+            "x": 162,
+            "y": 2126
+          },
+          "size": {
+            "width": 438,
+            "height": 68
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "$50 a week at 22",
+          "fontSize": 13.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "groupId": "pf-b3-g-start-chip",
+          "groupName": "Start chip"
+        },
+        {
+          "id": "pf-b3-chat-bubble-13",
+          "type": "image",
+          "name": "Chat bubble",
+          "position": {
+            "x": 876,
+            "y": 800
+          },
+          "size": {
+            "width": 320,
+            "height": 295
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-clay-bubble.png",
+          "imageAlt": "Chat bubble",
+          "objectFit": "contain",
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 46,
+            "color": "rgba(120,40,150,0.22)"
+          },
+          "groupId": "pf-b3-g-clay-bubble",
+          "groupName": "Clay bubble"
+        },
+        {
+          "id": "pf-b3-puzzle-piece-14",
+          "type": "image",
+          "name": "Puzzle piece",
+          "position": {
+            "x": 14,
+            "y": 1470
+          },
+          "size": {
+            "width": 330,
+            "height": 344
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-clay-puzzle.png",
+          "imageAlt": "Puzzle piece",
+          "objectFit": "contain",
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 46,
+            "color": "rgba(120,40,150,0.22)"
+          },
+          "groupId": "pf-b3-g-clay-puzzle",
+          "groupName": "Clay puzzle"
+        },
+        {
+          "id": "pf-b3-footnote-15",
+          "type": "text",
+          "name": "Footnote",
+          "position": {
+            "x": 100,
+            "y": 2440
+          },
+          "size": {
+            "width": 1006,
+            "height": 115
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "* Sample figures. Past returns do not\nguarantee future results",
+          "fontSize": 11.4,
+          "color": "#8C939C",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.26,
+          "groupId": "pf-b3-g-footnote",
+          "groupName": "Footnote"
+        }
+      ]
+    },
+    {
+      "id": "pf-board-4",
+      "name": "Made For Beginners",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#E1E8EE",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "pf-b4-line-1-1",
+          "type": "text",
+          "name": "Line 1",
+          "position": {
+            "x": 20,
+            "y": 132
+          },
+          "size": {
+            "width": 1166,
+            "height": 284
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "MADE FOR",
+          "fontSize": 55.2,
+          "color": "#0A0A0C",
+          "fontFamily": "Anton",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -0.6,
+          "groupId": "pf-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "pf-b4-line-2-2",
+          "type": "text",
+          "name": "Line 2",
+          "position": {
+            "x": 20,
+            "y": 323.36
+          },
+          "size": {
+            "width": 1166,
+            "height": 284
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "BEGINNERS",
+          "fontSize": 55.2,
+          "color": "#AD45C7",
+          "fontFamily": "Anton",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -0.6,
+          "groupId": "pf-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "pf-b4-phone-outline-3",
+          "type": "shape",
+          "name": "Phone outline",
+          "position": {
+            "x": 103,
+            "y": 681
+          },
+          "size": {
+            "width": 1000,
+            "height": 2073.82
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0A0A0C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 146,
+          "groupId": "pf-b4-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "pf-b4-phone-4",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 112,
+            "y": 690
+          },
+          "size": {
+            "width": 982,
+            "height": 2055.82
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#FFFFFF",
+          "screenshotSrc": "/data/projects/plumfolio-invest-screen-quiz.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "pf-b4-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "pf-b4-percent-sign-5",
+          "type": "image",
+          "name": "Percent sign",
+          "position": {
+            "x": 878,
+            "y": 1010
+          },
+          "size": {
+            "width": 318,
+            "height": 341
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-clay-percent.png",
+          "imageAlt": "Percent sign",
+          "objectFit": "contain",
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 46,
+            "color": "rgba(120,40,150,0.22)"
+          },
+          "groupId": "pf-b4-g-clay-percent",
+          "groupName": "Clay percent"
+        }
+      ]
+    },
+    {
+      "id": "pf-board-5",
+      "name": "Your Money, Protected",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#E1E8EE",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "pf-b5-line-1-1",
+          "type": "text",
+          "name": "Line 1",
+          "position": {
+            "x": 20,
+            "y": 132
+          },
+          "size": {
+            "width": 1166,
+            "height": 284
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "YOUR MONEY,",
+          "fontSize": 55.2,
+          "color": "#0A0A0C",
+          "fontFamily": "Anton",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -0.6,
+          "groupId": "pf-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "pf-b5-line-2-2",
+          "type": "text",
+          "name": "Line 2",
+          "position": {
+            "x": 20,
+            "y": 323.36
+          },
+          "size": {
+            "width": 1166,
+            "height": 284
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "PROTECTED",
+          "fontSize": 55.2,
+          "color": "#AD45C7",
+          "fontFamily": "Anton",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1.04,
+          "letterSpacing": -0.6,
+          "groupId": "pf-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "pf-b5-phone-outline-3",
+          "type": "shape",
+          "name": "Phone outline",
+          "position": {
+            "x": 103,
+            "y": 681
+          },
+          "size": {
+            "width": 1000,
+            "height": 2073.82
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0A0A0C",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 146,
+          "groupId": "pf-b5-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "pf-b5-phone-4",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 112,
+            "y": 690
+          },
+          "size": {
+            "width": 982,
+            "height": 2055.82
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#FFFFFF",
+          "screenshotSrc": "/data/projects/plumfolio-invest-screen-secure.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "pf-b5-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "pf-b5-shield-5",
+          "type": "image",
+          "name": "Shield",
+          "position": {
+            "x": 872,
+            "y": 800
+          },
+          "size": {
+            "width": 322,
+            "height": 343
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/objects/object-clay-shield.png",
+          "imageAlt": "Shield",
+          "objectFit": "contain",
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 46,
+            "color": "rgba(120,40,150,0.22)"
+          },
+          "groupId": "pf-b5-g-clay-shield",
+          "groupName": "Clay shield"
+        },
+        {
+          "id": "pf-b5-pill-6",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 410,
+            "y": 2206
+          },
+          "size": {
+            "width": 723,
+            "height": 134
+          },
+          "rotation": -4,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#0A0A0C",
+          "strokeWidth": 5,
+          "borderRadius": 67,
+          "groupId": "pf-b5-g-proof-pills",
+          "groupName": "Proof pills"
+        },
+        {
+          "id": "pf-b5-label-sample-7",
+          "type": "text",
+          "name": "Label (sample)",
+          "position": {
+            "x": 430,
+            "y": 2213
+          },
+          "size": {
+            "width": 683,
+            "height": 120
+          },
+          "rotation": -4,
+          "scale": 1,
+          "content": "256-BIT ENCRYPTION",
+          "fontSize": 24,
+          "color": "#0A0A0C",
+          "fontFamily": "Anton",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": -0.3,
+          "groupId": "pf-b5-g-proof-pills",
+          "groupName": "Proof pills"
+        },
+        {
+          "id": "pf-b5-pill-8",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 486,
+            "y": 2372
+          },
+          "size": {
+            "width": 654,
+            "height": 134
+          },
+          "rotation": 3,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "#0A0A0C",
+          "strokeWidth": 5,
+          "borderRadius": 67,
+          "groupId": "pf-b5-g-proof-pills",
+          "groupName": "Proof pills"
+        },
+        {
+          "id": "pf-b5-label-sample-9",
+          "type": "text",
+          "name": "Label (sample)",
+          "position": {
+            "x": 506,
+            "y": 2379
+          },
+          "size": {
+            "width": 614,
+            "height": 120
+          },
+          "rotation": 3,
+          "scale": 1,
+          "content": "24/7 FRAUD WATCH",
+          "fontSize": 24,
+          "color": "#0A0A0C",
+          "fontFamily": "Anton",
+          "fontWeight": "400",
+          "textAlign": "center",
+          "lineHeight": 1,
+          "letterSpacing": -0.3,
+          "groupId": "pf-b5-g-proof-pills",
+          "groupName": "Proof pills"
+        }
+      ]
+    }
+  ]
+}

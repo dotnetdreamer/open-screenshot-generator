@@ -36,6 +36,7 @@ ID (`<group>-as<ID>.png`) so every file traces to its Stock page at
 | touch-as623733433.png | 623733433 | POV of man hand touch gesture isolated on white background |
 | touch-as703311334.png | 703311334 | Woman hand touching virtual screen isolated on white background |
 | touch-as727752847.png | 727752847 | Hand touching or pointing on isolated background |
+| touch-as522881486.png | 522881486 | Black hand holding phone facing camera isolated on white background. (licensed 2026-11-25) |
 
 ### Girls
 
@@ -47,6 +48,7 @@ ID (`<group>-as<ID>.png`) so every file traces to its Stock page at
 | girls-as608612382.png | 608612382 | Young asian woman using smartphone, isolated white background |
 | girls-as616151886.png | 616151886 | Young woman on video call greeting with hand, isolated white |
 | girls-as622285813.png | 622285813 | Young woman in office shirt holding smartphone |
+| girls-as318620508.png | 318620508 | Young woman with afro hair texting on her smartphone on a city street (licensed 2026-11-25; mirrored left to right) |
 
 ### Guys
 
@@ -58,6 +60,25 @@ ID (`<group>-as<ID>.png`) so every file traces to its Stock page at
 | guys-as476183094.png | 476183094 | Young man on gray background looking at smartphone |
 | guys-as488088494.png | 488088494 | Indian Man Standing Using Phone Isolated |
 | guys-as625425247.png | 625425247 | Asian man showing mobile phone with thumbs up, yellow background |
+
+### Portraits
+
+Head and shoulders, all licensed 2026-11-25.
+
+| File | Stock ID | Title |
+| ---- | -------- | ----- |
+| portrait-as133944415.png | 133944415 | Young black woman with afro hairstyle smiling |
+| portrait-as163642346.png | 163642346 | Portrait of young emotional beautiful girl laughing with closed eyes over white background. |
+| portrait-as168466766.png | 168466766 | Headshot of cute redhead girl with hair bun wearing yellow cardigan looking at camera with shy charming smile and holding her neck, touched by nice compliment. |
+| portrait-as171305309.png | 171305309 | Portrait of an attractive smiling girl looking at camera |
+| portrait-as203786863.png | 203786863 | Beautiful young asian women smiling on white background |
+| portrait-as555020605.png | 555020605 | Smiling positive, attractive asian young woman wearing casual dress, cheerful portrait of beautiful brunette her with long hair, feeling happy looking at camera standing isolated on white background. |
+| portrait-as244803340.png | 244803340 | Close-up portrait of positive man in blue shirt, isolated on white background |
+| portrait-as303512281.png | 303512281 | young handsome bearded man in casual white sweater poses in studio on white background |
+| portrait-as342057151.png | 342057151 | Portrait of a young african man wearing hoodie |
+| portrait-as479584352.png | 479584352 | Close up smiling young black man by against background |
+| portrait-as488338515.png | 488338515 | Handsome young man in knitted sweater on white background |
+| portrait-as187373690.png | 187373690 | Studio shot of young man wearing blue turtleneck sweater against |
 
 ### Couples
 
@@ -210,6 +231,11 @@ in editable templates, not standalone downloads.
 | askadeck-couple-sea.png | 470959149 | couples-as470959149.png, still cut out (section 1) | askadeck-questions.json |
 | askadeck-pizza-table.png, askadeck-sofa-front.png | 244073395, 262780760 | The drawn table with the pizza and the drawn sofa seat that sit in front of those people; along the edges where the people meet them they keep a few pixels of those photos (section 1) | askadeck-questions.json |
 | askadeck-avatar.png | 622285813 | Head and shoulders of girls-as622285813.png, still cut out; the pink behind it is its own shape layer (section 1) | askadeck-questions.json |
+| lulu-wingwoman-face-1.png to lulu-wingwoman-face-5.png | 133944415, 303512281, 342057151, 488338515, 479584352 | Round head crops of those portrait cutouts, still cut out, one per file in that order; the colour under each face is its own shape layer (section 1) | lulu-wingwoman.json |
+| lulu-wingwoman-screen-profile.png | 342057151, 133944415 | App screen with portrait-as342057151 on a drawn sunset, and a round head crop of portrait-as133944415 (section 1) | lulu-wingwoman.json |
+| lulu-wingwoman-screen-chat.png, -foryou.png, -opener.png | 133944415, 303512281, 342057151, 488338515, 479584352, 187373690 | App screens with round head crops of those portraits; the for you screen also shows portrait-as133944415 in a card (section 1) | lulu-wingwoman.json |
+| plumfolio-invest-screen-quiz.png | 303512281, 168466766, 133944415, 244803340, 555020605, 342057151, 488338515 | App screen with small round head crops of those portraits beside the answers (section 1) | plumfolio-invest.json |
+| ringnote-calls-screen-call.png, echoline-recorder-screen-call.png | 244803340 | App screens with a round head crop of portrait-as244803340 as the caller (section 1) | ringnote-calls.json, echoline-recorder.json |
 
 The `fg-screens/*.png` skeleton screens in that folder are original in-house
 artwork (generated placeholders), not licensed stock. So are parsnap-course.png,
@@ -237,7 +263,17 @@ object-party-popper and object-winged-cash) are 3D models built in code and
 rendered with three.js (MIT License); the pile's coins were dropped and settled
 with the Rapier physics engine (Apache License 2.0), which is not part of this
 repository. Their "$" is the glyph of Outfit, and the banknote is an invented
-design, not real currency. The app icons in 3D objects
+design, not real currency. The lilac clay objects (object-clay-arrow,
+object-clay-coin, object-clay-robot, object-clay-puzzle, object-clay-bubble,
+object-clay-percent and object-clay-shield), the chrome lips, heart and
+sparkle (object-chrome-lips, object-chrome-heart and object-chrome-sparkle)
+and the pearl heart (object-heart-pearl) are 3D models built in code for the
+Plumfolio and Lulu templates and rendered with Blender's Cycles renderer
+(Blender is under the GNU GPL, which puts no terms on the pictures it
+renders). Their dollar sign and percent sign are built from rods and rings,
+not taken from a font. The pictures on the Hushwave screens (the marbled
+colour, the ocean, the ridges, the sunflower head and the spiral of coloured
+marks) are generated in code, with no photo in them. The app icons in 3D objects
 are invented designs, not the icons of real apps. Three cards build on library
 photos from section 1: card-person.png is girls-as622285813 in black and white,
 and card-dance.png and card-yourself.png use guys-as211660510 and

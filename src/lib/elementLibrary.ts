@@ -482,6 +482,23 @@ const laurelBranchSub = (
   return d;
 };
 
+/**
+ * A path flipped left to right inside a box `width` wide. It reads the numbers
+ * as x y pairs, which holds for every builder in this file: they emit absolute
+ * M, L and Q commands only.
+ */
+const mirrorPathX = (d: string, width: number): string =>
+  d.replace(/(-?\d+(?:\.\d+)?) (-?\d+(?:\.\d+)?)/g, (_pair, x: string, y: string) => `${fmt(width - Number(x))} ${y}`);
+
+/**
+ * The award wreath's left half: 20 narrow leaves on a deep curve. The arc is
+ * placed so the leaves start at 1,1 of a 41 by 101 box, and the library item
+ * uses that box as its view box. A layer's box is then the branch you see,
+ * with no empty margin to squeeze the leaves when the layer is resized.
+ */
+const LAUREL_BOLD_BOX = { width: 41, height: 101 };
+const laurelBoldSub = laurelBranchSub(65.6, 53.91, 54, 124, 236, 20, 17, 6.6);
+
 /* ------------------------------ patterns ------------------------------ */
 
 const dotGridSub = (cols: number, rows: number, r: number, inset = 10): string => {
@@ -1542,6 +1559,9 @@ const laurels: LibraryElementDef[] = [
   ),
   el('laurel-branch-left', 'Branch Left', laurelBranchSub(96, 50, 62, 128, 218, 12, 13, 3.6), { size: { width: 260, height: 340 } }),
   el('laurel-branch-right', 'Branch Right', laurelBranchSub(4, 50, 62, 52, -38, 12, 13, 3.6), { size: { width: 260, height: 340 } }),
+  // One drawing and its mirror image, so the pair matches leaf for leaf.
+  el('laurel-bold-left', 'Bold Branch Left', laurelBoldSub, { viewBox: `0 0 ${LAUREL_BOLD_BOX.width} ${LAUREL_BOLD_BOX.height}`, size: { width: 138, height: 340 } }),
+  el('laurel-bold-right', 'Bold Branch Right', mirrorPathX(laurelBoldSub, LAUREL_BOLD_BOX.width), { viewBox: `0 0 ${LAUREL_BOLD_BOX.width} ${LAUREL_BOLD_BOX.height}`, size: { width: 138, height: 340 } }),
   el('laurel-diagonal', 'Laurel Branch', laurelBranchSub(110, 110, 102, 192, 258, 11, 13, 3.8), { size: { width: 340, height: 340 } }),
   el('laurel-sprigs', 'Crossed Sprigs',
     laurelBranchSub(88, 108, 78, 218, 268, 8, 12, 3.4) + ' ' + laurelBranchSub(12, 108, 78, 322, 272, 8, 12, 3.4),

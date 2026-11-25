@@ -332,8 +332,19 @@ async function shot(page, file) {
  * unicode-range, and a check without text asks about the face that holds a
  * space. A page that sets only kana in that family never loads that face, so
  * the answer would stay false.
+ *
+ * The app fetches its Google Fonts stylesheet and writes it into
+ * <style id="google-font-faces"> (fontService.ts). Until that text lands the
+ * page has no @font-face rule for those families, and `document.fonts.check`
+ * answers true for a family the page has no rule for. A slow stylesheet would
+ * pass every check below while the text is still drawn in the fallback, and
+ * the export would wrap the headlines. So an empty style tag means "not yet".
+ * A failed fetch makes the app add a <link> instead, which ends the wait.
  */
 function projectFontsLoaded() {
+  const sheet = document.getElementById('google-font-faces');
+  const linked = document.querySelector('link[rel="stylesheet"][href*="fonts.googleapis.com"]');
+  if (sheet && !sheet.textContent && !linked) return false;
   const drawn = new Map();
   for (const el of document.querySelectorAll('[data-element-id]')) {
     for (const n of el.querySelectorAll('*')) {

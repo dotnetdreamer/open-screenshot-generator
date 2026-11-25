@@ -1,0 +1,1328 @@
+{
+  "id": "template_hushwave_sleep",
+  "name": "Hushwave Sleep",
+  "description": "App Store & Play Store screenshots for a sleep, meditation or relaxation app. Rounded Merriweather Sans headlines in pale pink on deep plum, lit by magenta glows. A silhouette looks into the light of a phone, laurels frame an award and a rating, a hypnotic spiral fills one phone, and a hand holds the next two. Every part sits in named, editable layer groups, with each glow, shade and ray on a layer of its own. The award and the rating are sample copy, marked in the layer names: replace them with your own.",
+  "previewImage": "/data/projects/previews/hushwave-sleep.png",
+  "timestamp": "2026-11-25T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "hw-board-1",
+      "name": "Quiet Your Mind",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#3A0838",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#560A54",
+        "color2": "#1E0424",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "hw-b1-glow-1",
+          "type": "shape",
+          "name": "Glow",
+          "position": {
+            "x": -60,
+            "y": 760
+          },
+          "size": {
+            "width": 1500,
+            "height": 1500
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#E216E0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.9,
+          "blur": 210,
+          "groupId": "hw-b1-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "hw-b1-rays-2",
+          "type": "shape",
+          "name": "Rays",
+          "position": {
+            "x": -300,
+            "y": -120
+          },
+          "size": {
+            "width": 1806,
+            "height": 1350
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF7DF4",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M100 0 L249.9 4.4 L249.0 17.6 Z M100 0 L246.2 33.6 L242.7 46.4 Z M100 0 L236.8 61.5 L230.9 73.3 Z M100 0 L222.2 87.0 L214.1 97.4 Z M100 0 L202.9 109.1 L192.9 117.8 Z M100 0 L179.6 127.1 L168.1 133.7 Z M100 0 L153.3 140.2 L140.7 144.4 Z M100 0 L124.9 147.9 L111.8 149.5 Z M100 0 L95.6 149.9 L82.4 149.0 Z M100 0 L66.4 146.2 L53.6 142.7 Z M100 0 L38.5 136.8 L26.7 130.9 Z M100 0 L13.0 122.2 L2.6 114.1 Z M100 0 L-9.1 102.9 L-17.8 92.9 Z M100 0 L-27.1 79.6 L-33.7 68.1 Z M100 0 L-40.2 53.3 L-44.4 40.7 Z M100 0 L-47.9 24.9 L-49.5 11.8 Z",
+          "specialProps": {
+            "viewBox": "0 0 200 150"
+          },
+          "opacity": 0.12,
+          "blur": 14,
+          "groupId": "hw-b1-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "hw-b1-shade-left-3",
+          "type": "shape",
+          "name": "Shade left",
+          "position": {
+            "x": -620,
+            "y": 1700
+          },
+          "size": {
+            "width": 1100,
+            "height": 1100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#16021A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.85,
+          "blur": 200,
+          "groupId": "hw-b1-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "hw-b1-shade-right-4",
+          "type": "shape",
+          "name": "Shade right",
+          "position": {
+            "x": 780,
+            "y": 2050
+          },
+          "size": {
+            "width": 900,
+            "height": 900
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#16021A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.8,
+          "blur": 190,
+          "groupId": "hw-b1-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "hw-b1-light-beam-5",
+          "type": "shape",
+          "name": "Light beam",
+          "position": {
+            "x": 430,
+            "y": 1220
+          },
+          "size": {
+            "width": 680,
+            "height": 540
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FF8CF6",
+          "fillGradient": {
+            "color1": "rgba(255,150,248,0.98)",
+            "color2": "rgba(255,90,240,0.25)",
+            "angle": 270
+          },
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M100 90 L0 0 L4 100 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "blur": 24,
+          "groupId": "hw-b1-g-phone-light",
+          "groupName": "Phone light"
+        },
+        {
+          "id": "hw-b1-person-6",
+          "type": "image",
+          "name": "Person",
+          "position": {
+            "x": -500,
+            "y": 806
+          },
+          "size": {
+            "width": 1700,
+            "height": 1816
+          },
+          "rotation": 0,
+          "scale": 1,
+          "imageSrc": "/elements/images/girls/girls-as318620508.png",
+          "imageAlt": "Person",
+          "objectFit": "fill",
+          "tintColor": "#22042A",
+          "tintOpacity": 0.84,
+          "groupId": "hw-b1-g-person",
+          "groupName": "Person"
+        },
+        {
+          "id": "hw-b1-title-7",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 30,
+            "y": 91.12
+          },
+          "size": {
+            "width": 1146,
+            "height": 458
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Quiet\nyour mind",
+          "fontSize": 52.8,
+          "color": "#FBE6F8",
+          "fontFamily": "Merriweather Sans",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.05,
+          "letterSpacing": -0.3,
+          "groupId": "hw-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hw-b1-laurel-left-8",
+          "type": "shape",
+          "name": "Laurel left",
+          "position": {
+            "x": 196,
+            "y": 2178
+          },
+          "size": {
+            "width": 119,
+            "height": 292
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M34.9 99.42 L30.98 96.52 L27.34 93.28 L24 89.73 L20.98 85.9 L18.32 81.81 L16.03 77.51 L14.13 73.01 L12.64 68.37 L11.56 63.61 L10.92 58.78 L10.7 53.91 L10.92 49.04 L11.56 44.21 L12.64 39.45 L14.13 34.81 L16.03 30.31 L18.32 26.01 L20.98 21.92 L24 18.09 L27.34 14.54 L30.98 11.3 L34.9 8.4 L35.91 9.89 L32.12 12.7 L28.59 15.83 L25.36 19.26 L22.44 22.97 L19.87 26.92 L17.65 31.09 L15.82 35.43 L14.38 39.92 L13.34 44.52 L12.71 49.2 L12.5 53.91 L12.71 58.62 L13.34 63.3 L14.38 67.9 L15.82 72.39 L17.65 76.73 L19.87 80.9 L22.44 84.85 L25.36 88.56 L28.59 91.99 L32.12 95.12 L35.91 97.93 Z M33.1 97.04 Q37.93 87.52 29.89 80.51 Q25.06 90.02 33.1 97.04 Z M29.15 93.76 Q20.93 87.22 12.6 93.63 Q20.83 100.17 29.15 93.76 Z M25.53 90.11 Q31.92 81.97 25.51 73.85 Q19.12 82 25.53 90.11 Z M22.28 86.15 Q15.69 78.38 6.62 83 Q13.2 90.77 22.28 86.15 Z M19.41 81.89 Q27 75.35 22.35 66.48 Q14.76 73.01 19.41 81.89 Z M16.96 77.37 Q12.17 68.76 2.72 71.54 Q7.51 80.15 16.96 77.37 Z M14.95 72.65 Q23.39 67.88 20.54 58.61 Q12.1 63.38 14.95 72.65 Z M13.4 67.75 Q10.48 58.68 1 59.65 Q3.92 68.72 13.4 67.75 Z M12.33 62.73 Q21.22 59.8 20.15 50.49 Q11.26 53.43 12.33 62.73 Z M11.73 57.63 Q10.67 48.49 1.5 47.73 Q2.56 56.88 11.73 57.63 Z M11.62 52.5 Q20.59 51.4 21.22 42.38 Q12.24 43.48 11.62 52.5 Z M12 47.38 Q12.72 38.53 4.15 36.2 Q3.43 45.05 12 47.38 Z M12.86 42.32 Q21.55 42.97 23.73 34.53 Q15.04 33.88 12.86 42.32 Z M14.2 37.36 Q16.55 29.14 8.85 25.43 Q6.49 33.65 14.2 37.36 Z M16 32.55 Q24.08 34.81 27.62 27.21 Q19.54 24.94 16 32.55 Z M18.26 27.94 Q22.03 20.63 15.39 15.77 Q11.62 23.08 18.26 27.94 Z M20.94 23.56 Q28.12 27.22 32.79 20.65 Q25.61 16.98 20.94 23.56 Z M24.02 19.45 Q28.96 13.29 23.53 7.54 Q18.59 13.71 24.02 19.45 Z M27.48 15.66 Q33.55 20.47 39.1 15.07 Q33.03 10.26 27.48 15.66 Z M31.29 12.21 Q37.11 7.35 32.97 1 Q27.16 5.86 31.29 12.21 Z",
+          "specialProps": {
+            "viewBox": "0 0 41 101"
+          },
+          "groupId": "hw-b1-g-award",
+          "groupName": "Award"
+        },
+        {
+          "id": "hw-b1-laurel-right-9",
+          "type": "shape",
+          "name": "Laurel right",
+          "position": {
+            "x": 891,
+            "y": 2178
+          },
+          "size": {
+            "width": 119,
+            "height": 292
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M6.1 99.42 L10.02 96.52 L13.66 93.28 L17 89.73 L20.02 85.9 L22.68 81.81 L24.97 77.51 L26.87 73.01 L28.36 68.37 L29.44 63.61 L30.08 58.78 L30.3 53.91 L30.08 49.04 L29.44 44.21 L28.36 39.45 L26.87 34.81 L24.97 30.31 L22.68 26.01 L20.02 21.92 L17 18.09 L13.66 14.54 L10.02 11.3 L6.1 8.4 L5.09 9.89 L8.88 12.7 L12.41 15.83 L15.64 19.26 L18.56 22.97 L21.13 26.92 L23.35 31.09 L25.18 35.43 L26.62 39.92 L27.66 44.52 L28.29 49.2 L28.5 53.91 L28.29 58.62 L27.66 63.3 L26.62 67.9 L25.18 72.39 L23.35 76.73 L21.13 80.9 L18.56 84.85 L15.64 88.56 L12.41 91.99 L8.88 95.12 L5.09 97.93 Z M7.9 97.04 Q3.07 87.52 11.11 80.51 Q15.94 90.02 7.9 97.04 Z M11.85 93.76 Q20.07 87.22 28.4 93.63 Q20.17 100.17 11.85 93.76 Z M15.47 90.11 Q9.08 81.97 15.49 73.85 Q21.88 82 15.47 90.11 Z M18.72 86.15 Q25.31 78.38 34.38 83 Q27.8 90.77 18.72 86.15 Z M21.59 81.89 Q14 75.35 18.65 66.48 Q26.24 73.01 21.59 81.89 Z M24.04 77.37 Q28.83 68.76 38.28 71.54 Q33.49 80.15 24.04 77.37 Z M26.05 72.65 Q17.61 67.88 20.46 58.61 Q28.9 63.38 26.05 72.65 Z M27.6 67.75 Q30.52 58.68 40 59.65 Q37.08 68.72 27.6 67.75 Z M28.67 62.73 Q19.78 59.8 20.85 50.49 Q29.74 53.43 28.67 62.73 Z M29.27 57.63 Q30.33 48.49 39.5 47.73 Q38.44 56.88 29.27 57.63 Z M29.38 52.5 Q20.41 51.4 19.78 42.38 Q28.76 43.48 29.38 52.5 Z M29 47.38 Q28.28 38.53 36.85 36.2 Q37.57 45.05 29 47.38 Z M28.14 42.32 Q19.45 42.97 17.27 34.53 Q25.96 33.88 28.14 42.32 Z M26.8 37.36 Q24.45 29.14 32.15 25.43 Q34.51 33.65 26.8 37.36 Z M25 32.55 Q16.92 34.81 13.38 27.21 Q21.46 24.94 25 32.55 Z M22.74 27.94 Q18.97 20.63 25.61 15.77 Q29.38 23.08 22.74 27.94 Z M20.06 23.56 Q12.88 27.22 8.21 20.65 Q15.39 16.98 20.06 23.56 Z M16.98 19.45 Q12.04 13.29 17.47 7.54 Q22.41 13.71 16.98 19.45 Z M13.52 15.66 Q7.45 20.47 1.9 15.07 Q7.97 10.26 13.52 15.66 Z M9.71 12.21 Q3.89 7.35 8.03 1 Q13.84 5.86 9.71 12.21 Z",
+          "specialProps": {
+            "viewBox": "0 0 41 101"
+          },
+          "groupId": "hw-b1-g-award",
+          "groupName": "Award"
+        },
+        {
+          "id": "hw-b1-star-10",
+          "type": "shape",
+          "name": "Star",
+          "position": {
+            "x": 548,
+            "y": 2170
+          },
+          "size": {
+            "width": 110,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M47.64 7.52 Q50 2 52.36 7.52 L60.57 26.69 Q62.93 32.2 68.91 32.74 L89.68 34.63 Q95.65 35.17 91.13 39.12 L75.44 52.85 Q70.92 56.8 72.25 62.65 L76.88 82.98 Q78.21 88.83 73.06 85.76 L55.15 75.07 Q50 72 44.85 75.07 L26.94 85.76 Q21.79 88.83 23.12 82.98 L27.75 62.65 Q29.08 56.8 24.56 52.85 L8.87 39.12 Q4.35 35.17 10.32 34.63 L31.09 32.74 Q37.07 32.2 39.43 26.69 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "hw-b1-g-award",
+          "groupName": "Award"
+        },
+        {
+          "id": "hw-b1-award-text-sample-11",
+          "type": "text",
+          "name": "Award text (sample)",
+          "position": {
+            "x": 300,
+            "y": 2300
+          },
+          "size": {
+            "width": 606,
+            "height": 149
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "APP OF THE DAY\nWELLNESS PICK",
+          "fontSize": 15,
+          "color": "#FFFFFF",
+          "fontFamily": "Merriweather Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.24,
+          "letterSpacing": 0.6,
+          "groupId": "hw-b1-g-award",
+          "groupName": "Award"
+        }
+      ]
+    },
+    {
+      "id": "hw-board-2",
+      "name": "Hypnotic Visuals",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#1B0318",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#1D0420",
+        "color2": "#14020F",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "hw-b2-glow-right-1",
+          "type": "shape",
+          "name": "Glow right",
+          "position": {
+            "x": 560,
+            "y": 1500
+          },
+          "size": {
+            "width": 1100,
+            "height": 1100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#B40FB4",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.75,
+          "blur": 210,
+          "groupId": "hw-b2-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "hw-b2-glow-left-2",
+          "type": "shape",
+          "name": "Glow left",
+          "position": {
+            "x": -480,
+            "y": 1900
+          },
+          "size": {
+            "width": 900,
+            "height": 900
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#8A0B8E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.6,
+          "blur": 200,
+          "groupId": "hw-b2-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "hw-b2-phone-3",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 149,
+            "y": 131
+          },
+          "size": {
+            "width": 903,
+            "height": 1890.43
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#4A0C48",
+          "screenshotSrc": "/data/projects/hushwave-sleep-screen-spiral.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "hw-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "hw-b2-top-cover-match-the-backgrou-4",
+          "type": "shape",
+          "name": "Top cover (match the background)",
+          "position": {
+            "x": 0,
+            "y": 0
+          },
+          "size": {
+            "width": 1206,
+            "height": 392
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1D0420",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "hw-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "hw-b2-top-fade-match-the-backgroun-5",
+          "type": "shape",
+          "name": "Top fade (match the background)",
+          "position": {
+            "x": 0,
+            "y": 390
+          },
+          "size": {
+            "width": 1206,
+            "height": 420
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1B0318",
+          "fillGradient": {
+            "color1": "#1D0420",
+            "color2": "rgba(29,4,32,0)",
+            "angle": 180
+          },
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "hw-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "hw-b2-laurel-left-6",
+          "type": "shape",
+          "name": "Laurel left",
+          "position": {
+            "x": 238,
+            "y": 136
+          },
+          "size": {
+            "width": 94,
+            "height": 232
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M34.9 99.42 L30.98 96.52 L27.34 93.28 L24 89.73 L20.98 85.9 L18.32 81.81 L16.03 77.51 L14.13 73.01 L12.64 68.37 L11.56 63.61 L10.92 58.78 L10.7 53.91 L10.92 49.04 L11.56 44.21 L12.64 39.45 L14.13 34.81 L16.03 30.31 L18.32 26.01 L20.98 21.92 L24 18.09 L27.34 14.54 L30.98 11.3 L34.9 8.4 L35.91 9.89 L32.12 12.7 L28.59 15.83 L25.36 19.26 L22.44 22.97 L19.87 26.92 L17.65 31.09 L15.82 35.43 L14.38 39.92 L13.34 44.52 L12.71 49.2 L12.5 53.91 L12.71 58.62 L13.34 63.3 L14.38 67.9 L15.82 72.39 L17.65 76.73 L19.87 80.9 L22.44 84.85 L25.36 88.56 L28.59 91.99 L32.12 95.12 L35.91 97.93 Z M33.1 97.04 Q37.93 87.52 29.89 80.51 Q25.06 90.02 33.1 97.04 Z M29.15 93.76 Q20.93 87.22 12.6 93.63 Q20.83 100.17 29.15 93.76 Z M25.53 90.11 Q31.92 81.97 25.51 73.85 Q19.12 82 25.53 90.11 Z M22.28 86.15 Q15.69 78.38 6.62 83 Q13.2 90.77 22.28 86.15 Z M19.41 81.89 Q27 75.35 22.35 66.48 Q14.76 73.01 19.41 81.89 Z M16.96 77.37 Q12.17 68.76 2.72 71.54 Q7.51 80.15 16.96 77.37 Z M14.95 72.65 Q23.39 67.88 20.54 58.61 Q12.1 63.38 14.95 72.65 Z M13.4 67.75 Q10.48 58.68 1 59.65 Q3.92 68.72 13.4 67.75 Z M12.33 62.73 Q21.22 59.8 20.15 50.49 Q11.26 53.43 12.33 62.73 Z M11.73 57.63 Q10.67 48.49 1.5 47.73 Q2.56 56.88 11.73 57.63 Z M11.62 52.5 Q20.59 51.4 21.22 42.38 Q12.24 43.48 11.62 52.5 Z M12 47.38 Q12.72 38.53 4.15 36.2 Q3.43 45.05 12 47.38 Z M12.86 42.32 Q21.55 42.97 23.73 34.53 Q15.04 33.88 12.86 42.32 Z M14.2 37.36 Q16.55 29.14 8.85 25.43 Q6.49 33.65 14.2 37.36 Z M16 32.55 Q24.08 34.81 27.62 27.21 Q19.54 24.94 16 32.55 Z M18.26 27.94 Q22.03 20.63 15.39 15.77 Q11.62 23.08 18.26 27.94 Z M20.94 23.56 Q28.12 27.22 32.79 20.65 Q25.61 16.98 20.94 23.56 Z M24.02 19.45 Q28.96 13.29 23.53 7.54 Q18.59 13.71 24.02 19.45 Z M27.48 15.66 Q33.55 20.47 39.1 15.07 Q33.03 10.26 27.48 15.66 Z M31.29 12.21 Q37.11 7.35 32.97 1 Q27.16 5.86 31.29 12.21 Z",
+          "specialProps": {
+            "viewBox": "0 0 41 101"
+          },
+          "groupId": "hw-b2-g-rating",
+          "groupName": "Rating"
+        },
+        {
+          "id": "hw-b2-laurel-right-7",
+          "type": "shape",
+          "name": "Laurel right",
+          "position": {
+            "x": 874,
+            "y": 136
+          },
+          "size": {
+            "width": 94,
+            "height": 232
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M6.1 99.42 L10.02 96.52 L13.66 93.28 L17 89.73 L20.02 85.9 L22.68 81.81 L24.97 77.51 L26.87 73.01 L28.36 68.37 L29.44 63.61 L30.08 58.78 L30.3 53.91 L30.08 49.04 L29.44 44.21 L28.36 39.45 L26.87 34.81 L24.97 30.31 L22.68 26.01 L20.02 21.92 L17 18.09 L13.66 14.54 L10.02 11.3 L6.1 8.4 L5.09 9.89 L8.88 12.7 L12.41 15.83 L15.64 19.26 L18.56 22.97 L21.13 26.92 L23.35 31.09 L25.18 35.43 L26.62 39.92 L27.66 44.52 L28.29 49.2 L28.5 53.91 L28.29 58.62 L27.66 63.3 L26.62 67.9 L25.18 72.39 L23.35 76.73 L21.13 80.9 L18.56 84.85 L15.64 88.56 L12.41 91.99 L8.88 95.12 L5.09 97.93 Z M7.9 97.04 Q3.07 87.52 11.11 80.51 Q15.94 90.02 7.9 97.04 Z M11.85 93.76 Q20.07 87.22 28.4 93.63 Q20.17 100.17 11.85 93.76 Z M15.47 90.11 Q9.08 81.97 15.49 73.85 Q21.88 82 15.47 90.11 Z M18.72 86.15 Q25.31 78.38 34.38 83 Q27.8 90.77 18.72 86.15 Z M21.59 81.89 Q14 75.35 18.65 66.48 Q26.24 73.01 21.59 81.89 Z M24.04 77.37 Q28.83 68.76 38.28 71.54 Q33.49 80.15 24.04 77.37 Z M26.05 72.65 Q17.61 67.88 20.46 58.61 Q28.9 63.38 26.05 72.65 Z M27.6 67.75 Q30.52 58.68 40 59.65 Q37.08 68.72 27.6 67.75 Z M28.67 62.73 Q19.78 59.8 20.85 50.49 Q29.74 53.43 28.67 62.73 Z M29.27 57.63 Q30.33 48.49 39.5 47.73 Q38.44 56.88 29.27 57.63 Z M29.38 52.5 Q20.41 51.4 19.78 42.38 Q28.76 43.48 29.38 52.5 Z M29 47.38 Q28.28 38.53 36.85 36.2 Q37.57 45.05 29 47.38 Z M28.14 42.32 Q19.45 42.97 17.27 34.53 Q25.96 33.88 28.14 42.32 Z M26.8 37.36 Q24.45 29.14 32.15 25.43 Q34.51 33.65 26.8 37.36 Z M25 32.55 Q16.92 34.81 13.38 27.21 Q21.46 24.94 25 32.55 Z M22.74 27.94 Q18.97 20.63 25.61 15.77 Q29.38 23.08 22.74 27.94 Z M20.06 23.56 Q12.88 27.22 8.21 20.65 Q15.39 16.98 20.06 23.56 Z M16.98 19.45 Q12.04 13.29 17.47 7.54 Q22.41 13.71 16.98 19.45 Z M13.52 15.66 Q7.45 20.47 1.9 15.07 Q7.97 10.26 13.52 15.66 Z M9.71 12.21 Q3.89 7.35 8.03 1 Q13.84 5.86 9.71 12.21 Z",
+          "specialProps": {
+            "viewBox": "0 0 41 101"
+          },
+          "groupId": "hw-b2-g-rating",
+          "groupName": "Rating"
+        },
+        {
+          "id": "hw-b2-star-1-8",
+          "type": "shape",
+          "name": "Star 1",
+          "position": {
+            "x": 394,
+            "y": 150
+          },
+          "size": {
+            "width": 74,
+            "height": 74
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M47.64 7.52 Q50 2 52.36 7.52 L60.57 26.69 Q62.93 32.2 68.91 32.74 L89.68 34.63 Q95.65 35.17 91.13 39.12 L75.44 52.85 Q70.92 56.8 72.25 62.65 L76.88 82.98 Q78.21 88.83 73.06 85.76 L55.15 75.07 Q50 72 44.85 75.07 L26.94 85.76 Q21.79 88.83 23.12 82.98 L27.75 62.65 Q29.08 56.8 24.56 52.85 L8.87 39.12 Q4.35 35.17 10.32 34.63 L31.09 32.74 Q37.07 32.2 39.43 26.69 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "hw-b2-g-rating",
+          "groupName": "Rating"
+        },
+        {
+          "id": "hw-b2-star-2-9",
+          "type": "shape",
+          "name": "Star 2",
+          "position": {
+            "x": 480,
+            "y": 150
+          },
+          "size": {
+            "width": 74,
+            "height": 74
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M47.64 7.52 Q50 2 52.36 7.52 L60.57 26.69 Q62.93 32.2 68.91 32.74 L89.68 34.63 Q95.65 35.17 91.13 39.12 L75.44 52.85 Q70.92 56.8 72.25 62.65 L76.88 82.98 Q78.21 88.83 73.06 85.76 L55.15 75.07 Q50 72 44.85 75.07 L26.94 85.76 Q21.79 88.83 23.12 82.98 L27.75 62.65 Q29.08 56.8 24.56 52.85 L8.87 39.12 Q4.35 35.17 10.32 34.63 L31.09 32.74 Q37.07 32.2 39.43 26.69 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "hw-b2-g-rating",
+          "groupName": "Rating"
+        },
+        {
+          "id": "hw-b2-star-3-10",
+          "type": "shape",
+          "name": "Star 3",
+          "position": {
+            "x": 566,
+            "y": 150
+          },
+          "size": {
+            "width": 74,
+            "height": 74
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M47.64 7.52 Q50 2 52.36 7.52 L60.57 26.69 Q62.93 32.2 68.91 32.74 L89.68 34.63 Q95.65 35.17 91.13 39.12 L75.44 52.85 Q70.92 56.8 72.25 62.65 L76.88 82.98 Q78.21 88.83 73.06 85.76 L55.15 75.07 Q50 72 44.85 75.07 L26.94 85.76 Q21.79 88.83 23.12 82.98 L27.75 62.65 Q29.08 56.8 24.56 52.85 L8.87 39.12 Q4.35 35.17 10.32 34.63 L31.09 32.74 Q37.07 32.2 39.43 26.69 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "hw-b2-g-rating",
+          "groupName": "Rating"
+        },
+        {
+          "id": "hw-b2-star-4-11",
+          "type": "shape",
+          "name": "Star 4",
+          "position": {
+            "x": 652,
+            "y": 150
+          },
+          "size": {
+            "width": 74,
+            "height": 74
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M47.64 7.52 Q50 2 52.36 7.52 L60.57 26.69 Q62.93 32.2 68.91 32.74 L89.68 34.63 Q95.65 35.17 91.13 39.12 L75.44 52.85 Q70.92 56.8 72.25 62.65 L76.88 82.98 Q78.21 88.83 73.06 85.76 L55.15 75.07 Q50 72 44.85 75.07 L26.94 85.76 Q21.79 88.83 23.12 82.98 L27.75 62.65 Q29.08 56.8 24.56 52.85 L8.87 39.12 Q4.35 35.17 10.32 34.63 L31.09 32.74 Q37.07 32.2 39.43 26.69 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "hw-b2-g-rating",
+          "groupName": "Rating"
+        },
+        {
+          "id": "hw-b2-star-5-12",
+          "type": "shape",
+          "name": "Star 5",
+          "position": {
+            "x": 738,
+            "y": 150
+          },
+          "size": {
+            "width": 74,
+            "height": 74
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M47.64 7.52 Q50 2 52.36 7.52 L60.57 26.69 Q62.93 32.2 68.91 32.74 L89.68 34.63 Q95.65 35.17 91.13 39.12 L75.44 52.85 Q70.92 56.8 72.25 62.65 L76.88 82.98 Q78.21 88.83 73.06 85.76 L55.15 75.07 Q50 72 44.85 75.07 L26.94 85.76 Q21.79 88.83 23.12 82.98 L27.75 62.65 Q29.08 56.8 24.56 52.85 L8.87 39.12 Q4.35 35.17 10.32 34.63 L31.09 32.74 Q37.07 32.2 39.43 26.69 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "hw-b2-g-rating",
+          "groupName": "Rating"
+        },
+        {
+          "id": "hw-b2-rating-text-sample-13",
+          "type": "text",
+          "name": "Rating text (sample)",
+          "position": {
+            "x": 330,
+            "y": 240
+          },
+          "size": {
+            "width": 546,
+            "height": 121
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "48K+ REVIEWS\nAVG. 4.8 RATING",
+          "fontSize": 12,
+          "color": "#FFFFFF",
+          "fontFamily": "Merriweather Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.26,
+          "letterSpacing": 0.45,
+          "groupId": "hw-b2-g-rating",
+          "groupName": "Rating"
+        },
+        {
+          "id": "hw-b2-title-14",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 30,
+            "y": 2078.12
+          },
+          "size": {
+            "width": 1146,
+            "height": 458
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Hypnotic\nvisuals",
+          "fontSize": 52.8,
+          "color": "#FBE6F8",
+          "fontFamily": "Merriweather Sans",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.05,
+          "letterSpacing": -0.3,
+          "groupId": "hw-b2-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    },
+    {
+      "id": "hw-board-3",
+      "name": "Fall Asleep Faster",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#3A0838",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#26052A",
+        "color2": "#8E1088",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "hw-b3-glow-1",
+          "type": "shape",
+          "name": "Glow",
+          "position": {
+            "x": 100,
+            "y": 1500
+          },
+          "size": {
+            "width": 1200,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#E216E0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.55,
+          "blur": 220,
+          "groupId": "hw-b3-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "hw-b3-title-2",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 30,
+            "y": 91.12
+          },
+          "size": {
+            "width": 1146,
+            "height": 458
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Fall asleep\nfaster",
+          "fontSize": 52.8,
+          "color": "#FBE6F8",
+          "fontFamily": "Merriweather Sans",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.05,
+          "letterSpacing": -0.3,
+          "groupId": "hw-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hw-b3-cell-outline-3",
+          "type": "shape",
+          "name": "Cell outline",
+          "position": {
+            "x": 59,
+            "y": 566
+          },
+          "size": {
+            "width": 338,
+            "height": 388
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "rgba(255,255,255,0.32)",
+          "strokeColor": "transparent",
+          "strokeWidth": 3,
+          "customPath": "M0 0 V86 Q0 100 12 100 H88 Q100 100 100 86 V0",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 3
+          },
+          "groupId": "hw-b3-g-feature-1",
+          "groupName": "Feature 1"
+        },
+        {
+          "id": "hw-b3-icon-4",
+          "type": "shape",
+          "name": "Icon",
+          "position": {
+            "x": 172,
+            "y": 628
+          },
+          "size": {
+            "width": 112,
+            "height": 112
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M40 16 L84 8 V62 A12 9 0 1 1 76 54 V22 L48 27 V74 A12 9 0 1 1 40 66 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "hw-b3-g-feature-1",
+          "groupName": "Feature 1"
+        },
+        {
+          "id": "hw-b3-label-5",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 65,
+            "y": 776
+          },
+          "size": {
+            "width": 326,
+            "height": 115
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "SLEEP\nSOUNDS",
+          "fontSize": 11.1,
+          "color": "#FFFFFF",
+          "fontFamily": "Merriweather Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.3,
+          "letterSpacing": 0.45,
+          "groupId": "hw-b3-g-feature-1",
+          "groupName": "Feature 1"
+        },
+        {
+          "id": "hw-b3-cell-outline-6",
+          "type": "shape",
+          "name": "Cell outline",
+          "position": {
+            "x": 415,
+            "y": 566
+          },
+          "size": {
+            "width": 376,
+            "height": 388
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "rgba(255,255,255,0.32)",
+          "strokeColor": "transparent",
+          "strokeWidth": 3,
+          "customPath": "M0 0 V86 Q0 100 12 100 H88 Q100 100 100 86 V0",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 3
+          },
+          "groupId": "hw-b3-g-feature-2",
+          "groupName": "Feature 2"
+        },
+        {
+          "id": "hw-b3-icon-7",
+          "type": "shape",
+          "name": "Icon",
+          "position": {
+            "x": 547,
+            "y": 628
+          },
+          "size": {
+            "width": 112,
+            "height": 112
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M62 10 C40 14 26 32 26 52 C26 74 44 90 64 90 C70 90 76 88 80 86 C60 82 46 66 46 46 C46 31 52 18 62 10 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "hw-b3-g-feature-2",
+          "groupName": "Feature 2"
+        },
+        {
+          "id": "hw-b3-sparkle-8",
+          "type": "shape",
+          "name": "Sparkle",
+          "position": {
+            "x": 625,
+            "y": 624
+          },
+          "size": {
+            "width": 46,
+            "height": 46
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "hw-b3-g-feature-2",
+          "groupName": "Feature 2"
+        },
+        {
+          "id": "hw-b3-label-9",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 421,
+            "y": 776
+          },
+          "size": {
+            "width": 364,
+            "height": 115
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "SLEEP\nMEDITATIONS",
+          "fontSize": 11.1,
+          "color": "#FFFFFF",
+          "fontFamily": "Merriweather Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.3,
+          "letterSpacing": 0.45,
+          "groupId": "hw-b3-g-feature-2",
+          "groupName": "Feature 2"
+        },
+        {
+          "id": "hw-b3-cell-outline-10",
+          "type": "shape",
+          "name": "Cell outline",
+          "position": {
+            "x": 809,
+            "y": 566
+          },
+          "size": {
+            "width": 338,
+            "height": 388
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "rgba(255,255,255,0.32)",
+          "strokeColor": "transparent",
+          "strokeWidth": 3,
+          "customPath": "M0 0 V86 Q0 100 12 100 H88 Q100 100 100 86 V0",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 3
+          },
+          "groupId": "hw-b3-g-feature-3",
+          "groupName": "Feature 3"
+        },
+        {
+          "id": "hw-b3-icon-11",
+          "type": "shape",
+          "name": "Icon",
+          "position": {
+            "x": 922,
+            "y": 628
+          },
+          "size": {
+            "width": 112,
+            "height": 112
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M14 14 H86 A8 8 0 0 1 94 22 V78 A8 8 0 0 1 86 86 H14 A8 8 0 0 1 6 78 V22 A8 8 0 0 1 14 14 ZM18 22 H82 A4 4 0 0 1 86 26 V74 A4 4 0 0 1 82 78 H18 A4 4 0 0 1 14 74 V26 A4 4 0 0 1 18 22 Z M20 70 L38 46 L50 60 L64 40 L80 70 Z M26 34 A6 6 0 1 0 38 34 A6 6 0 1 0 26 34 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "fillRule": "evenodd"
+          },
+          "groupId": "hw-b3-g-feature-3",
+          "groupName": "Feature 3"
+        },
+        {
+          "id": "hw-b3-label-12",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 815,
+            "y": 776
+          },
+          "size": {
+            "width": 326,
+            "height": 115
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "SLEEP\nSTORIES",
+          "fontSize": 11.1,
+          "color": "#FFFFFF",
+          "fontFamily": "Merriweather Sans",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.3,
+          "letterSpacing": 0.45,
+          "groupId": "hw-b3-g-feature-3",
+          "groupName": "Feature 3"
+        },
+        {
+          "id": "hw-b3-hand-13",
+          "type": "image",
+          "name": "Hand",
+          "position": {
+            "x": 188.37,
+            "y": 992.45
+          },
+          "size": {
+            "width": 1729.88,
+            "height": 2360
+          },
+          "rotation": -10,
+          "scale": 1,
+          "imageSrc": "/elements/images/touch/touch-as522881486.png",
+          "imageAlt": "Hand",
+          "objectFit": "fill",
+          "tintColor": "#5E0A66",
+          "tintOpacity": 0.5,
+          "groupId": "hw-b3-g-hand-and-phone",
+          "groupName": "Hand and phone"
+        },
+        {
+          "id": "hw-b3-phone-14",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 222.96,
+            "y": 1049.73
+          },
+          "size": {
+            "width": 774.08,
+            "height": 1620.54
+          },
+          "rotation": -10,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#3D0A40",
+          "screenshotSrc": "/data/projects/hushwave-sleep-screen-visuals.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "hw-b3-g-hand-and-phone",
+          "groupName": "Hand and phone"
+        }
+      ]
+    },
+    {
+      "id": "hw-board-4",
+      "name": "Calm Anxiety With Guided Meditation",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#2A062C",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#1F0422",
+        "color2": "#33073A",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "hw-b4-glow-1",
+          "type": "shape",
+          "name": "Glow",
+          "position": {
+            "x": -100,
+            "y": 520
+          },
+          "size": {
+            "width": 1400,
+            "height": 1400
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#E216E0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.95,
+          "blur": 200,
+          "groupId": "hw-b4-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "hw-b4-shade-bottom-2",
+          "type": "shape",
+          "name": "Shade bottom",
+          "position": {
+            "x": -200,
+            "y": 2150
+          },
+          "size": {
+            "width": 1600,
+            "height": 1600
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#16021A",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.8,
+          "blur": 220,
+          "groupId": "hw-b4-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "hw-b4-title-3",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 30,
+            "y": 113
+          },
+          "size": {
+            "width": 1146,
+            "height": 579
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Calm anxiety\nwith guided\nmeditation",
+          "fontSize": 45,
+          "color": "#FBE6F8",
+          "fontFamily": "Merriweather Sans",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.12,
+          "letterSpacing": -0.3,
+          "groupId": "hw-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "hw-b4-hand-4",
+          "type": "image",
+          "name": "Hand",
+          "position": {
+            "x": 29.09,
+            "y": 809.1
+          },
+          "size": {
+            "width": 1986.43,
+            "height": 2710
+          },
+          "rotation": 3,
+          "scale": 1,
+          "imageSrc": "/elements/images/touch/touch-as522881486.png",
+          "imageAlt": "Hand",
+          "objectFit": "fill",
+          "tintColor": "#5E0A66",
+          "tintOpacity": 0.5,
+          "groupId": "hw-b4-g-hand-and-phone",
+          "groupName": "Hand and phone"
+        },
+        {
+          "id": "hw-b4-phone-5",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 162.56,
+            "y": 769.57
+          },
+          "size": {
+            "width": 888.88,
+            "height": 1860.87
+          },
+          "rotation": 3,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#3D0A40",
+          "screenshotSrc": "/data/projects/hushwave-sleep-screen-narrations.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "groupId": "hw-b4-g-hand-and-phone",
+          "groupName": "Hand and phone"
+        }
+      ]
+    },
+    {
+      "id": "hw-board-5",
+      "name": "Rain, Ocean And White Noise",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#160214",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#1D0420",
+        "color2": "#12020F",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "hw-b5-glow-1",
+          "type": "shape",
+          "name": "Glow",
+          "position": {
+            "x": 640,
+            "y": 380
+          },
+          "size": {
+            "width": 1000,
+            "height": 1000
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#C010C0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.85,
+          "blur": 210,
+          "groupId": "hw-b5-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "hw-b5-glow-low-2",
+          "type": "shape",
+          "name": "Glow low",
+          "position": {
+            "x": -420,
+            "y": 1500
+          },
+          "size": {
+            "width": 800,
+            "height": 800
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#8A0B8E",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.55,
+          "blur": 200,
+          "groupId": "hw-b5-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "hw-b5-phone-3",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 70,
+            "y": -174
+          },
+          "size": {
+            "width": 1067,
+            "height": 2233.76
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#4A0C48",
+          "screenshotSrc": "/data/projects/hushwave-sleep-screen-soundscapes.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "shadow": {
+            "x": 0,
+            "y": 40,
+            "blur": 100,
+            "color": "rgba(200,16,192,0.35)"
+          },
+          "groupId": "hw-b5-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "hw-b5-title-4",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 30,
+            "y": 2131
+          },
+          "size": {
+            "width": 1146,
+            "height": 412
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Rain, ocean\n& white noise",
+          "fontSize": 45,
+          "color": "#FBE6F8",
+          "fontFamily": "Merriweather Sans",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.12,
+          "letterSpacing": -0.3,
+          "groupId": "hw-b5-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    }
+  ]
+}

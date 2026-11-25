@@ -1,0 +1,1788 @@
+{
+  "id": "template_echoline_recorder",
+  "name": "Echoline Call Recorder",
+  "description": "App Store & Play Store screenshots for a call recorder, transcription or voice memo app. Rounded Outfit headlines on one royal blue with curved ribbons of light. A 3D phone you can turn to any angle runs across the first two screenshots with a tilted recorder pill on it, chat bubbles and a search bar pop out of the phones, and an arrow points from a voice note to its file card. Every part sits in named, editable layer groups, with each ribbon and glow on a layer of its own. The user count is sample copy, marked in the layer names: replace it with your own.",
+  "previewImage": "/data/projects/previews/echoline-recorder.png",
+  "timestamp": "2026-11-25T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "el-board-1",
+      "name": "Record Every Call",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0A4BFF",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#0A4BFF",
+        "color2": "#0733D6",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "el-b1-glow-left-1",
+          "type": "shape",
+          "name": "Glow left",
+          "position": {
+            "x": -300,
+            "y": 1500
+          },
+          "size": {
+            "width": 1100,
+            "height": 1100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#2F7BFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.55,
+          "blur": 200,
+          "spanArtboards": true,
+          "spanBehind": true,
+          "groupId": "el-b1-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "el-b1-glow-right-2",
+          "type": "shape",
+          "name": "Glow right",
+          "position": {
+            "x": 1560,
+            "y": 1300
+          },
+          "size": {
+            "width": 1000,
+            "height": 1000
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#2F7BFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.45,
+          "blur": 200,
+          "spanArtboards": true,
+          "spanBehind": true,
+          "groupId": "el-b1-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "el-b1-light-sweep-3",
+          "type": "shape",
+          "name": "Light sweep",
+          "position": {
+            "x": -300,
+            "y": 300
+          },
+          "size": {
+            "width": 2400,
+            "height": 1350
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#4D94FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 6 Q50 57 100 76 L100 77 Q50 91 0 7 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "opacity": 0.2,
+          "blur": 70,
+          "spanArtboards": true,
+          "spanBehind": true,
+          "groupId": "el-b1-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "el-b1-ribbon-glow-4",
+          "type": "shape",
+          "name": "Ribbon glow",
+          "position": {
+            "x": -240,
+            "y": 1290
+          },
+          "size": {
+            "width": 2900,
+            "height": 860
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#4D94FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 60 Q50 71 100 30 L100 31 Q50 91 0 61 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "opacity": 0.55,
+          "blur": 44,
+          "spanArtboards": true,
+          "spanBehind": true,
+          "groupId": "el-b1-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "el-b1-ribbon-5",
+          "type": "shape",
+          "name": "Ribbon",
+          "position": {
+            "x": -240,
+            "y": 1290
+          },
+          "size": {
+            "width": 2900,
+            "height": 860
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#A9CEFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 60 Q50 79 100 30 L100 31 Q50 83 0 61 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "opacity": 0.95,
+          "blur": 9,
+          "spanArtboards": true,
+          "spanBehind": true,
+          "groupId": "el-b1-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "el-b1-title-6",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 92,
+            "y": 60
+          },
+          "size": {
+            "width": 900,
+            "height": 711
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Record\nevery\ncall",
+          "fontSize": 59.4,
+          "color": "#FFFFFF",
+          "fillGradient": {
+            "color1": "#FFFFFF",
+            "color2": "#D6E4FF",
+            "angle": 180
+          },
+          "fontFamily": "Outfit",
+          "fontWeight": "900",
+          "textAlign": "left",
+          "lineHeight": 1.03,
+          "letterSpacing": -0.6,
+          "groupId": "el-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "el-b1-phone-7",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 705,
+            "y": 747
+          },
+          "size": {
+            "width": 1756.53,
+            "height": 2417.32
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-17-pro",
+          "styleType": "3d-studio",
+          "screenshotSrc": "/data/projects/echoline-recorder-screen-call.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "rotation3d": {
+            "yaw": 24,
+            "pitch": -40,
+            "roll": 11.5
+          },
+          "finish3d": "deep-blue",
+          "lens3d": 20,
+          "spanArtboards": true,
+          "spanBehind": true,
+          "groupId": "el-b1-g-phone-and-recorder",
+          "groupName": "Phone and recorder"
+        },
+        {
+          "id": "el-b1-pill-8",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 547,
+            "y": 880
+          },
+          "size": {
+            "width": 460,
+            "height": 1076
+          },
+          "rotation": -18,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 230,
+          "shadow": {
+            "x": 0,
+            "y": 34,
+            "blur": 80,
+            "color": "rgba(2,16,90,0.45)"
+          },
+          "groupId": "el-b1-g-phone-and-recorder",
+          "groupName": "Phone and recorder"
+        },
+        {
+          "id": "el-b1-icon-tile-9",
+          "type": "shape",
+          "name": "Icon tile",
+          "position": {
+            "x": 546.15,
+            "y": 998.39
+          },
+          "size": {
+            "width": 280,
+            "height": 280
+          },
+          "rotation": -18,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1E55F0",
+          "fillGradient": {
+            "color1": "#3F86FF",
+            "color2": "#1E55F0",
+            "angle": 160
+          },
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 67,
+          "groupId": "el-b1-g-phone-and-recorder",
+          "groupName": "Phone and recorder"
+        },
+        {
+          "id": "el-b1-handset-10",
+          "type": "shape",
+          "name": "Handset",
+          "position": {
+            "x": 599.9,
+            "y": 1087.62
+          },
+          "size": {
+            "width": 145.6,
+            "height": 145.6
+          },
+          "rotation": -18,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M20 8 C14 8 8 14 8 20 C8 58 42 92 80 92 C86 92 92 86 92 80 V66 C92 62 90 60 86 59 L68 54 C65 53 62 54 60 57 L54 64 C44 59 41 56 36 46 L43 40 C46 38 47 35 46 32 L41 14 C40 10 38 8 34 8 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "el-b1-g-phone-and-recorder",
+          "groupName": "Phone and recorder"
+        },
+        {
+          "id": "el-b1-sound-bars-11",
+          "type": "shape",
+          "name": "Sound bars",
+          "position": {
+            "x": 679.24,
+            "y": 1028.76
+          },
+          "size": {
+            "width": 84,
+            "height": 72.8
+          },
+          "rotation": -18,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 12.35 A3 3 0 0 1 6 12.35 V21.65 A3 3 0 0 1 0 21.65 Z M11 3 A3 3 0 0 1 17 3 V31 A3 3 0 0 1 11 31 Z M22 8.1 A3 3 0 0 1 28 8.1 V25.9 A3 3 0 0 1 22 25.9 Z M33 14.05 A3 3 0 0 1 39 14.05 V19.95 A3 3 0 0 1 33 19.95 Z",
+          "specialProps": {
+            "viewBox": "0 0 39 34"
+          },
+          "groupId": "el-b1-g-phone-and-recorder",
+          "groupName": "Phone and recorder"
+        },
+        {
+          "id": "el-b1-timer-12",
+          "type": "text",
+          "name": "Timer",
+          "position": {
+            "x": 572.1,
+            "y": 1331.19
+          },
+          "size": {
+            "width": 420,
+            "height": 205
+          },
+          "rotation": -18,
+          "scale": 1,
+          "content": "4:34",
+          "fontSize": 38.4,
+          "color": "#0B0B0F",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.6,
+          "groupId": "el-b1-g-phone-and-recorder",
+          "groupName": "Phone and recorder"
+        },
+        {
+          "id": "el-b1-stop-ring-13",
+          "type": "shape",
+          "name": "Stop ring",
+          "position": {
+            "x": 713.56,
+            "y": 1551.02
+          },
+          "size": {
+            "width": 316,
+            "height": 316
+          },
+          "rotation": -18,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "rgba(255,70,88,0.10)",
+          "strokeColor": "#FF4658",
+          "strokeWidth": 8,
+          "groupId": "el-b1-g-phone-and-recorder",
+          "groupName": "Phone and recorder"
+        },
+        {
+          "id": "el-b1-stop-square-14",
+          "type": "shape",
+          "name": "Stop square",
+          "position": {
+            "x": 805.2,
+            "y": 1642.66
+          },
+          "size": {
+            "width": 132.72,
+            "height": 132.72
+          },
+          "rotation": -18,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF4658",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 35,
+          "groupId": "el-b1-g-phone-and-recorder",
+          "groupName": "Phone and recorder"
+        },
+        {
+          "id": "el-b1-number-sample-15",
+          "type": "text",
+          "name": "Number (sample)",
+          "position": {
+            "x": 86,
+            "y": 1986
+          },
+          "size": {
+            "width": 800,
+            "height": 450
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "2M+",
+          "fontSize": 90,
+          "color": "#FFFFFF",
+          "fillGradient": {
+            "color1": "#FFFFFF",
+            "color2": "#D6E4FF",
+            "angle": 180
+          },
+          "fontFamily": "Outfit",
+          "fontWeight": "900",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -1.8,
+          "groupId": "el-b1-g-social-proof",
+          "groupName": "Social proof"
+        },
+        {
+          "id": "el-b1-caption-sample-16",
+          "type": "text",
+          "name": "Caption (sample)",
+          "position": {
+            "x": 96,
+            "y": 2338
+          },
+          "size": {
+            "width": 760,
+            "height": 220
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "people record\nwith Echoline",
+          "fontSize": 23.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.16,
+          "letterSpacing": -0.3,
+          "groupId": "el-b1-g-social-proof",
+          "groupName": "Social proof"
+        }
+      ]
+    },
+    {
+      "id": "el-board-2",
+      "name": "With One Simple App",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0A4BFF",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#0A4BFF",
+        "color2": "#0733D6",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "el-b2-title-1",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 240,
+            "y": 60
+          },
+          "size": {
+            "width": 874,
+            "height": 711
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "With one\nsimple\napp",
+          "fontSize": 59.4,
+          "color": "#FFFFFF",
+          "fillGradient": {
+            "color1": "#FFFFFF",
+            "color2": "#D6E4FF",
+            "angle": 180
+          },
+          "fontFamily": "Outfit",
+          "fontWeight": "900",
+          "textAlign": "right",
+          "lineHeight": 1.03,
+          "letterSpacing": -0.6,
+          "groupId": "el-b2-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    },
+    {
+      "id": "el-board-3",
+      "name": "Get Full Transcripts",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0A4BFF",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#0A4BFF",
+        "color2": "#0733D6",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "el-b3-glow-1",
+          "type": "shape",
+          "name": "Glow",
+          "position": {
+            "x": -220,
+            "y": 1500
+          },
+          "size": {
+            "width": 1100,
+            "height": 1100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#2F7BFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.55,
+          "blur": 200,
+          "groupId": "el-b3-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "el-b3-light-sweep-2",
+          "type": "shape",
+          "name": "Light sweep",
+          "position": {
+            "x": -260,
+            "y": 404
+          },
+          "size": {
+            "width": 1760,
+            "height": 1250
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#4D94FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 8 Q50 59 100 74 L100 75 Q50 99 0 9 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "opacity": 0.2,
+          "blur": 70,
+          "groupId": "el-b3-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "el-b3-ribbon-glow-3",
+          "type": "shape",
+          "name": "Ribbon glow",
+          "position": {
+            "x": -200,
+            "y": 1284
+          },
+          "size": {
+            "width": 1620,
+            "height": 920
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#4D94FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 26 Q50 17 100 60 L100 61 Q50 37 0 27 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "opacity": 0.55,
+          "blur": 44,
+          "groupId": "el-b3-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "el-b3-ribbon-4",
+          "type": "shape",
+          "name": "Ribbon",
+          "position": {
+            "x": -200,
+            "y": 1284
+          },
+          "size": {
+            "width": 1620,
+            "height": 920
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#A9CEFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 26 Q50 25 100 60 L100 61 Q50 29 0 27 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "opacity": 0.95,
+          "blur": 9,
+          "groupId": "el-b3-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "el-b3-title-5",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 40,
+            "y": 120
+          },
+          "size": {
+            "width": 1126,
+            "height": 405
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Get full\ntranscripts",
+          "fontSize": 47.4,
+          "color": "#FFFFFF",
+          "fillGradient": {
+            "color1": "#FFFFFF",
+            "color2": "#D6E4FF",
+            "angle": 180
+          },
+          "fontFamily": "Outfit",
+          "fontWeight": "900",
+          "textAlign": "center",
+          "lineHeight": 1.03,
+          "letterSpacing": -0.6,
+          "groupId": "el-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "el-b3-phone-6",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 143,
+            "y": 556
+          },
+          "size": {
+            "width": 920,
+            "height": 1926.02
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#74B4FF",
+          "screenshotSrc": "/data/projects/echoline-recorder-screen-transcript.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "shadow": {
+            "x": 0,
+            "y": 40,
+            "blur": 100,
+            "color": "rgba(2,16,90,0.45)"
+          },
+          "groupId": "el-b3-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "el-b3-bubble-7",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 648,
+            "y": 1036
+          },
+          "size": {
+            "width": 530,
+            "height": 200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#2B7CF8",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 40,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 60,
+            "color": "rgba(2,16,90,0.38)"
+          },
+          "groupId": "el-b3-g-their-message",
+          "groupName": "Their message"
+        },
+        {
+          "id": "el-b3-message-8",
+          "type": "text",
+          "name": "Message",
+          "position": {
+            "x": 688,
+            "y": 1062
+          },
+          "size": {
+            "width": 460,
+            "height": 157
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Hi Daniel, great\nto finally talk",
+          "fontSize": 15,
+          "color": "#FFFFFF",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.32,
+          "groupId": "el-b3-g-their-message",
+          "groupName": "Their message"
+        },
+        {
+          "id": "el-b3-bubble-9",
+          "type": "shape",
+          "name": "Bubble",
+          "position": {
+            "x": 30,
+            "y": 1262
+          },
+          "size": {
+            "width": 740,
+            "height": 264
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 40,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 60,
+            "color": "rgba(2,16,90,0.38)"
+          },
+          "groupId": "el-b3-g-your-message",
+          "groupName": "Your message"
+        },
+        {
+          "id": "el-b3-message-10",
+          "type": "text",
+          "name": "Message",
+          "position": {
+            "x": 72,
+            "y": 1290
+          },
+          "size": {
+            "width": 670,
+            "height": 217
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Likewise. Mind if I record\nthis so I can share\nnotes later?",
+          "fontSize": 14.4,
+          "color": "#22252D",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.34,
+          "groupId": "el-b3-g-your-message",
+          "groupName": "Your message"
+        }
+      ]
+    },
+    {
+      "id": "el-board-4",
+      "name": "Save Voice Notes Too",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0A4BFF",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#0A4BFF",
+        "color2": "#0733D6",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "el-b4-glow-1",
+          "type": "shape",
+          "name": "Glow",
+          "position": {
+            "x": -180,
+            "y": 1500
+          },
+          "size": {
+            "width": 1100,
+            "height": 1100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#2F7BFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.55,
+          "blur": 200,
+          "groupId": "el-b4-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "el-b4-light-sweep-2",
+          "type": "shape",
+          "name": "Light sweep",
+          "position": {
+            "x": -260,
+            "y": 426
+          },
+          "size": {
+            "width": 1760,
+            "height": 1250
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#4D94FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 8 Q50 59 100 74 L100 75 Q50 99 0 9 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "opacity": 0.2,
+          "blur": 70,
+          "groupId": "el-b4-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "el-b4-ribbon-glow-3",
+          "type": "shape",
+          "name": "Ribbon glow",
+          "position": {
+            "x": -200,
+            "y": 1306
+          },
+          "size": {
+            "width": 1620,
+            "height": 920
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#4D94FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 66 Q50 23 100 36 L100 37 Q50 43 0 67 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "opacity": 0.55,
+          "blur": 44,
+          "groupId": "el-b4-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "el-b4-ribbon-4",
+          "type": "shape",
+          "name": "Ribbon",
+          "position": {
+            "x": -200,
+            "y": 1306
+          },
+          "size": {
+            "width": 1620,
+            "height": 920
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#A9CEFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 66 Q50 31 100 36 L100 37 Q50 35 0 67 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "opacity": 0.95,
+          "blur": 9,
+          "groupId": "el-b4-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "el-b4-title-5",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 40,
+            "y": 120
+          },
+          "size": {
+            "width": 1126,
+            "height": 405
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Save voice\nnotes too",
+          "fontSize": 47.4,
+          "color": "#FFFFFF",
+          "fillGradient": {
+            "color1": "#FFFFFF",
+            "color2": "#D6E4FF",
+            "angle": 180
+          },
+          "fontFamily": "Outfit",
+          "fontWeight": "900",
+          "textAlign": "center",
+          "lineHeight": 1.03,
+          "letterSpacing": -0.6,
+          "groupId": "el-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "el-b4-phone-6",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 143,
+            "y": 556
+          },
+          "size": {
+            "width": 920,
+            "height": 1926.02
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#74B4FF",
+          "screenshotSrc": "/data/projects/echoline-recorder-screen-recorder.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "shadow": {
+            "x": 0,
+            "y": 40,
+            "blur": 100,
+            "color": "rgba(2,16,90,0.45)"
+          },
+          "groupId": "el-b4-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "el-b4-arrow-7",
+          "type": "shape",
+          "name": "Arrow",
+          "position": {
+            "x": 742,
+            "y": 1600
+          },
+          "size": {
+            "width": 400,
+            "height": 690
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#0B0B0F",
+          "strokeColor": "transparent",
+          "strokeWidth": 8,
+          "customPath": "M92 2 C112 44 86 86 10 92 M24 84 L10 92 L22 100",
+          "specialProps": {
+            "viewBox": "0 0 104 102",
+            "strokeOnly": true,
+            "baseStrokeWidth": 8
+          },
+          "groupId": "el-b4-g-arrow",
+          "groupName": "Arrow"
+        },
+        {
+          "id": "el-b4-card-8",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 60,
+            "y": 1930
+          },
+          "size": {
+            "width": 660,
+            "height": 590
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 54,
+          "shadow": {
+            "x": 0,
+            "y": 34,
+            "blur": 80,
+            "color": "rgba(2,16,90,0.45)"
+          },
+          "groupId": "el-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "el-b4-panel-9",
+          "type": "shape",
+          "name": "Panel",
+          "position": {
+            "x": 88,
+            "y": 1958
+          },
+          "size": {
+            "width": 604,
+            "height": 366
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1E55F0",
+          "fillGradient": {
+            "color1": "#3F86FF",
+            "color2": "#0F37C8",
+            "angle": 150
+          },
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 36,
+          "groupId": "el-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "el-b4-ring-1-10",
+          "type": "shape",
+          "name": "Ring 1",
+          "position": {
+            "x": 502,
+            "y": 1828
+          },
+          "size": {
+            "width": 310,
+            "height": 310
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "rgba(0,0,0,0)",
+          "strokeColor": "rgba(255,255,255,0.3)",
+          "strokeWidth": 4,
+          "groupId": "el-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "el-b4-ring-2-11",
+          "type": "shape",
+          "name": "Ring 2",
+          "position": {
+            "x": -22,
+            "y": 2194
+          },
+          "size": {
+            "width": 280,
+            "height": 280
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "rgba(0,0,0,0)",
+          "strokeColor": "rgba(255,255,255,0.3)",
+          "strokeWidth": 4,
+          "groupId": "el-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "el-b4-call-badge-12",
+          "type": "shape",
+          "name": "Call badge",
+          "position": {
+            "x": 336,
+            "y": 2016
+          },
+          "size": {
+            "width": 108,
+            "height": 108
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "rgba(255,255,255,0.24)",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "el-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "el-b4-call-icon-13",
+          "type": "shape",
+          "name": "Call icon",
+          "position": {
+            "x": 365,
+            "y": 2045
+          },
+          "size": {
+            "width": 50,
+            "height": 50
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M20 8 C14 8 8 14 8 20 C8 58 42 92 80 92 C86 92 92 86 92 80 V66 C92 62 90 60 86 59 L68 54 C65 53 62 54 60 57 L54 64 C44 59 41 56 36 46 L43 40 C46 38 47 35 46 32 L41 14 C40 10 38 8 34 8 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "el-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "el-b4-file-name-14",
+          "type": "text",
+          "name": "File name",
+          "position": {
+            "x": 98,
+            "y": 2146
+          },
+          "size": {
+            "width": 584,
+            "height": 90
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Memo_014.m4a",
+          "fontSize": 16.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "el-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "el-b4-file-date-15",
+          "type": "text",
+          "name": "File date",
+          "position": {
+            "x": 98,
+            "y": 2234
+          },
+          "size": {
+            "width": 584,
+            "height": 48
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "12 Mar 2026  ·  14:01",
+          "fontSize": 9,
+          "color": "rgba(255,255,255,0.86)",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "el-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "el-b4-speed-16",
+          "type": "text",
+          "name": "Speed",
+          "position": {
+            "x": 96,
+            "y": 2370
+          },
+          "size": {
+            "width": 110,
+            "height": 74
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "1x",
+          "fontSize": 13.8,
+          "color": "#0B0B0F",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "el-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "el-b4-back-17",
+          "type": "shape",
+          "name": "Back",
+          "position": {
+            "x": 238,
+            "y": 2382
+          },
+          "size": {
+            "width": 60,
+            "height": 60
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#3A3E48",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M92 20 L52 50 L92 80 Z M48 20 L8 50 L48 80 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "el-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "el-b4-play-button-18",
+          "type": "shape",
+          "name": "Play button",
+          "position": {
+            "x": 326,
+            "y": 2348
+          },
+          "size": {
+            "width": 128,
+            "height": 128
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#1E55F0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 30,
+            "color": "rgba(30,85,240,0.5)"
+          },
+          "groupId": "el-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "el-b4-play-icon-19",
+          "type": "shape",
+          "name": "Play icon",
+          "position": {
+            "x": 366,
+            "y": 2384
+          },
+          "size": {
+            "width": 54,
+            "height": 56
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M26 12 L86 50 L26 88 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "el-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "el-b4-forward-20",
+          "type": "shape",
+          "name": "Forward",
+          "position": {
+            "x": 482,
+            "y": 2382
+          },
+          "size": {
+            "width": 60,
+            "height": 60
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#3A3E48",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M8 20 L48 50 L8 80 Z M52 20 L92 50 L52 80 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "el-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "el-b4-trim-21",
+          "type": "text",
+          "name": "Trim",
+          "position": {
+            "x": 566,
+            "y": 2378
+          },
+          "size": {
+            "width": 130,
+            "height": 64
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Trim",
+          "fontSize": 12,
+          "color": "#3A3E48",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "el-b4-g-recording-card",
+          "groupName": "Recording card"
+        }
+      ]
+    },
+    {
+      "id": "el-board-5",
+      "name": "Find Any Call In Seconds",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0A4BFF",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#0A4BFF",
+        "color2": "#0733D6",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "el-b5-glow-1",
+          "type": "shape",
+          "name": "Glow",
+          "position": {
+            "x": -140,
+            "y": 1500
+          },
+          "size": {
+            "width": 1100,
+            "height": 1100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#2F7BFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.55,
+          "blur": 200,
+          "groupId": "el-b5-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "el-b5-light-sweep-2",
+          "type": "shape",
+          "name": "Light sweep",
+          "position": {
+            "x": -260,
+            "y": 448
+          },
+          "size": {
+            "width": 1760,
+            "height": 1250
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#4D94FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 8 Q50 59 100 74 L100 75 Q50 99 0 9 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "opacity": 0.2,
+          "blur": 70,
+          "groupId": "el-b5-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "el-b5-ribbon-glow-3",
+          "type": "shape",
+          "name": "Ribbon glow",
+          "position": {
+            "x": -200,
+            "y": 1328
+          },
+          "size": {
+            "width": 1620,
+            "height": 920
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#4D94FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 34 Q50 76 100 66 L100 67 Q50 96 0 35 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "opacity": 0.55,
+          "blur": 44,
+          "groupId": "el-b5-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "el-b5-ribbon-4",
+          "type": "shape",
+          "name": "Ribbon",
+          "position": {
+            "x": -200,
+            "y": 1328
+          },
+          "size": {
+            "width": 1620,
+            "height": 920
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#A9CEFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 34 Q50 84 100 66 L100 67 Q50 88 0 35 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "opacity": 0.95,
+          "blur": 9,
+          "groupId": "el-b5-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "el-b5-title-5",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 40,
+            "y": 120
+          },
+          "size": {
+            "width": 1126,
+            "height": 405
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Find any call\nin seconds",
+          "fontSize": 47.4,
+          "color": "#FFFFFF",
+          "fillGradient": {
+            "color1": "#FFFFFF",
+            "color2": "#D6E4FF",
+            "angle": 180
+          },
+          "fontFamily": "Outfit",
+          "fontWeight": "900",
+          "textAlign": "center",
+          "lineHeight": 1.03,
+          "letterSpacing": -0.6,
+          "groupId": "el-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "el-b5-phone-6",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 143,
+            "y": 556
+          },
+          "size": {
+            "width": 920,
+            "height": 1926.02
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#74B4FF",
+          "screenshotSrc": "/data/projects/echoline-recorder-screen-library.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "shadow": {
+            "x": 0,
+            "y": 40,
+            "blur": 100,
+            "color": "rgba(2,16,90,0.45)"
+          },
+          "groupId": "el-b5-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "el-b5-bar-7",
+          "type": "shape",
+          "name": "Bar",
+          "position": {
+            "x": 58,
+            "y": 826
+          },
+          "size": {
+            "width": 1090,
+            "height": 142
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 71,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 60,
+            "color": "rgba(2,16,90,0.38)"
+          },
+          "groupId": "el-b5-g-search-bar",
+          "groupName": "Search bar"
+        },
+        {
+          "id": "el-b5-search-icon-8",
+          "type": "shape",
+          "name": "Search icon",
+          "position": {
+            "x": 104,
+            "y": 866
+          },
+          "size": {
+            "width": 62,
+            "height": 62
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#1E55F0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M16 42 A26 26 0 1 0 68 42 A26 26 0 1 0 16 42 Z M26 42 A16 16 0 1 0 58 42 A16 16 0 1 0 26 42 Z M60 68 L68 60 L92 84 L84 92 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "fillRule": "evenodd"
+          },
+          "groupId": "el-b5-g-search-bar",
+          "groupName": "Search bar"
+        },
+        {
+          "id": "el-b5-query-9",
+          "type": "text",
+          "name": "Query",
+          "position": {
+            "x": 196,
+            "y": 852
+          },
+          "size": {
+            "width": 700,
+            "height": 90
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "launch timeline",
+          "fontSize": 16.8,
+          "color": "#0B0B0F",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "el-b5-g-search-bar",
+          "groupName": "Search bar"
+        },
+        {
+          "id": "el-b5-cursor-10",
+          "type": "shape",
+          "name": "Cursor",
+          "position": {
+            "x": 588,
+            "y": 862
+          },
+          "size": {
+            "width": 5,
+            "height": 70
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1E55F0",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 2,
+          "groupId": "el-b5-g-search-bar",
+          "groupName": "Search bar"
+        },
+        {
+          "id": "el-b5-chip-11",
+          "type": "shape",
+          "name": "Chip",
+          "position": {
+            "x": 640,
+            "y": 1690
+          },
+          "size": {
+            "width": 510,
+            "height": 170
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 85,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 60,
+            "color": "rgba(2,16,90,0.38)"
+          },
+          "groupId": "el-b5-g-result-chip",
+          "groupName": "Result chip"
+        },
+        {
+          "id": "el-b5-badge-12",
+          "type": "shape",
+          "name": "Badge",
+          "position": {
+            "x": 664.65,
+            "y": 1728.82
+          },
+          "size": {
+            "width": 122,
+            "height": 122
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#19C954",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "el-b5-g-result-chip",
+          "groupName": "Result chip"
+        },
+        {
+          "id": "el-b5-check-13",
+          "type": "shape",
+          "name": "Check",
+          "position": {
+            "x": 696.65,
+            "y": 1762.82
+          },
+          "size": {
+            "width": 58,
+            "height": 54
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 12,
+          "customPath": "M12 54 L40 80 L90 22",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 12
+          },
+          "groupId": "el-b5-g-result-chip",
+          "groupName": "Result chip"
+        },
+        {
+          "id": "el-b5-chip-title-14",
+          "type": "text",
+          "name": "Chip title",
+          "position": {
+            "x": 808.39,
+            "y": 1711.08
+          },
+          "size": {
+            "width": 330,
+            "height": 84
+          },
+          "rotation": -5,
+          "scale": 1,
+          "content": "3 matches",
+          "fontSize": 15.6,
+          "color": "#0B0B0F",
+          "fontFamily": "Outfit",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "el-b5-g-result-chip",
+          "groupName": "Result chip"
+        },
+        {
+          "id": "el-b5-chip-note-15",
+          "type": "text",
+          "name": "Chip note",
+          "position": {
+            "x": 813.05,
+            "y": 1778.88
+          },
+          "size": {
+            "width": 330,
+            "height": 55
+          },
+          "rotation": -5,
+          "scale": 1,
+          "content": "in 2 recordings",
+          "fontSize": 10.2,
+          "color": "#6A7080",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "el-b5-g-result-chip",
+          "groupName": "Result chip"
+        }
+      ]
+    }
+  ]
+}

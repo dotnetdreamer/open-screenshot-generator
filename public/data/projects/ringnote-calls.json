@@ -1,0 +1,2501 @@
+{
+  "id": "template_ringnote_calls",
+  "name": "Ringnote Call Recorder",
+  "description": "App Store & Play Store screenshots for a call recorder, voice memo or transcription app. A wide Unbounded headline over sky blue, then black and paper white artboards. A recording pill and an incoming call pill tilt across the first screenshot, a white phone leans over the edge onto the second, a waveform runs behind both, and a recorder pill, a file card and a summary chip pop out of the phones. Every part sits in named, editable layer groups, with each background colour and glow on a layer of its own. The star rating and the review are sample copy, marked in the group names: replace them with your own.",
+  "previewImage": "/data/projects/previews/ringnote-calls.png",
+  "timestamp": "2026-11-25T00:00:00.000Z",
+  "projectData": [
+    {
+      "id": "rn-board-1",
+      "name": "Record Phone Calls",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#2F79FE",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#2F79FE",
+        "color2": "#5C9BFF",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "rn-b1-glow-1",
+          "type": "shape",
+          "name": "Glow",
+          "position": {
+            "x": 420,
+            "y": 1500
+          },
+          "size": {
+            "width": 1100,
+            "height": 1100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.16,
+          "blur": 160,
+          "groupId": "rn-b1-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "rn-b1-waveform-2",
+          "type": "shape",
+          "name": "Waveform",
+          "position": {
+            "x": 310,
+            "y": 1590
+          },
+          "size": {
+            "width": 2092,
+            "height": 420
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 201.8 A6.5 6.5 0 0 1 13 201.8 V218.2 A6.5 6.5 0 0 1 0 218.2 Z M33 201.8 A6.5 6.5 0 0 1 46 201.8 V218.2 A6.5 6.5 0 0 1 33 218.2 Z M66 198.55 A6.5 6.5 0 0 1 79 198.55 V221.45 A6.5 6.5 0 0 1 66 221.45 Z M99 195.54 A6.5 6.5 0 0 1 112 195.54 V224.46 A6.5 6.5 0 0 1 99 224.46 Z M132 199.29 A6.5 6.5 0 0 1 145 199.29 V220.71 A6.5 6.5 0 0 1 132 220.71 Z M165 176.06 A6.5 6.5 0 0 1 178 176.06 V243.94 A6.5 6.5 0 0 1 165 243.94 Z M198 177.48 A6.5 6.5 0 0 1 211 177.48 V242.52 A6.5 6.5 0 0 1 198 242.52 Z M231 139.02 A6.5 6.5 0 0 1 244 139.02 V280.98 A6.5 6.5 0 0 1 231 280.98 Z M264 158.9 A6.5 6.5 0 0 1 277 158.9 V261.1 A6.5 6.5 0 0 1 264 261.1 Z M297 153.44 A6.5 6.5 0 0 1 310 153.44 V266.56 A6.5 6.5 0 0 1 297 266.56 Z M330 143.84 A6.5 6.5 0 0 1 343 143.84 V276.16 A6.5 6.5 0 0 1 330 276.16 Z M363 132.3 A6.5 6.5 0 0 1 376 132.3 V287.7 A6.5 6.5 0 0 1 363 287.7 Z M396 46.28 A6.5 6.5 0 0 1 409 46.28 V373.72 A6.5 6.5 0 0 1 396 373.72 Z M429 91.67 A6.5 6.5 0 0 1 442 91.67 V328.33 A6.5 6.5 0 0 1 429 328.33 Z M462 60.26 A6.5 6.5 0 0 1 475 60.26 V359.74 A6.5 6.5 0 0 1 462 359.74 Z M495 146.26 A6.5 6.5 0 0 1 508 146.26 V273.74 A6.5 6.5 0 0 1 495 273.74 Z M528 107.19 A6.5 6.5 0 0 1 541 107.19 V312.81 A6.5 6.5 0 0 1 528 312.81 Z M561 53.68 A6.5 6.5 0 0 1 574 53.68 V366.32 A6.5 6.5 0 0 1 561 366.32 Z M594 42.34 A6.5 6.5 0 0 1 607 42.34 V377.66 A6.5 6.5 0 0 1 594 377.66 Z M627 6.5 A6.5 6.5 0 0 1 640 6.5 V413.5 A6.5 6.5 0 0 1 627 413.5 Z M660 132.47 A6.5 6.5 0 0 1 673 132.47 V287.53 A6.5 6.5 0 0 1 660 287.53 Z M693 115.71 A6.5 6.5 0 0 1 706 115.71 V304.29 A6.5 6.5 0 0 1 693 304.29 Z M726 156.07 A6.5 6.5 0 0 1 739 156.07 V263.93 A6.5 6.5 0 0 1 726 263.93 Z M759 95.02 A6.5 6.5 0 0 1 772 95.02 V324.98 A6.5 6.5 0 0 1 759 324.98 Z M792 84.91 A6.5 6.5 0 0 1 805 84.91 V335.09 A6.5 6.5 0 0 1 792 335.09 Z M825 128.85 A6.5 6.5 0 0 1 838 128.85 V291.15 A6.5 6.5 0 0 1 825 291.15 Z M858 147.37 A6.5 6.5 0 0 1 871 147.37 V272.63 A6.5 6.5 0 0 1 858 272.63 Z M891 185.51 A6.5 6.5 0 0 1 904 185.51 V234.49 A6.5 6.5 0 0 1 891 234.49 Z M924 174.25 A6.5 6.5 0 0 1 937 174.25 V245.75 A6.5 6.5 0 0 1 924 245.75 Z M957 181.54 A6.5 6.5 0 0 1 970 181.54 V238.46 A6.5 6.5 0 0 1 957 238.46 Z M990 174.93 A6.5 6.5 0 0 1 1003 174.93 V245.07 A6.5 6.5 0 0 1 990 245.07 Z M1023 189.63 A6.5 6.5 0 0 1 1036 189.63 V230.37 A6.5 6.5 0 0 1 1023 230.37 Z M1056 201.8 A6.5 6.5 0 0 1 1069 201.8 V218.2 A6.5 6.5 0 0 1 1056 218.2 Z M1089 201.8 A6.5 6.5 0 0 1 1102 201.8 V218.2 A6.5 6.5 0 0 1 1089 218.2 Z M1122 201.8 A6.5 6.5 0 0 1 1135 201.8 V218.2 A6.5 6.5 0 0 1 1122 218.2 Z M1155 183.84 A6.5 6.5 0 0 1 1168 183.84 V236.16 A6.5 6.5 0 0 1 1155 236.16 Z M1188 181.7 A6.5 6.5 0 0 1 1201 181.7 V238.3 A6.5 6.5 0 0 1 1188 238.3 Z M1221 170.87 A6.5 6.5 0 0 1 1234 170.87 V249.13 A6.5 6.5 0 0 1 1221 249.13 Z M1254 180.74 A6.5 6.5 0 0 1 1267 180.74 V239.26 A6.5 6.5 0 0 1 1254 239.26 Z M1287 189.16 A6.5 6.5 0 0 1 1300 189.16 V230.84 A6.5 6.5 0 0 1 1287 230.84 Z M1320 149.55 A6.5 6.5 0 0 1 1333 149.55 V270.45 A6.5 6.5 0 0 1 1320 270.45 Z M1353 147.36 A6.5 6.5 0 0 1 1366 147.36 V272.64 A6.5 6.5 0 0 1 1353 272.64 Z M1386 87.54 A6.5 6.5 0 0 1 1399 87.54 V332.46 A6.5 6.5 0 0 1 1386 332.46 Z M1419 133.15 A6.5 6.5 0 0 1 1432 133.15 V286.85 A6.5 6.5 0 0 1 1419 286.85 Z M1452 123.41 A6.5 6.5 0 0 1 1465 123.41 V296.59 A6.5 6.5 0 0 1 1452 296.59 Z M1485 132.17 A6.5 6.5 0 0 1 1498 132.17 V287.83 A6.5 6.5 0 0 1 1485 287.83 Z M1518 115.41 A6.5 6.5 0 0 1 1531 115.41 V304.59 A6.5 6.5 0 0 1 1518 304.59 Z M1551 43.42 A6.5 6.5 0 0 1 1564 43.42 V376.58 A6.5 6.5 0 0 1 1551 376.58 Z M1584 96.73 A6.5 6.5 0 0 1 1597 96.73 V323.27 A6.5 6.5 0 0 1 1584 323.27 Z M1617 57.46 A6.5 6.5 0 0 1 1630 57.46 V362.54 A6.5 6.5 0 0 1 1617 362.54 Z M1650 136.82 A6.5 6.5 0 0 1 1663 136.82 V283.18 A6.5 6.5 0 0 1 1650 283.18 Z M1683 90.85 A6.5 6.5 0 0 1 1696 90.85 V329.15 A6.5 6.5 0 0 1 1683 329.15 Z M1716 87.48 A6.5 6.5 0 0 1 1729 87.48 V332.52 A6.5 6.5 0 0 1 1716 332.52 Z M1749 95.85 A6.5 6.5 0 0 1 1762 95.85 V324.15 A6.5 6.5 0 0 1 1749 324.15 Z M1782 86.24 A6.5 6.5 0 0 1 1795 86.24 V333.76 A6.5 6.5 0 0 1 1782 333.76 Z M1815 156.93 A6.5 6.5 0 0 1 1828 156.93 V263.07 A6.5 6.5 0 0 1 1815 263.07 Z M1848 121.55 A6.5 6.5 0 0 1 1861 121.55 V298.45 A6.5 6.5 0 0 1 1848 298.45 Z M1881 154.58 A6.5 6.5 0 0 1 1894 154.58 V265.42 A6.5 6.5 0 0 1 1881 265.42 Z M1914 130.69 A6.5 6.5 0 0 1 1927 130.69 V289.31 A6.5 6.5 0 0 1 1914 289.31 Z M1947 155.09 A6.5 6.5 0 0 1 1960 155.09 V264.91 A6.5 6.5 0 0 1 1947 264.91 Z M1980 179.04 A6.5 6.5 0 0 1 1993 179.04 V240.96 A6.5 6.5 0 0 1 1980 240.96 Z M2013 180.52 A6.5 6.5 0 0 1 2026 180.52 V239.48 A6.5 6.5 0 0 1 2013 239.48 Z M2046 196.55 A6.5 6.5 0 0 1 2059 196.55 V223.45 A6.5 6.5 0 0 1 2046 223.45 Z M2079 182.02 A6.5 6.5 0 0 1 2092 182.02 V237.98 A6.5 6.5 0 0 1 2079 237.98 Z",
+          "specialProps": {
+            "viewBox": "0 0 2092 420"
+          },
+          "opacity": 0.3,
+          "spanArtboards": true,
+          "spanBehind": true,
+          "groupId": "rn-b1-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "rn-b1-icon-tile-3",
+          "type": "shape",
+          "name": "Icon tile",
+          "position": {
+            "x": 94,
+            "y": 110
+          },
+          "size": {
+            "width": 140,
+            "height": 140
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#2A6CF0",
+          "fillGradient": {
+            "color1": "#4F92FF",
+            "color2": "#2A6CF0",
+            "angle": 160
+          },
+          "strokeColor": "rgba(255,255,255,0.35)",
+          "strokeWidth": 3,
+          "borderRadius": 34,
+          "groupId": "rn-b1-g-logo",
+          "groupName": "Logo"
+        },
+        {
+          "id": "rn-b1-handset-4",
+          "type": "shape",
+          "name": "Handset",
+          "position": {
+            "x": 117.8,
+            "y": 152
+          },
+          "size": {
+            "width": 72.8,
+            "height": 72.8
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M20 8 C14 8 8 14 8 20 C8 58 42 92 80 92 C86 92 92 86 92 80 V66 C92 62 90 60 86 59 L68 54 C65 53 62 54 60 57 L54 64 C44 59 41 56 36 46 L43 40 C46 38 47 35 46 32 L41 14 C40 10 38 8 34 8 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b1-g-logo",
+          "groupName": "Logo"
+        },
+        {
+          "id": "rn-b1-sound-bars-5",
+          "type": "shape",
+          "name": "Sound bars",
+          "position": {
+            "x": 171,
+            "y": 132.4
+          },
+          "size": {
+            "width": 42,
+            "height": 36.4
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 12.35 A3 3 0 0 1 6 12.35 V21.65 A3 3 0 0 1 0 21.65 Z M11 3 A3 3 0 0 1 17 3 V31 A3 3 0 0 1 11 31 Z M22 8.1 A3 3 0 0 1 28 8.1 V25.9 A3 3 0 0 1 22 25.9 Z M33 14.05 A3 3 0 0 1 39 14.05 V19.95 A3 3 0 0 1 33 19.95 Z",
+          "specialProps": {
+            "viewBox": "0 0 39 34"
+          },
+          "groupId": "rn-b1-g-logo",
+          "groupName": "Logo"
+        },
+        {
+          "id": "rn-b1-app-name-6",
+          "type": "text",
+          "name": "App name",
+          "position": {
+            "x": 258,
+            "y": 122
+          },
+          "size": {
+            "width": 620,
+            "height": 135
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Ringnote",
+          "fontSize": 25.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.3,
+          "groupId": "rn-b1-g-logo",
+          "groupName": "Logo"
+        },
+        {
+          "id": "rn-b1-line-1-7",
+          "type": "text",
+          "name": "Line 1",
+          "position": {
+            "x": 86,
+            "y": 300
+          },
+          "size": {
+            "width": 1100,
+            "height": 294
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "RECORD",
+          "fontSize": 58.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Unbounded",
+          "fontWeight": "900",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -1.2,
+          "groupId": "rn-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rn-b1-line-2-8",
+          "type": "text",
+          "name": "Line 2",
+          "position": {
+            "x": 86,
+            "y": 494
+          },
+          "size": {
+            "width": 1100,
+            "height": 294
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "PHONE",
+          "fontSize": 58.8,
+          "color": "#FFFFFF",
+          "fillGradient": {
+            "color1": "rgba(255,255,255,0.55)",
+            "color2": "#FFFFFF",
+            "angle": 180
+          },
+          "fontFamily": "Unbounded",
+          "fontWeight": "900",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -1.2,
+          "groupId": "rn-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rn-b1-line-3-9",
+          "type": "text",
+          "name": "Line 3",
+          "position": {
+            "x": 86,
+            "y": 688
+          },
+          "size": {
+            "width": 1100,
+            "height": 294
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "CALLS",
+          "fontSize": 58.8,
+          "color": "#FFFFFF",
+          "fillGradient": {
+            "color1": "#FFFFFF",
+            "color2": "rgba(255,255,255,0.72)",
+            "angle": 180
+          },
+          "fontFamily": "Unbounded",
+          "fontWeight": "900",
+          "textAlign": "left",
+          "lineHeight": 1,
+          "letterSpacing": -1.2,
+          "groupId": "rn-b1-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rn-b1-pill-10",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 212,
+            "y": 980
+          },
+          "size": {
+            "width": 814,
+            "height": 184
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0B0B0F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 92,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 60,
+            "color": "rgba(8,28,96,0.34)"
+          },
+          "groupId": "rn-b1-g-recording-pill",
+          "groupName": "Recording pill"
+        },
+        {
+          "id": "rn-b1-icon-tile-11",
+          "type": "shape",
+          "name": "Icon tile",
+          "position": {
+            "x": 253.2,
+            "y": 1047.45
+          },
+          "size": {
+            "width": 104,
+            "height": 104
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#2A6CF0",
+          "fillGradient": {
+            "color1": "#4F92FF",
+            "color2": "#2A6CF0",
+            "angle": 160
+          },
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 25,
+          "groupId": "rn-b1-g-recording-pill",
+          "groupName": "Recording pill"
+        },
+        {
+          "id": "rn-b1-handset-12",
+          "type": "shape",
+          "name": "Handset",
+          "position": {
+            "x": 271.45,
+            "y": 1079.26
+          },
+          "size": {
+            "width": 54.08,
+            "height": 54.08
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M20 8 C14 8 8 14 8 20 C8 58 42 92 80 92 C86 92 92 86 92 80 V66 C92 62 90 60 86 59 L68 54 C65 53 62 54 60 57 L54 64 C44 59 41 56 36 46 L43 40 C46 38 47 35 46 32 L41 14 C40 10 38 8 34 8 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b1-g-recording-pill",
+          "groupName": "Recording pill"
+        },
+        {
+          "id": "rn-b1-sound-bars-13",
+          "type": "shape",
+          "name": "Sound bars",
+          "position": {
+            "x": 308.42,
+            "y": 1062.36
+          },
+          "size": {
+            "width": 31.2,
+            "height": 27.04
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 12.35 A3 3 0 0 1 6 12.35 V21.65 A3 3 0 0 1 0 21.65 Z M11 3 A3 3 0 0 1 17 3 V31 A3 3 0 0 1 11 31 Z M22 8.1 A3 3 0 0 1 28 8.1 V25.9 A3 3 0 0 1 22 25.9 Z M33 14.05 A3 3 0 0 1 39 14.05 V19.95 A3 3 0 0 1 33 19.95 Z",
+          "specialProps": {
+            "viewBox": "0 0 39 34"
+          },
+          "groupId": "rn-b1-g-recording-pill",
+          "groupName": "Recording pill"
+        },
+        {
+          "id": "rn-b1-label-14",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 388.38,
+            "y": 1029.63
+          },
+          "size": {
+            "width": 470,
+            "height": 93
+          },
+          "rotation": -5,
+          "scale": 1,
+          "content": "Recording 4:34",
+          "fontSize": 17.4,
+          "color": "#D5D8E0",
+          "fontFamily": "Poppins",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "rn-b1-g-recording-pill",
+          "groupName": "Recording pill"
+        },
+        {
+          "id": "rn-b1-stop-ring-15",
+          "type": "shape",
+          "name": "Stop ring",
+          "position": {
+            "x": 870.82,
+            "y": 986.89
+          },
+          "size": {
+            "width": 116,
+            "height": 116
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "rgba(255,70,88,0.10)",
+          "strokeColor": "#FF4658",
+          "strokeWidth": 5,
+          "groupId": "rn-b1-g-recording-pill",
+          "groupName": "Recording pill"
+        },
+        {
+          "id": "rn-b1-stop-square-16",
+          "type": "shape",
+          "name": "Stop square",
+          "position": {
+            "x": 904.46,
+            "y": 1020.53
+          },
+          "size": {
+            "width": 48.72,
+            "height": 48.72
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF4658",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 13,
+          "groupId": "rn-b1-g-recording-pill",
+          "groupName": "Recording pill"
+        },
+        {
+          "id": "rn-b1-pill-17",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 66,
+            "y": 1234
+          },
+          "size": {
+            "width": 1094,
+            "height": 280
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#0B0B0F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 140,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 60,
+            "color": "rgba(8,28,96,0.34)"
+          },
+          "groupId": "rn-b1-g-incoming-call-pill",
+          "groupName": "Incoming call pill"
+        },
+        {
+          "id": "rn-b1-photo-backdrop-18",
+          "type": "shape",
+          "name": "Photo backdrop",
+          "position": {
+            "x": 107.55,
+            "y": 1309.47
+          },
+          "size": {
+            "width": 200,
+            "height": 200
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#CFE0FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "rn-b1-g-incoming-call-pill",
+          "groupName": "Incoming call pill"
+        },
+        {
+          "id": "rn-b1-caller-photo-19",
+          "type": "image",
+          "name": "Caller photo",
+          "position": {
+            "x": 107.55,
+            "y": 1309.47
+          },
+          "size": {
+            "width": 200,
+            "height": 200
+          },
+          "rotation": -5,
+          "scale": 1,
+          "imageSrc": "/elements/images/portraits/portrait-as244803340.png",
+          "imageAlt": "Caller photo",
+          "objectFit": "cover",
+          "borderRadius": 100,
+          "groupId": "rn-b1-g-incoming-call-pill",
+          "groupName": "Incoming call pill"
+        },
+        {
+          "id": "rn-b1-icon-tile-20",
+          "type": "shape",
+          "name": "Icon tile",
+          "position": {
+            "x": 249.8,
+            "y": 1438.65
+          },
+          "size": {
+            "width": 78,
+            "height": 78
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#2A6CF0",
+          "fillGradient": {
+            "color1": "#4F92FF",
+            "color2": "#2A6CF0",
+            "angle": 160
+          },
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 19,
+          "groupId": "rn-b1-g-incoming-call-pill",
+          "groupName": "Incoming call pill"
+        },
+        {
+          "id": "rn-b1-handset-21",
+          "type": "shape",
+          "name": "Handset",
+          "position": {
+            "x": 263.49,
+            "y": 1462.51
+          },
+          "size": {
+            "width": 40.56,
+            "height": 40.56
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M20 8 C14 8 8 14 8 20 C8 58 42 92 80 92 C86 92 92 86 92 80 V66 C92 62 90 60 86 59 L68 54 C65 53 62 54 60 57 L54 64 C44 59 41 56 36 46 L43 40 C46 38 47 35 46 32 L41 14 C40 10 38 8 34 8 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b1-g-incoming-call-pill",
+          "groupName": "Incoming call pill"
+        },
+        {
+          "id": "rn-b1-sound-bars-22",
+          "type": "shape",
+          "name": "Sound bars",
+          "position": {
+            "x": 291.21,
+            "y": 1449.83
+          },
+          "size": {
+            "width": 23.4,
+            "height": 20.28
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 12.35 A3 3 0 0 1 6 12.35 V21.65 A3 3 0 0 1 0 21.65 Z M11 3 A3 3 0 0 1 17 3 V31 A3 3 0 0 1 11 31 Z M22 8.1 A3 3 0 0 1 28 8.1 V25.9 A3 3 0 0 1 22 25.9 Z M33 14.05 A3 3 0 0 1 39 14.05 V19.95 A3 3 0 0 1 33 19.95 Z",
+          "specialProps": {
+            "viewBox": "0 0 39 34"
+          },
+          "groupId": "rn-b1-g-incoming-call-pill",
+          "groupName": "Incoming call pill"
+        },
+        {
+          "id": "rn-b1-incoming-call-23",
+          "type": "text",
+          "name": "Incoming call",
+          "position": {
+            "x": 351.88,
+            "y": 1287.66
+          },
+          "size": {
+            "width": 480,
+            "height": 80
+          },
+          "rotation": -5,
+          "scale": 1,
+          "content": "Incoming call",
+          "fontSize": 15,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "400",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "rn-b1-g-incoming-call-pill",
+          "groupName": "Incoming call pill"
+        },
+        {
+          "id": "rn-b1-caller-name-24",
+          "type": "text",
+          "name": "Caller name",
+          "position": {
+            "x": 360.22,
+            "y": 1351.55
+          },
+          "size": {
+            "width": 520,
+            "height": 141
+          },
+          "rotation": -5,
+          "scale": 1,
+          "content": "Daniel R.",
+          "fontSize": 26.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "letterSpacing": -0.3,
+          "groupId": "rn-b1-g-incoming-call-pill",
+          "groupName": "Incoming call pill"
+        },
+        {
+          "id": "rn-b1-decline-button-25",
+          "type": "shape",
+          "name": "Decline button",
+          "position": {
+            "x": 785.06,
+            "y": 1278.47
+          },
+          "size": {
+            "width": 148,
+            "height": 148
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FF4658",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "rn-b1-g-incoming-call-pill",
+          "groupName": "Incoming call pill"
+        },
+        {
+          "id": "rn-b1-decline-icon-26",
+          "type": "shape",
+          "name": "Decline icon",
+          "position": {
+            "x": 825.02,
+            "y": 1318.43
+          },
+          "size": {
+            "width": 68.08,
+            "height": 68.08
+          },
+          "rotation": 130,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M20 8 C14 8 8 14 8 20 C8 58 42 92 80 92 C86 92 92 86 92 80 V66 C92 62 90 60 86 59 L68 54 C65 53 62 54 60 57 L54 64 C44 59 41 56 36 46 L43 40 C46 38 47 35 46 32 L41 14 C40 10 38 8 34 8 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b1-g-incoming-call-pill",
+          "groupName": "Incoming call pill"
+        },
+        {
+          "id": "rn-b1-accept-button-27",
+          "type": "shape",
+          "name": "Accept button",
+          "position": {
+            "x": 954.41,
+            "y": 1263.66
+          },
+          "size": {
+            "width": 148,
+            "height": 148
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#19C954",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "rn-b1-g-incoming-call-pill",
+          "groupName": "Incoming call pill"
+        },
+        {
+          "id": "rn-b1-accept-icon-28",
+          "type": "shape",
+          "name": "Accept icon",
+          "position": {
+            "x": 994.37,
+            "y": 1303.62
+          },
+          "size": {
+            "width": 68.08,
+            "height": 68.08
+          },
+          "rotation": -5,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M20 8 C14 8 8 14 8 20 C8 58 42 92 80 92 C86 92 92 86 92 80 V66 C92 62 90 60 86 59 L68 54 C65 53 62 54 60 57 L54 64 C44 59 41 56 36 46 L43 40 C46 38 47 35 46 32 L41 14 C40 10 38 8 34 8 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b1-g-incoming-call-pill",
+          "groupName": "Incoming call pill"
+        },
+        {
+          "id": "rn-b1-star-1-29",
+          "type": "shape",
+          "name": "Star 1",
+          "position": {
+            "x": 84,
+            "y": 2086
+          },
+          "size": {
+            "width": 88,
+            "height": 88
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M47.64 7.52 Q50 2 52.36 7.52 L60.57 26.69 Q62.93 32.2 68.91 32.74 L89.68 34.63 Q95.65 35.17 91.13 39.12 L75.44 52.85 Q70.92 56.8 72.25 62.65 L76.88 82.98 Q78.21 88.83 73.06 85.76 L55.15 75.07 Q50 72 44.85 75.07 L26.94 85.76 Q21.79 88.83 23.12 82.98 L27.75 62.65 Q29.08 56.8 24.56 52.85 L8.87 39.12 Q4.35 35.17 10.32 34.63 L31.09 32.74 Q37.07 32.2 39.43 26.69 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b1-g-rating-sample",
+          "groupName": "Rating (sample)"
+        },
+        {
+          "id": "rn-b1-star-2-30",
+          "type": "shape",
+          "name": "Star 2",
+          "position": {
+            "x": 180,
+            "y": 2086
+          },
+          "size": {
+            "width": 88,
+            "height": 88
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M47.64 7.52 Q50 2 52.36 7.52 L60.57 26.69 Q62.93 32.2 68.91 32.74 L89.68 34.63 Q95.65 35.17 91.13 39.12 L75.44 52.85 Q70.92 56.8 72.25 62.65 L76.88 82.98 Q78.21 88.83 73.06 85.76 L55.15 75.07 Q50 72 44.85 75.07 L26.94 85.76 Q21.79 88.83 23.12 82.98 L27.75 62.65 Q29.08 56.8 24.56 52.85 L8.87 39.12 Q4.35 35.17 10.32 34.63 L31.09 32.74 Q37.07 32.2 39.43 26.69 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b1-g-rating-sample",
+          "groupName": "Rating (sample)"
+        },
+        {
+          "id": "rn-b1-star-3-31",
+          "type": "shape",
+          "name": "Star 3",
+          "position": {
+            "x": 276,
+            "y": 2086
+          },
+          "size": {
+            "width": 88,
+            "height": 88
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M47.64 7.52 Q50 2 52.36 7.52 L60.57 26.69 Q62.93 32.2 68.91 32.74 L89.68 34.63 Q95.65 35.17 91.13 39.12 L75.44 52.85 Q70.92 56.8 72.25 62.65 L76.88 82.98 Q78.21 88.83 73.06 85.76 L55.15 75.07 Q50 72 44.85 75.07 L26.94 85.76 Q21.79 88.83 23.12 82.98 L27.75 62.65 Q29.08 56.8 24.56 52.85 L8.87 39.12 Q4.35 35.17 10.32 34.63 L31.09 32.74 Q37.07 32.2 39.43 26.69 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b1-g-rating-sample",
+          "groupName": "Rating (sample)"
+        },
+        {
+          "id": "rn-b1-star-4-32",
+          "type": "shape",
+          "name": "Star 4",
+          "position": {
+            "x": 372,
+            "y": 2086
+          },
+          "size": {
+            "width": 88,
+            "height": 88
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M47.64 7.52 Q50 2 52.36 7.52 L60.57 26.69 Q62.93 32.2 68.91 32.74 L89.68 34.63 Q95.65 35.17 91.13 39.12 L75.44 52.85 Q70.92 56.8 72.25 62.65 L76.88 82.98 Q78.21 88.83 73.06 85.76 L55.15 75.07 Q50 72 44.85 75.07 L26.94 85.76 Q21.79 88.83 23.12 82.98 L27.75 62.65 Q29.08 56.8 24.56 52.85 L8.87 39.12 Q4.35 35.17 10.32 34.63 L31.09 32.74 Q37.07 32.2 39.43 26.69 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b1-g-rating-sample",
+          "groupName": "Rating (sample)"
+        },
+        {
+          "id": "rn-b1-star-5-33",
+          "type": "shape",
+          "name": "Star 5",
+          "position": {
+            "x": 468,
+            "y": 2086
+          },
+          "size": {
+            "width": 88,
+            "height": 88
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M47.64 7.52 Q50 2 52.36 7.52 L60.57 26.69 Q62.93 32.2 68.91 32.74 L89.68 34.63 Q95.65 35.17 91.13 39.12 L75.44 52.85 Q70.92 56.8 72.25 62.65 L76.88 82.98 Q78.21 88.83 73.06 85.76 L55.15 75.07 Q50 72 44.85 75.07 L26.94 85.76 Q21.79 88.83 23.12 82.98 L27.75 62.65 Q29.08 56.8 24.56 52.85 L8.87 39.12 Q4.35 35.17 10.32 34.63 L31.09 32.74 Q37.07 32.2 39.43 26.69 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b1-g-rating-sample",
+          "groupName": "Rating (sample)"
+        },
+        {
+          "id": "rn-b1-opening-quote-34",
+          "type": "shape",
+          "name": "Opening quote",
+          "position": {
+            "x": 30,
+            "y": 2240
+          },
+          "size": {
+            "width": 52,
+            "height": 46
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#9CC2FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M8 62 C8 34 22 16 44 10 L48 20 C36 26 30 36 30 46 H46 V86 H8 Z M56 62 C56 34 70 16 92 10 L96 20 C84 26 78 36 78 46 H94 V86 H56 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b1-g-review-sample",
+          "groupName": "Review (sample)"
+        },
+        {
+          "id": "rn-b1-quote-35",
+          "type": "text",
+          "name": "Quote",
+          "position": {
+            "x": 96,
+            "y": 2210
+          },
+          "size": {
+            "width": 1040,
+            "height": 348
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "The clearest call\nrecordings I have\never used",
+          "fontSize": 23.4,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.32,
+          "letterSpacing": -0.3,
+          "groupId": "rn-b1-g-review-sample",
+          "groupName": "Review (sample)"
+        },
+        {
+          "id": "rn-b1-closing-quote-36",
+          "type": "shape",
+          "name": "Closing quote",
+          "position": {
+            "x": 474,
+            "y": 2452
+          },
+          "size": {
+            "width": 52,
+            "height": 46
+          },
+          "rotation": 180,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#9CC2FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M8 62 C8 34 22 16 44 10 L48 20 C36 26 30 36 30 46 H46 V86 H8 Z M56 62 C56 34 70 16 92 10 L96 20 C84 26 78 36 78 46 H94 V86 H56 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b1-g-review-sample",
+          "groupName": "Review (sample)"
+        }
+      ]
+    },
+    {
+      "id": "rn-board-2",
+      "name": "Get Call Transcripts",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#2F79FE",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#2F79FE",
+        "color2": "#5C9BFF",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "rn-b2-glow-1",
+          "type": "shape",
+          "name": "Glow",
+          "position": {
+            "x": 200,
+            "y": 1300
+          },
+          "size": {
+            "width": 1200,
+            "height": 1200
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.16,
+          "blur": 170,
+          "groupId": "rn-b2-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "rn-b2-phone-2",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": -46,
+            "y": -560
+          },
+          "size": {
+            "width": 1110,
+            "height": 2323.79
+          },
+          "rotation": 6.5,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#FFFFFF",
+          "screenshotSrc": "/data/projects/ringnote-calls-screen-transcript.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "shadow": {
+            "x": 0,
+            "y": 40,
+            "blur": 90,
+            "color": "rgba(8,30,100,0.36)"
+          },
+          "spanArtboards": true,
+          "spanBehind": true,
+          "groupId": "rn-b2-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "rn-b2-pill-3",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 294,
+            "y": 1946
+          },
+          "size": {
+            "width": 618,
+            "height": 146
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1B55D9",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillOpacity": 0.55,
+          "borderRadius": 73,
+          "groupId": "rn-b2-g-feature-tag",
+          "groupName": "Feature tag"
+        },
+        {
+          "id": "rn-b2-badge-4",
+          "type": "shape",
+          "name": "Badge",
+          "position": {
+            "x": 311,
+            "y": 1963
+          },
+          "size": {
+            "width": 112,
+            "height": 112
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#3D9BFF",
+          "fillGradient": {
+            "color1": "#5DB4FF",
+            "color2": "#2B86FF",
+            "angle": 160
+          },
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "rn-b2-g-feature-tag",
+          "groupName": "Feature tag"
+        },
+        {
+          "id": "rn-b2-badge-icon-5",
+          "type": "shape",
+          "name": "Badge icon",
+          "position": {
+            "x": 339,
+            "y": 1991
+          },
+          "size": {
+            "width": 56,
+            "height": 56
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 6 H50 A12 12 0 0 1 62 18 V38 A12 12 0 0 1 50 50 H50 A12 12 0 0 1 38 38 V18 A12 12 0 0 1 50 6 Z M22 40 V46 C22 62 34 72 46 73 V84 H34 V92 H66 V84 H54 V73 C66 72 78 62 78 46 V40 H70 V46 C70 58 61 66 50 66 C39 66 30 58 30 46 V40 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b2-g-feature-tag",
+          "groupName": "Feature tag"
+        },
+        {
+          "id": "rn-b2-label-6",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 449,
+            "y": 1971
+          },
+          "size": {
+            "width": 433,
+            "height": 96
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Transcribe",
+          "fontSize": 18,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "rn-b2-g-feature-tag",
+          "groupName": "Feature tag"
+        },
+        {
+          "id": "rn-b2-title-7",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 40,
+            "y": 2156
+          },
+          "size": {
+            "width": 1126,
+            "height": 407
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Get call\ntranscripts",
+          "fontSize": 48,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.02,
+          "letterSpacing": -1.5,
+          "groupId": "rn-b2-g-headline",
+          "groupName": "Headline"
+        }
+      ]
+    },
+    {
+      "id": "rn-board-3",
+      "name": "Record Calls In One Tap",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#0B0B0D",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "rn-b3-glow-1",
+          "type": "shape",
+          "name": "Glow",
+          "position": {
+            "x": 153,
+            "y": 900
+          },
+          "size": {
+            "width": 900,
+            "height": 900
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#1F58C8",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.4,
+          "blur": 190,
+          "groupId": "rn-b3-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "rn-b3-waveform-2",
+          "type": "shape",
+          "name": "Waveform",
+          "position": {
+            "x": -8,
+            "y": 1404
+          },
+          "size": {
+            "width": 1222,
+            "height": 440
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#5C5D66",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 143.19 A6.5 6.5 0 0 1 13 143.19 V296.81 A6.5 6.5 0 0 1 0 296.81 Z M31 116.1 A6.5 6.5 0 0 1 44 116.1 V323.9 A6.5 6.5 0 0 1 31 323.9 Z M62 46.17 A6.5 6.5 0 0 1 75 46.17 V393.83 A6.5 6.5 0 0 1 62 393.83 Z M93 75.89 A6.5 6.5 0 0 1 106 75.89 V364.11 A6.5 6.5 0 0 1 93 364.11 Z M124 103.67 A6.5 6.5 0 0 1 137 103.67 V336.33 A6.5 6.5 0 0 1 124 336.33 Z M155 101.65 A6.5 6.5 0 0 1 168 101.65 V338.35 A6.5 6.5 0 0 1 155 338.35 Z M186 54.96 A6.5 6.5 0 0 1 199 54.96 V385.04 A6.5 6.5 0 0 1 186 385.04 Z M217 127.04 A6.5 6.5 0 0 1 230 127.04 V312.96 A6.5 6.5 0 0 1 217 312.96 Z M248 78.68 A6.5 6.5 0 0 1 261 78.68 V361.32 A6.5 6.5 0 0 1 248 361.32 Z M279 80.73 A6.5 6.5 0 0 1 292 80.73 V359.27 A6.5 6.5 0 0 1 279 359.27 Z M310 86.98 A6.5 6.5 0 0 1 323 86.98 V353.02 A6.5 6.5 0 0 1 310 353.02 Z M341 80.09 A6.5 6.5 0 0 1 354 80.09 V359.91 A6.5 6.5 0 0 1 341 359.91 Z M372 76.13 A6.5 6.5 0 0 1 385 76.13 V363.87 A6.5 6.5 0 0 1 372 363.87 Z M403 85.46 A6.5 6.5 0 0 1 416 85.46 V354.54 A6.5 6.5 0 0 1 403 354.54 Z M434 125.67 A6.5 6.5 0 0 1 447 125.67 V314.33 A6.5 6.5 0 0 1 434 314.33 Z M465 49.15 A6.5 6.5 0 0 1 478 49.15 V390.85 A6.5 6.5 0 0 1 465 390.85 Z M496 99.68 A6.5 6.5 0 0 1 509 99.68 V340.32 A6.5 6.5 0 0 1 496 340.32 Z M527 111.69 A6.5 6.5 0 0 1 540 111.69 V328.31 A6.5 6.5 0 0 1 527 328.31 Z M558 70.34 A6.5 6.5 0 0 1 571 70.34 V369.66 A6.5 6.5 0 0 1 558 369.66 Z M589 42.32 A6.5 6.5 0 0 1 602 42.32 V397.68 A6.5 6.5 0 0 1 589 397.68 Z M620 123.4 A6.5 6.5 0 0 1 633 123.4 V316.6 A6.5 6.5 0 0 1 620 316.6 Z M651 138.99 A6.5 6.5 0 0 1 664 138.99 V301.01 A6.5 6.5 0 0 1 651 301.01 Z M682 31.8 A6.5 6.5 0 0 1 695 31.8 V408.2 A6.5 6.5 0 0 1 682 408.2 Z M713 63.35 A6.5 6.5 0 0 1 726 63.35 V376.65 A6.5 6.5 0 0 1 713 376.65 Z M744 146.55 A6.5 6.5 0 0 1 757 146.55 V293.45 A6.5 6.5 0 0 1 744 293.45 Z M775 75.63 A6.5 6.5 0 0 1 788 75.63 V364.37 A6.5 6.5 0 0 1 775 364.37 Z M806 18.42 A6.5 6.5 0 0 1 819 18.42 V421.58 A6.5 6.5 0 0 1 806 421.58 Z M837 110.76 A6.5 6.5 0 0 1 850 110.76 V329.24 A6.5 6.5 0 0 1 837 329.24 Z M868 164.66 A6.5 6.5 0 0 1 881 164.66 V275.34 A6.5 6.5 0 0 1 868 275.34 Z M899 29.08 A6.5 6.5 0 0 1 912 29.08 V410.92 A6.5 6.5 0 0 1 899 410.92 Z M930 34.16 A6.5 6.5 0 0 1 943 34.16 V405.84 A6.5 6.5 0 0 1 930 405.84 Z M961 177.96 A6.5 6.5 0 0 1 974 177.96 V262.04 A6.5 6.5 0 0 1 961 262.04 Z M992 94.89 A6.5 6.5 0 0 1 1005 94.89 V345.11 A6.5 6.5 0 0 1 992 345.11 Z M1023 8.01 A6.5 6.5 0 0 1 1036 8.01 V431.99 A6.5 6.5 0 0 1 1023 431.99 Z M1054 77.66 A6.5 6.5 0 0 1 1067 77.66 V362.34 A6.5 6.5 0 0 1 1054 362.34 Z M1085 198.48 A6.5 6.5 0 0 1 1098 198.48 V241.52 A6.5 6.5 0 0 1 1085 241.52 Z M1116 41.22 A6.5 6.5 0 0 1 1129 41.22 V398.78 A6.5 6.5 0 0 1 1116 398.78 Z M1147 16.63 A6.5 6.5 0 0 1 1160 16.63 V423.37 A6.5 6.5 0 0 1 1147 423.37 Z M1178 142.4 A6.5 6.5 0 0 1 1191 142.4 V297.6 A6.5 6.5 0 0 1 1178 297.6 Z M1209 124.92 A6.5 6.5 0 0 1 1222 124.92 V315.08 A6.5 6.5 0 0 1 1209 315.08 Z",
+          "specialProps": {
+            "viewBox": "0 0 1222 440"
+          },
+          "groupId": "rn-b3-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "rn-b3-pill-3",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 390,
+            "y": 112
+          },
+          "size": {
+            "width": 426,
+            "height": 152
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#2A2A2F",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 76,
+          "groupId": "rn-b3-g-feature-tag",
+          "groupName": "Feature tag"
+        },
+        {
+          "id": "rn-b3-badge-4",
+          "type": "shape",
+          "name": "Badge",
+          "position": {
+            "x": 407,
+            "y": 129
+          },
+          "size": {
+            "width": 118,
+            "height": 118
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#0B0B0D",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "rn-b3-g-feature-tag",
+          "groupName": "Feature tag"
+        },
+        {
+          "id": "rn-b3-badge-icon-5",
+          "type": "shape",
+          "name": "Badge icon",
+          "position": {
+            "x": 436.5,
+            "y": 158.5
+          },
+          "size": {
+            "width": 59,
+            "height": 59
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 6 H50 A12 12 0 0 1 62 18 V38 A12 12 0 0 1 50 50 H50 A12 12 0 0 1 38 38 V18 A12 12 0 0 1 50 6 Z M22 40 V46 C22 62 34 72 46 73 V84 H34 V92 H66 V84 H54 V73 C66 72 78 62 78 46 V40 H70 V46 C70 58 61 66 50 66 C39 66 30 58 30 46 V40 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b3-g-feature-tag",
+          "groupName": "Feature tag"
+        },
+        {
+          "id": "rn-b3-label-6",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 551,
+            "y": 138
+          },
+          "size": {
+            "width": 235,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Calls",
+          "fontSize": 18.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "rn-b3-g-feature-tag",
+          "groupName": "Feature tag"
+        },
+        {
+          "id": "rn-b3-title-7",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 40,
+            "y": 344
+          },
+          "size": {
+            "width": 1126,
+            "height": 417
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Record calls\nin one tap",
+          "fontSize": 49.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.02,
+          "letterSpacing": -1.5,
+          "groupId": "rn-b3-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rn-b3-phone-8",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 187,
+            "y": 790
+          },
+          "size": {
+            "width": 832,
+            "height": 1741.79
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#17171B",
+          "screenshotSrc": "/data/projects/ringnote-calls-screen-call.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "shadow": {
+            "x": 0,
+            "y": 40,
+            "blur": 110,
+            "color": "rgba(30,90,220,0.35)"
+          },
+          "groupId": "rn-b3-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "rn-b3-pill-9",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 930,
+            "y": 950
+          },
+          "size": {
+            "width": 206,
+            "height": 430
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 103,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 60,
+            "color": "rgba(0,0,0,0.45)"
+          },
+          "groupId": "rn-b3-g-recorder-pill",
+          "groupName": "Recorder pill"
+        },
+        {
+          "id": "rn-b3-icon-tile-10",
+          "type": "shape",
+          "name": "Icon tile",
+          "position": {
+            "x": 978,
+            "y": 994
+          },
+          "size": {
+            "width": 110,
+            "height": 110
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#2A6CF0",
+          "fillGradient": {
+            "color1": "#4F92FF",
+            "color2": "#2A6CF0",
+            "angle": 160
+          },
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 26,
+          "groupId": "rn-b3-g-recorder-pill",
+          "groupName": "Recorder pill"
+        },
+        {
+          "id": "rn-b3-handset-11",
+          "type": "shape",
+          "name": "Handset",
+          "position": {
+            "x": 996.7,
+            "y": 1027
+          },
+          "size": {
+            "width": 57.2,
+            "height": 57.2
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M20 8 C14 8 8 14 8 20 C8 58 42 92 80 92 C86 92 92 86 92 80 V66 C92 62 90 60 86 59 L68 54 C65 53 62 54 60 57 L54 64 C44 59 41 56 36 46 L43 40 C46 38 47 35 46 32 L41 14 C40 10 38 8 34 8 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b3-g-recorder-pill",
+          "groupName": "Recorder pill"
+        },
+        {
+          "id": "rn-b3-sound-bars-12",
+          "type": "shape",
+          "name": "Sound bars",
+          "position": {
+            "x": 1038.5,
+            "y": 1011.6
+          },
+          "size": {
+            "width": 33,
+            "height": 28.6
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 12.35 A3 3 0 0 1 6 12.35 V21.65 A3 3 0 0 1 0 21.65 Z M11 3 A3 3 0 0 1 17 3 V31 A3 3 0 0 1 11 31 Z M22 8.1 A3 3 0 0 1 28 8.1 V25.9 A3 3 0 0 1 22 25.9 Z M33 14.05 A3 3 0 0 1 39 14.05 V19.95 A3 3 0 0 1 33 19.95 Z",
+          "specialProps": {
+            "viewBox": "0 0 39 34"
+          },
+          "groupId": "rn-b3-g-recorder-pill",
+          "groupName": "Recorder pill"
+        },
+        {
+          "id": "rn-b3-timer-13",
+          "type": "text",
+          "name": "Timer",
+          "position": {
+            "x": 938,
+            "y": 1126
+          },
+          "size": {
+            "width": 190,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "4:34",
+          "fontSize": 18.6,
+          "color": "#0B0B0F",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "rn-b3-g-recorder-pill",
+          "groupName": "Recorder pill"
+        },
+        {
+          "id": "rn-b3-stop-ring-14",
+          "type": "shape",
+          "name": "Stop ring",
+          "position": {
+            "x": 973,
+            "y": 1232
+          },
+          "size": {
+            "width": 120,
+            "height": 120
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "rgba(255,70,88,0.10)",
+          "strokeColor": "#FF4658",
+          "strokeWidth": 5,
+          "groupId": "rn-b3-g-recorder-pill",
+          "groupName": "Recorder pill"
+        },
+        {
+          "id": "rn-b3-stop-square-15",
+          "type": "shape",
+          "name": "Stop square",
+          "position": {
+            "x": 1007.8,
+            "y": 1266.8
+          },
+          "size": {
+            "width": 50.4,
+            "height": 50.4
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FF4658",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 13,
+          "groupId": "rn-b3-g-recorder-pill",
+          "groupName": "Recorder pill"
+        }
+      ]
+    },
+    {
+      "id": "rn-board-4",
+      "name": "Record Voice Notes",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#E9ECF5",
+      "backgroundType": "solid",
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "rn-b4-glow-1",
+          "type": "shape",
+          "name": "Glow",
+          "position": {
+            "x": 153,
+            "y": 1150
+          },
+          "size": {
+            "width": 900,
+            "height": 900
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.5,
+          "blur": 190,
+          "groupId": "rn-b4-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "rn-b4-pill-2",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 390,
+            "y": 112
+          },
+          "size": {
+            "width": 426,
+            "height": 152
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 76,
+          "shadow": {
+            "x": 0,
+            "y": 14,
+            "blur": 34,
+            "color": "rgba(30,50,110,0.16)"
+          },
+          "groupId": "rn-b4-g-feature-tag",
+          "groupName": "Feature tag"
+        },
+        {
+          "id": "rn-b4-badge-3",
+          "type": "shape",
+          "name": "Badge",
+          "position": {
+            "x": 407,
+            "y": 129
+          },
+          "size": {
+            "width": 118,
+            "height": 118
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#2B86FF",
+          "fillGradient": {
+            "color1": "#42B4FF",
+            "color2": "#1E78F5",
+            "angle": 160
+          },
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "rn-b4-g-feature-tag",
+          "groupName": "Feature tag"
+        },
+        {
+          "id": "rn-b4-badge-icon-4",
+          "type": "shape",
+          "name": "Badge icon",
+          "position": {
+            "x": 436.5,
+            "y": 158.5
+          },
+          "size": {
+            "width": 59,
+            "height": 59
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b4-g-feature-tag",
+          "groupName": "Feature tag"
+        },
+        {
+          "id": "rn-b4-label-5",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 551,
+            "y": 138
+          },
+          "size": {
+            "width": 235,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Notes",
+          "fontSize": 18.6,
+          "color": "#0B0B0F",
+          "fontFamily": "Poppins",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "rn-b4-g-feature-tag",
+          "groupName": "Feature tag"
+        },
+        {
+          "id": "rn-b4-title-6",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 40,
+            "y": 344
+          },
+          "size": {
+            "width": 1126,
+            "height": 417
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Record\nvoice notes",
+          "fontSize": 49.2,
+          "color": "#0B0B0F",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.02,
+          "letterSpacing": -1.5,
+          "groupId": "rn-b4-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rn-b4-phone-7",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 208,
+            "y": 800
+          },
+          "size": {
+            "width": 790,
+            "height": 1653.87
+          },
+          "rotation": 0,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#FFFFFF",
+          "screenshotSrc": "/data/projects/ringnote-calls-screen-recorder.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "shadow": {
+            "x": 0,
+            "y": 36,
+            "blur": 90,
+            "color": "rgba(30,50,110,0.20)"
+          },
+          "groupId": "rn-b4-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "rn-b4-arrow-8",
+          "type": "shape",
+          "name": "Arrow",
+          "position": {
+            "x": 640,
+            "y": 1580
+          },
+          "size": {
+            "width": 420,
+            "height": 760
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#0B0B0F",
+          "strokeColor": "transparent",
+          "strokeWidth": 9,
+          "customPath": "M92 2 C112 44 86 86 10 92 M24 84 L10 92 L22 100",
+          "specialProps": {
+            "viewBox": "0 0 104 102",
+            "strokeOnly": true,
+            "baseStrokeWidth": 9
+          },
+          "groupId": "rn-b4-g-arrow",
+          "groupName": "Arrow"
+        },
+        {
+          "id": "rn-b4-card-9",
+          "type": "shape",
+          "name": "Card",
+          "position": {
+            "x": 78,
+            "y": 2046
+          },
+          "size": {
+            "width": 540,
+            "height": 500
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 46,
+          "shadow": {
+            "x": 0,
+            "y": 30,
+            "blur": 70,
+            "color": "rgba(30,50,110,0.26)"
+          },
+          "groupId": "rn-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "rn-b4-panel-10",
+          "type": "shape",
+          "name": "Panel",
+          "position": {
+            "x": 104,
+            "y": 2072
+          },
+          "size": {
+            "width": 488,
+            "height": 300
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1E63E9",
+          "fillGradient": {
+            "color1": "#3D8BFF",
+            "color2": "#1447C8",
+            "angle": 150
+          },
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 30,
+          "groupId": "rn-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "rn-b4-ring-1-11",
+          "type": "shape",
+          "name": "Ring 1",
+          "position": {
+            "x": 442,
+            "y": 1962
+          },
+          "size": {
+            "width": 250,
+            "height": 250
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "rgba(0,0,0,0)",
+          "strokeColor": "rgba(255,255,255,0.28)",
+          "strokeWidth": 3,
+          "groupId": "rn-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "rn-b4-ring-2-12",
+          "type": "shape",
+          "name": "Ring 2",
+          "position": {
+            "x": 14,
+            "y": 2262
+          },
+          "size": {
+            "width": 230,
+            "height": 230
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "rgba(0,0,0,0)",
+          "strokeColor": "rgba(255,255,255,0.28)",
+          "strokeWidth": 3,
+          "groupId": "rn-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "rn-b4-call-badge-13",
+          "type": "shape",
+          "name": "Call badge",
+          "position": {
+            "x": 304,
+            "y": 2116
+          },
+          "size": {
+            "width": 88,
+            "height": 88
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "rgba(255,255,255,0.24)",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "rn-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "rn-b4-call-icon-14",
+          "type": "shape",
+          "name": "Call icon",
+          "position": {
+            "x": 328,
+            "y": 2140
+          },
+          "size": {
+            "width": 40,
+            "height": 40
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M20 8 C14 8 8 14 8 20 C8 58 42 92 80 92 C86 92 92 86 92 80 V66 C92 62 90 60 86 59 L68 54 C65 53 62 54 60 57 L54 64 C44 59 41 56 36 46 L43 40 C46 38 47 35 46 32 L41 14 C40 10 38 8 34 8 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "rn-b4-file-name-15",
+          "type": "text",
+          "name": "File name",
+          "position": {
+            "x": 114,
+            "y": 2222
+          },
+          "size": {
+            "width": 468,
+            "height": 74
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Memo_014.m4a",
+          "fontSize": 13.8,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "rn-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "rn-b4-file-date-16",
+          "type": "text",
+          "name": "File date",
+          "position": {
+            "x": 114,
+            "y": 2294
+          },
+          "size": {
+            "width": 468,
+            "height": 42
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "12 Mar 2026  ·  14:01",
+          "fontSize": 7.8,
+          "color": "rgba(255,255,255,0.86)",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "500",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "rn-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "rn-b4-speed-17",
+          "type": "text",
+          "name": "Speed",
+          "position": {
+            "x": 108,
+            "y": 2418
+          },
+          "size": {
+            "width": 90,
+            "height": 64
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "1x",
+          "fontSize": 12,
+          "color": "#0B0B0F",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "700",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "rn-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "rn-b4-back-18",
+          "type": "shape",
+          "name": "Back",
+          "position": {
+            "x": 226,
+            "y": 2428
+          },
+          "size": {
+            "width": 52,
+            "height": 52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#3A3E48",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M92 20 L52 50 L92 80 Z M48 20 L8 50 L48 80 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "rn-b4-play-button-19",
+          "type": "shape",
+          "name": "Play button",
+          "position": {
+            "x": 294,
+            "y": 2400
+          },
+          "size": {
+            "width": 108,
+            "height": 108
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#2F79FE",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "shadow": {
+            "x": 0,
+            "y": 12,
+            "blur": 26,
+            "color": "rgba(47,121,254,0.45)"
+          },
+          "groupId": "rn-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "rn-b4-play-icon-20",
+          "type": "shape",
+          "name": "Play icon",
+          "position": {
+            "x": 328,
+            "y": 2430
+          },
+          "size": {
+            "width": 46,
+            "height": 48
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M26 12 L86 50 L26 88 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "rn-b4-forward-21",
+          "type": "shape",
+          "name": "Forward",
+          "position": {
+            "x": 420,
+            "y": 2428
+          },
+          "size": {
+            "width": 52,
+            "height": 52
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#3A3E48",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M8 20 L48 50 L8 80 Z M52 20 L92 50 L52 80 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b4-g-recording-card",
+          "groupName": "Recording card"
+        },
+        {
+          "id": "rn-b4-trim-22",
+          "type": "text",
+          "name": "Trim",
+          "position": {
+            "x": 490,
+            "y": 2426
+          },
+          "size": {
+            "width": 110,
+            "height": 55
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Trim",
+          "fontSize": 10.2,
+          "color": "#3A3E48",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "600",
+          "textAlign": "center",
+          "lineHeight": 1.1,
+          "groupId": "rn-b4-g-recording-card",
+          "groupName": "Recording card"
+        }
+      ]
+    },
+    {
+      "id": "rn-board-5",
+      "name": "Get An AI Summary",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "size": {
+        "width": 1206,
+        "height": 2622
+      },
+      "backgroundColor": "#2F79FE",
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+        "color1": "#2F79FE",
+        "color2": "#5C9BFF",
+        "angle": 180
+      },
+      "zoom": 1,
+      "elements": [
+        {
+          "id": "rn-b5-glow-1",
+          "type": "shape",
+          "name": "Glow",
+          "position": {
+            "x": 60,
+            "y": 1200
+          },
+          "size": {
+            "width": 1150,
+            "height": 1150
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "opacity": 0.17,
+          "blur": 170,
+          "groupId": "rn-b5-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "rn-b5-waveform-2",
+          "type": "shape",
+          "name": "Waveform",
+          "position": {
+            "x": -47,
+            "y": 900
+          },
+          "size": {
+            "width": 1300,
+            "height": 380
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M0 92.84 A6.5 6.5 0 0 1 13 92.84 V287.16 A6.5 6.5 0 0 1 0 287.16 Z M33 129.6 A6.5 6.5 0 0 1 46 129.6 V250.4 A6.5 6.5 0 0 1 33 250.4 Z M66 132.06 A6.5 6.5 0 0 1 79 132.06 V247.94 A6.5 6.5 0 0 1 66 247.94 Z M99 52.83 A6.5 6.5 0 0 1 112 52.83 V327.17 A6.5 6.5 0 0 1 99 327.17 Z M132 20.4 A6.5 6.5 0 0 1 145 20.4 V359.6 A6.5 6.5 0 0 1 132 359.6 Z M165 45.02 A6.5 6.5 0 0 1 178 45.02 V334.98 A6.5 6.5 0 0 1 165 334.98 Z M198 111.59 A6.5 6.5 0 0 1 211 111.59 V268.41 A6.5 6.5 0 0 1 198 268.41 Z M231 55.11 A6.5 6.5 0 0 1 244 55.11 V324.89 A6.5 6.5 0 0 1 231 324.89 Z M264 15.08 A6.5 6.5 0 0 1 277 15.08 V364.92 A6.5 6.5 0 0 1 264 364.92 Z M297 31.08 A6.5 6.5 0 0 1 310 31.08 V348.92 A6.5 6.5 0 0 1 297 348.92 Z M330 99.08 A6.5 6.5 0 0 1 343 99.08 V280.92 A6.5 6.5 0 0 1 330 280.92 Z M363 130.15 A6.5 6.5 0 0 1 376 130.15 V249.85 A6.5 6.5 0 0 1 363 249.85 Z M396 83.88 A6.5 6.5 0 0 1 409 83.88 V296.12 A6.5 6.5 0 0 1 396 296.12 Z M429 83.05 A6.5 6.5 0 0 1 442 83.05 V296.95 A6.5 6.5 0 0 1 429 296.95 Z M462 99.32 A6.5 6.5 0 0 1 475 99.32 V280.68 A6.5 6.5 0 0 1 462 280.68 Z M495 153.69 A6.5 6.5 0 0 1 508 153.69 V226.31 A6.5 6.5 0 0 1 495 226.31 Z M528 78.67 A6.5 6.5 0 0 1 541 78.67 V301.33 A6.5 6.5 0 0 1 528 301.33 Z M561 23.19 A6.5 6.5 0 0 1 574 23.19 V356.81 A6.5 6.5 0 0 1 561 356.81 Z M594 23.47 A6.5 6.5 0 0 1 607 23.47 V356.53 A6.5 6.5 0 0 1 594 356.53 Z M627 75.84 A6.5 6.5 0 0 1 640 75.84 V304.16 A6.5 6.5 0 0 1 627 304.16 Z M660 88.22 A6.5 6.5 0 0 1 673 88.22 V291.78 A6.5 6.5 0 0 1 660 291.78 Z M693 29.97 A6.5 6.5 0 0 1 706 29.97 V350.03 A6.5 6.5 0 0 1 693 350.03 Z M726 20.73 A6.5 6.5 0 0 1 739 20.73 V359.27 A6.5 6.5 0 0 1 726 359.27 Z M759 68.34 A6.5 6.5 0 0 1 772 68.34 V311.66 A6.5 6.5 0 0 1 759 311.66 Z M792 155.42 A6.5 6.5 0 0 1 805 155.42 V224.58 A6.5 6.5 0 0 1 792 224.58 Z M825 109.15 A6.5 6.5 0 0 1 838 109.15 V270.85 A6.5 6.5 0 0 1 825 270.85 Z M858 85.12 A6.5 6.5 0 0 1 871 85.12 V294.88 A6.5 6.5 0 0 1 858 294.88 Z M891 77.31 A6.5 6.5 0 0 1 904 77.31 V302.69 A6.5 6.5 0 0 1 891 302.69 Z M924 117.85 A6.5 6.5 0 0 1 937 117.85 V262.15 A6.5 6.5 0 0 1 924 262.15 Z M957 111.56 A6.5 6.5 0 0 1 970 111.56 V268.44 A6.5 6.5 0 0 1 957 268.44 Z M990 37.57 A6.5 6.5 0 0 1 1003 37.57 V342.43 A6.5 6.5 0 0 1 990 342.43 Z M1023 12.58 A6.5 6.5 0 0 1 1036 12.58 V367.42 A6.5 6.5 0 0 1 1023 367.42 Z M1056 44.82 A6.5 6.5 0 0 1 1069 44.82 V335.18 A6.5 6.5 0 0 1 1056 335.18 Z M1089 117.3 A6.5 6.5 0 0 1 1102 117.3 V262.7 A6.5 6.5 0 0 1 1089 262.7 Z M1122 54.83 A6.5 6.5 0 0 1 1135 54.83 V325.17 A6.5 6.5 0 0 1 1122 325.17 Z M1155 22.2 A6.5 6.5 0 0 1 1168 22.2 V357.8 A6.5 6.5 0 0 1 1155 357.8 Z M1188 45.73 A6.5 6.5 0 0 1 1201 45.73 V334.27 A6.5 6.5 0 0 1 1188 334.27 Z M1221 119.33 A6.5 6.5 0 0 1 1234 119.33 V260.67 A6.5 6.5 0 0 1 1221 260.67 Z M1254 141.65 A6.5 6.5 0 0 1 1267 141.65 V238.35 A6.5 6.5 0 0 1 1254 238.35 Z M1287 98.82 A6.5 6.5 0 0 1 1300 98.82 V281.18 A6.5 6.5 0 0 1 1287 281.18 Z",
+          "specialProps": {
+            "viewBox": "0 0 1300 380"
+          },
+          "opacity": 0.26,
+          "groupId": "rn-b5-g-background",
+          "groupName": "Background"
+        },
+        {
+          "id": "rn-b5-pill-3",
+          "type": "shape",
+          "name": "Pill",
+          "position": {
+            "x": 326,
+            "y": 112
+          },
+          "size": {
+            "width": 554,
+            "height": 152
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#1B55D9",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "fillOpacity": 0.55,
+          "borderRadius": 76,
+          "groupId": "rn-b5-g-feature-tag",
+          "groupName": "Feature tag"
+        },
+        {
+          "id": "rn-b5-badge-4",
+          "type": "shape",
+          "name": "Badge",
+          "position": {
+            "x": 343,
+            "y": 129
+          },
+          "size": {
+            "width": 118,
+            "height": 118
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#3D9BFF",
+          "fillGradient": {
+            "color1": "#5DB4FF",
+            "color2": "#2B86FF",
+            "angle": 160
+          },
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "rn-b5-g-feature-tag",
+          "groupName": "Feature tag"
+        },
+        {
+          "id": "rn-b5-badge-icon-5",
+          "type": "shape",
+          "name": "Badge icon",
+          "position": {
+            "x": 372.5,
+            "y": 158.5
+          },
+          "size": {
+            "width": 59,
+            "height": 59
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b5-g-feature-tag",
+          "groupName": "Feature tag"
+        },
+        {
+          "id": "rn-b5-label-6",
+          "type": "text",
+          "name": "Label",
+          "position": {
+            "x": 487,
+            "y": 138
+          },
+          "size": {
+            "width": 363,
+            "height": 100
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Summary",
+          "fontSize": 18.6,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "600",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "rn-b5-g-feature-tag",
+          "groupName": "Feature tag"
+        },
+        {
+          "id": "rn-b5-title-7",
+          "type": "text",
+          "name": "Title",
+          "position": {
+            "x": 40,
+            "y": 344
+          },
+          "size": {
+            "width": 1126,
+            "height": 417
+          },
+          "rotation": 0,
+          "scale": 1,
+          "content": "Get an AI\nsummary",
+          "fontSize": 49.2,
+          "color": "#FFFFFF",
+          "fontFamily": "Poppins",
+          "fontWeight": "800",
+          "textAlign": "center",
+          "lineHeight": 1.02,
+          "letterSpacing": -1.5,
+          "groupId": "rn-b5-g-headline",
+          "groupName": "Headline"
+        },
+        {
+          "id": "rn-b5-phone-8",
+          "type": "device",
+          "name": "Phone",
+          "position": {
+            "x": 150,
+            "y": 860
+          },
+          "size": {
+            "width": 906,
+            "height": 1896.71
+          },
+          "rotation": -5,
+          "scale": 1,
+          "deviceType": "iphone-15-pro",
+          "styleType": "normal",
+          "frameColor": "#101014",
+          "screenshotSrc": "/data/projects/ringnote-calls-screen-summary.png",
+          "naturalScreenshotWidth": 1206,
+          "naturalScreenshotHeight": 2622,
+          "screenshotObjectFit": "cover",
+          "screenshotRect": {
+            "left": 0,
+            "top": 0,
+            "width": 100,
+            "height": 100
+          },
+          "shadow": {
+            "x": 0,
+            "y": 44,
+            "blur": 100,
+            "color": "rgba(8,30,100,0.42)"
+          },
+          "groupId": "rn-b5-g-phone",
+          "groupName": "Phone"
+        },
+        {
+          "id": "rn-b5-chip-9",
+          "type": "shape",
+          "name": "Chip",
+          "position": {
+            "x": 610,
+            "y": 1716
+          },
+          "size": {
+            "width": 560,
+            "height": 176
+          },
+          "rotation": 5,
+          "scale": 1,
+          "shapeType": "rectangle",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "borderRadius": 88,
+          "shadow": {
+            "x": 0,
+            "y": 26,
+            "blur": 60,
+            "color": "rgba(8,28,96,0.34)"
+          },
+          "groupId": "rn-b5-g-summary-chip",
+          "groupName": "Summary chip"
+        },
+        {
+          "id": "rn-b5-check-badge-10",
+          "type": "shape",
+          "name": "Check badge",
+          "position": {
+            "x": 636.73,
+            "y": 1725.27
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 5,
+          "scale": 1,
+          "shapeType": "circle",
+          "fillColor": "#19C954",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "groupId": "rn-b5-g-summary-chip",
+          "groupName": "Summary chip"
+        },
+        {
+          "id": "rn-b5-check-11",
+          "type": "shape",
+          "name": "Check",
+          "position": {
+            "x": 668.73,
+            "y": 1759.27
+          },
+          "size": {
+            "width": 60,
+            "height": 56
+          },
+          "rotation": 5,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 12,
+          "customPath": "M12 54 L40 80 L90 22",
+          "specialProps": {
+            "viewBox": "0 0 100 100",
+            "strokeOnly": true,
+            "baseStrokeWidth": 12
+          },
+          "groupId": "rn-b5-g-summary-chip",
+          "groupName": "Summary chip"
+        },
+        {
+          "id": "rn-b5-chip-title-12",
+          "type": "text",
+          "name": "Chip title",
+          "position": {
+            "x": 787.28,
+            "y": 1752.69
+          },
+          "size": {
+            "width": 360,
+            "height": 80
+          },
+          "rotation": 5,
+          "scale": 1,
+          "content": "3 key points",
+          "fontSize": 15,
+          "color": "#0B0B0F",
+          "fontFamily": "Poppins",
+          "fontWeight": "700",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "rn-b5-g-summary-chip",
+          "groupName": "Summary chip"
+        },
+        {
+          "id": "rn-b5-chip-note-13",
+          "type": "text",
+          "name": "Chip note",
+          "position": {
+            "x": 782.62,
+            "y": 1818.49
+          },
+          "size": {
+            "width": 360,
+            "height": 55
+          },
+          "rotation": 5,
+          "scale": 1,
+          "content": "Ready in 4 seconds",
+          "fontSize": 10.2,
+          "color": "#6A7080",
+          "fontFamily": "Inter Tight",
+          "fontWeight": "500",
+          "textAlign": "left",
+          "lineHeight": 1.1,
+          "groupId": "rn-b5-g-summary-chip",
+          "groupName": "Summary chip"
+        },
+        {
+          "id": "rn-b5-sparkle-large-14",
+          "type": "shape",
+          "name": "Sparkle large",
+          "position": {
+            "x": 1010,
+            "y": 760
+          },
+          "size": {
+            "width": 124,
+            "height": 124
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#FFFFFF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b5-g-sparkles",
+          "groupName": "Sparkles"
+        },
+        {
+          "id": "rn-b5-sparkle-small-15",
+          "type": "shape",
+          "name": "Sparkle small",
+          "position": {
+            "x": 918,
+            "y": 772
+          },
+          "size": {
+            "width": 58,
+            "height": 58
+          },
+          "rotation": 0,
+          "scale": 1,
+          "shapeType": "custom-svg",
+          "fillColor": "#BFD8FF",
+          "strokeColor": "transparent",
+          "strokeWidth": 0,
+          "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+          "specialProps": {
+            "viewBox": "0 0 100 100"
+          },
+          "groupId": "rn-b5-g-sparkles",
+          "groupName": "Sparkles"
+        }
+      ]
+    }
+  ]
+}

@@ -45,6 +45,11 @@ export const TEMPLATE_CATEGORIES: TemplateCategory[] = [
     previewFit: 'contain',
     gridClassName: 'grid-cols-1 lg:grid-cols-2',
     files: [
+      'ringnote-calls.json',
+      'plumfolio-invest.json',
+      'echoline-recorder.json',
+      'lulu-wingwoman.json',
+      'hushwave-sleep.json',
       'parsnap-golf.json',
       'tenpost-ai-photos.json',
       'askadeck-questions.json',
