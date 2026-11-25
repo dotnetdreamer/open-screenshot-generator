@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Merged into the Mac App Store edition's Info.plist (bundle.macOS.infoPlist in
+  tauri.appstore.conf.json). The app's only encryption is the system's HTTPS,
+  which is exempt, so App Store Connect stops asking about it on every build.
+  Every build before this file was answered No.
+-->
+<plist version="1.0">
+<dict>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+</dict>
+</plist>

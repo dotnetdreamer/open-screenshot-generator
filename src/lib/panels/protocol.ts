@@ -208,7 +208,6 @@ export type DockIntent =
   | { name: 'agentSetAgent'; agent: AgentKind }
   | { name: 'agentSetCodexModel'; model: string }
   | { name: 'agentSetCodexEffort'; effort: CodexEffortChoice }
-  | { name: 'agentHide' }
   | { name: 'agentOpenChat'; chatId: string }
   | { name: 'agentDeleteChat'; chatId: string }
   /** A link in the chat. A panel window cannot open one itself (panels.json). */

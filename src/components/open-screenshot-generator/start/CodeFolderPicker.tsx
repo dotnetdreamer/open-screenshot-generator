@@ -59,8 +59,10 @@ export function CodeFolderPicker({ desktop, folders, onChange, claudeCode, disab
     (pending.next ? removeRefs.current.get(pending.next) : addRef.current)?.focus();
   }, [folders]);
 
-  // The Mac App Store build cannot start Claude Code at all.
-  if (desktop && readinessOf(agent.detection) === 'sandboxed') return null;
+  // The Mac App Store build can't start Claude Code until the helper is saved,
+  // and the card above asks for that first.
+  const readiness = readinessOf(agent.detection);
+  if (desktop && (readiness === 'sandboxed' || readiness === 'needs-helper')) return null;
 
   const web = mounted && !desktop;
   const labels = folderLabels(folders);

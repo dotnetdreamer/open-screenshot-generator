@@ -52,6 +52,7 @@ use tauri::{AppHandle, Emitter, Manager, Runtime, WindowEvent};
 use tauri_plugin_dialog::DialogExt;
 
 use crate::code_folders::{self, FolderRules, GrantBook};
+use crate::outside::{Io, Proc};
 
 /// Event the editor window listens on. Must match `CLAUDE_EVENT` in
 /// src/lib/claudeCode/desktopTransport.ts.
@@ -315,14 +316,14 @@ pub struct ClaudeDetection {
     logged_in: Option<bool>,
     auth_method: Option<String>,
     subscription_type: Option<String>,
-    /// Why Claude Code cannot run here at all, whatever is installed.
+    /// Why Claude Code cannot run whatever is installed: "helper-missing" or
+    /// "helper-outdated" in the Mac App Store build (outside.rs).
     unavailable: Option<String>,
     error: Option<String>,
 }
 
 pub(crate) fn home_dir() -> Option<PathBuf> {
-    let var = if cfg!(windows) { "USERPROFILE" } else { "HOME" };
-    std::env::var_os(var).filter(|v| !v.is_empty()).map(PathBuf::from)
+    crate::outside::real_home()
 }
 
 /// Where the installers put `claude` when it is not on this process's PATH.
@@ -524,7 +525,7 @@ pub(crate) fn run_capture_with(
 ) -> Result<Captured, Captured> {
     let failed = |message: String| Captured { success: false, stdout: String::new(), stderr: message };
     let mut command = Command::new(program);
-    command.args(args).stdin(Stdio::null()).stdout(Stdio::piped()).stderr(Stdio::piped());
+    command.args(args);
     scrub(&mut command);
     for (key, value) in env {
         command.env(key, value);
@@ -536,7 +537,7 @@ pub(crate) fn run_capture_with(
         // Its own group, so the kill on timeout reaches anything it started.
         command.process_group(0);
     }
-    let mut child = command.spawn().map_err(|e| failed(e.to_string()))?;
+    let mut child = crate::outside::spawn(&mut command, Io::OUTPUT).map_err(|e| failed(e.to_string()))?;
     let stdout = spawn_reader(child.stdout.take().ok_or_else(|| failed("no stdout".into()))?);
     let stderr = spawn_reader(child.stderr.take().ok_or_else(|| failed("no stderr".into()))?);
     let deadline = Instant::now() + timeout;
@@ -574,17 +575,13 @@ pub(crate) fn first_line(text: &str) -> String {
     text.lines().map(str::trim).find(|l| !l.is_empty()).unwrap_or("").chars().take(300).collect()
 }
 
-const SANDBOXED: &str = "Claude Code cannot run from the Mac App Store version of the app";
-
-/// The Mac App Store build runs sandboxed, and a child process inherits the
-/// sandbox: it could read neither ~/.local/bin nor the login in ~/.claude.
-pub(crate) fn sandboxed() -> bool {
-    std::env::var_os("APP_SANDBOX_CONTAINER_ID").is_some()
-}
+pub(crate) use crate::outside::sandboxed;
 
 fn detect(state: &ClaudeState) -> ClaudeDetection {
-    if sandboxed() {
-        return ClaudeDetection { unavailable: Some("sandboxed".into()), ..Default::default() };
+    // The Mac App Store build starts programs through the helper, once the
+    // user has saved it (outside.rs).
+    if let Some(reason) = crate::outside::unavailable() {
+        return ClaudeDetection { unavailable: Some(reason.into()), ..Default::default() };
     }
     // Refresh the login shell PATH on every detect, so "Check again" after an
     // install that edited the shell profile finds the new binary.
@@ -1010,9 +1007,7 @@ pub async fn abs_claude_pick_folder<R: Runtime>(
     book: Option<String>,
 ) -> Result<Option<PickedFolder>, String> {
     require_editor(&window)?;
-    if sandboxed() {
-        return Err(SANDBOXED.into());
-    }
+    crate::outside::require_helper()?;
     let book = book_for(book.as_deref())?;
     let state = app.state::<ClaudeState>();
     if state.picking.swap(true, Ordering::SeqCst) {
@@ -1273,6 +1268,16 @@ pub(crate) fn kill_tree(pid: u32) {
         // reaches the whole group. TERM first, so the conversation file is
         // flushed and `--resume` has the last turn to come back to.
         let group = format!("-{pid}");
+        #[cfg(target_os = "macos")]
+        if sandboxed() {
+            // The sandbox may not signal a program the helper started.
+            let _ = crate::outside::signal("TERM", &group);
+            std::thread::spawn(move || {
+                std::thread::sleep(Duration::from_millis(2500));
+                let _ = crate::outside::signal("KILL", &group);
+            });
+            return;
+        }
         let _ = Command::new("kill").args(["-TERM", group.as_str()]).stdout(Stdio::null()).stderr(Stdio::null()).status();
         std::thread::spawn(move || {
             std::thread::sleep(Duration::from_millis(2500));
@@ -1677,9 +1682,7 @@ fn start_blocking<R: Runtime>(app: &AppHandle<R>, args: StartArgs, epoch: u64) -
             return Err("Too many Claude Code sessions are running. Stop one first".into());
         }
     }
-    if sandboxed() {
-        return Err(SANDBOXED.into());
-    }
+    crate::outside::require_helper()?;
     state.starting.fetch_add(1, Ordering::SeqCst);
     let started = {
         let _starting = StartingGuard(&state.starting);
@@ -1771,7 +1774,7 @@ fn spawn_session<R: Runtime>(
         resume: args.resume.as_deref(),
         path: &path,
     };
-    let mut child = match agent_command(&binary, &plan).spawn() {
+    let mut child = match crate::outside::spawn(&mut agent_command(&binary, &plan), Io::PIPES) {
         Ok(child) => child,
         Err(e) => {
             if let Some(files) = &spawn_files {
@@ -2164,7 +2167,7 @@ impl PromptTicket<'_> {
     /// Start `command`, unless the prompt was stopped first, and note its pid.
     /// Both under the lock, so a Stop either finds the pid or keeps the
     /// process from starting.
-    fn spawn(&self, command: &mut Command) -> Result<Option<std::process::Child>, String> {
+    fn spawn(&self, command: &mut Command, io: Io) -> Result<Option<Proc>, String> {
         let mut book = self.runs.0.lock().unwrap();
         let Some(run) = book.runs.iter_mut().find(|run| run.serial == self.serial) else {
             return Ok(None);
@@ -2172,7 +2175,7 @@ impl PromptTicket<'_> {
         if run.stopped {
             return Ok(None);
         }
-        let child = command.spawn().map_err(|e| e.to_string())?;
+        let child = crate::outside::spawn(command, io).map_err(|e| e.to_string())?;
         run.pid = Some(child.id());
         Ok(Some(child))
     }
@@ -2251,14 +2254,14 @@ pub(crate) fn run_once(
     timeout: Duration,
     ticket: &PromptTicket,
 ) -> Result<OnceOutcome, String> {
-    let Some(mut child) = ticket.spawn(&mut command)? else {
+    let Some(mut child) = ticket.spawn(&mut command, Io::PIPES)? else {
         return Ok(OnceOutcome::Stopped);
     };
     let outcome = wait_once(&mut child, input, timeout)?;
     Ok(if ticket.stopped() { OnceOutcome::Stopped } else { outcome })
 }
 
-fn wait_once(child: &mut std::process::Child, input: String, timeout: Duration) -> Result<OnceOutcome, String> {
+fn wait_once(child: &mut Proc, input: String, timeout: Duration) -> Result<OnceOutcome, String> {
     let stdout = spawn_reader(child.stdout.take().ok_or("no stdout")?);
     let stderr = spawn_reader(child.stderr.take().ok_or("no stderr")?);
     if let Some(mut stdin) = child.stdin.take() {
@@ -2399,7 +2402,7 @@ enum FolderAccess {
 /// `wait`, or once `stopped` says so, is killed and left to a thread of its
 /// own to reap: a read macOS holds for its question may end only once the
 /// question is answered, and nothing here waits for that.
-fn await_folder_probe(mut child: std::process::Child, wait: Duration, stopped: &dyn Fn() -> bool) -> Result<FolderAccess, String> {
+fn await_folder_probe(mut child: Proc, wait: Duration, stopped: &dyn Fn() -> bool) -> Result<FolderAccess, String> {
     let deadline = Instant::now() + wait;
     loop {
         match child.try_wait().map_err(|e| e.to_string())? {
@@ -2436,7 +2439,7 @@ fn await_folder_probe(mut child: std::process::Child, wait: Duration, stopped: &
 fn folder_probe(folder: &Path) -> Command {
     use std::os::unix::process::CommandExt;
     let mut probe = Command::new("/bin/ls");
-    probe.arg("-1").arg("--").arg(folder).env("LC_ALL", "C").stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::piped());
+    probe.arg("-1").arg("--").arg(folder).env("LC_ALL", "C");
     probe.process_group(0);
     probe
 }
@@ -2459,7 +2462,7 @@ fn folder_name(folder: &Path) -> String {
 /// Linux ask nothing.
 #[cfg(target_os = "macos")]
 fn check_folder_access(folder: &Path, ticket: &PromptTicket) -> Result<(), String> {
-    let Some(child) = ticket.spawn(&mut folder_probe(folder))? else {
+    let Some(child) = ticket.spawn(&mut folder_probe(folder), Io::ERRORS)? else {
         return Err(PROMPT_STOPPED.into());
     };
     let access = await_folder_probe(child, FOLDER_ACCESS_WAIT, &|| ticket.stopped());
@@ -2489,7 +2492,7 @@ fn folder_refused(folder: &Path) -> String {
 fn folder_access_now(folder: &Path) -> Result<&'static str, String> {
     #[cfg(target_os = "macos")]
     {
-        let child = folder_probe(folder).spawn().map_err(|e| e.to_string())?;
+        let child = crate::outside::spawn(&mut folder_probe(folder), Io::ERRORS).map_err(|e| e.to_string())?;
         Ok(match await_folder_probe(child, FOLDER_LOOK_WAIT, &|| false)? {
             FolderAccess::Refused => "refused",
             FolderAccess::Asking => "asking",
@@ -2617,9 +2620,7 @@ fn prompt_blocking(
     model: Option<&str>,
     code: &dyn Fn(&PromptTicket) -> Result<Option<OnceCode>, String>,
 ) -> Result<String, String> {
-    if sandboxed() {
-        return Err(SANDBOXED.into());
-    }
+    crate::outside::require_helper()?;
     let ticket = state.prompt_runs.begin(id, window).ok_or(PROMPT_STOPPED)?;
     // A prompt can come before any detect has asked the login shell for its
     // PATH, which an npm-installed `claude` needs to find node.
@@ -2676,9 +2677,7 @@ pub async fn abs_claude_prompt<R: Runtime>(
     let folders = folders.unwrap_or_default();
     let label = window.label().to_string();
     tauri::async_runtime::spawn_blocking(move || {
-        if sandboxed() {
-            return Err(SANDBOXED.into());
-        }
+        crate::outside::require_helper()?;
         let code = |ticket: &PromptTicket| once_code(&app, &folders, Some(ticket));
         prompt_blocking(&app.state::<ClaudeState>(), &id, &label, &system, &prompt, model.as_deref(), &code)
     })
@@ -3692,17 +3691,17 @@ mod tests {
         let runs = PromptRuns::default();
         let ticket = runs.begin("look", "main").unwrap();
         let wait = Duration::from_secs(10);
-        let kept_out = ticket.spawn(&mut folder_look("ls: /Users/me/Documents/App: Operation not permitted", 1)).unwrap().unwrap();
+        let kept_out = ticket.spawn(&mut folder_look("ls: /Users/me/Documents/App: Operation not permitted", 1), Io::ERRORS).unwrap().unwrap();
         assert_eq!(await_folder_probe(kept_out, wait, &|| ticket.stopped()).unwrap(), FolderAccess::Refused);
         // Any other failure is the folder checks' to name: a folder that is gone, say.
-        let gone = ticket.spawn(&mut folder_look("ls: /Users/me/App: No such file or directory", 1)).unwrap().unwrap();
+        let gone = ticket.spawn(&mut folder_look("ls: /Users/me/App: No such file or directory", 1), Io::ERRORS).unwrap().unwrap();
         assert_eq!(await_folder_probe(gone, wait, &|| ticket.stopped()).unwrap(), FolderAccess::Open);
-        let fine = ticket.spawn(&mut folder_look("", 0)).unwrap().unwrap();
+        let fine = ticket.spawn(&mut folder_look("", 0), Io::ERRORS).unwrap().unwrap();
         assert_eq!(await_folder_probe(fine, wait, &|| ticket.stopped()).unwrap(), FolderAccess::Open);
 
         // macOS still asking: the look gives up at the wait, and its process is gone.
         let started = Instant::now();
-        let asking = ticket.spawn(&mut sleeper()).unwrap().unwrap();
+        let asking = ticket.spawn(&mut sleeper(), Io::ERRORS).unwrap().unwrap();
         let pid = asking.id().to_string();
         assert_eq!(await_folder_probe(asking, Duration::from_millis(300), &|| ticket.stopped()).unwrap(), FolderAccess::Asking);
         assert!(started.elapsed() < Duration::from_secs(5));
@@ -3718,7 +3717,7 @@ mod tests {
         std::thread::scope(|scope| {
             let looking = scope.spawn(|| {
                 let ticket = runs.begin("stopped-look", "main").unwrap();
-                let child = ticket.spawn(&mut sleeper()).unwrap().unwrap();
+                let child = ticket.spawn(&mut sleeper(), Io::ERRORS).unwrap().unwrap();
                 let started = Instant::now();
                 (await_folder_probe(child, Duration::from_secs(20), &|| ticket.stopped()).unwrap(), started.elapsed())
             });

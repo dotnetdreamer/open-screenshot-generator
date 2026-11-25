@@ -16,7 +16,6 @@ import {
   ChevronRight,
   CircleAlert,
   Crosshair,
-  EyeOff,
   Folder,
   FolderPlus,
   History,
@@ -85,7 +84,6 @@ export interface AgentPanelHandlers {
   /** The model the next Codex turn asks for: 'default' or a model id from view.codexModels. */
   onSetCodexModel: (model: string) => void;
   onSetCodexEffort: (effort: CodexEffortChoice) => void;
-  onHide: () => void;
   /** Go back to a past chat, and to its project when another one is open. */
   onOpenChat: (chatId: string) => void;
   onDeleteChat: (chatId: string) => void;
@@ -573,6 +571,7 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
   const agentName = AGENT_NAMES[view.agent];
   const readiness = codex ? codexReadinessOf(view.codexDetection) : readinessOf(view.detection);
   const needsSetup =
+    readiness === 'needs-helper' ||
     readiness === 'missing' ||
     readiness === 'signed-out' ||
     readiness === 'keyring' ||
@@ -922,11 +921,6 @@ export function AgentPanel({ view, handlers, offline = false, detached = false, 
             <DropdownMenuItem className="gap-2 text-xs" onSelect={handlers.onDetect}>
               <RefreshCw className="h-3.5 w-3.5 text-muted-foreground" />
               {`Check ${agentName} again`}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="gap-2 text-xs" onSelect={handlers.onHide}>
-              <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
-              Hide this tab
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

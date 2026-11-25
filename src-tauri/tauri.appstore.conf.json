@@ -7,6 +7,7 @@
       "bundleVersion": "1",
       "hardenedRuntime": true,
       "entitlements": "./Entitlements.plist",
+      "infoPlist": "./Info.appstore.plist",
       "files": {
         "embedded.provisionprofile": "./embedded.provisionprofile"
       }

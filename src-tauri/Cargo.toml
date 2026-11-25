@@ -55,12 +55,16 @@ time = { version = "0.3", features = ["formatting"] }
 # NSPathUtilities, NSURL) for the folder macOS keeps on a file's own drive for
 # replacing that file (NSItemReplacementDirectory), which the App Store sandbox
 # lets the app use after the save dialog, so a zip there is swapped in in one step.
+# outside.rs runs the user's helper script outside the App Store sandbox
+# (NSUserUnixTask, NSFileHandle), hears when it ends through a block, and
+# turns an Objective-C exception into an error rather than an abort.
 [target.'cfg(target_os = "macos")'.dependencies]
-objc2 = "0.6"
+objc2 = { version = "0.6", features = ["exception"] }
+block2 = "0.6"
 objc2-core-foundation = { version = "0.3", default-features = false, features = ["std", "CFData"] }
 objc2-core-graphics = { version = "0.3", default-features = false, features = ["std", "CGColorSpace", "CGDataProvider", "CGImage"] }
 objc2-core-video = { version = "0.3", default-features = false, features = ["std", "CVBase", "CVBuffer", "CVImageBuffer", "CVPixelBuffer", "CVReturn"] }
-objc2-foundation = { version = "0.3", default-features = false, features = ["std", "NSArray", "NSDictionary", "NSError", "NSFileManager", "NSIndexSet", "NSPathUtilities", "NSString", "NSURL"] }
+objc2-foundation = { version = "0.3", default-features = false, features = ["std", "block2", "NSArray", "NSDictionary", "NSError", "NSFileHandle", "NSFileManager", "NSIndexSet", "NSPathUtilities", "NSString", "NSURL", "NSUserScriptTask"] }
 objc2-vision = { version = "0.3", default-features = false, features = ["std", "objc2-core-graphics", "objc2-core-video", "VNGenerateForegroundInstanceMaskRequest", "VNObservation", "VNRequest", "VNRequestHandler"] }
 
 # Screenshot capture of the assistant windows for the operation timeline.

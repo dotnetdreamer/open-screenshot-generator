@@ -10,6 +10,7 @@ mod icon_export;
 mod mcp_server;
 mod migrate;
 mod oauth;
+mod outside;
 mod panels;
 mod settings;
 mod splash;
@@ -102,6 +103,7 @@ pub fn run() {
             icon_export::abs_scan_icon_targets,
             icon_export::abs_write_export_zip,
             mcp_server::abs_mcp_bridge_nonce,
+            outside::abs_add_app_store_helper,
             claude_code::abs_claude_detect,
             claude_code::abs_claude_start,
             claude_code::abs_claude_send,

@@ -12,6 +12,7 @@
 
 import { extractJsonCandidates } from '@/lib/ai/jsonExtract';
 import {
+  agentWritersWaitForHelper,
   detectAgentWriters,
   knownAgentWriters,
   onAgentWritersDetected,
@@ -61,9 +62,11 @@ function announceAiChange(): void {
 /**
  * Find out which CLIs can answer (each detect starts both), and tell the
  * listeners once it is known. `refresh` asks again, after a sign in, say.
+ * While the last look found the App Store helper missing, every call looks
+ * again: that look is only a file check, and the helper may be saved by now.
  */
 export function refreshGrowthAi(options: { refresh?: boolean } = {}): void {
-  if (!isTauri() || (detectStarted && !options.refresh)) return;
+  if (!isTauri() || (detectStarted && !options.refresh && !agentWritersWaitForHelper())) return;
   detectStarted = true;
   void detectAgentWriters({ refresh: options.refresh })
     .then(() => announceAiChange())

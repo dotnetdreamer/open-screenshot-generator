@@ -17,7 +17,7 @@ Get the free desktop app for Mac, Windows and Linux, or edit right away in the [
   <a href="https://editor.openscrgen.app"><img src="docs/badges/web-editor.svg" alt="Edit now in your web browser" height="48"></a>
 </p>
 
-<p align="center"><sub>The web editor needs no install and no account. The desktop app adds Capture, store uploads and more: <a href="#feature-checklist-web-vs-desktop">see the checklist</a>.<br>The Mac App Store version can't run Claude Code or Codex. For Claude Code or Codex on a Mac, get the app from GitHub.</sub></p>
+<p align="center"><sub>The web editor needs no install and no account. The desktop app adds Capture, store uploads and more: <a href="#feature-checklist-web-vs-desktop">see the checklist</a>.<br>To use Claude Code or Codex, the Mac App Store version asks you once to save a small helper file.</sub></p>
 
 <div align="center">
 
@@ -93,7 +93,7 @@ Both versions use the same editor. The desktop app adds features that need acces
 | AI agent with your own API key | Yes | Yes |
 | AI agent with an existing assistant account | Copy and paste, or use the [companion extension](extension/README.md) | Built in assistant window |
 | Built in or local AI providers | No | Yes |
-| AI agent in Claude Code or Codex, on your Claude or ChatGPT plan | No | Yes, except the Mac App Store version |
+| AI agent in Claude Code or Codex, on your Claude or ChatGPT plan | No | Yes (the Mac App Store version asks you once to save a small helper file) |
 | Coding agent design tools | With the [web relay](infra/vps/mcp-relay/README.md) or CLI | Built in MCP server |
 | Save to your own Google Drive or GitHub account | Yes | Yes |
 | Upload screenshots directly to App Store Connect or Google Play | No | Yes |

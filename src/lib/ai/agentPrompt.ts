@@ -22,6 +22,7 @@
 import { isTauri } from '@/lib/desktop';
 import type { ClaudeDetection } from '@/lib/claudeCode/types';
 import type { CodexDetection } from '@/lib/codex/types';
+import { helperNeed } from '@/lib/appStoreHelper';
 
 export type AgentWriter = 'claude' | 'codex';
 
@@ -34,6 +35,8 @@ export interface AgentWriterStatus {
   detail?: string;
   /** It can never run in this build: the Mac App Store's sandbox. */
   sandboxed?: boolean;
+  /** The Mac App Store version is waiting for its helper, or a newer one. */
+  helper?: 'missing' | 'outdated';
 }
 
 export type AgentWriters = Record<AgentWriter, AgentWriterStatus>;
@@ -330,10 +333,19 @@ const CODEX_PLANS: Record<string, string> = {
   edu: 'Edu',
 };
 
+/** What to do when the Mac App Store version has no helper, or an old one. */
+function helperDetail(name: string, need: 'missing' | 'outdated'): string {
+  return need === 'outdated'
+    ? `To use ${name}, update the helper file in the editor's Agent tab`
+    : `To use ${name}, add the helper file in the editor's Agent tab`;
+}
+
 /** Whether Claude Code can answer, from abs_claude_detect. */
 export function claudeWriterStatus(detection: ClaudeDetection): AgentWriterStatus {
   const plan = detection.subscriptionType ? CLAUDE_PLANS[detection.subscriptionType] ?? detection.subscriptionType : null;
   const label = plan ? `Claude Code (${plan} plan)` : 'Claude Code';
+  const helper = helperNeed(detection.unavailable);
+  if (helper) return { ready: false, label, detail: helperDetail('Claude Code', helper), helper };
   if (detection.unavailable === 'sandboxed') {
     return { ready: false, label, detail: 'Claude Code cannot run in the Mac App Store version of Open Screenshot Generator', sandboxed: true };
   }
@@ -349,6 +361,8 @@ export function claudeWriterStatus(detection: ClaudeDetection): AgentWriterStatu
 export function codexWriterStatus(detection: CodexDetection): AgentWriterStatus {
   const plan = detection.planType ? CODEX_PLANS[detection.planType] ?? detection.planType : null;
   const label = plan ? `Codex (ChatGPT ${plan} plan)` : 'Codex';
+  const helper = helperNeed(detection.unavailable);
+  if (helper) return { ready: false, label, detail: helperDetail('Codex', helper), helper };
   if (detection.unavailable === 'sandboxed') {
     return { ready: false, label, detail: 'Codex cannot run in the Mac App Store version of Open Screenshot Generator', sandboxed: true };
   }
@@ -372,6 +386,8 @@ function failedStatus(label: string, reason: unknown): AgentWriterStatus {
 }
 
 let detecting: Promise<AgentWriters> | null = null;
+/** The look still running, which a caller waiting for the helper joins. */
+let inFlight: Promise<AgentWriters> | null = null;
 /**
  * What the newest look found for each CLI, for code that cannot wait for one.
  * The Agent panel looks for itself (its store's detect, and Check again), and
@@ -417,26 +433,40 @@ function announceDetection(): void {
   detectListeners.forEach((listener) => listener());
 }
 
+/** Whether the newest look found the App Store helper missing or old for either CLI. */
+export function agentWritersWaitForHelper(): boolean {
+  return !!known && (!!known.claude.helper || !!known.codex.helper);
+}
+
 /**
  * Which of the two CLIs can answer here. Every detect starts both CLIs, so
  * the first answer is kept and handed to every later call until one asks for
- * `refresh` (after the user installs or signs in, say).
+ * `refresh` (after the user installs or signs in, say). An answer that the
+ * App Store helper is missing is never kept: the helper can be saved from the
+ * Agent panel at any moment, and looking again is only a file check. A call
+ * made while such a look runs gets that look.
  */
 export function detectAgentWriters(options: { refresh?: boolean } = {}): Promise<AgentWriters> {
-  if (!detecting || options.refresh) {
+  if (!detecting || options.refresh || (agentWritersWaitForHelper() && !inFlight)) {
     const look = beginAgentLook();
-    detecting = Promise.allSettled([
+    const started: Promise<AgentWriters> = Promise.allSettled([
       invoke<ClaudeDetection>('abs_claude_detect'),
       invoke<CodexDetection>('abs_codex_detect'),
-    ]).then(([claude, codex]) => {
-      const found: AgentWriters = {
-        claude: claude.status === 'fulfilled' ? claudeWriterStatus(claude.value) : failedStatus('Claude Code', claude.reason),
-        codex: codex.status === 'fulfilled' ? codexWriterStatus(codex.value) : failedStatus('Codex', codex.reason),
-      };
-      const kept = [remember('claude', found.claude, look), remember('codex', found.codex, look)];
-      if (kept.some(Boolean)) announceDetection();
-      return known ?? found;
-    });
+    ])
+      .then(([claude, codex]) => {
+        const found: AgentWriters = {
+          claude: claude.status === 'fulfilled' ? claudeWriterStatus(claude.value) : failedStatus('Claude Code', claude.reason),
+          codex: codex.status === 'fulfilled' ? codexWriterStatus(codex.value) : failedStatus('Codex', codex.reason),
+        };
+        const kept = [remember('claude', found.claude, look), remember('codex', found.codex, look)];
+        if (kept.some(Boolean)) announceDetection();
+        return known ?? found;
+      })
+      .finally(() => {
+        if (inFlight === started) inFlight = null;
+      });
+    detecting = started;
+    inFlight = started;
   }
   return detecting;
 }

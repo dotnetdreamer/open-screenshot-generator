@@ -46,9 +46,10 @@ use tauri::{AppHandle, Emitter, Manager, Runtime, WindowEvent};
 
 use crate::claude_code::{
     claim_prompt_slot, first_line, hide_console, home_dir, kill_tree, login_shell_path, merged_path, pump_lines,
-    require_editor_window, run_capture_with, run_once, sandboxed, valid_spawn_id, valid_uuid, write_if_changed,
+    require_editor_window, run_capture_with, run_once, valid_spawn_id, valid_uuid, write_if_changed,
     Captured, OnceDir, OnceOutcome, PromptRuns, StartingGuard, MAX_PROMPT_TEXT, PROMPT_BAD_ID, PROMPT_TIMEOUT, SKILLS,
 };
+use crate::outside::Io;
 
 /// Event the editor window listens on. Must match `CODEX_EVENT` in
 /// src/lib/codex/desktopTransport.ts.
@@ -133,7 +134,6 @@ shell_tool = false
 unified_exec = false
 unified_exec_tty = false
 shell_snapshot = false
-multi_agent = false
 multi_agent_v2 = false
 apps = false
 plugins = false
@@ -165,6 +165,118 @@ guardian_approval = false
 request_permissions_tool = false
 standalone_web_search = false
 "#;
+
+/// The first Codex with `[agents] enabled`, a prerelease: 0.145.0-alpha.17.
+/// From it on that key turns the sub-agent tools off, which `[features]
+/// multi_agent` no longer does on its own: a model whose catalog entry picks a
+/// sub-agent version gets them back, and Codex warns about the old key in
+/// every chat. Before it, `[agents]` reads any unknown key as an agent role, so
+/// `enabled = false` would stop the config from loading (0.130 up to
+/// 0.145.0-alpha.16).
+const AGENTS_ENABLED_KEY_SINCE: ([u32; 3], &str) = ([0, 145, 0], "alpha.17");
+
+/// A version as `codex --version` prints it, such as 0.171.0-alpha.13.2.
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct CodexVersion {
+    numbers: [u32; 3],
+    /// What follows the dash in a prerelease ("alpha.13.2"). None in a release.
+    prerelease: Option<String>,
+}
+
+impl CodexVersion {
+    /// Whether this comes before `numbers` with `prerelease`, in semver's
+    /// order: a prerelease comes before its release.
+    fn is_before(&self, numbers: [u32; 3], prerelease: Option<&str>) -> bool {
+        match self.numbers.cmp(&numbers) {
+            std::cmp::Ordering::Less => true,
+            std::cmp::Ordering::Greater => false,
+            std::cmp::Ordering::Equal => match (self.prerelease.as_deref(), prerelease) {
+                (None, _) => false,
+                (Some(_), None) => true,
+                (Some(ours), Some(theirs)) => prerelease_order(ours, theirs).is_lt(),
+            },
+        }
+    }
+}
+
+/// Semver's order for two prerelease parts such as "alpha.9" and "alpha.17":
+/// dot by dot, numbers as numbers (9 before 17), and a number before a word.
+/// When one runs out first, it comes first (alpha.13 before alpha.13.2).
+fn prerelease_order(ours: &str, theirs: &str) -> std::cmp::Ordering {
+    let mut ours = ours.split('.');
+    let mut theirs = theirs.split('.');
+    loop {
+        let order = match (ours.next(), theirs.next()) {
+            (None, None) => return std::cmp::Ordering::Equal,
+            (None, Some(_)) => return std::cmp::Ordering::Less,
+            (Some(_), None) => return std::cmp::Ordering::Greater,
+            (Some(a), Some(b)) => match (a.parse::<u64>(), b.parse::<u64>()) {
+                (Ok(a), Ok(b)) => a.cmp(&b),
+                (Ok(_), Err(_)) => std::cmp::Ordering::Less,
+                (Err(_), Ok(_)) => std::cmp::Ordering::Greater,
+                (Err(_), Err(_)) => a.cmp(b),
+            },
+        };
+        if order.is_ne() {
+            return order;
+        }
+    }
+}
+
+/// How config.toml turns the sub-agent tools off.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum SubAgentsOff {
+    /// `[agents] enabled = false`, from 0.145.0-alpha.17.
+    AgentsKey,
+    /// `[features] multi_agent = false`, before it.
+    FeatureFlag,
+}
+
+impl SubAgentsOff {
+    fn other(self) -> Self {
+        match self {
+            Self::AgentsKey => Self::FeatureFlag,
+            Self::FeatureFlag => Self::AgentsKey,
+        }
+    }
+}
+
+/// The form a Codex of `version` should read, or None when the version can't
+/// say: one that couldn't be read, and 0.0.0, which a build from any of
+/// Codex's development revisions prints, old or new (a build from a release
+/// tag prints that release). It is a first guess: detect asks Codex whether
+/// it read the config, and keeps the form it did.
+fn sub_agents_off_for(version: Option<&CodexVersion>) -> Option<SubAgentsOff> {
+    let version = version.filter(|version| version.numbers != [0, 0, 0])?;
+    let (numbers, prerelease) = AGENTS_ENABLED_KEY_SINCE;
+    Some(if version.is_before(numbers, Some(prerelease)) { SubAgentsOff::FeatureFlag } else { SubAgentsOff::AgentsKey })
+}
+
+fn config_toml(form: SubAgentsOff) -> String {
+    match form {
+        SubAgentsOff::FeatureFlag => {
+            CONFIG_TOML.replacen("multi_agent_v2 = false\n", "multi_agent = false\nmulti_agent_v2 = false\n", 1)
+        }
+        SubAgentsOff::AgentsKey => format!("{CONFIG_TOML}\n[agents]\nenabled = false\n"),
+    }
+}
+
+/// The version in `codex --version`'s line, such as "codex-cli 0.171.0-alpha.13.2".
+fn parse_codex_version(line: &str) -> Option<CodexVersion> {
+    let word = line.split_whitespace().find(|word| word.chars().next().is_some_and(|c| c.is_ascii_digit()))?;
+    // Build data after a plus has no place in the order.
+    let word = word.split('+').next().unwrap_or(word);
+    let (core, prerelease) = match word.split_once('-') {
+        Some((core, prerelease)) => (core, Some(prerelease.to_string())),
+        None => (word, None),
+    };
+    let mut parts = core.split('.');
+    let mut numbers = [0u32; 3];
+    for slot in &mut numbers {
+        *slot = parts.next()?.parse().ok()?;
+    }
+    Some(CodexVersion { numbers, prerelease: prerelease.filter(|part| !part.is_empty()) })
+}
 
 /// More than this many live processes means something is leaking them.
 const MAX_SESSIONS: usize = 4;
@@ -206,8 +318,6 @@ const DUPLICATE_WINDOW: Duration = Duration::from_secs(1);
 
 /// Why a start fails when the page that asked for it is gone (on_page_load).
 const RELOADED: &str = "The editor reloaded while Codex was starting";
-
-const SANDBOXED: &str = "Codex cannot run from the Mac App Store version of the app";
 
 /// What the model is told when Codex asks to run a command or change a file.
 /// With approvals set to never it should not ask at all.
@@ -369,6 +479,21 @@ pub struct CodexState {
     prompting: AtomicUsize,
     /// Their processes, for abs_codex_prompt_stop and kill_all.
     prompt_runs: PromptRuns,
+    /// Each binary's version as `--version` printed it, kept while the file is
+    /// the same, since the config written for it depends on it.
+    versions: Mutex<HashMap<PathBuf, SeenVersion>>,
+    /// Held while detect writes a form and asks Codex about it, so two looks
+    /// never write under each other's probe.
+    trying: Mutex<()>,
+}
+
+/// A binary's modification time when its version was read, the version, and
+/// the form Codex said it read (config/read in detect's probe).
+#[derive(Clone, Default)]
+struct SeenVersion {
+    stamp: Option<std::time::SystemTime>,
+    version: Option<CodexVersion>,
+    loads: Option<SubAgentsOff>,
 }
 
 const CLAIMED_KEEP: usize = 256;
@@ -380,6 +505,50 @@ impl CodexState {
 
     fn path(&self) -> String {
         merged_path(&self.shell_path.lock().unwrap().clone().unwrap_or_default())
+    }
+
+    /// The version of `binary`: the one kept while the file is unchanged, else
+    /// what `--version` prints now.
+    fn version_of(&self, binary: &Path) -> Option<CodexVersion> {
+        let stamp = std::fs::metadata(binary).and_then(|meta| meta.modified()).ok();
+        if let Some(seen) = self.versions.lock().unwrap().get(binary) {
+            if seen.stamp == stamp {
+                return seen.version.clone();
+            }
+        }
+        let path = self.path();
+        let env = [("PATH", path.as_str())];
+        let line = run_capture_with(binary, &["--version"], &env, Duration::from_secs(20), scrub_env)
+            .ok()
+            .filter(|out| out.success)
+            .map(|out| first_line(&out.stdout));
+        self.remember_version(binary, line.as_deref().unwrap_or_default())
+    }
+
+    /// Keep what `--version` printed for `binary`, and return the version in it.
+    /// The form a probe found stays while the file is the same.
+    fn remember_version(&self, binary: &Path, line: &str) -> Option<CodexVersion> {
+        let stamp = std::fs::metadata(binary).and_then(|meta| meta.modified()).ok();
+        let version = parse_codex_version(line);
+        let mut versions = self.versions.lock().unwrap();
+        let loads = versions.get(binary).filter(|seen| seen.stamp == stamp).and_then(|seen| seen.loads);
+        versions.insert(binary.to_path_buf(), SeenVersion { stamp, version: version.clone(), loads });
+        version
+    }
+
+    /// The form to write for `binary`: the one Codex said it read, else the
+    /// one its version suggests, else the current one.
+    fn sub_agents_off(&self, binary: &Path) -> SubAgentsOff {
+        let version = self.version_of(binary);
+        let read = self.versions.lock().unwrap().get(binary).and_then(|seen| seen.loads);
+        read.or_else(|| sub_agents_off_for(version.as_ref())).unwrap_or(SubAgentsOff::AgentsKey)
+    }
+
+    /// Keep the form Codex said `binary` read, until the file changes.
+    fn remember_loads(&self, binary: &Path, form: SubAgentsOff) {
+        if let Some(seen) = self.versions.lock().unwrap().get_mut(binary) {
+            seen.loads = Some(form);
+        }
     }
 }
 
@@ -485,7 +654,8 @@ pub struct CodexDetection {
     login_store: Option<String>,
     /// The models this login can use, as Codex lists them.
     models: Vec<CodexModel>,
-    /// Why Codex cannot run here whatever is installed ("sandboxed").
+    /// Why Codex cannot run whatever is installed: "helper-missing" or
+    /// "helper-outdated" in the Mac App Store build (outside.rs).
     unavailable: Option<String>,
     error: Option<String>,
 }
@@ -517,18 +687,28 @@ fn extension_binaries(home: &Path) -> Vec<PathBuf> {
     let name = if cfg!(windows) { "codex.exe" } else { "codex" };
     let mut found: Vec<(Vec<u64>, PathBuf)> = Vec::new();
     for editor in [".vscode", ".vscode-insiders", ".cursor", ".windsurf", ".vscode-oss"] {
-        let Ok(entries) = std::fs::read_dir(home.join(editor).join("extensions")) else {
+        let extensions = home.join(editor).join("extensions");
+        // A folder the editor isn't installed for costs nothing to skip, and
+        // in the sandbox each listing is a run of the helper.
+        if !extensions.is_dir() {
+            continue;
+        }
+        let Some(entries) = crate::outside::folder_names(&extensions) else {
             continue;
         };
-        for entry in entries.flatten() {
-            let Some(version) = entry.file_name().to_str().and_then(extension_version) else {
+        for entry in entries {
+            let Some(version) = extension_version(&entry) else {
                 continue;
             };
-            let Ok(platforms) = std::fs::read_dir(entry.path().join("bin")) else {
+            let bin = extensions.join(&entry).join("bin");
+            if !bin.is_dir() {
+                continue;
+            }
+            let Some(platforms) = crate::outside::folder_names(&bin) else {
                 continue;
             };
-            for platform in platforms.flatten() {
-                let candidate = platform.path().join(name);
+            for platform in platforms {
+                let candidate = bin.join(platform).join(name);
                 if candidate.is_file() {
                     found.push((version.clone(), candidate));
                 }
@@ -637,7 +817,7 @@ fn workspace_dir<R: Runtime>(app: &AppHandle<R>) -> Result<PathBuf, String> {
 /// Several prompts start Codex side by side (a translation sends three at
 /// once). The lock lets one of them rewrite a config this build changed while
 /// the others wait, so none reads it half written and writes it again.
-fn prepare_workspace(dir: &Path) -> Result<Workspace, String> {
+fn prepare_workspace(dir: &Path, form: SubAgentsOff) -> Result<Workspace, String> {
     static PREPARING: Mutex<()> = Mutex::new(());
     let _preparing = PREPARING.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
     let home = dir.join(HOME_DIR);
@@ -652,7 +832,7 @@ fn prepare_workspace(dir: &Path) -> Result<Workspace, String> {
         // The home holds a link to the login and every design conversation.
         let _ = std::fs::set_permissions(dir, std::fs::Permissions::from_mode(0o700));
     }
-    write_if_changed(&home.join("config.toml"), CONFIG_TOML.as_bytes())?;
+    write_if_changed(&home.join("config.toml"), config_toml(form).as_bytes())?;
     Ok(Workspace { home, user, cwd })
 }
 
@@ -890,9 +1070,9 @@ fn thread_params(workspace: &Workspace, model: Option<&str>) -> Map<String, Valu
 
 /// A short app-server run that answers who is signed in and which models they
 /// have, without starting a conversation or spending any usage.
-fn probe(binary: &Path, workspace: &Workspace, path: &str, detection: &mut CodexDetection) -> Result<(), String> {
+fn probe(binary: &Path, workspace: &Workspace, path: &str, detection: &mut CodexDetection) -> Result<ConfigCheck, String> {
     let plan = SpawnPlan { workspace, mcp: None, path };
-    let mut child = agent_command(binary, &plan).spawn().map_err(|e| e.to_string())?;
+    let mut child = crate::outside::spawn(&mut agent_command(binary, &plan), Io::PIPES).map_err(|e| e.to_string())?;
     let pid = child.id();
     let mut stdin = child.stdin.take().ok_or("no stdin")?;
     let stdout = child.stdout.take().ok_or("no stdout")?;
@@ -910,22 +1090,24 @@ fn probe(binary: &Path, workspace: &Workspace, path: &str, detection: &mut Codex
         })
     });
     let deadline = Instant::now() + PROBE_TIMEOUT;
-    let mut ask = |id: u64, method: &str, params: Value| -> Result<Value, String> {
+    let stopped = || AskError::Failed("Codex stopped before it answered".into());
+    let late = || AskError::Failed("Codex did not answer in time".into());
+    let mut ask = |id: u64, method: &str, params: Value| -> Result<Value, AskError> {
         let line = json!({ "jsonrpc": "2.0", "id": id, "method": method, "params": params }).to_string();
         stdin
             .write_all(line.as_bytes())
             .and_then(|_| stdin.write_all(b"\n"))
             .and_then(|_| stdin.flush())
-            .map_err(|_| "Codex stopped before it answered".to_string())?;
+            .map_err(|_| stopped())?;
         loop {
             let now = Instant::now();
             if now >= deadline {
-                return Err("Codex did not answer in time".into());
+                return Err(late());
             }
             let line = match rx.recv_timeout(deadline - now) {
                 Ok(line) => line,
-                Err(RecvTimeoutError::Timeout) => return Err("Codex did not answer in time".into()),
-                Err(RecvTimeoutError::Disconnected) => return Err("Codex stopped before it answered".into()),
+                Err(RecvTimeoutError::Timeout) => return Err(late()),
+                Err(RecvTimeoutError::Disconnected) => return Err(stopped()),
             };
             let Ok(Value::Object(message)) = serde_json::from_str::<Value>(&line) else {
                 continue;
@@ -934,34 +1116,63 @@ fn probe(binary: &Path, workspace: &Workspace, path: &str, detection: &mut Codex
                 continue;
             }
             if let Some(error) = message.get("error") {
-                return Err(error.get("message").and_then(Value::as_str).unwrap_or("Codex refused").to_string());
+                return Err(AskError::Refused {
+                    code: error.get("code").and_then(Value::as_i64),
+                    message: error.get("message").and_then(Value::as_str).unwrap_or("Codex refused").to_string(),
+                });
             }
             return Ok(message.get("result").cloned().unwrap_or(Value::Null));
         }
     };
     let answered = (|| {
         ask(1, "initialize", initialize_params())?;
-        let account = ask(2, "account/read", json!({ "refreshToken": false }))?;
+        // It reads the config again for this, and says so if it can't.
+        let check = match ask(2, "config/read", json!({ "includeLayers": false, "cwd": null })) {
+            Ok(_) => ConfigCheck::Read,
+            Err(AskError::Refused { code, message }) if unknown_config_read(code, &message) => ConfigCheck::Unknown,
+            Err(AskError::Refused { code, message }) if refuses_agents_key(code, &message) => {
+                return Ok(ConfigCheck::RefusedAgents(message));
+            }
+            Err(AskError::Refused { message, .. }) => return Ok(ConfigCheck::Refused(message)),
+            Err(failed) => return Err(failed),
+        };
+        let account = ask(3, "account/read", json!({ "refreshToken": false }))?;
         read_account(&account, detection);
         if detection.logged_in == Some(true) {
-            if let Ok(models) = ask(3, "model/list", json!({})) {
+            if let Ok(models) = ask(4, "model/list", json!({})) {
                 detection.models = read_models(&models);
             }
         }
-        Ok::<(), String>(())
+        Ok::<ConfigCheck, AskError>(check)
     })();
-    let exited = child.try_wait().is_ok_and(|status| status.is_some());
+    // A Codex that died says why on stderr; one that hung says nothing useful.
+    // The helper can close the pipes a moment before it reports the exit.
+    let exited = answered.is_err() && exited_within(&mut child, Duration::from_millis(500));
     kill_tree(pid);
     let _ = child.kill();
     let _ = child.wait();
     answered.map_err(|error| {
-        // A Codex that died says why on stderr; one that hung says nothing useful.
+        let error = error.message();
         if !exited {
             return error;
         }
         let tail = err_tail.lock().unwrap();
         tail.iter().rev().map(|line| first_line(line)).find(|line| !line.is_empty()).unwrap_or(error)
     })
+}
+
+/// Whether `child` has exited, waiting up to `limit` for it to say so.
+fn exited_within(child: &mut crate::outside::Proc, limit: Duration) -> bool {
+    let until = Instant::now() + limit;
+    loop {
+        if child.try_wait().is_ok_and(|status| status.is_some()) {
+            return true;
+        }
+        if Instant::now() >= until {
+            return false;
+        }
+        std::thread::sleep(Duration::from_millis(25));
+    }
 }
 
 fn initialize_params() -> Value {
@@ -1040,8 +1251,10 @@ fn read_models(result: &Value) -> Vec<CodexModel> {
 }
 
 fn detect<R: Runtime>(app: &AppHandle<R>) -> CodexDetection {
-    if sandboxed() {
-        return CodexDetection { unavailable: Some("sandboxed".into()), ..Default::default() };
+    // The Mac App Store build starts programs through the helper, once the
+    // user has saved it (outside.rs).
+    if let Some(reason) = crate::outside::unavailable() {
+        return CodexDetection { unavailable: Some(reason.into()), ..Default::default() };
     }
     let state = app.state::<CodexState>();
     // Refreshed on every detect, so "Check again" after an install that edited
@@ -1069,19 +1282,46 @@ fn detect<R: Runtime>(app: &AppHandle<R>) -> CodexDetection {
             return detection;
         }
     }
-    let workspace = match workspace_dir(app).and_then(|dir| prepare_workspace(&dir)) {
+    state.remember_version(&binary, detection.version.as_deref().unwrap_or_default());
+    match workspace_dir(app) {
+        Ok(dir) => detect_in(&state, &binary, &dir, &path, user_codex_home().as_deref(), detection),
+        Err(error) => {
+            detection.error = Some(error);
+            detection
+        }
+    }
+}
+
+/// The rest of detect, in the workspace under `dir`: the config, the login,
+/// and the probe. The probe asks Codex whether it read the config, because an
+/// app-server that can't read it starts on its defaults with only a warning,
+/// answers the login check, and fails when a chat starts. Only a refusal that
+/// names the `[agents]` table switches the key (a build from before
+/// 0.145.0-alpha.17 reads `enabled` there as an agent role), and the key Codex
+/// then reads is kept for that file. Any other refusal, an unreadable file
+/// say, is shown as Codex put it; a Codex that stopped or hung is reported.
+fn detect_in(
+    state: &CodexState,
+    binary: &Path,
+    dir: &Path,
+    path: &str,
+    user_home: Option<&Path>,
+    mut detection: CodexDetection,
+) -> CodexDetection {
+    let _trying = state.trying.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+    let form = state.sub_agents_off(binary);
+    let workspace = match prepare_workspace(dir, form) {
         Ok(workspace) => workspace,
         Err(error) => {
             detection.error = Some(error);
             return detection;
         }
     };
-    let user_home = user_codex_home();
-    match link_login(&workspace.home, user_home.as_deref()) {
+    match link_login(&workspace.home, user_home) {
         Ok(Login::Linked) => {}
         Ok(Login::Missing) => {
             detection.logged_in = Some(false);
-            if user_home.as_deref().is_some_and(login_in_keyring) {
+            if user_home.is_some_and(login_in_keyring) {
                 detection.login_store = Some("keyring".into());
             }
             return detection;
@@ -1092,10 +1332,116 @@ fn detect<R: Runtime>(app: &AppHandle<R>) -> CodexDetection {
             return detection;
         }
     }
-    if let Err(error) = probe(&binary, &workspace, &path, &mut detection) {
-        detection.error = Some(error);
+    let why = match probe(binary, &workspace, path, &mut detection) {
+        Err(error) => {
+            detection.error = Some(error);
+            return detection;
+        }
+        Ok(ConfigCheck::Read) => {
+            state.remember_loads(binary, form);
+            return detection;
+        }
+        // An older Codex without config/read: the version's form stays a guess.
+        Ok(ConfigCheck::Unknown) => return detection,
+        Ok(ConfigCheck::Refused(why)) => {
+            detection.error = Some(one_line(&why));
+            return detection;
+        }
+        Ok(ConfigCheck::RefusedAgents(why)) => why,
+    };
+    if prepare_workspace(dir, form.other()).is_ok() {
+        let mut retry = CodexDetection {
+            found: true,
+            path: detection.path.clone(),
+            version: detection.version.clone(),
+            ..Default::default()
+        };
+        if let Ok(ConfigCheck::Read) = probe(binary, &workspace, path, &mut retry) {
+            state.remember_loads(binary, form.other());
+            return retry;
+        }
+        let _ = prepare_workspace(dir, form);
     }
+    detection.error = Some(one_line(&why));
     detection
+}
+
+/// Codex's reason on one line: config/read puts the key it choked on on a
+/// line of its own ("invalid configuration: ...\nin `agents.enabled`\n").
+fn one_line(text: &str) -> String {
+    text.lines().map(str::trim).filter(|line| !line.is_empty()).collect::<Vec<_>>().join(" ")
+}
+
+/// What Codex said about the config the app wrote, through config/read.
+#[derive(Debug, PartialEq, Eq)]
+enum ConfigCheck {
+    Read,
+    /// It couldn't read the `[agents]` table, in its own words.
+    RefusedAgents(String),
+    /// It couldn't read the config for another reason.
+    Refused(String),
+    /// It has no config/read.
+    Unknown,
+}
+
+/// JSON-RPC's codes, as Codex's app-server uses them: no such method (it
+/// answers an unknown one with INVALID_REQUEST instead), an invalid request,
+/// and an internal error, which config/read gives for a config it can't read.
+const METHOD_NOT_FOUND: i64 = -32601;
+const INVALID_REQUEST: i64 = -32600;
+const INTERNAL_ERROR: i64 = -32603;
+
+/// Whether Codex said it has no config/read: -32601, or the app-server's own
+/// answer for a method it doesn't know, -32600 "Invalid request: unknown
+/// variant `config/read`, expected one of ..." (0.62.0's source; the same form
+/// measured on 0.171.0-alpha.13.2). A setting whose value happens to read
+/// config/read is refused with -32603 and doesn't count.
+fn unknown_config_read(code: Option<i64>, message: &str) -> bool {
+    code == Some(METHOD_NOT_FOUND)
+        || (code == Some(INVALID_REQUEST) && message.starts_with("Invalid request: unknown variant `config/read`"))
+}
+
+/// The error and the field in a refusal from config/read's validation step:
+/// -32603 "invalid configuration: <error>\nin `<field>`\n", in 0.145.0-alpha.16
+/// (its source) and 0.171.0-alpha.13.2 (measured). A refusal from any other
+/// step, a file that can't be read say, names no field.
+fn invalid_field(code: Option<i64>, message: &str) -> Option<(String, String)> {
+    if code != Some(INTERNAL_ERROR) {
+        return None;
+    }
+    let rest = message.strip_prefix("invalid configuration: ")?.trim_end();
+    let (error, last) = rest.rsplit_once('\n')?;
+    let field = last.trim().strip_prefix("in `")?.strip_suffix('`')?;
+    Some((error.trim().to_string(), field.to_string()))
+}
+
+/// Whether Codex refused the `[agents]` key this app writes, the one place the
+/// two forms differ: a type error at `agents.enabled`, or a build from before
+/// 0.145.0-alpha.17 reading `enabled` as an agent role (measured with a copy of
+/// that build's table, toml 0.9.11 and serde 1.0.228). A file name, or another
+/// setting's value, never is.
+fn refuses_agents_key(code: Option<i64>, message: &str) -> bool {
+    match invalid_field(code, message) {
+        Some((error, field)) if field == "agents.enabled" => error.starts_with("invalid type:"),
+        Some((error, field)) if field == "agents" => error == "invalid type: boolean `false`, expected struct AgentRoleToml",
+        _ => false,
+    }
+}
+
+/// Why one request in the probe got no answer.
+enum AskError {
+    /// Codex answered with an error.
+    Refused { code: Option<i64>, message: String },
+    /// No answer at all: it stopped, or ran out of time.
+    Failed(String),
+}
+
+impl AskError {
+    fn message(self) -> String {
+        match self {
+            Self::Refused { message, .. } | Self::Failed(message) => message,
+        }
+    }
 }
 
 #[tauri::command]
@@ -1473,9 +1819,7 @@ fn start_blocking<R: Runtime>(app: &AppHandle<R>, args: StartArgs, epoch: u64) -
             return Err("Too many Codex sessions are running. Stop one first".into());
         }
     }
-    if sandboxed() {
-        return Err(SANDBOXED.into());
-    }
+    crate::outside::require_helper()?;
     state.starting.fetch_add(1, Ordering::SeqCst);
     let started = {
         let _starting = StartingGuard(&state.starting);
@@ -1501,7 +1845,7 @@ fn spawn_session<R: Runtime>(
         eprintln!("codex: the editor reloaded while {} was starting; nothing was spawned", args.spawn_id);
         return Err(RELOADED.into());
     }
-    let workspace = prepare_workspace(&workspace_dir(app)?)?;
+    let workspace = prepare_workspace(&workspace_dir(app)?, state.sub_agents_off(&binary))?;
     match link_login(&workspace.home, user_codex_home().as_deref()) {
         Ok(Login::Linked) => {}
         Ok(Login::Missing) => {
@@ -1520,8 +1864,7 @@ fn spawn_session<R: Runtime>(
 
     let path = state.path();
     let plan = SpawnPlan { workspace: &workspace, mcp: Some((&mcp_url, &token)), path: &path };
-    let mut child = agent_command(&binary, &plan)
-        .spawn()
+    let mut child = crate::outside::spawn(&mut agent_command(&binary, &plan), Io::PIPES)
         .map_err(|e| format!("could not start Codex ({}): {e}", binary.display()))?;
     let pid = child.id();
     let stdin = child.stdin.take();
@@ -1933,9 +2276,7 @@ fn prompt_blocking<R: Runtime>(
     model: Option<&str>,
     effort: Option<&str>,
 ) -> Result<String, String> {
-    if sandboxed() {
-        return Err(SANDBOXED.into());
-    }
+    crate::outside::require_helper()?;
     let state = app.state::<CodexState>();
     let ticket = state.prompt_runs.begin(id, window).ok_or(PROMPT_STOPPED)?;
     // A prompt can come before any detect has asked the login shell for its
@@ -1946,7 +2287,7 @@ fn prompt_blocking<R: Runtime>(
     }
     let binary = find_binary(&state).ok_or(PROMPT_NOT_FOUND)?;
     let _slot = claim_prompt_slot(&state.prompting).ok_or(PROMPT_BUSY)?;
-    let workspace = workspace_dir(app).and_then(|dir| prepare_workspace(&dir))?;
+    let workspace = workspace_dir(app).and_then(|dir| prepare_workspace(&dir, state.sub_agents_off(&binary)))?;
     match link_login(&workspace.home, user_codex_home().as_deref()) {
         Ok(Login::Linked) => {}
         Ok(Login::Missing) => return Err(PROMPT_SIGNED_OUT.into()),
@@ -2099,7 +2440,7 @@ mod tests {
             "browser_use = false",
             "image_generation = false",
             "view_image = false",
-            "multi_agent = false",
+            "multi_agent_v2 = false",
             "code_mode_host = true",
         ] {
             assert!(lines.contains(&expected), "config.toml lacks {expected}");
@@ -2113,6 +2454,377 @@ mod tests {
         // Skills off twice: the list and the ones Codex ships.
         assert!(CONFIG_TOML.contains("[skills]\ninclude_instructions = false"));
         assert!(CONFIG_TOML.contains("[skills.bundled]\nenabled = false"));
+    }
+
+    /// A version as Codex prints it, for the tests.
+    fn version(number: &str) -> Option<CodexVersion> {
+        parse_codex_version(&format!("codex-cli {number}"))
+    }
+
+    #[test]
+    fn sub_agents_are_off_in_the_form_each_codex_reads() {
+        use SubAgentsOff::{AgentsKey, FeatureFlag};
+        // From 0.145.0-alpha.17: the [agents] key. Before it an unknown [agents]
+        // key is read as an agent role and breaks the config. alpha.9 is the one
+        // a plain text order would put after alpha.17.
+        for number in ["0.145.0-alpha.17", "0.145.0-alpha.30", "0.145.0", "0.171.0-alpha.13.2", "0.171.0", "1.0.0"] {
+            assert_eq!(sub_agents_off_for(version(number).as_ref()), Some(AgentsKey), "{number}");
+        }
+        for number in ["0.145.0-alpha.16", "0.145.0-alpha.9", "0.145.0-alpha.1", "0.144.6", "0.130.2", "0.100.0"] {
+            assert_eq!(sub_agents_off_for(version(number).as_ref()), Some(FeatureFlag), "{number}");
+        }
+        // Every build from Codex's own source says 0.0.0, old code or new.
+        assert_eq!(sub_agents_off_for(version("0.0.0").as_ref()), None);
+        assert_eq!(sub_agents_off_for(None), None);
+
+        let current = config_toml(AgentsKey);
+        assert!(current.ends_with("\n[agents]\nenabled = false\n"));
+        assert!(!current.lines().any(|line| line.trim() == "multi_agent = false"));
+        assert!(current.contains("multi_agent_v2 = false"));
+        let older = config_toml(FeatureFlag);
+        assert!(!older.contains("[agents]"));
+        assert!(older.contains("[features]\nshell_tool = false"));
+        assert!(older.contains("multi_agent = false\nmulti_agent_v2 = false\n"));
+    }
+
+    /// How a stand-in answers config/read. Each answer is one a real Codex gives.
+    #[cfg(unix)]
+    #[derive(Clone, Copy)]
+    enum ConfigRead {
+        /// The shape 0.171.0-alpha.13.2 answers with.
+        Reads,
+        /// A build from before 0.145.0-alpha.17, given an [agents] table with
+        /// `enabled`: config/read's validation step (0.145.0-alpha.16's source)
+        /// around the error that build's table gives (measured with a copy).
+        OlderBuild,
+        /// As OlderBuild, whatever the config says.
+        RefusesBoth,
+        /// The file can't be read: 0.171.0-alpha.13.2's answer, measured.
+        Unreadable,
+        /// Unreadable on the first config/read only, readable from then on.
+        UnreadableOnce,
+        /// As UnreadableOnce, in a folder named [agents] (measured).
+        UnreadableOnceInAgentsFolder,
+        /// approval_policy = "config/read": a value, not a missing method (measured).
+        PolicyValueLooksLikeTheMethod,
+        /// No config/read: 0.62.0 answers an unknown method like this (its
+        /// source; 0.171 answers the same way, measured).
+        UnknownVariant,
+        /// JSON-RPC's own code for no such method.
+        MethodNotFound,
+    }
+
+    #[cfg(unix)]
+    const UNREADABLE: &str =
+        "failed to read configuration layers: Failed to read config file /x/home/config.toml: Permission denied (os error 13)";
+    #[cfg(unix)]
+    const UNREADABLE_IN_AGENTS_FOLDER: &str =
+        "failed to read configuration layers: Failed to read config file /x/[agents]/home/config.toml: Permission denied (os error 13)";
+    /// As 0.171.0-alpha.13.2 sent it (2026-11-25), escaped for the stand-in's printf.
+    #[cfg(unix)]
+    const POLICY_NAMED_CONFIG_READ: &str = r"invalid configuration: unknown variant `config/read`, expected one of `untrusted`, `on-failure`, `on-request`, `granular`, `never`\\nin `approval_policy`\\n";
+
+    /// A stand-in for codex: `--version` prints `version`, and app-server answers
+    /// initialize, config/read and account/read by each request's id and stays
+    /// up whatever its config says, as the real one does. Each start adds a line
+    /// to `starts.log`, each request its method to `calls.log`.
+    #[cfg(unix)]
+    fn fake_codex(dir: &Path, version: &str, config_read: ConfigRead) -> (PathBuf, PathBuf) {
+        use std::os::unix::fs::PermissionsExt;
+        let binary = dir.join("codex");
+        let starts = dir.join("starts.log");
+        let answer = r#"printf '{"jsonrpc":"2.0","id":%s,"result":{"config":{},"origins":{}}}\n' "$id""#;
+        let refuse = |code: i64, message: &str| {
+            format!(r#"printf '{{"jsonrpc":"2.0","id":%s,"error":{{"code":{code},"message":"{message}"}}}}\n' "$id""#)
+        };
+        let older = refuse(-32603, r"invalid configuration: invalid type: boolean `false`, expected struct AgentRoleToml\\nin `agents`\\n");
+        let config_read = match config_read {
+            ConfigRead::Reads => answer.to_string(),
+            ConfigRead::OlderBuild => format!("if grep -q '^\\[agents\\]' \"$CODEX_HOME/config.toml\"; then {older}; else {answer}; fi"),
+            ConfigRead::RefusesBoth => older,
+            ConfigRead::Unreadable => refuse(-32603, UNREADABLE),
+            ConfigRead::UnreadableOnce | ConfigRead::UnreadableOnceInAgentsFolder => {
+                let mark = dir.join("refused-once").display().to_string();
+                let message = match config_read {
+                    ConfigRead::UnreadableOnce => UNREADABLE,
+                    _ => UNREADABLE_IN_AGENTS_FOLDER,
+                };
+                format!("if [ ! -e '{mark}' ]; then : > '{mark}'; {}; else {answer}; fi", refuse(-32603, message))
+            }
+            ConfigRead::PolicyValueLooksLikeTheMethod => refuse(-32603, POLICY_NAMED_CONFIG_READ),
+            ConfigRead::UnknownVariant => refuse(
+                -32600,
+                "Invalid request: unknown variant `config/read`, expected one of `initialize`, `newConversation`, `getConversationSummary`",
+            ),
+            ConfigRead::MethodNotFound => refuse(-32601, "Method not found"),
+        };
+        let script = r#"#!/bin/sh
+if [ "$1" = --version ]; then echo 'codex-cli VERSION'; exit 0; fi
+echo start >> 'STARTS'
+while IFS= read -r line; do
+  id=$(printf '%s' "$line" | sed -n 's/.*"id":\([0-9][0-9]*\).*/\1/p')
+  method=$(printf '%s' "$line" | sed -n 's/.*"method":"\([^"]*\)".*/\1/p')
+  echo "$method" >> 'CALLS'
+  case "$method" in
+    initialize) printf '{"jsonrpc":"2.0","id":%s,"result":{}}\n' "$id" ;;
+    config/read) CONFIG_READ ;;
+    account/read) printf '{"jsonrpc":"2.0","id":%s,"result":{}}\n' "$id" ;;
+  esac
+done
+"#
+        .replace("VERSION", version)
+        .replace("STARTS", &starts.display().to_string())
+        .replace("CALLS", &dir.join("calls.log").display().to_string())
+        .replace("CONFIG_READ", &config_read);
+        std::fs::write(&binary, script).unwrap();
+        std::fs::set_permissions(&binary, std::fs::Permissions::from_mode(0o755)).unwrap();
+        (binary, starts)
+    }
+
+    /// A stand-in with `version` in a fresh folder, signed in, its version read.
+    #[cfg(unix)]
+    fn signed_in_fake(name: &str, version: &str, config_read: ConfigRead) -> (CodexState, PathBuf, PathBuf, PathBuf) {
+        let dir = temp_dir(name);
+        let (binary, starts) = fake_codex(&dir, version, config_read);
+        let user = dir.join("user-codex");
+        std::fs::create_dir_all(&user).unwrap();
+        std::fs::write(user.join("auth.json"), "{}").unwrap();
+        let state = CodexState::default();
+        state.remember_version(&binary, &format!("codex-cli {version}"));
+        (state, binary, starts, dir)
+    }
+
+    #[cfg(unix)]
+    fn run_detect(state: &CodexState, binary: &Path, dir: &Path) -> CodexDetection {
+        let detection = CodexDetection { found: true, ..Default::default() };
+        detect_in(state, binary, &dir.join("workspace"), "/usr/bin:/bin", Some(&dir.join("user-codex")), detection)
+    }
+
+    #[cfg(unix)]
+    fn starts(log: &Path) -> usize {
+        std::fs::read_to_string(log).map(|text| text.lines().count()).unwrap_or(0)
+    }
+
+    /// The requests a stand-in in `dir` was sent, in order.
+    #[cfg(unix)]
+    fn calls(dir: &Path) -> Vec<String> {
+        std::fs::read_to_string(dir.join("calls.log")).unwrap_or_default().lines().map(String::from).collect()
+    }
+
+    #[cfg(unix)]
+    fn config_of(dir: &Path) -> String {
+        std::fs::read_to_string(dir.join("workspace").join(HOME_DIR).join("config.toml")).unwrap()
+    }
+
+    #[cfg(unix)]
+    fn kept(state: &CodexState, binary: &Path) -> Option<SubAgentsOff> {
+        state.versions.lock().unwrap().get(binary).and_then(|seen| seen.loads)
+    }
+
+    #[test]
+    fn what_codex_says_is_read_by_its_code_and_the_field_it_names() {
+        const INTERNAL: Option<i64> = Some(INTERNAL_ERROR);
+        // Measured on 0.171.0-alpha.13.2 (2026-11-25), except `older`: 0.145.0-alpha.16's
+        // validation step around the error its table gives (measured with a copy).
+        let newer = "invalid configuration: invalid type: string \"nope\", expected a boolean\nin `agents.enabled`\n";
+        let older = "invalid configuration: invalid type: boolean `false`, expected struct AgentRoleToml\nin `agents`\n";
+        assert!(refuses_agents_key(INTERNAL, newer));
+        assert!(refuses_agents_key(INTERNAL, older));
+        assert!(!refuses_agents_key(Some(INVALID_REQUEST), older), "the code counts");
+        // A file name is never the table, whatever it holds.
+        let in_agents_folder = "failed to read configuration layers: Failed to read config file /Users/sam/[agents]/home/config.toml: Permission denied (os error 13)";
+        assert!(!refuses_agents_key(INTERNAL, in_agents_folder));
+        let field_like_folder = "failed to read configuration layers: Failed to read config file /x/invalid configuration: y\nin `agents`/config.toml: Permission denied (os error 13)";
+        assert!(!refuses_agents_key(INTERNAL, field_like_folder));
+        // Nor another setting, nor a value the key refuses, nor a role of another name.
+        let policy = "invalid configuration: unknown variant `config/read`, expected one of `untrusted`, `on-failure`, `on-request`, `granular`, `never`\nin `approval_policy`\n";
+        let model = "invalid configuration: invalid type: integer `42`, expected a string\nin `model`\n";
+        let value = "invalid configuration: unknown variant `maybe`, expected `true` or `false`\nin `agents.enabled`\n";
+        let role = "invalid configuration: invalid type: boolean `false`, expected struct AgentRoleToml\nin `agents.researcher`\n";
+        // Nor the table itself the wrong shape, nor the same words from another step.
+        let table = "invalid configuration: invalid type: integer `5`, expected struct AgentsToml\nin `agents`\n";
+        let other_step = "failed to read configuration layers: invalid type: boolean `false`, expected struct AgentRoleToml\nin `agents`\n";
+        for message in [policy, model, value, role, table, other_step] {
+            assert!(!refuses_agents_key(INTERNAL, message), "{message}");
+        }
+        assert_eq!(one_line(newer), "invalid configuration: invalid type: string \"nope\", expected a boolean in `agents.enabled`");
+
+        // No config/read: the app-server's answer for an unknown method (0.62.0's
+        // source, the same form measured on 0.171), and JSON-RPC's own code.
+        let unknown = "Invalid request: unknown variant `config/read`, expected one of `initialize`, `newConversation`";
+        assert!(unknown_config_read(Some(INVALID_REQUEST), unknown));
+        assert!(unknown_config_read(Some(METHOD_NOT_FOUND), "Method not found"));
+        // Not when the words are a setting's value, at any code.
+        assert!(!unknown_config_read(INTERNAL, policy));
+        assert!(!unknown_config_read(Some(INVALID_REQUEST), policy));
+        assert!(!unknown_config_read(INTERNAL, unknown));
+        // Nor when 0.171 lists config/read among the methods it has.
+        let other_unknown = "Invalid request: unknown variant `osg/nothing`, expected one of `initialize`, `config/read`, `account/read`";
+        assert!(!unknown_config_read(Some(INVALID_REQUEST), other_unknown));
+    }
+
+    /// An older build starts on its defaults and answers the login check, but
+    /// can't read the key: the other key, kept for that file.
+    #[cfg(unix)]
+    #[test]
+    fn an_older_build_gets_the_key_it_reads() {
+        let (state, binary, log, dir) = signed_in_fake("older-build", "0.0.0", ConfigRead::OlderBuild);
+        let detection = run_detect(&state, &binary, &dir);
+        assert_eq!(detection.error, None);
+        assert_eq!(starts(&log), 2, "the current key first, then the older one");
+        assert_eq!(kept(&state, &binary), Some(SubAgentsOff::FeatureFlag));
+        assert!(!config_of(&dir).contains("[agents]"));
+        assert_eq!(calls(&dir), ["initialize", "config/read", "initialize", "config/read", "account/read"]);
+        // The next look starts it once, with the key it read.
+        state.remember_version(&binary, "codex-cli 0.0.0");
+        assert_eq!(run_detect(&state, &binary, &dir).error, None);
+        assert_eq!(starts(&log), 3);
+        // A release number is only a guess too: Codex's own word decides.
+        let (state, binary, log, dir2) = signed_in_fake("released", "0.171.0", ConfigRead::OlderBuild);
+        assert_eq!(run_detect(&state, &binary, &dir2).error, None);
+        assert_eq!(starts(&log), 2);
+        assert_eq!(kept(&state, &binary), Some(SubAgentsOff::FeatureFlag));
+        for dir in [dir, dir2] {
+            let _ = std::fs::remove_dir_all(&dir);
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_current_build_keeps_the_current_key() {
+        let (state, binary, log, dir) = signed_in_fake("current-build", "0.0.0", ConfigRead::Reads);
+        assert_eq!(run_detect(&state, &binary, &dir).error, None);
+        assert_eq!(starts(&log), 1);
+        assert_eq!(kept(&state, &binary), Some(SubAgentsOff::AgentsKey));
+        assert!(config_of(&dir).ends_with("\n[agents]\nenabled = false\n"));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    /// The failure the audit found: a modern Codex that can't read the file for
+    /// a moment must not be moved to the older key, which leaves sub-agents on.
+    #[cfg(unix)]
+    #[test]
+    fn any_other_refusal_is_shown_and_switches_nothing() {
+        for version in ["0.0.0", "0.171.0"] {
+            let (state, binary, log, dir) = signed_in_fake("unreadable", version, ConfigRead::Unreadable);
+            let detection = run_detect(&state, &binary, &dir);
+            assert_eq!(
+                detection.error.as_deref(),
+                Some("failed to read configuration layers: Failed to read config file /x/home/config.toml: Permission denied (os error 13)"),
+                "{version}"
+            );
+            assert_eq!(starts(&log), 1, "{version}");
+            assert_eq!(kept(&state, &binary), None, "{version}");
+            assert!(config_of(&dir).contains("[agents]"), "{version}");
+            let _ = std::fs::remove_dir_all(&dir);
+        }
+        // Readable again by the next look: the current key, read and kept.
+        let (state, binary, log, dir) = signed_in_fake("unreadable-once", "0.0.0", ConfigRead::UnreadableOnce);
+        assert_eq!(run_detect(&state, &binary, &dir).error.as_deref(), Some(UNREADABLE));
+        assert_eq!(starts(&log), 1, "no second start with the older key");
+        assert_eq!(kept(&state, &binary), None);
+        assert_eq!(run_detect(&state, &binary, &dir).error, None);
+        assert_eq!(kept(&state, &binary), Some(SubAgentsOff::AgentsKey));
+        assert!(config_of(&dir).ends_with("\n[agents]\nenabled = false\n"));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    /// The audit's two: a setting whose value reads config/read is a refusal, so
+    /// the app doesn't say Ready for a Codex whose chats can't start; and an
+    /// unreadable file in a folder named [agents] switches nothing.
+    #[cfg(unix)]
+    #[test]
+    fn the_words_alone_neither_skip_the_check_nor_switch_the_key() {
+        let (state, binary, log, dir) = signed_in_fake("policy-value", "0.0.0", ConfigRead::PolicyValueLooksLikeTheMethod);
+        let detection = run_detect(&state, &binary, &dir);
+        assert_eq!(
+            detection.error.as_deref(),
+            Some("invalid configuration: unknown variant `config/read`, expected one of `untrusted`, `on-failure`, `on-request`, `granular`, `never` in `approval_policy`")
+        );
+        assert_eq!(calls(&dir), ["initialize", "config/read"], "no account lookup, so not Ready");
+        assert_eq!(starts(&log), 1);
+        assert_eq!(kept(&state, &binary), None);
+
+        let (state, binary, log, dir2) = signed_in_fake("agents-folder", "0.0.0", ConfigRead::UnreadableOnceInAgentsFolder);
+        assert_eq!(run_detect(&state, &binary, &dir2).error.as_deref(), Some(UNREADABLE_IN_AGENTS_FOLDER));
+        assert_eq!(starts(&log), 1, "no second start with the older key");
+        assert_eq!(kept(&state, &binary), None);
+        assert_eq!(run_detect(&state, &binary, &dir2).error, None);
+        assert_eq!(kept(&state, &binary), Some(SubAgentsOff::AgentsKey));
+        for dir in [dir, dir2] {
+            let _ = std::fs::remove_dir_all(&dir);
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_codex_without_config_read_goes_on_to_the_account() {
+        for answer in [ConfigRead::UnknownVariant, ConfigRead::MethodNotFound] {
+            let (state, binary, log, dir) = signed_in_fake("no-config-read", "0.0.0", answer);
+            assert_eq!(run_detect(&state, &binary, &dir).error, None);
+            assert_eq!(starts(&log), 1);
+            assert_eq!(calls(&dir), ["initialize", "config/read", "account/read"]);
+            assert_eq!(kept(&state, &binary), None, "the version's guess stays unconfirmed");
+            let _ = std::fs::remove_dir_all(&dir);
+        }
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_codex_that_stops_or_reads_neither_says_why() {
+        // It stopped at start: its own last words, nothing kept.
+        let (state, binary, log, dir) = signed_in_fake("stopped", "0.0.0", ConfigRead::Reads);
+        let script = std::fs::read_to_string(&binary).unwrap().replace("while IFS=", "echo 'it broke' >&2\nexit 1\nwhile IFS=");
+        std::fs::write(&binary, script).unwrap();
+        state.remember_version(&binary, "codex-cli 0.0.0");
+        assert_eq!(run_detect(&state, &binary, &dir).error.as_deref(), Some("it broke"));
+        assert_eq!(starts(&log), 1);
+        assert_eq!(kept(&state, &binary), None);
+        // Neither key read: the first refusal, and the config the version suggests.
+        let (state, binary, log, dir2) = signed_in_fake("neither", "0.0.0", ConfigRead::RefusesBoth);
+        let detection = run_detect(&state, &binary, &dir2);
+        assert_eq!(
+            detection.error.as_deref(),
+            Some("invalid configuration: invalid type: boolean `false`, expected struct AgentRoleToml in `agents`")
+        );
+        assert_eq!(starts(&log), 2);
+        assert_eq!(kept(&state, &binary), None);
+        assert!(config_of(&dir2).contains("[agents]"));
+        for dir in [dir, dir2] {
+            let _ = std::fs::remove_dir_all(&dir);
+        }
+    }
+
+    #[test]
+    fn a_version_line_is_read_whatever_follows_the_number() {
+        let alpha = parse_codex_version("codex-cli 0.171.0-alpha.13.2").unwrap();
+        assert_eq!(alpha.numbers, [0, 171, 0]);
+        assert_eq!(alpha.prerelease.as_deref(), Some("alpha.13.2"));
+        let release = parse_codex_version("codex-cli 0.162.0").unwrap();
+        assert_eq!((release.numbers, release.prerelease), ([0, 162, 0], None));
+        assert_eq!(parse_codex_version("codex 1.2.3").map(|v| v.numbers), Some([1, 2, 3]));
+        assert_eq!(parse_codex_version("codex-cli 0.150.0+abc").unwrap().prerelease, None);
+        assert_eq!(parse_codex_version("codex-cli"), None);
+        assert_eq!(parse_codex_version("codex-cli 0.171"), None);
+        assert_eq!(parse_codex_version("codex-cli 0.171-alpha.1"), None);
+        assert_eq!(parse_codex_version(""), None);
+    }
+
+    #[test]
+    fn prereleases_come_in_semver_order() {
+        use std::cmp::Ordering::{Equal, Greater, Less};
+        assert_eq!(prerelease_order("alpha.9", "alpha.17"), Less);
+        assert_eq!(prerelease_order("alpha.17", "alpha.17"), Equal);
+        assert_eq!(prerelease_order("alpha.13", "alpha.13.2"), Less);
+        assert_eq!(prerelease_order("alpha.13.2", "alpha.13"), Greater);
+        assert_eq!(prerelease_order("alpha.30", "beta.1"), Less);
+        assert_eq!(prerelease_order("1", "alpha"), Less);
+        let alpha = version("0.145.0-alpha.17").unwrap();
+        assert!(!alpha.is_before([0, 145, 0], Some("alpha.17")));
+        assert!(alpha.is_before([0, 145, 0], None), "a prerelease comes before its release");
+        assert!(!version("0.145.0").unwrap().is_before([0, 145, 0], Some("alpha.17")));
+        assert!(version("0.144.9").unwrap().is_before([0, 145, 0], Some("alpha.1")));
+        assert!(!version("0.146.0-alpha.1").unwrap().is_before([0, 145, 0], None));
     }
 
     #[test]
@@ -2134,7 +2846,7 @@ mod tests {
     #[test]
     fn the_command_line_and_environment() {
         let dir = temp_dir("command");
-        let workspace = prepare_workspace(&dir).unwrap();
+        let workspace = prepare_workspace(&dir, SubAgentsOff::AgentsKey).unwrap();
         let plan = SpawnPlan { workspace: &workspace, mcp: Some(("http://127.0.0.1:8722/mcp", "secret")), path: "/usr/bin" };
         let command = agent_command(Path::new("/usr/local/bin/codex"), &plan);
         let args: Vec<String> = command.get_args().map(|arg| arg.to_string_lossy().into_owned()).collect();
@@ -2188,12 +2900,15 @@ mod tests {
     #[test]
     fn the_workspace_writes_the_config_and_nothing_else_changes_it() {
         let dir = temp_dir("workspace");
-        let workspace = prepare_workspace(&dir).unwrap();
+        let workspace = prepare_workspace(&dir, SubAgentsOff::AgentsKey).unwrap();
         let config = workspace.home.join("config.toml");
-        assert_eq!(std::fs::read_to_string(&config).unwrap(), CONFIG_TOML);
+        assert_eq!(std::fs::read_to_string(&config).unwrap(), config_toml(SubAgentsOff::AgentsKey));
         std::fs::write(&config, "shell_tool = true\n").unwrap();
-        prepare_workspace(&dir).unwrap();
-        assert_eq!(std::fs::read_to_string(&config).unwrap(), CONFIG_TOML, "a changed config is put back");
+        prepare_workspace(&dir, SubAgentsOff::AgentsKey).unwrap();
+        assert_eq!(std::fs::read_to_string(&config).unwrap(), config_toml(SubAgentsOff::AgentsKey), "a changed config is put back");
+        // An older Codex on the same computer gets its own form written over it.
+        prepare_workspace(&dir, SubAgentsOff::FeatureFlag).unwrap();
+        assert_eq!(std::fs::read_to_string(&config).unwrap(), config_toml(SubAgentsOff::FeatureFlag));
         assert!(workspace.user.is_dir() && workspace.cwd.is_dir());
         assert_eq!(std::fs::read_dir(&workspace.user).unwrap().count(), 0);
         let _ = std::fs::remove_dir_all(&dir);

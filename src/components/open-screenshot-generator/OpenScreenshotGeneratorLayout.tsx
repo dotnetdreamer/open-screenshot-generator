@@ -267,7 +267,7 @@ import { GraphicsStartScreen } from './start/graphics/GraphicsStartScreen';
 import { DialogDropLayer } from './start/quickstart/DialogDropLayer';
 import { saveImageAsset, saveImageBlobAsset } from '@/lib/mcp/assetStore';
 import type { UploadedScreenshot } from '@/lib/ai/imageUtils';
-import { claudeAgent, readAgentPanelEnabled, useClaudeAgent } from '@/lib/claudeCode/store';
+import { claudeAgent, useClaudeAgent } from '@/lib/claudeCode/store';
 import { buildAttachmentNote, buildFirstRunBrief, defaultStartText } from '@/lib/claudeCode/prompt';
 import { assetToImage, screenshotToImage } from '@/lib/claudeCode/images';
 import { importProjectImage } from '@/lib/claudeCode/projectImages';
@@ -2012,10 +2012,11 @@ export function OpenScreenshotGeneratorLayout() {
       // still means the states list. Anything else falls back to Properties.
       const storedTab = window.localStorage.getItem(RIGHT_DOCK_TAB_KEY);
       if (storedTab === 'history' || storedTab === 'versions') setRightDockTab(storedTab);
-      // Only while the Agent tab is on. A stored 'agent' with no Agent tab would
-      // leave the strip on Properties with the state still saying Agent, and
-      // Radix does not report a click on the tab it already shows.
-      else if (storedTab === 'agent' && readAgentPanelEnabled()) setRightDockTab('agent');
+      // Only where there is an Agent tab: the desktop app's main window. A
+      // stored 'agent' with no Agent tab would leave the strip on Properties
+      // with the state still saying Agent, and Radix does not report a click
+      // on the tab it already shows.
+      else if (storedTab === 'agent' && isTauri() && !isSecondaryWindow) setRightDockTab('agent');
       const stored = parseInt(window.localStorage.getItem(RIGHT_DOCK_LAYERS_HEIGHT_KEY) ?? '', 10);
       if (Number.isFinite(stored)) {
         setLayersSectionHeight(Math.max(LAYERS_SECTION_MIN, Math.min(700, stored)));
@@ -2066,26 +2067,17 @@ export function OpenScreenshotGeneratorLayout() {
 
   // The Claude Code chat. It lives in a module store, because nothing that
   // shows it lives long enough to own it (src/lib/claudeCode/store.ts). The
-  // layout reads it to feed the Agent tab, and to show that tab at all: only
-  // in the desktop app, and only once the user has picked Claude Code.
+  // layout reads it to feed the Agent tab, and to show that tab at all: in
+  // the desktop app, always, so the agent can work on any open project.
   const claudeAgentState = useClaudeAgent();
   // Not in a window a tab was moved into: the agent's events are signed for
   // the main window only (rule 37), so its chat could never hear back there.
-  const agentEnabled = claudeAgentState.available && claudeAgentState.panelEnabled && !isSecondaryWindow;
+  const agentEnabled = claudeAgentState.available && !isSecondaryWindow;
   // True while handleStartClaudeCode is storing screenshots and making the
   // project. Dismissing the dialog then would start a second, blank project
   // on a fresh visit (see the dialog's onOpenChange), or switch the user away
   // from the one the agent is about to be told is open.
   const claudeStartingRef = useRef(false);
-  // A relaunch brings the tab back with no idea whether the chat's CLI is
-  // still installed and signed in. Ask once; the store keeps the answer a
-  // minute. Codex is asked only for a Codex chat, since asking starts it.
-  const agentKind = claudeAgentState.chat.agent;
-  useEffect(() => {
-    if (!agentEnabled) return;
-    void claudeAgent.detect();
-    if (agentKind === 'codex') void claudeAgent.detectCodex();
-  }, [agentEnabled, agentKind]);
   // The layers on the clipboard, copied in this window or another (elementClipboard.ts).
   const elementClipboard = useElementClipboard();
   const router = useRouter();
@@ -9683,12 +9675,6 @@ export function OpenScreenshotGeneratorLayout() {
     },
     onAgentSetCodexModel: (model) => claudeAgent.setCodexModel(model),
     onAgentSetCodexEffort: (effort) => claudeAgent.setCodexEffort(effort),
-    onAgentHide: () => {
-      claudeAgent.hidePanel();
-      if (rightDockTab === 'agent') selectRightDockTab('properties');
-      // A window holding only the Agent tab would be left with nothing in it.
-      if (dockHost.detachedGroups.includes('agent')) void dockHost.reattach('agent');
-    },
     onAgentOpenChat: (chatId) => void openAgentChat(chatId),
     onAgentDeleteChat: (chatId) => void claudeAgent.deleteChat(chatId),
     // A detached window has no opener permission of its own (panels.json), so
@@ -9712,6 +9698,19 @@ export function OpenScreenshotGeneratorLayout() {
     // into joining their bus would take them over (rule 44).
     enabled: !isSecondaryWindow,
   });
+
+  // Whether the chat's CLI is installed and signed in is asked when the Agent
+  // tab shows, not at every launch: the tab is always there, and most
+  // sessions never open it. The store keeps the answer a minute. Codex is
+  // asked only for a Codex chat, since asking starts it.
+  const agentShown =
+    agentEnabled && ((rightDockTab === 'agent' && dockOpen) || dockHost.detachedPanels.includes('agent'));
+  const agentKind = claudeAgentState.chat.agent;
+  useEffect(() => {
+    if (!agentShown) return;
+    void claudeAgent.detect();
+    if (agentKind === 'codex') void claudeAgent.detectCodex();
+  }, [agentShown, agentKind]);
 
   /** Panels still in the dock. The rest are showing in a window of their own. */
   const dockedPanels = DETACHABLE_PANELS.filter(
@@ -10345,7 +10344,6 @@ const generateRandomProjectName = (): string => {
     }
     if (!created) throw new Error('The new project could not be made. Try again.');
 
-    claudeAgent.setPanelEnabled(true);
     revealDockTab('agent');
     if (isMobileViewport) setIsMobileDockOpen(true);
     // Counts only: never a folder's name or path.
@@ -12411,7 +12409,6 @@ const generateRandomProjectName = (): string => {
     if (!ref) return;
     setActivity('editor');
     const { session } = claudeAgentState;
-    claudeAgent.setPanelEnabled(true);
     revealDockTab('agent');
     if (isMobileViewport) setIsMobileDockOpen(true);
     if (session.status === 'working' || session.status === 'starting') {
@@ -13146,9 +13143,10 @@ const generateRandomProjectName = (): string => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-72">
-                          {/* The way to the agent for a project that is already
-                              open, without starting a new one from the dialog. */}
-                          {claudeAgentState.available && !claudeAgentState.panelEnabled && (
+                          {/* The Agent tab on a chat with that CLI: the empty
+                              chat switches to it, a chat with messages makes way
+                              for a new one. */}
+                          {agentEnabled && (
                             <>
                               <DropdownMenuItem
                                 className="gap-2"
@@ -13156,7 +13154,6 @@ const generateRandomProjectName = (): string => {
                                   if (!claudeAgent.setChatAgent('claude-code')) {
                                     void claudeAgent.newChat(undefined, { agent: 'claude-code' });
                                   }
-                                  claudeAgent.setPanelEnabled(true);
                                   revealDockTab('agent');
                                 }}
                               >
@@ -13169,7 +13166,6 @@ const generateRandomProjectName = (): string => {
                                   if (!claudeAgent.setChatAgent('codex')) {
                                     void claudeAgent.newChat(undefined, { agent: 'codex' });
                                   }
-                                  claudeAgent.setPanelEnabled(true);
                                   revealDockTab('agent');
                                 }}
                               >
@@ -13729,7 +13725,6 @@ const generateRandomProjectName = (): string => {
                     setActivity('editor');
                     const { session, chat } = claudeAgentState;
                     if (session.status === 'working' || session.status === 'starting') {
-                      claudeAgent.setPanelEnabled(true);
                       revealDockTab('agent');
                       toast({ title: 'The agent is busy', description: 'Wait for it to finish, or stop it in the Agent tab, then ask again.' });
                       return;
@@ -13739,7 +13734,6 @@ const generateRandomProjectName = (): string => {
                       // A question about the numbers starts a chat of its own
                       // rather than landing in the middle of a design chat.
                       if (session.items.length > 0) await claudeAgent.newChat(undefined, { agent: chat.agent });
-                      claudeAgent.setPanelEnabled(true);
                       revealDockTab('agent');
                       if (isMobileViewport) setIsMobileDockOpen(true);
                       await claudeAgent.send({

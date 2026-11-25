@@ -3,6 +3,7 @@ import path from 'node:path';
 import { test, expect, type Page } from '../fixtures/test';
 import { TauriHarness } from '../fixtures/tauri';
 import { holdProjects, readProjects, waitForProject, type StoredProject } from '../fixtures/db';
+import { backToEditor, openGrowth } from '../helpers/growth';
 
 /**
  * The Claude Code mode of the AI agent, the Agent panel it opens, and the code
@@ -390,6 +391,63 @@ test.describe('a Claude Code run', () => {
     expect(await tauri.unhandled()).toEqual([]);
   });
 
+  test('a template from the gallery starts the agent in the Agent tab, and the chat keeps going after the agent edits it', async ({
+    app,
+    page,
+    tauri,
+    isDesktop,
+  }) => {
+    test.skip(!isDesktop, 'Claude Code runs in the desktop app');
+
+    // No agent screen and no menu: a template opened from the gallery, then
+    // the Agent tab that every project has.
+    const dialog = app.startDialog;
+    await dialog.getByRole('tab', { name: /App Screenshots/ }).click();
+    await dialog.getByAltText('Somnia Sleep', { exact: true }).click();
+    await expect(dialog).toBeHidden({ timeout: 30_000 });
+    const projectTab = page.locator('[data-project-tabs] [role="tab"][aria-selected="true"]');
+    // A template looked at from the gallery is a preview until something edits it.
+    await expect(projectTab.locator('.italic')).toHaveCount(1);
+    const projectId = new URL(page.url()).searchParams.get('projectId');
+    expect(projectId).toBeTruthy();
+    await page.getByRole('tab', { name: 'Agent', exact: true }).click();
+    const panel = app.activeDockPanel;
+    await expect(panel.getByText('Talk to the agent')).toBeVisible();
+    await waitForListener(tauri, CLAUDE_EVENT);
+
+    const ask = 'Make the first background purple';
+    await panel.getByLabel('Message the agent').fill(ask);
+    await panel.getByRole('button', { name: 'Send', exact: true }).click();
+    const spawnId = ((await tauri.waitForCall('abs_claude_start')).args.args as StartArgs).spawnId;
+    await expect.poll(async () => (await sentLines(tauri)).length).toBe(1);
+    const contextOf = (line: Record<string, any>) => {
+      const text = line.message.content[0].text as string;
+      return JSON.parse(text.slice(text.indexOf('{'), text.indexOf('\n</editor-context>')));
+    };
+    const first = contextOf((await sentLines(tauri))[0]);
+    expect(first.project).toEqual({ id: projectId, name: expect.stringContaining('Somnia') });
+    expect(first.artboards.length).toBeGreaterThan(1);
+
+    // The agent edits the template mid-turn, which makes it a project of its own.
+    await play(tauri, spawnId, [init('t1')]);
+    const edit = await mcpCall(tauri, 'set_background', { backgroundColor: '#7C5CFF' }, true);
+    expect(edit.isError).toBe(false);
+    await play(tauri, spawnId, [turnEnd('t2')]);
+    await expect(panel.getByRole('button', { name: 'Send', exact: true })).toBeVisible();
+    await expect(projectTab.locator('.italic')).toHaveCount(0);
+    await expect(projectTab).toContainText('Somnia');
+
+    // The follow-up continues the same conversation, on the same process and project.
+    await panel.getByLabel('Message the agent').fill('Now the second one too');
+    await panel.getByRole('button', { name: 'Send', exact: true }).click();
+    await expect.poll(async () => (await sentLines(tauri)).length).toBe(2);
+    expect(contextOf((await sentLines(tauri))[1]).project.id).toBe(projectId);
+    await expect(panel.getByText(ask)).toBeVisible();
+    expect(await tauri.callsTo('abs_claude_start')).toHaveLength(1);
+    expect(await tauri.callsTo('abs_claude_stop')).toHaveLength(0);
+    expect(await tauri.unhandled()).toEqual([]);
+  });
+
   test('past chats come back and resume, and every project gets a chat of its own', async ({ app, page, tauri, isDesktop }) => {
     test.skip(!isDesktop, 'Claude Code runs in the desktop app');
 
@@ -659,7 +717,7 @@ test.describe('a Claude Code run', () => {
     });
   });
 
-  test('an open project can reach the agent from the dock, and the tab can go away again', async ({
+  test('any open project has the Agent tab, and showing it only looks for Claude Code', async ({
     app,
     page,
     tauri,
@@ -669,20 +727,29 @@ test.describe('a Claude Code run', () => {
 
     await app.startBlankProject();
     const agentTab = page.getByRole('tab', { name: 'Agent', exact: true });
-    await expect(agentTab).toHaveCount(0);
+    await expect(agentTab).toBeVisible();
+    await expect(app.dockTab('Properties')).toHaveAttribute('aria-selected', 'true');
+    // Claude Code is looked for when the tab shows, not at every launch.
+    expect(await tauri.callsTo('abs_claude_detect')).toHaveLength(0);
 
-    await app.chooseFromMenu(page.getByTitle('Panel and display options'), 'Chat with Claude Code');
+    await agentTab.click();
     await expect(agentTab).toHaveAttribute('aria-selected', 'true');
     const panel = app.activeDockPanel;
     await expect(panel.getByText('Talk to the agent')).toBeVisible();
     await expect(panel.getByText('Uses your Claude Max plan')).toBeVisible();
-    // Opening the tab asks whether Claude Code is still there; it starts nothing.
     await tauri.waitForCall('abs_claude_detect');
     expect(await tauri.callsTo('abs_claude_start')).toHaveLength(0);
 
-    await app.chooseFromMenu(panel.getByRole('button', { name: 'Agent options' }), 'Hide this tab');
-    await expect(agentTab).toHaveCount(0);
-    await expect(app.dockTab('Properties')).toHaveAttribute('aria-selected', 'true');
+    // The tab stays: its menu has no way to hide it.
+    await panel.getByRole('button', { name: 'Agent options' }).click();
+    await expect(page.getByRole('menuitem', { name: 'Check Claude Code again' })).toBeVisible();
+    await expect(page.getByRole('menuitem', { name: 'Hide this tab' })).toHaveCount(0);
+    await page.keyboard.press('Escape');
+
+    // The dock menu still opens it on a Claude Code chat from another tab.
+    await app.dockTab('Properties').click();
+    await app.chooseFromMenu(page.getByTitle('Panel and display options'), 'Chat with Claude Code');
+    await expect(agentTab).toHaveAttribute('aria-selected', 'true');
     expect(await tauri.unhandled()).toEqual([]);
   });
 
@@ -1367,6 +1434,124 @@ test.describe('code folders', () => {
       await expect(folderRow(dialog)).toHaveCount(0);
       await expect(dialog.getByRole('button', { name: ADD_FOLDER })).toHaveCount(0);
       expect(await tauri.unhandled()).toEqual([]);
+    });
+  });
+
+  test.describe('in the Mac App Store build before the helper is saved', () => {
+    test.use({
+      tauriConfig: {
+        responses: { abs_claude_detect: { found: false, unavailable: 'helper-missing' }, abs_add_app_store_helper: true },
+      },
+    });
+
+    test('the start screen asks for the helper, then looks for Claude Code again once it is saved', async ({
+      app,
+      page,
+      tauri,
+      isDesktop,
+    }) => {
+      test.skip(!isDesktop, 'the Mac App Store build is a desktop build');
+
+      const dialog = await openAgentScreen(page, app.startDialog);
+      await tauri.waitForCall('abs_claude_detect');
+      const card = dialog.getByRole('alert').filter({ hasText: 'Let this app start Claude Code' });
+      await expect(card).toBeVisible();
+      await expect(card).toContainText('Click Add the helper, then click Save in the window that opens');
+      // Nothing about code folders until Claude Code can run.
+      await expect(folderRow(dialog)).toHaveCount(0);
+
+      // A cancelled save dialog changes nothing and looks for nothing.
+      await tauri.setResponse('abs_add_app_store_helper', false);
+      const detects = (await tauri.callsTo('abs_claude_detect')).length;
+      await card.getByRole('button', { name: 'Add the helper' }).click();
+      await expect.poll(async () => (await tauri.callsTo('abs_add_app_store_helper')).length).toBe(1);
+      await expect(card.getByRole('button', { name: 'Add the helper' })).toBeEnabled();
+      expect((await tauri.callsTo('abs_claude_detect')).length).toBe(detects);
+
+      // Saved: the app looks again and finds Claude Code ready.
+      await tauri.setResponse('abs_add_app_store_helper', true);
+      await tauri.setResponse('abs_claude_detect', READY);
+      await card.getByRole('button', { name: 'Add the helper' }).click();
+      await expect.poll(async () => (await tauri.callsTo('abs_claude_detect')).length).toBeGreaterThan(detects);
+      await expect(card).toHaveCount(0);
+      await expect(folderRow(dialog)).toBeVisible();
+      expect(await tauri.unhandled()).toEqual([]);
+    });
+  });
+
+  // One helper serves both CLIs, but the card on a Claude Code chat looks at
+  // Claude Code only. Growth read both answers before the save, so that look
+  // must bring Codex back too, or Growth keeps it off.
+  test.describe('in the Mac App Store build, with Growth open before the helper is saved', () => {
+    test.use({
+      tauriConfig: {
+        responses: {
+          abs_claude_detect: { found: false, unavailable: 'helper-missing' },
+          abs_codex_detect: { found: false, models: [], unavailable: 'helper-missing' },
+          abs_add_app_store_helper: true,
+        },
+      },
+    });
+
+    test('the helper saved from the Claude Code card lets Growth use Codex too', async ({ app, page, tauri, isDesktop }) => {
+      test.skip(!isDesktop, 'the Mac App Store build is a desktop build');
+
+      await app.startBlankProject();
+      // The editor looks for both CLIs once, 4 s after it opens, for
+      // translation. Nothing else looks at Codex before Growth does, so this
+      // waits for that look: one landing after the save would hide the bug.
+      await tauri.waitForCall('abs_codex_detect');
+      const view = await openGrowth(page);
+      const choices = view.getByRole('radiogroup', { name: 'AI to use' });
+      const status = view.getByTestId('growth-ask-ai-status');
+      await choices.getByRole('radio', { name: 'Codex' }).click();
+      await expect(status).toHaveText("To use Codex, add the helper file in the editor's Agent tab");
+
+      await backToEditor(page);
+      await page.getByRole('tab', { name: 'Agent', exact: true }).click();
+      const panel = app.activeDockPanel;
+      const card = panel.getByRole('alert').filter({ hasText: 'Let this app start Claude Code' });
+      await expect(card).toBeVisible();
+      await tauri.setResponse('abs_claude_detect', READY);
+      await tauri.setResponse('abs_codex_detect', {
+        found: true,
+        path: '/opt/homebrew/bin/codex',
+        version: 'codex-cli 0.162.0',
+        loggedIn: true,
+        authMethod: 'chatgpt',
+        planType: 'plus',
+        models: [{ id: 'gpt-6.1-sol', displayName: 'GPT-6.1-Sol', efforts: ['low', 'medium'], defaultEffort: 'low', isDefault: true }],
+      });
+      const codexLooks = (await tauri.callsTo('abs_codex_detect')).length;
+      await card.getByRole('button', { name: 'Add the helper' }).click();
+      await expect(panel.getByText('Uses your Claude Max plan')).toBeVisible();
+      await expect.poll(async () => (await tauri.callsTo('abs_codex_detect')).length).toBe(codexLooks + 1);
+
+      await openGrowth(page);
+      await expect(status).toHaveText('Using Codex (ChatGPT Plus plan)');
+      await expect(choices.getByRole('radio', { name: 'Codex' })).toHaveAttribute('aria-checked', 'true');
+      // Ready now, so coming back looked at nothing more.
+      expect(await tauri.callsTo('abs_codex_detect')).toHaveLength(codexLooks + 1);
+      expect(await tauri.unhandled()).toEqual([]);
+    });
+  });
+
+  test.describe('in the Mac App Store build with a helper saved by an older version', () => {
+    test.use({ tauriConfig: { responses: { abs_claude_detect: { found: false, unavailable: 'helper-outdated' } } } });
+
+    test('the card asks for the newer helper and shows why a save was refused', async ({ app, page, tauri, isDesktop }) => {
+      test.skip(!isDesktop, 'the Mac App Store build is a desktop build');
+
+      const refusal =
+        'The helper has to keep the name and folder the save window suggests. Try again and click Save without changing anything';
+      await tauri.setError('abs_add_app_store_helper', refusal);
+      const dialog = await openAgentScreen(page, app.startDialog);
+      await tauri.waitForCall('abs_claude_detect');
+      const card = dialog.getByRole('alert').filter({ hasText: 'Update the helper to use Claude Code' });
+      await expect(card).toContainText('Click Update the helper, then click Save, and then Replace');
+      await card.getByRole('button', { name: 'Update the helper' }).click();
+      await expect(card.getByText(refusal)).toBeVisible();
+      await expect(card.getByRole('button', { name: 'Update the helper' })).toBeEnabled();
     });
   });
 

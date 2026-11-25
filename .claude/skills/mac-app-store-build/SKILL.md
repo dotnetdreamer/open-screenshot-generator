@@ -56,7 +56,7 @@ The script reads all of these at run time from places git ignores, and it refuse
 
 3. **Upload** only when the user asked for it. Run the same command with `--upload`, or upload the `.pkg` that step 2 produced with Transporter. The script picks the build number from App Store Connect, so there's nothing to bump or commit. `src-tauri/tauri.appstore.conf.json` can stay at `"1"`.
 
-4. **Hand over** what's left in App Store Connect: add the macOS version if it isn't there yet, write What's New, choose the build, answer the encryption question, then Add for Review. Don't do these through the API unless the user asks.
+4. **Hand over** what's left in App Store Connect: add the macOS version if it isn't there yet, write What's New, choose the build, then Add for Review. Don't do these through the API unless the user asks. A build made from a commit with `src-tauri/Info.appstore.plist` says it uses no non-exempt encryption (`ITSAppUsesNonExemptEncryption`), so App Store Connect doesn't ask; one made from an older commit still shows Missing Compliance until someone answers the encryption question (every build so far was answered No).
 
 ## Version rules
 

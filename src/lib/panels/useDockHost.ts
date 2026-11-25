@@ -293,9 +293,6 @@ export function useDockHost(options: DockHostOptions): DockHost {
       case 'agentSetCodexEffort':
         h.onAgentSetCodexEffort(intent.effort);
         break;
-      case 'agentHide':
-        h.onAgentHide();
-        break;
       case 'agentOpenChat':
         h.onAgentOpenChat(intent.chatId);
         break;

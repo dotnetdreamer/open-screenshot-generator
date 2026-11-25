@@ -2628,6 +2628,7 @@ name = "open-screenshot-generator"
 version = "1.0.14"
 dependencies = [
  "base64 0.22.1",
+ "block2",
  "objc2",
  "objc2-core-foundation",
  "objc2-core-graphics",

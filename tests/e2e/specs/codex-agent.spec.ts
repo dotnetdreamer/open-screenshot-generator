@@ -211,7 +211,7 @@ test.describe('the Agent panel', () => {
   });
 });
 
-test.describe('reopening hidden agent chats', () => {
+test.describe('switching agents from the dock menu', () => {
   test.use({
     tauriConfig: {
       responses: {
@@ -222,7 +222,12 @@ test.describe('reopening hidden agent chats', () => {
   });
 
   for (const agent of ['Codex', 'Claude Code'] as const) {
-    test(`keeps a hidden ${agent} chat and starts a new chat for the other agent`, async ({ app, page, tauri, isDesktop }) => {
+    test(`a ${agent} chat goes to Past chats when the menu opens one with the other agent`, async ({
+      app,
+      page,
+      tauri,
+      isDesktop,
+    }) => {
       test.skip(!isDesktop, 'the agent runs in the desktop app');
       await app.startBlankProject();
       const toolbarMenu = page.getByTitle('Panel and display options');
@@ -234,20 +239,21 @@ test.describe('reopening hidden agent chats', () => {
       const prefix = agent === 'Codex' ? 'abs_codex' : 'abs_claude';
       await tauri.waitForCall(`${prefix}_send`);
 
-      await app.chooseFromMenu(panel.getByRole('button', { name: 'Agent options' }), 'Hide this tab');
-      await tauri.waitForCall(`${prefix}_stop`);
+      // The same agent again keeps the chat on screen and its process running.
       await app.chooseFromMenu(toolbarMenu, `Chat with ${agent}`);
       await expect(panel.getByText(text, { exact: true })).toBeVisible();
-      expect(await tauri.callsTo(`${prefix}_stop`)).toHaveLength(1);
-      expect(await tauri.callsTo(`${prefix}_start`)).toHaveLength(1);
+      expect(await tauri.callsTo(`${prefix}_stop`)).toHaveLength(0);
 
-      await app.chooseFromMenu(panel.getByRole('button', { name: 'Agent options' }), 'Hide this tab');
+      // The other agent gets a new chat; the old one ends and waits in Past chats.
       const other = agent === 'Codex' ? 'Claude Code' : 'Codex';
       await app.chooseFromMenu(toolbarMenu, `Chat with ${other}`);
       await expect(panel.getByRole('radio', { name: other, exact: true })).toHaveAttribute('aria-checked', 'true');
       await expect(panel.getByText(text, { exact: true })).toHaveCount(0);
       await tauri.waitForCall(`${prefix}_stop`);
       expect(await tauri.callsTo(`${prefix}_stop`)).toHaveLength(1);
+      expect(await tauri.callsTo(`${prefix}_start`)).toHaveLength(1);
+      await panel.getByRole('button', { name: 'Past chats' }).click();
+      await expect(panel.getByRole('button', { name: new RegExp(text) })).toBeVisible();
       expect(await tauri.unhandled()).toEqual([]);
     });
   }

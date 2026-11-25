@@ -1,15 +1,18 @@
 "use client";
 
 // What stands between the user and a working Codex, for the agent screen's
-// Codex tab and a Codex chat in the Agent panel: not installed, not signed in,
-// a login the app cannot share, a build that cannot start programs, or a
-// binary that fails. ClaudeCodeSetup.tsx is the same for Claude Code.
+// Codex tab and a Codex chat in the Agent panel: the helper the Mac App Store
+// version needs, not installed, not signed in, a login the app cannot share,
+// a build that cannot start programs, or a binary that fails.
+// ClaudeCodeSetup.tsx is the same for Claude Code.
 
 import { Download, ExternalLink, KeyRound, LogIn, TriangleAlert } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { openExternal } from '@/lib/desktop';
 import type { AgentDetectionState } from '@/lib/claudeCode/types';
 import type { CodexDetection } from '@/lib/codex/types';
+import { helperNeed } from '@/lib/appStoreHelper';
+import { AppStoreHelperSetup } from './AppStoreHelperSetup';
 import { CheckAgainButton, CommandLine, DESKTOP_DOWNLOAD_URL } from './ClaudeCodeSetup';
 
 export const CODEX_INSTALL_URL = 'https://developers.openai.com/codex/cli';
@@ -18,6 +21,7 @@ export type CodexReadiness =
   | 'unknown'
   | 'checking'
   | 'ready'
+  | 'needs-helper'
   | 'missing'
   | 'signed-out'
   | 'keyring'
@@ -29,6 +33,7 @@ export function codexReadinessOf(detection: AgentDetectionState<CodexDetection>)
   if (detection.status !== 'done') return 'unknown';
   const result = detection.result;
   if (!result) return 'broken';
+  if (helperNeed(result.unavailable)) return 'needs-helper';
   if (result.unavailable) return 'sandboxed';
   if (!result.found) return 'missing';
   if (result.loggedIn === false) return result.loginStore === 'keyring' ? 'keyring' : 'signed-out';
@@ -75,6 +80,18 @@ interface CodexSetupProps {
 export function CodexSetup({ detection, onRetry, onOpenLink = (url) => void openExternal(url), className }: CodexSetupProps) {
   const readiness = codexReadinessOf(detection);
   const checking = detection.status === 'checking';
+
+  if (readiness === 'needs-helper') {
+    return (
+      <AppStoreHelperSetup
+        agentName="Codex"
+        planName="ChatGPT"
+        outdated={helperNeed(detection.result?.unavailable) === 'outdated'}
+        onAdded={onRetry}
+        className={className}
+      />
+    );
+  }
 
   if (readiness === 'missing') {
     return (

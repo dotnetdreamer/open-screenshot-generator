@@ -1,8 +1,9 @@
 "use client";
 
 // What stands between the user and a working Claude Code, shared by the agent
-// tab in the start dialog and the Agent panel in the dock: not installed, not
-// signed in, a build that cannot start programs, or a binary that fails.
+// tab in the start dialog and the Agent panel in the dock: the helper the Mac
+// App Store version needs, not installed, not signed in, a build that cannot
+// start programs, or a binary that fails.
 
 import { useEffect, useState } from 'react';
 import { Check, Copy, Download, ExternalLink, LogIn, RefreshCw, TriangleAlert } from 'lucide-react';
@@ -11,17 +12,28 @@ import { Button } from '@/components/ui/button';
 import { openExternal } from '@/lib/desktop';
 import { cn } from '@/lib/utils';
 import type { AgentDetectionState, ClaudeDetection } from '@/lib/claudeCode/types';
+import { helperNeed } from '@/lib/appStoreHelper';
+import { AppStoreHelperSetup } from './AppStoreHelperSetup';
 
 export const CLAUDE_CODE_INSTALL_URL = 'https://code.claude.com/docs/en/quickstart';
 export const DESKTOP_DOWNLOAD_URL = 'https://openscrgen.app';
 
-export type ClaudeCodeReadiness = 'unknown' | 'checking' | 'ready' | 'missing' | 'signed-out' | 'sandboxed' | 'broken';
+export type ClaudeCodeReadiness =
+  | 'unknown'
+  | 'checking'
+  | 'ready'
+  | 'needs-helper'
+  | 'missing'
+  | 'signed-out'
+  | 'sandboxed'
+  | 'broken';
 
 export function readinessOf(detection: AgentDetectionState): ClaudeCodeReadiness {
   if (detection.status === 'checking') return 'checking';
   if (detection.status !== 'done') return 'unknown';
   const result = detection.result;
   if (!result) return 'broken';
+  if (helperNeed(result.unavailable)) return 'needs-helper';
   if (result.unavailable) return 'sandboxed';
   if (!result.found) return 'missing';
   if (result.error) return 'broken';
@@ -113,6 +125,18 @@ export function ClaudeCodeSetup({
 }: ClaudeCodeSetupProps) {
   const readiness = readinessOf(detection);
   const checking = detection.status === 'checking';
+
+  if (readiness === 'needs-helper') {
+    return (
+      <AppStoreHelperSetup
+        agentName="Claude Code"
+        planName="Claude"
+        outdated={helperNeed(detection.result?.unavailable) === 'outdated'}
+        onAdded={onRetry}
+        className={className}
+      />
+    );
+  }
 
   if (readiness === 'missing') {
     const windows = isWindows();

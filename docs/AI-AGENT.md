@@ -292,8 +292,9 @@ the full notes, and [DESKTOP.md](DESKTOP.md) the desktop details.
 
 **Limits.** Desktop app only: in the web editor the tab says Claude Code runs in the desktop
 app, and when the MCP relay is configured it points to connecting Claude Code from a terminal
-through the MCP button instead. Not in the Mac App Store build, whose sandbox a child process
-inherits. Every message counts toward the plan's usage limits, and so does every file the agent
+through the MCP button instead. The Mac App Store build, whose sandbox a child process
+inherits, starts it through a helper script the user saves once
+([DESKTOP.md](DESKTOP.md), "Programs outside the App Store sandbox"). Every message counts toward the plan's usage limits, and so does every file the agent
 reads from a code folder, which stays in the conversation. The agent reads files only in an
 attached code folder and imports only pictures (PNG, JPEG, WebP, GIF and SVG, up to 20 MB)
 from it, so the user adds the recordings for App Preview boards. There is no Glob: the agent
