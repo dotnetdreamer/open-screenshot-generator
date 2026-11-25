@@ -1,7 +1,8 @@
-import type { ArtboardElement, ArtboardState, DeviceFrameElementProps, DeviceType } from '@/types/artboard';
+import type { ArtboardElement, ArtboardState, DeviceFrameElementProps, DeviceType, ShapeElementProps } from '@/types/artboard';
 import { isScreenshotBoard } from './creative/specs';
+import { elementVisualBounds, type Bounds } from './elementGeometry';
 import { isStudioStyle, studioModelFor, withStudioRehug } from './device3dStudio';
-import { displayInsetsOf, displayRadiiOf, flatFaceOf, measuredModelFor } from './device3dModels';
+import { cornerRadiusOf, displayInsetsOf, displayRadiiOf, flatFaceOf, measuredModelFor } from './device3dModels';
 
 export type DevicePlatform = 'ios' | 'android' | 'neutral';
 export type DeviceCategory = 'phone' | 'tablet' | 'watch' | 'desktop' | 'custom';
@@ -27,6 +28,12 @@ export interface DeviceDescriptor {
   // element box, so this is only used to derive sensible bounds when swapping
   // across categories (phone <-> tablet/desktop).
   nativeAspect: number;
+  // The corner of the flat frame's body as a fraction of its width, where the
+  // frame is one rounded slab. DeviceFrameElement draws the body with it, and
+  // the swap code keeps a rim or a case drawn round the frame concentric with
+  // the next frame's corner. A MacBook and an iMac are a lid on a base and a
+  // slab on a stand and have none, like a watch and a custom frame.
+  bodyRadiusFactor?: number;
   // Screen area geometry; undefined for 'custom' (user-uploaded frame).
   // DeviceFrameElement renders the screen from this, and the swap engine uses
   // it to re-fit overlay elements authored on the screen area.
@@ -74,6 +81,7 @@ function measuredPhone(id: DeviceType): DeviceDescriptor {
     platform: android ? 'android' : 'ios',
     category: 'phone',
     nativeAspect: model.screenPoints[0] / model.screenPoints[1],
+    bodyRadiusFactor: cornerRadiusOf(model) / model.width,
     counterpart: android
       ? { ios: PIXEL_TO_IPHONE[id] ?? 'iphone-17' }
       : { android: model.cutout.kind === 'notch' ? 'pixel-3-xl' : 'pixel-10-pro' },
@@ -91,13 +99,13 @@ function measuredPhone(id: DeviceType): DeviceDescriptor {
 }
 
 export const DEVICE_REGISTRY: Record<DeviceType, DeviceDescriptor> = {
-  'iphone': { id: 'iphone', label: 'iPhone (Classic)', platform: 'ios', category: 'phone', nativeAspect: 390 / 844, counterpart: { android: 'android-bar' }, screen: { paddingPercent: { top: 3.5, right: 3.5, bottom: 3.5, left: 3.5 }, radiusFactor: 0.08 } },
-  'iphone-x': { id: 'iphone-x', label: 'iPhone X', platform: 'ios', category: 'phone', nativeAspect: 375 / 812, counterpart: { android: 'android-notch' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.09 } },
-  'iphone-13': { id: 'iphone-13', label: 'iPhone 13', platform: 'ios', category: 'phone', nativeAspect: 390 / 844, counterpart: { android: 'android-notch' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.09 } },
-  'iphone-14': { id: 'iphone-14', label: 'iPhone 14', platform: 'ios', category: 'phone', nativeAspect: 390 / 844, counterpart: { android: 'android-notch' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.1 } },
-  'iphone-15': { id: 'iphone-15', label: 'iPhone 15', platform: 'ios', category: 'phone', nativeAspect: 390 / 844, counterpart: { android: 'android-punch-hole' }, screen: { paddingPercent: { top: 2.5, right: 3, bottom: 2.5, left: 3 }, radiusFactor: 0.11 } },
-  'iphone-15-pro': { id: 'iphone-15-pro', label: 'iPhone 15 Pro', platform: 'ios', category: 'phone', nativeAspect: 390 / 844, counterpart: { android: 'android-punch-hole' }, screen: { paddingPercent: { top: 2.5, right: 3, bottom: 2.5, left: 3 }, radiusFactor: 0.11 } },
-  'iphone-17-pro-max': { id: 'iphone-17-pro-max', label: 'iPhone 17 Pro Max', platform: 'ios', category: 'phone', nativeAspect: 440 / 956, counterpart: { android: 'pixel-10-pro' }, screen: { paddingPercent: { top: 2.4, right: 2.8, bottom: 2.4, left: 2.8 }, radiusFactor: 0.115 } },
+  'iphone': { id: 'iphone', label: 'iPhone (Classic)', platform: 'ios', category: 'phone', nativeAspect: 390 / 844, bodyRadiusFactor: 0.1, counterpart: { android: 'android-bar' }, screen: { paddingPercent: { top: 3.5, right: 3.5, bottom: 3.5, left: 3.5 }, radiusFactor: 0.08 } },
+  'iphone-x': { id: 'iphone-x', label: 'iPhone X', platform: 'ios', category: 'phone', nativeAspect: 375 / 812, bodyRadiusFactor: 0.12, counterpart: { android: 'android-notch' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.09 } },
+  'iphone-13': { id: 'iphone-13', label: 'iPhone 13', platform: 'ios', category: 'phone', nativeAspect: 390 / 844, bodyRadiusFactor: 0.12, counterpart: { android: 'android-notch' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.09 } },
+  'iphone-14': { id: 'iphone-14', label: 'iPhone 14', platform: 'ios', category: 'phone', nativeAspect: 390 / 844, bodyRadiusFactor: 0.13, counterpart: { android: 'android-notch' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.1 } },
+  'iphone-15': { id: 'iphone-15', label: 'iPhone 15', platform: 'ios', category: 'phone', nativeAspect: 390 / 844, bodyRadiusFactor: 0.14, counterpart: { android: 'android-punch-hole' }, screen: { paddingPercent: { top: 2.5, right: 3, bottom: 2.5, left: 3 }, radiusFactor: 0.11 } },
+  'iphone-15-pro': { id: 'iphone-15-pro', label: 'iPhone 15 Pro', platform: 'ios', category: 'phone', nativeAspect: 390 / 844, bodyRadiusFactor: 0.14, counterpart: { android: 'android-punch-hole' }, screen: { paddingPercent: { top: 2.5, right: 3, bottom: 2.5, left: 3 }, radiusFactor: 0.11 } },
+  'iphone-17-pro-max': { id: 'iphone-17-pro-max', label: 'iPhone 17 Pro Max', platform: 'ios', category: 'phone', nativeAspect: 440 / 956, bodyRadiusFactor: 0.15, counterpart: { android: 'pixel-10-pro' }, screen: { paddingPercent: { top: 2.4, right: 2.8, bottom: 2.4, left: 2.8 }, radiusFactor: 0.115 } },
   'iphone-duo': measuredPhone('iphone-duo'),
   'iphone-18-pro-max': measuredPhone('iphone-18-pro-max'),
   'iphone-18-pro': measuredPhone('iphone-18-pro'),
@@ -112,22 +120,22 @@ export const DEVICE_REGISTRY: Record<DeviceType, DeviceDescriptor> = {
   'iphone-16e': measuredPhone('iphone-16e'),
   // App Store iPads. Like the Play Store tablets, they map to BOTH platforms'
   // phones so converting an iPad project to a phone format is never a dead end.
-  'ipad-pro-13': { id: 'ipad-pro-13', label: 'iPad Pro 13-inch', platform: 'ios', category: 'tablet', nativeAspect: 2064 / 2752, counterpart: { ios: 'iphone-17-pro-max', android: 'android-punch-hole' }, screen: { paddingPercent: { top: 3.2, right: 3.2, bottom: 3.2, left: 3.2 }, radiusFactor: 0.032 } },
-  'ipad-11': { id: 'ipad-11', label: 'iPad 11-inch', platform: 'ios', category: 'tablet', nativeAspect: 1668 / 2420, counterpart: { ios: 'iphone-17-pro-max', android: 'android-punch-hole' }, screen: { paddingPercent: { top: 3.6, right: 3.6, bottom: 3.6, left: 3.6 }, radiusFactor: 0.036 } },
+  'ipad-pro-13': { id: 'ipad-pro-13', label: 'iPad Pro 13-inch', platform: 'ios', category: 'tablet', nativeAspect: 2064 / 2752, bodyRadiusFactor: 0.05, counterpart: { ios: 'iphone-17-pro-max', android: 'android-punch-hole' }, screen: { paddingPercent: { top: 3.2, right: 3.2, bottom: 3.2, left: 3.2 }, radiusFactor: 0.032 } },
+  'ipad-11': { id: 'ipad-11', label: 'iPad 11-inch', platform: 'ios', category: 'tablet', nativeAspect: 1668 / 2420, bodyRadiusFactor: 0.055, counterpart: { ios: 'iphone-17-pro-max', android: 'android-punch-hole' }, screen: { paddingPercent: { top: 3.6, right: 3.6, bottom: 3.6, left: 3.6 }, radiusFactor: 0.036 } },
   // Apple Watch (Series 10 46mm proportions). No counterpart: platform swaps
   // leave watch mockups as-is, like the generic tablet/desktop.
   'apple-watch': { id: 'apple-watch', label: 'Apple Watch', platform: 'ios', category: 'watch', nativeAspect: 39 / 46, screen: { paddingPercent: { top: 10, right: 10, bottom: 10, left: 10 }, radiusFactor: 0.28 } },
-  'android-bar': { id: 'android-bar', label: 'Android (Bar)', platform: 'android', category: 'phone', nativeAspect: 1080 / 2340, counterpart: { ios: 'iphone' }, screen: { paddingPercent: { top: 6, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.02 } },
-  'android-notch': { id: 'android-notch', label: 'Android (Notch)', platform: 'android', category: 'phone', nativeAspect: 1080 / 2340, counterpart: { ios: 'iphone-14' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.02 } },
-  'android-punch-hole': { id: 'android-punch-hole', label: 'Android (Punch Hole)', platform: 'android', category: 'phone', nativeAspect: 1080 / 2400, counterpart: { ios: 'iphone-15' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.02 } },
+  'android-bar': { id: 'android-bar', label: 'Android (Bar)', platform: 'android', category: 'phone', nativeAspect: 1080 / 2340, bodyRadiusFactor: 0.025, counterpart: { ios: 'iphone' }, screen: { paddingPercent: { top: 6, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.02 } },
+  'android-notch': { id: 'android-notch', label: 'Android (Notch)', platform: 'android', category: 'phone', nativeAspect: 1080 / 2340, bodyRadiusFactor: 0.025, counterpart: { ios: 'iphone-14' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.02 } },
+  'android-punch-hole': { id: 'android-punch-hole', label: 'Android (Punch Hole)', platform: 'android', category: 'phone', nativeAspect: 1080 / 2400, bodyRadiusFactor: 0.025, counterpart: { ios: 'iphone-15' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.02 } },
   'pixel-10-pro': measuredPhone('pixel-10-pro'),
   'pixel-10a': measuredPhone('pixel-10a'),
   'pixel-4': measuredPhone('pixel-4'),
   'pixel-3-xl': measuredPhone('pixel-3-xl'),
-  'tablet': { id: 'tablet', label: 'Tablet', platform: 'neutral', category: 'tablet', nativeAspect: 768 / 1024, screen: { paddingPercent: { top: 2.5, right: 2.5, bottom: 2.5, left: 2.5 }, radiusFactor: 0.016 } },
-  'tablet-7': { id: 'tablet-7', label: '7-inch Tablet', platform: 'android', category: 'tablet', nativeAspect: 800 / 1280, counterpart: { ios: 'iphone-15', android: 'android-punch-hole' }, screen: { paddingPercent: { top: 4.5, right: 4.5, bottom: 4.5, left: 4.5 }, radiusFactor: 0.03 } },
-  'tablet-10': { id: 'tablet-10', label: '10-inch Tablet', platform: 'android', category: 'tablet', nativeAspect: 1600 / 2560, counterpart: { ios: 'iphone-15', android: 'android-punch-hole' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.025 } },
-  'desktop': { id: 'desktop', label: 'Desktop Monitor', platform: 'neutral', category: 'desktop', nativeAspect: 16 / 9, screen: { paddingPercent: { top: 1.5, right: 1.5, bottom: 3.5, left: 1.5 }, radiusFactor: 0.009 } },
+  'tablet': { id: 'tablet', label: 'Tablet', platform: 'neutral', category: 'tablet', nativeAspect: 768 / 1024, bodyRadiusFactor: 0.02, screen: { paddingPercent: { top: 2.5, right: 2.5, bottom: 2.5, left: 2.5 }, radiusFactor: 0.016 } },
+  'tablet-7': { id: 'tablet-7', label: '7-inch Tablet', platform: 'android', category: 'tablet', nativeAspect: 800 / 1280, bodyRadiusFactor: 0.045, counterpart: { ios: 'iphone-15', android: 'android-punch-hole' }, screen: { paddingPercent: { top: 4.5, right: 4.5, bottom: 4.5, left: 4.5 }, radiusFactor: 0.03 } },
+  'tablet-10': { id: 'tablet-10', label: '10-inch Tablet', platform: 'android', category: 'tablet', nativeAspect: 1600 / 2560, bodyRadiusFactor: 0.032, counterpart: { ios: 'iphone-15', android: 'android-punch-hole' }, screen: { paddingPercent: { top: 3, right: 3, bottom: 3, left: 3 }, radiusFactor: 0.025 } },
+  'desktop': { id: 'desktop', label: 'Desktop Monitor', platform: 'neutral', category: 'desktop', nativeAspect: 16 / 9, bodyRadiusFactor: 0.013, screen: { paddingPercent: { top: 1.5, right: 1.5, bottom: 3.5, left: 1.5 }, radiusFactor: 0.009 } },
   // Macs. The element box is the FULL silhouette (lid + base for the MacBook,
   // slab + stand for the iMac), so the screen paddings carry the chassis:
   // the MacBook's side padding is the base overhang beyond the lid bezel, and
@@ -312,13 +320,122 @@ function isScreenConformingOverlay(el: ArtboardElement, screen: DeviceScreenRect
   );
 }
 
+/** A frame that is one rounded slab, the shape a rim or a case is drawn round. */
+function isSlab(descriptor: DeviceDescriptor | undefined): boolean {
+  return !!descriptor && (descriptor.category === 'phone' || descriptor.category === 'tablet');
+}
+
+interface FrameSides {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
+const SIDES = ['left', 'right', 'top', 'bottom'] as const;
+
+// How near a rectangle's side has to lie to the frame's own side to run along
+// it, as a share of the frame's width. A rim sits at 1%, a case at 4%, a hard
+// shadow pushed down and to one side at 7%.
+const ALONG_THE_FRAME = 0.08;
+
+/** An element's box before it is turned: its size on the artboard, and the centre it turns about. */
+function unturnedBox(el: ArtboardElement) {
+  const scale = el.scale || 1;
+  const width = el.size.width * scale;
+  const height = el.size.height * scale;
+  return { width, height, cx: el.position.x + width / 2, cy: el.position.y + height / 2 };
+}
+
 /**
- * Swap one device within an artboard's element list, screen-aware: overlay
- * images / rectangle shapes authored exactly on the device's screen area
- * (screen fills, pre-baked app screenshots) are re-fitted to the new device's
- * screen rect and corner radius, so they keep clipping to the frame after the
- * swap (e.g. Android's ~2%-radius screen vs an iPhone's 11%). Returns null
- * when there is nothing to swap.
+ * How far each side of a rectangle lies outside the frame's own side (inside
+ * is negative), in the frame's own axes, when the rectangle is drawn round the
+ * frame: a rim, an outline, a case, a body, a drop shadow. It is turned the
+ * same way as the frame and at least three of its sides run along the frame's.
+ * The fourth may not: a case that runs on past the bottom of the artboard with
+ * its phone. Null for anything else.
+ */
+function sidesRoundFrame(el: ArtboardElement, device: DeviceFrameElementProps): FrameSides | null {
+  if (el.type !== 'shape' || el.shapeType !== 'rectangle') return null;
+  if (Math.abs((el.rotation || 0) - (device.rotation || 0)) > 0.01) return null;
+  const frame = unturnedBox(device);
+  const box = unturnedBox(el);
+  const turn = (-(device.rotation || 0) * Math.PI) / 180;
+  const dx = box.cx - frame.cx;
+  const dy = box.cy - frame.cy;
+  const across = dx * Math.cos(turn) - dy * Math.sin(turn);
+  const down = dx * Math.sin(turn) + dy * Math.cos(turn);
+  const sides: FrameSides = {
+    left: (box.width - frame.width) / 2 - across,
+    right: (box.width - frame.width) / 2 + across,
+    top: (box.height - frame.height) / 2 - down,
+    bottom: (box.height - frame.height) / 2 + down,
+  };
+  const near = SIDES.filter((side) => Math.abs(sides[side]) <= frame.width * ALONG_THE_FRAME);
+  return near.length >= 3 ? sides : null;
+}
+
+const CORNERS = ['borderRadius', 'borderRadiusTopLeft', 'borderRadiusTopRight', 'borderRadiusBottomRight', 'borderRadiusBottomLeft'] as const;
+
+/**
+ * A rectangle that was drawn round the frame, drawn round the frame it has
+ * become: every side as far from the frame's side as it was, and its corner
+ * the next frame's corner the same distance out, so a rim stays one even band
+ * round an iPad's tighter corner.
+ */
+function drawnRoundNextFrame(
+  el: ShapeElementProps,
+  sides: FrameSides,
+  before: DeviceFrameElementProps,
+  after: DeviceFrameElementProps
+): ArtboardElement {
+  const was = unturnedBox(before);
+  const frame = unturnedBox(after);
+  const width = frame.width + sides.left + sides.right;
+  const height = frame.height + sides.top + sides.bottom;
+  if (!(width > 0 && height > 0)) return el;
+  const across = (sides.right - sides.left) / 2;
+  const down = (sides.bottom - sides.top) / 2;
+  const turn = ((after.rotation || 0) * Math.PI) / 180;
+  const cx = frame.cx + across * Math.cos(turn) - down * Math.sin(turn);
+  const cy = frame.cy + across * Math.sin(turn) + down * Math.cos(turn);
+  const scale = el.scale || 1;
+  const next: ShapeElementProps = {
+    ...el,
+    position: { x: cx - width / 2, y: cy - height / 2 },
+    size: { width: width / scale, height: height / scale },
+  };
+  const near = SIDES.filter((side) => Math.abs(sides[side]) <= was.width * ALONG_THE_FRAME);
+  const out = near.reduce((sum, side) => sum + sides[side], 0) / Math.max(1, near.length);
+  const cornerWas = (DEVICE_REGISTRY[before.deviceType]?.bodyRadiusFactor ?? 0) * was.width + out;
+  const cornerNow = (DEVICE_REGISTRY[after.deviceType]?.bodyRadiusFactor ?? 0) * frame.width + out;
+  if (cornerWas > 1 && cornerNow >= 0) {
+    for (const key of CORNERS) {
+      const value = el[key];
+      if (typeof value === 'number') next[key] = Math.round(((value * cornerNow) / cornerWas) * 100) / 100;
+    }
+  }
+  return next;
+}
+
+/**
+ * Swap one device within an artboard's element list, and with it what was
+ * drawn to its measure:
+ *
+ * - overlay images / rectangle shapes authored exactly on the device's screen
+ *   area (screen fills, pre-baked app screenshots) are re-fitted to the new
+ *   device's screen rect and corner radius, so they keep clipping to the frame
+ *   after the swap (e.g. Android's ~2%-radius screen vs an iPhone's 11%);
+ * - rectangles drawn round the frame (a rim, an outline, a case, a drop
+ *   shadow) are drawn round the new one, where the swap gives the frame
+ *   another box: a phone that becomes a tablet. Left as it was, a phone's rim
+ *   stands out above and below the iPad. Between two frames of one kind the
+ *   box does not change and neither does the rim. A laptop or a monitor on a
+ *   stand is not a slab to draw round, and a 3D Studio device's box is its
+ *   silhouette's, so there the rectangles stay as they are (layersLeftBehind
+ *   takes them out where the app makes the swap itself).
+ *
+ * Returns null when there is nothing to swap.
  */
 export function swapDeviceInElements(
   elements: ArtboardElement[],
@@ -336,17 +453,99 @@ export function swapDeviceInElements(
   // its screen rect with it, so skip overlay adaptation there.
   const oldScreen = !device.rotation ? getDeviceScreenRect(device) : null;
   const newScreen = oldScreen ? getDeviceScreenRect(swappedDevice) : null;
+  const reshaped =
+    !!updates.size &&
+    !isStudioStyle(device.styleType) &&
+    isSlab(DEVICE_REGISTRY[device.deviceType]) &&
+    isSlab(DEVICE_REGISTRY[target]);
   return elements.map((el) => {
     if (el.id === deviceId) return swappedDevice;
-    if (!oldScreen || !newScreen || !isScreenConformingOverlay(el, oldScreen)) return el;
-    const scale = el.scale || 1;
-    return {
-      ...el,
-      position: { x: newScreen.x, y: newScreen.y },
-      size: { width: newScreen.width / scale, height: newScreen.height / scale },
-      borderRadius: Math.round(newScreen.radius / scale),
-    };
+    if (oldScreen && newScreen && isScreenConformingOverlay(el, oldScreen)) {
+      const scale = el.scale || 1;
+      return {
+        ...el,
+        position: { x: newScreen.x, y: newScreen.y },
+        size: { width: newScreen.width / scale, height: newScreen.height / scale },
+        borderRadius: Math.round(newScreen.radius / scale),
+      };
+    }
+    if (reshaped && el.type === 'shape') {
+      const sides = sidesRoundFrame(el, device);
+      if (sides) return drawnRoundNextFrame(el, sides, device, swappedDevice);
+    }
+    return el;
   });
+}
+
+/** Share of `a`'s own area that lies inside `b`. */
+function shareInside(a: Bounds, b: Bounds): number {
+  const own = a.width * a.height;
+  if (!(own > 0)) return 0;
+  const width = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x);
+  const height = Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y);
+  return width > 0 && height > 0 ? (width * height) / own : 0;
+}
+
+/** How much of the device a picture has to lie across to be holding it. */
+const HOLDS_THIS_MUCH_OF_THE_DEVICE = 0.25;
+
+/**
+ * The pictures that hold `device`: a hand photographed with a phone in it, or
+ * one drawn round a phone in two layers (the palm behind, the fingers in
+ * front). They are grouped with the device and lie across a good part of it,
+ * which makes them pictures drawn for that device's shape. A badge or a
+ * sticker on a corner is too small to hold anything, and a picture fitted to
+ * the screen is fitted to the next screen by the swap.
+ */
+export function picturesHolding(elements: ArtboardElement[], device: DeviceFrameElementProps): ArtboardElement[] {
+  if (!device.groupId) return [];
+  const frame = elementVisualBounds(device);
+  const screen = !device.rotation ? getDeviceScreenRect(device) : null;
+  return elements.filter((el) => {
+    if (el.id === device.id || el.groupId !== device.groupId) return false;
+    if (el.type !== 'image' && el.type !== 'video') return false;
+    if (screen && isScreenConformingOverlay(el, screen)) return false;
+    return shareInside(frame, elementVisualBounds(el)) >= HOLDS_THIS_MUCH_OF_THE_DEVICE;
+  });
+}
+
+/**
+ * The layers to leave out when `device` becomes `target`, by id: what was made
+ * for the frame it is, and cannot be made to fit the one it becomes.
+ *
+ * A hand that holds a phone holds no tablet and no Mac. The photograph has its
+ * own phone in it, which a wider and shorter frame no longer covers, and drawn
+ * fingers end up in the middle of the screen. So a frame that turns into
+ * another kind of device stands on its own. One that stays the same kind keeps
+ * its box, and with it the hand.
+ *
+ * A rim or a case drawn round a phone is drawn round a tablet by the swap
+ * itself (swapDeviceInElements). Round a MacBook or an iMac there is nothing
+ * to draw it along, so there it goes too.
+ *
+ * Read before the swap, from the frame's own box. Every swap the app makes on
+ * its own goes through this (the device sets and the format conversion). A
+ * person changing one frame in the editor is not second-guessed: nothing of
+ * theirs is taken away.
+ */
+export function layersLeftBehind(
+  elements: ArtboardElement[],
+  device: DeviceFrameElementProps,
+  target: DeviceType
+): Set<string> {
+  const from = DEVICE_REGISTRY[device.deviceType] as DeviceDescriptor | undefined;
+  const to = DEVICE_REGISTRY[target] as DeviceDescriptor | undefined;
+  if (!from || !to || from.category === to.category) return new Set();
+  if (from.category === 'custom' || to.category === 'custom') return new Set();
+  const gone = new Set(picturesHolding(elements, device).map((el) => el.id));
+  if ((!isSlab(from) || !isSlab(to)) && !isStudioStyle(device.styleType)) {
+    const screen = !device.rotation ? getDeviceScreenRect(device) : null;
+    for (const el of elements) {
+      if (el.id === device.id || (screen && isScreenConformingOverlay(el, screen))) continue;
+      if (sidesRoundFrame(el, device)) gone.add(el.id);
+    }
+  }
+  return gone;
 }
 
 export interface DeviceFormatPreset {
@@ -443,9 +642,11 @@ export interface FormatConversionResult {
  * margins where the aspect ratio differs — and every mockup is swapped to the
  * format's device (screen-aware, like any other swap). Phone formats swap
  * per-device via the counterpart table (notch stays notch, island stays punch
- * hole); tablet formats swap everything swappable to that tablet. Pure; a
- * single handleArtboardsUpdate call gives one history entry, so undo restores
- * the previous format exactly.
+ * hole); tablet formats swap everything swappable to that tablet, a rim drawn
+ * round the phone is drawn round the tablet, and a hand that held the phone
+ * is left out (layersLeftBehind). Pure; a single
+ * handleArtboardsUpdate call gives one history entry, so undo restores the
+ * previous format exactly.
  *
  * App Store header and search artboards come back untouched: their size is
  * Apple's, and it is the same for every device format.
@@ -494,7 +695,8 @@ export function convertArtboardsToFormat(
       }
       const result = swapDeviceInElements(elements, id, target);
       if (result) {
-        elements = result;
+        const gone = layersLeftBehind(elements, device, target);
+        elements = gone.size > 0 ? result.filter((el) => !gone.has(el.id)) : result;
         swapped++;
       }
     }

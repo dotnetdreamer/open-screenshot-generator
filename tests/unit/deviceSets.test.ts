@@ -18,6 +18,7 @@ import {
   boardsOnDevice,
   framesOn,
   planFor,
+  projectForDevice,
   projectSetFormats,
   takesPart,
   withBoardSet,
@@ -25,7 +26,7 @@ import {
   withSetFormats,
 } from '@/lib/deviceSets/sets';
 import { deviceSetTarget } from '@/lib/deviceSets/targets';
-import { convertArtboardsToFormat, DEVICE_FORMAT_PRESETS, type DeviceFormat } from '@/lib/deviceRegistry';
+import { convertArtboardsToFormat, DEVICE_FORMAT_PRESETS, getDeviceDescriptor, type DeviceFormat } from '@/lib/deviceRegistry';
 import { elementVisualBounds, type Bounds } from '@/lib/elementGeometry';
 import { collectMediaIds } from '@/lib/account/projectBundle';
 
@@ -318,6 +319,246 @@ test('a badge on the phone and a group with it move with the phone', () => {
       Math.abs(was.x - now.x) < 0.02 && Math.abs(was.y - now.y) < 0.02,
       `${device.deviceType}: badge at ${JSON.stringify(now)}, was ${JSON.stringify(was)}`
     );
+  }
+});
+
+test('a hand holding the phone stays with it, however far the photo runs off the artboard', () => {
+  // A cut-out photo bigger than the artboard, running off its right and bottom
+  // edges: by its box alone that is what a background glow looks like.
+  const hand = {
+    id: 'hand',
+    type: 'image',
+    imageSrc: '/elements/images/touch/touch-as522881486.png',
+    objectFit: 'fill',
+    position: { x: 120, y: 880 },
+    size: { width: 1730, height: 2360 },
+    rotation: 0,
+    scale: 1,
+  } as ArtboardElement;
+  const held = (photo: ArtboardElement) => {
+    const source = headlineAndPhone([photo]);
+    source.elements = source.elements.map((el) => (el.id === 'phone' ? { ...el, groupId: 'held' } : el));
+    return source;
+  };
+  const source = held({ ...hand, groupId: 'held' });
+  const reading = readBoard(source);
+  assert.ok(reading.hero.some((item) => item.el.id === 'hand'), 'the hand is read with the phone');
+  assert.deepEqual(reading.backdrops.map((item) => item.el.id), ['bg']);
+
+  // Where the phone sits on the photo, as a share of the photo.
+  const onPhoto = (shown: ArtboardState) => {
+    const photo = boxOf(placed(shown, 'hand'));
+    const device = boxOf(placed(shown, 'phone'));
+    return [(device.x - photo.x) / photo.width, (device.y - photo.y) / photo.height, device.width / photo.width];
+  };
+  const was = onPhoto(source);
+  for (const format of ['android', 'ipad-pro-13', 'tablet-10', 'mac'] as DeviceFormat[]) {
+    const now = onPhoto(onDevice(source, format));
+    assert.ok(
+      now.every((value, i) => Math.abs(value - was[i]) < 0.005),
+      `${format}: the phone sits at ${JSON.stringify(now)} of the photo, was ${JSON.stringify(was)}`
+    );
+  }
+
+  // Without the group the same photo is what it was before: background.
+  assert.ok(readBoard(held(hand)).backdrops.some((item) => item.el.id === 'hand'));
+});
+
+test('what is grouped with a phone that runs onto the next artboard stays on that phone', () => {
+  // A phone that belongs to this artboard and crosses its right edge, a pill
+  // and its label drawn over the phone's left edge, and text down the left.
+  const scene = (pillGroup: string | undefined) =>
+    board([
+      rect('bg', 0, 0, IPHONE.width, IPHONE.height, { fillColor: '#0a4bff' }),
+      text('title', 'Record every call', 90, 80, 560, 600, 50),
+      phone('phone', 640, 700, 1500, 3140, { spanArtboards: true, groupId: 'hero' }),
+      { ...rect('pill', 560, 900, 440, 1040, { borderRadius: 220 }), groupId: pillGroup },
+      { ...text('timer', '4:34', 600, 1320, 360, 170, 38), groupId: pillGroup },
+      text('stat', '2M+', 90, 2060, 520, 300, 80),
+    ]);
+  const source = scene('hero');
+  const reading = readBoard(source);
+  assert.deepEqual(reading.crossing.map((item) => item.el.id).sort(), ['phone', 'pill', 'timer']);
+  assert.deepEqual(reading.rows.map((row) => row.texts.map((item) => item.el.id)), [['title'], ['stat']]);
+
+  // Where a layer sits on the phone, as a share of the phone.
+  const onPhone = (shown: ArtboardState, id: string) => {
+    const device = boxOf(placed(shown, 'phone'));
+    const layer = boxOf(placed(shown, id));
+    return [(layer.x - device.x) / device.width, (layer.y - device.y) / device.height, layer.width / device.width];
+  };
+  for (const format of ['android', 'ipad-pro-13', 'mac'] as DeviceFormat[]) {
+    const plan = planFor(source, format, { measure: fakeMeasure });
+    assert.ok(plan && !plan.fellBack, `${format}: the artboard is laid out again, not shrunk to fit`);
+    const shown = onDevice(source, format);
+    for (const id of ['pill', 'timer']) {
+      const was = onPhone(source, id);
+      const now = onPhone(shown, id);
+      assert.ok(
+        now.every((value, i) => Math.abs(value - was[i]) < 0.005),
+        `${format}: ${id} sits at ${JSON.stringify(now)} of the phone, was ${JSON.stringify(was)}`
+      );
+    }
+    // The phone still runs off the right edge by the share of itself it did.
+    const size = deviceSetTarget(format)!.preset.artboard;
+    const device = boxOf(placed(shown, 'phone'));
+    const before = boxOf(placed(source, 'phone'));
+    const past = (device.x + device.width - size.width) / device.width;
+    const pastBefore = (before.x + before.width - IPHONE.width) / before.width;
+    assert.ok(Math.abs(past - pastBefore) < 0.005, `${format}: ${past} of the phone is past the edge, was ${pastBefore}`);
+  }
+
+  // A pill in a group of its own is one of the artboard's rows, as before.
+  const apart = readBoard(scene('pill'));
+  assert.deepEqual(apart.crossing.map((item) => item.el.id), ['phone']);
+});
+
+/** The usual store screenshot with a screenshot of the device's own added for one device set. */
+function withOwnShot(source: ArtboardState, format: DeviceFormat, width: number, height: number): ArtboardState {
+  return withBoardSet([source], source.id, format, (set) =>
+    withScreen(set, 'phone', null, { screenshotSrc: 'asset:own', naturalScreenshotWidth: width, naturalScreenshotHeight: height })
+  )[0];
+}
+
+test('the hand that held a phone is left out where the frame becomes an iPad or a Mac', () => {
+  // The photo has a phone of its own in it, under the frame. An iPad is wider
+  // and shorter than that phone and would leave it showing above and below.
+  const hand = {
+    id: 'hand',
+    type: 'image',
+    imageSrc: '/elements/images/touch/touch-as522881486.png',
+    objectFit: 'fill',
+    position: { x: 120, y: 880 },
+    size: { width: 1730, height: 2360 },
+    rotation: 0,
+    scale: 1,
+    groupId: 'held',
+  } as ArtboardElement;
+  // A sticker on the phone's corner, in the same group: too small to hold anything.
+  const sticker = { ...hand, id: 'sticker', position: { x: 900, y: 820 }, size: { width: 200, height: 200 } } as ArtboardElement;
+  const design = (photo: ArtboardElement[]) =>
+    board([
+      rect('bg', 0, 0, IPHONE.width, IPHONE.height, { fillColor: '#e0f2fe' }),
+      text('title', 'Track every habit in one place', 80, 150, 1046, 300, 36),
+      text('sub', 'Small steps, every day', 180, 470, 846, 110, 18),
+      ...photo,
+      phone('phone', 203, PHONE_Y, 800, PHONE_H, { groupId: 'held' }),
+      sticker,
+    ]);
+  const held = design([hand]);
+  const has = (shown: ArtboardState, id: string) => shown.elements.some((el) => el.id === id);
+
+  for (const [format, width, height, frame] of [
+    ['ipad-pro-13', 2064, 2752, 'ipad-pro-13'],
+    ['tablet-10', 1600, 2560, 'tablet-10'],
+    ['mac', 2560, 1600, 'macbook'],
+  ] as const) {
+    const source = withOwnShot(held, format, width, height);
+    assert.deepEqual([...planFor(source, format, { measure: fakeMeasure })!.leftOut], ['hand'], `${format}: the plan leaves the hand out`);
+    const shown = onDevice(source, format);
+    assert.equal((placed(shown, 'phone') as DeviceFrameElementProps).deviceType, frame);
+    assert.ok(!has(shown, 'hand'), `${format}: the hand is not on the artboard`);
+    assert.ok(has(shown, 'sticker'), `${format}: the sticker stays on the frame`);
+    // Everything else is where it would be had there never been a hand: the
+    // frame is sized and placed as what it now is, not as a hand's worth of picture.
+    const never = onDevice(withOwnShot(design([]), format, width, height), format);
+    for (const id of ['title', 'sub', 'phone', 'sticker']) {
+      assert.deepEqual(boxOf(placed(shown, id)), boxOf(placed(never, id)), `${format}: ${id}`);
+    }
+  }
+
+  // The frame stays a phone: with the phone's own screenshot on an iPad, and on
+  // Android whatever is added there. The hand keeps holding it.
+  for (const shown of [onDevice(held, 'ipad-pro-13'), onDevice(withOwnShot(held, 'android', 1080, 1920), 'android')]) {
+    assert.ok(has(shown, 'hand'));
+    assert.equal(getDeviceDescriptor((placed(shown, 'phone') as DeviceFrameElementProps).deviceType).category, 'phone');
+  }
+
+  // A language's own picture of the hand goes with the hand, and its words stay.
+  const translated: ArtboardState = {
+    ...withOwnShot(held, 'ipad-pro-13', 2064, 2752),
+    localized: { de: { hand: { imageSrc: 'asset:hand_de' }, title: { content: 'Jede Gewohnheit an einem Ort' } } },
+  };
+  const [converted] = projectForDevice([translated], 'ipad-pro-13', fakeMeasure);
+  assert.deepEqual(Object.keys(converted.localized?.de ?? {}), ['title']);
+});
+
+test('a rim drawn round the phone is drawn round the iPad it becomes', () => {
+  // 12 wider than the phone on every side, its corner the phone's corner 12
+  // further out. Not grouped with the phone: where it lies says what it is.
+  const band = 12;
+  const design = () =>
+    board([
+      rect('bg', 0, 0, IPHONE.width, IPHONE.height, { fillColor: '#e0f2fe' }),
+      text('title', 'Track every habit in one place', 80, 150, 1046, 300, 36),
+      text('sub', 'Small steps, every day', 180, 470, 846, 110, 18),
+      rect('rim', 203 - band, PHONE_Y - band, 800 + band * 2, PHONE_H + band * 2, { borderRadius: 0.14 * 800 + band, fillColor: '#7c3aed' }),
+      phone('phone', 203, PHONE_Y, 800, PHONE_H),
+    ]);
+  // How far the rim reaches past the frame on each side.
+  const bands = (shown: ArtboardState) => {
+    const frame = boxOf(placed(shown, 'phone'));
+    const rim = boxOf(placed(shown, 'rim'));
+    return [frame.x - rim.x, frame.y - rim.y, rim.x + rim.width - (frame.x + frame.width), bottomOf(rim) - bottomOf(frame)];
+  };
+  const even = (values: number[]) => Math.max(...values) - Math.min(...values) < 0.5;
+  assert.deepEqual(bands(design()), [band, band, band, band]);
+
+  for (const [format, width, height] of [
+    ['ipad-pro-13', 2064, 2752],
+    ['tablet-7', 800, 1280],
+  ] as const) {
+    const shown = onDevice(withOwnShot(design(), format, width, height), format);
+    const device = placed(shown, 'phone') as DeviceFrameElementProps;
+    assert.equal(device.deviceType, format);
+    const now = bands(shown);
+    assert.ok(even(now) && now[0] > 0, `${format}: the rim reaches ${JSON.stringify(now)} past the frame`);
+    // The corner is the frame's own, as far out as the rim is.
+    const rim = placed(shown, 'rim') as ShapeElementProps;
+    const frame = boxOf(device);
+    const corner = getDeviceDescriptor(device.deviceType).bodyRadiusFactor! * frame.width + now[0];
+    assert.ok(Math.abs((rim.borderRadius as number) * rim.scale - corner) < 1, `${format}: corner ${(rim.borderRadius as number) * rim.scale}, the frame's is ${corner}`);
+    // Still a rim, not a band stretched across the artboard.
+    assert.ok(boxOf(rim).width < frame.width * 1.1);
+  }
+
+  // A MacBook is a lid on a base: there is nothing to draw the rim along.
+  const mac = onDevice(withOwnShot(design(), 'mac', 2560, 1600), 'mac');
+  assert.equal((placed(mac, 'phone') as DeviceFrameElementProps).deviceType, 'macbook');
+  assert.ok(!mac.elements.some((el) => el.id === 'rim'));
+
+  // The phone's own screenshot keeps the phone, and the rim keeps its shape.
+  assert.ok(even(bands(onDevice(design(), 'ipad-pro-13'))));
+});
+
+test("an iPad in a phone's place stays where the phone was across the artboard", () => {
+  // A phone nearly as wide as the artboard and a little left of its middle,
+  // inside both side edges. The iPad that takes its place is wider than the
+  // artboard: it crosses the left edge by more than the right one. That is the
+  // swap's arithmetic, not a frame hung off the left edge on purpose.
+  const design = board([
+    rect('bg', 0, 0, IPHONE.width, IPHONE.height, { fillColor: '#e0f2fe' }),
+    text('title', 'Never forget a date', 80, 150, 1046, 300, 36),
+    rect('rim', 55, 703, 1020, 2105, { borderRadius: 154, fillColor: '#4b4155' }),
+    phone('phone', 70, 718, 990, 2075),
+  ]);
+  const off = 70 + 990 / 2 - IPHONE.width / 2;
+  for (const [format, width, height] of [
+    ['ipad-pro-13', 2064, 2752],
+    ['tablet-10', 1600, 2560],
+  ] as const) {
+    const size = deviceSetTarget(format)!.preset.artboard;
+    const shown = onDevice(withOwnShot(design, format, width, height), format);
+    const frame = boxOf(placed(shown, 'phone'));
+    const middle = frame.x + frame.width / 2;
+    const wanted = size.width / 2 + off * (size.width / IPHONE.width);
+    assert.ok(Math.abs(middle - wanted) < 2, `${format}: the frame's middle is at ${middle}, the phone's was at ${wanted}`);
+    assert.ok(frame.x + frame.width < size.width + 1, `${format}: the frame is not past the right edge`);
+    // The rim round a frame this wide is wider than the design's artboard,
+    // which is how a full width band looks. It is still the frame's rim.
+    const rim = boxOf(placed(shown, 'rim'));
+    const bands = [frame.x - rim.x, frame.y - rim.y, rim.x + rim.width - (frame.x + frame.width), bottomOf(rim) - bottomOf(frame)];
+    assert.ok(Math.max(...bands) - Math.min(...bands) < 0.5 && bands[0] > 0, `${format}: the rim reaches ${JSON.stringify(bands)} past the frame`);
   }
 });
 

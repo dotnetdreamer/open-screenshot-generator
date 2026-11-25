@@ -69,6 +69,31 @@ function shotName(target: DeviceSetTarget): string {
   return target.platform === 'ios' ? 'iPhone' : 'Android phone';
 }
 
+const MADE_FOR: Partial<Record<ReturnType<typeof getDeviceDescriptor>['category'], string>> = {
+  phone: 'a phone',
+  tablet: 'a tablet',
+  desktop: 'a computer',
+};
+
+/**
+ * The line under an artboard that is shown without one of its pictures on
+ * this device: the hand that held a phone, where the frame is now an iPad
+ * (layersLeftBehind). A picture that goes missing wants a word. A rim that
+ * went with its frame does not.
+ */
+function leftOutNote(board: BoardOnDevice): string | null {
+  const ids = board.plan?.leftOut;
+  if (!ids || ids.size === 0) return null;
+  const pictures = board.base.elements.filter((el) => ids.has(el.id) && (el.type === 'image' || el.type === 'video'));
+  if (pictures.length === 0) return null;
+  const held = board.base.elements.find((el) => el.type === 'device' && !!el.groupId && el.groupId === pictures[0].groupId);
+  const madeFor = (held?.type === 'device' && MADE_FOR[getDeviceDescriptor(held.deviceType).category]) || 'another device';
+  const first = `"${pictures[0].name || 'A picture'}"`;
+  return pictures.length === 1
+    ? `${first} is left out here because it was made for ${madeFor}`
+    : `${first} and ${pictures.length - 1} more are left out here because they were made for ${madeFor}`;
+}
+
 export interface EveryDeviceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -622,6 +647,7 @@ function BoardCard({
   };
 
   const takesShots = !set.own && frames.length > 0;
+  const leftOut = leftOutNote(board);
 
   return (
     <figure className="flex shrink-0 flex-col gap-2" style={{ width: Math.max(width, 150) }}>
@@ -689,6 +715,7 @@ function BoardCard({
               )}
             </div>
           ))}
+        {leftOut && <span className="text-[11px] text-muted-foreground">{leftOut}</span>}
         <input
           ref={inputRef}
           type="file"

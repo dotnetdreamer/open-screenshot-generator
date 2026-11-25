@@ -8,14 +8,25 @@
 //             it (a soft glow), stretched or scaled to cover the new one
 //   band      full width strips, stretched sideways and kept on their edge
 //   hero      the device mockups and everything that sits on them, moved and
-//             sized as one piece, so a badge stays on its phone; with no
-//             device, the main picture (cards with text on them, a photo)
+//             sized as one piece, so a badge stays on its phone, and so does
+//             a picture grouped with a device (the hand holding it), however
+//             far it runs off the artboard. Where the frame becomes another
+//             kind of device (a screenshot added for the iPad or the Mac), the
+//             hand is left out: it holds a phone, and the photo has that phone
+//             in it. A rim drawn round the phone is drawn round the new frame
+//             by the swap itself (deviceRegistry.ts), and stays the frame's
+//             however wide that makes it. With no device, the main picture
+//             (cards with text on them, a photo)
 //   rows      the text, one row per line of the layout. A text is set again
 //             at the new size and width and measured, so it wraps for the new
 //             shape; a group of text and shapes (a card, a button), a turned
 //             text and a line of pictures (an icon, five stars) keep their
 //             shape and are only scaled
 //   decor     everything else, kept near the corner or edge it was near
+//   crossing  what continues onto the artboard beside this one (spanArtboards
+//             and past a side edge), kept on the edge it crosses at the new
+//             height, so the two artboards still join where they did; what is
+//             grouped with a device that crosses goes with it
 //
 // Then one of the layouts places them: `stacked` keeps the design's own order
 // top to bottom, `beside` and `beside-flipped` put the text in a column next
@@ -43,7 +54,7 @@ import type {
   TextElementProps,
 } from '@/types/artboard';
 import { elementVisualBounds, hasCanvasBox, type Bounds } from '@/lib/elementGeometry';
-import { getDeviceDescriptor, scaleElementsToCanvas, swapDeviceInElements } from '@/lib/deviceRegistry';
+import { getDeviceDescriptor, layersLeftBehind, scaleElementsToCanvas, swapDeviceInElements } from '@/lib/deviceRegistry';
 
 export type DeviceLayout = DeviceSetLayout;
 
@@ -62,9 +73,17 @@ export interface ElementPatch {
   fontScale?: number;
   /** Device only: the frame it shows on this screen. */
   deviceType?: DeviceType;
-  /** A picture or shape fitted to a new frame's screen: that screen's corner. */
+  /**
+   * A picture or shape fitted to a new frame's screen, or a rim drawn round the
+   * new frame: its corner there.
+   */
   borderRadius?: number;
+  /** The same for a shape whose corners are set one by one. */
+  corners?: Partial<Record<CornerKey, number>>;
 }
+
+const CORNER_KEYS = ['borderRadiusTopLeft', 'borderRadiusTopRight', 'borderRadiusBottomRight', 'borderRadiusBottomLeft'] as const;
+type CornerKey = (typeof CORNER_KEYS)[number];
 
 export interface BoardPlan {
   layout: DeviceLayout;
@@ -78,6 +97,12 @@ export interface BoardPlan {
   patches: Map<string, ElementPatch>;
   /** Devices whose frame changed, by element id. */
   frames: Map<string, DeviceType>;
+  /**
+   * Layers this screen does without, by element id: the hand that held a
+   * phone, where the frame is now a tablet or a Mac, and a rim drawn round a
+   * phone, where it is now a Mac (layersLeftBehind).
+   */
+  leftOut: Set<string>;
 }
 
 // --- reading the design ---------------------------------------------------
@@ -111,10 +136,13 @@ interface Reading {
   heroBox: Bounds | null;
   rows: Row[];
   decor: Item[];
+  /** Layers that continue onto the neighbouring artboard, and what rides them. */
   crossing: Item[];
+  /** A rider's id to the continuing layer it sits on. It is placed from that layer's edge. */
+  riding: Map<string, Item>;
 }
 
-const area = (b: Bounds) => Math.max(0, b.width) * Math.max(0, b.height);
+const area =(b: Bounds) => Math.max(0, b.width) * Math.max(0, b.height);
 
 function intersect(a: Bounds, b: Bounds): Bounds {
   const x = Math.max(a.x, b.x);
@@ -236,8 +264,13 @@ function mainPicture(pieces: Array<{ items: Item[]; box: Bounds }>, texts: Item[
  * one group land in the same part: a group with a device is the hero, a group
  * of text and shapes is one piece wherever it goes, and a group of text only
  * is set again line by line like any text.
+ *
+ * `fittedToFrame` names the layers a frame swap fitted to its new frame (a
+ * rim drawn round it, a picture on its screen). They are that device's, however
+ * wide the swap made them: a rim round an iPad on a phone's artboard is nearly
+ * as wide as the artboard, which is how a band looks.
  */
-export function readBoard(board: ArtboardState): Reading {
+export function readBoard(board: ArtboardState, fittedToFrame?: ReadonlySet<string>): Reading {
   const width = board.size.width;
   const height = board.size.height;
   const frame: Bounds = { x: 0, y: 0, width, height };
@@ -253,6 +286,7 @@ export function readBoard(board: ArtboardState): Reading {
   const loose: Item[] = [];
   const crossing: Item[] = [];
   const offstage: Item[] = [];
+  const rest: Item[] = [];
   for (const item of items) {
     const { el, box } = item;
     const crossesSide = box.x < -1 || box.x + box.width > width + 1;
@@ -266,15 +300,53 @@ export function readBoard(board: ArtboardState): Reading {
     } else if (el.type === 'text') {
       texts.push(item);
     } else {
-      const inside = intersect(box, frame);
-      // A picture bigger than the artboard itself, like a soft glow, is part
-      // of the background. A shape that size (a swoosh) is not: it goes with
-      // what it sits behind.
-      const atmosphere = el.type === 'image' && (box.width >= width * 1.25 || box.height >= height * 1.25);
-      if (area(inside) / boardArea >= 0.8 || atmosphere) backdrops.push(item);
-      else if (inside.width >= width * 0.92 && inside.height < height * 0.8) bands.push(item);
-      else loose.push(item);
+      rest.push(item);
     }
+  }
+  // What is grouped with a device that continues onto the neighbouring
+  // artboard continues with it, placed from the same edge: a recorder pill
+  // drawn over a phone that runs across two screenshots. Read with the
+  // artboard's own rows instead, it is set again by other rules, slides off the
+  // phone, and as one more tall row it can leave the text no room at all. Only
+  // the group says so: a card that merely overlaps such a phone has a group of
+  // its own and keeps moving as that.
+  const riding = new Map<string, Item>();
+  const carriers = crossing.filter((item) => isDevice(item.el) && !!item.el.groupId);
+  if (carriers.length > 0) {
+    for (const list of [texts, rest]) {
+      for (let i = list.length - 1; i >= 0; i -= 1) {
+        const item = list[i];
+        const carrier = item.el.groupId ? carriers.find((other) => other.el.groupId === item.el.groupId) : undefined;
+        if (!carrier) continue;
+        riding.set(item.el.id, carrier);
+        list.splice(i, 1);
+        crossing.push(item);
+      }
+    }
+  }
+  // A picture grouped with a device is part of that device's picture: a
+  // photographed hand holding the phone. It runs off the artboard and its box
+  // is larger than the artboard, which is also how a background glow looks, so
+  // the group is what tells them apart. Read as background it would be scaled
+  // to cover the new artboard while the phone is fitted to it, and the phone
+  // would slide off the hand.
+  const deviceGroups = new Set(devices.map((item) => item.el.groupId).filter((id): id is string => !!id));
+  const heldWithDevice = (el: ArtboardElement) =>
+    (el.type === 'image' || el.type === 'video') && !!el.groupId && deviceGroups.has(el.groupId);
+  for (const item of rest) {
+    const { el, box } = item;
+    if (heldWithDevice(el) || fittedToFrame?.has(el.id)) {
+      loose.push(item);
+      continue;
+    }
+    const inside = intersect(box, frame);
+    // A picture bigger than the artboard itself, like a soft glow, is part
+    // of the background. A shape that size (a swoosh) is not: it goes with
+    // what it sits behind.
+    const atmosphere = el.type === 'image' && (box.width >= width * 1.25 || box.height >= height * 1.25);
+    if (area(inside) / boardArea >= 0.8 || atmosphere) backdrops.push(item);
+    else if (inside.width >= width * 0.92 && inside.height < height * 0.8) bands.push(item);
+    else loose.push(item);
   }
   const placedElsewhere = (item: Item) =>
     backdrops.includes(item) || bands.includes(item) || crossing.includes(item) || offstage.includes(item);
@@ -545,6 +617,7 @@ export function readBoard(board: ArtboardState): Reading {
     rows: keptRows.sort((a, b) => a.box.y - b.box.y),
     decor,
     crossing,
+    riding,
   };
 }
 
@@ -557,6 +630,11 @@ interface Ctx {
   r: Reading;
   /** The hero's box in the design, before any of its frames changed shape. */
   heroBefore: Bounds | null;
+  /**
+   * The devices' own box in the design, where one of them has become another
+   * kind of device and so another shape. Null when every frame keeps its box.
+   */
+  framesBefore: Bounds | null;
   W2: number;
   H2: number;
   sx: number;
@@ -682,7 +760,10 @@ function placeDecor(ctx: Ctx, items: Item[], ft: number) {
 
 function placeCrossing(ctx: Ctx) {
   const { r, W2, sy } = ctx;
-  for (const { el, box: visual } of r.crossing) {
+  for (const item of r.crossing) {
+    const { el } = item;
+    // A rider keeps to the edge its layer crosses, so the two stay as drawn.
+    const visual = (r.riding.get(el.id) ?? item).box;
     const box = layoutBox(el);
     const k = sy;
     const crossesRight = visual.x + visual.width > r.width + 1;
@@ -1010,10 +1091,18 @@ function layoutStacked(ctx: Ctx, ft0: number): boolean {
       const k = Math.max(0.05, Math.min(kH, kW));
       const width2 = hero.width * k;
       const height2 = hero.height * k;
-      // Across: an edge it hung off stays hung off, otherwise its place from the middle.
+      // Across: an edge it hung off stays hung off, otherwise its place from
+      // the middle. Where a frame has become another kind of device, the edge
+      // has to be one the design hung the frames off. The hero's box is no
+      // longer evidence of that: an iPad in a phone's place is wider than the
+      // phone and can cross an edge the phone stayed inside, and a glow that
+      // lay behind the phone can lie beside the iPad and stop counting as
+      // sitting on it. Read off that box alone, the iPad was pushed against
+      // whichever edge the box happened to cross further.
+      const framesHung = ctx.framesBefore ? overhang(ctx.framesBefore, r.width, r.height) : null;
       let x2: number;
-      if (hangs.right && !hangs.left) x2 = W2 + (hero.x + hero.width - r.width) * k - width2;
-      else if (hangs.left && !hangs.right) x2 = hero.x * k;
+      if (hangs.right && !hangs.left && (!framesHung || framesHung.right)) x2 = W2 + (hero.x + hero.width - r.width) * k - width2;
+      else if (hangs.left && !hangs.right && (!framesHung || framesHung.left)) x2 = hero.x * k;
       else x2 = W2 / 2 + (hero.x + hero.width / 2 - r.width / 2) * sx - width2 / 2;
       // Down: likewise for the top and bottom, otherwise the same gaps.
       let y2: number;
@@ -1249,24 +1338,49 @@ export function planBoard(
   let elements = board.elements;
   const frames = new Map<string, DeviceType>();
   const overlayRadii = new Map<string, number>();
+  const overlayCorners = new Map<string, Partial<Record<CornerKey, number>>>();
+  const fittedToFrame = new Set<string>();
+  const leftOut = new Set<string>();
+  // A frame that became another kind of device has another box. One that
+  // became another phone has the one it had.
+  let reshaped = false;
   for (const [id, deviceType] of options.frames ?? []) {
     const before = elements.find((el) => el.id === id);
     const swapped = swapDeviceInElements(elements, id, deviceType);
     if (!before || !swapped) continue;
+    const after = swapped.find((el) => el.id === id);
+    if (after && (after.size.width !== before.size.width || after.size.height !== before.size.height)) reshaped = true;
+    // Read off the frame's own box, before anything moves.
+    if (before.type === 'device') {
+      for (const gone of layersLeftBehind(elements, before, deviceType)) leftOut.add(gone);
+    }
+    // What the swap fitted to the new frame: a picture on its screen, a rim
+    // round it. Their corners changed with the fit.
     const refitted = new Set<string>();
     swapped.forEach((el, i) => {
       if (el === elements[i] || el.id === id) return;
       refitted.add(el.id);
-      if (typeof (el as { borderRadius?: number }).borderRadius === 'number') {
-        overlayRadii.set(el.id, (el as { borderRadius: number }).borderRadius);
+      fittedToFrame.add(el.id);
+      const fitted = el as unknown as Record<string, unknown>;
+      if (typeof fitted.borderRadius === 'number') overlayRadii.set(el.id, fitted.borderRadius);
+      const corners: Partial<Record<CornerKey, number>> = {};
+      for (const key of CORNER_KEYS) {
+        const value = fitted[key];
+        if (typeof value === 'number') corners[key] = value;
       }
+      if (Object.keys(corners).length > 0) overlayCorners.set(el.id, corners);
     });
     elements = followFrame(keepEdges(swapped, before, refitted, board.size), before, refitted);
     frames.set(id, deviceType);
   }
+  // What was made for the phone and cannot be made to fit what it became (the
+  // hand that held it) is not part of the tablet's or the Mac's picture: the
+  // layout is worked out without it, so the frame is sized and placed as what
+  // it now is, alone.
+  if (leftOut.size > 0) elements = elements.filter((el) => !leftOut.has(el.id));
   const swappedBoard: ArtboardState = elements === board.elements ? board : { ...board, elements };
 
-  const reading = readBoard(swappedBoard);
+  const reading = readBoard(swappedBoard, fittedToFrame);
   const chosen = layout === 'auto' ? pickLayout(reading, target) : layout;
   const sx = target.width / board.size.width;
   const sy = target.height / board.size.height;
@@ -1276,9 +1390,15 @@ export function planBoard(
     .map((item) => original.get(item.el.id))
     .filter((el): el is ArtboardElement => !!el)
     .map(elementVisualBounds);
+  const devicesBefore = reading.hero
+    .filter((item) => isDevice(item.el))
+    .map((item) => original.get(item.el.id))
+    .filter((el): el is ArtboardElement => !!el)
+    .map(elementVisualBounds);
   const ctx: Ctx = {
     r: reading,
     heroBefore: before.length > 0 ? union(before) : null,
+    framesBefore: reshaped && devicesBefore.length > 0 ? union(devicesBefore) : null,
     W2: target.width,
     H2: target.height,
     sx,
@@ -1321,8 +1441,19 @@ export function planBoard(
     const patch = ctx.patches.get(id);
     if (patch) patch.borderRadius = radius;
   }
+  for (const [id, corners] of overlayCorners) {
+    const patch = ctx.patches.get(id);
+    if (patch) patch.corners = corners;
+  }
   // Fell back: shrunk to fit because no rebuilt layout that was tried fits.
-  return { layout: used, fellBack: used === 'scaled' && chosen !== 'scaled', size: { ...target }, patches: ctx.patches, frames };
+  return {
+    layout: used,
+    fellBack: used === 'scaled' && chosen !== 'scaled',
+    size: { ...target },
+    patches: ctx.patches,
+    frames,
+    leftOut,
+  };
 }
 
 /**
@@ -1379,7 +1510,8 @@ function looksRight(board: ArtboardState, ctx: Ctx): boolean {
  * and, where it is longer, its size comes down until it fits (with `measure`).
  */
 export function applyPlan(board: ArtboardState, plan: BoardPlan, measure?: TextMeasure | null): ArtboardState {
-  const elements = board.elements.map((el): ArtboardElement => {
+  const shown = plan.leftOut.size > 0 ? board.elements.filter((el) => !plan.leftOut.has(el.id)) : board.elements;
+  const elements = shown.map((el): ArtboardElement => {
     const patch = plan.patches.get(el.id);
     if (!patch) return el;
     const next: Record<string, unknown> = { ...el, position: { ...patch.position } };
@@ -1395,6 +1527,7 @@ export function applyPlan(board: ArtboardState, plan: BoardPlan, measure?: TextM
     }
     if (patch.deviceType && el.type === 'device') next.deviceType = patch.deviceType;
     if (patch.borderRadius !== undefined && (el.type === 'image' || el.type === 'shape')) next.borderRadius = patch.borderRadius;
+    if (patch.corners && el.type === 'shape') Object.assign(next, patch.corners);
     return next as unknown as ArtboardElement;
   });
   return { ...board, size: { ...plan.size }, elements };

@@ -2,7 +2,7 @@
 import type React from 'react';
 import type { DeviceType } from '@/types/artboard';
 import { getDeviceDescriptor } from '@/lib/deviceRegistry';
-import { cornerRadiusOf, displayInsetsOf, displayRadiiOf, flatFaceOf, measuredModelFor } from '@/lib/device3dModels';
+import { displayInsetsOf, displayRadiiOf, flatFaceOf, measuredModelFor } from '@/lib/device3dModels';
 import { cutoutPolygons } from '@/lib/device3dGeometry';
 
 // The flat (non-3D) device frame's own chrome: outer corner radius, body
@@ -246,7 +246,12 @@ function imacChassis(px: (percent: number) => number): React.ReactNode {
 export function getFlatDeviceChrome(deviceType: DeviceType, effectiveWidth: number): FlatDeviceChrome {
   const descriptor = getDeviceDescriptor(deviceType);
   const chrome: FlatDeviceChrome = {
-    outerBorderRadius: 'calc(1rem * var(--scale-factor, 1))',
+    // The body corner of every slab comes from the registry, which the swap
+    // code reads too. A frame with a chassis draws none (flatFrameStyle).
+    outerBorderRadius:
+      descriptor.bodyRadiusFactor !== undefined
+        ? `${effectiveWidth * descriptor.bodyRadiusFactor}px`
+        : 'calc(1rem * var(--scale-factor, 1))',
     bodyColor: '#111',
     notch: null,
     screenBorderRadius: descriptor.screen
@@ -266,7 +271,6 @@ export function getFlatDeviceChrome(deviceType: DeviceType, effectiveWidth: numb
   if (measured) {
     const insets = displayInsetsOf(measured);
     const display = measured.display;
-    chrome.outerBorderRadius = radius(cornerRadiusOf(measured) / measured.width);
     chrome.bodyColor = '#1e1e1e';
     const corners = displayRadiiOf(measured);
     if (corners.bottom !== corners.top) {
@@ -297,66 +301,36 @@ export function getFlatDeviceChrome(deviceType: DeviceType, effectiveWidth: numb
 
   switch (deviceType) {
     case 'iphone-15':
-      chrome.outerBorderRadius = radius(0.14);
       chrome.notch = islandNotch('1.6%', '26%', '3.5 / 1');
       break;
     case 'iphone-15-pro':
-      chrome.outerBorderRadius = radius(0.14);
       chrome.bodyColor = '#1e1e1e'; // Darker titanium color
       chrome.notch = islandNotch('1.6%', '26%', '3.5 / 1');
       break;
     case 'iphone-17-pro-max':
-      chrome.outerBorderRadius = radius(0.15);
       chrome.bodyColor = '#1e1e1e';
       chrome.notch = islandNotch('1.5%', '25%', '3.6 / 1');
       break;
     case 'iphone-14':
-      chrome.outerBorderRadius = radius(0.13);
       chrome.notch = classicNotch('32%', '4.6 / 1', '11%', '50%', chrome.bodyColor);
       break;
     case 'iphone-13':
-      chrome.outerBorderRadius = radius(0.12);
       chrome.notch = classicNotch('34%', '4.4 / 1', '11%', '48%', chrome.bodyColor);
       break;
     case 'iphone-x':
-      chrome.outerBorderRadius = radius(0.12);
       chrome.notch = classicNotch('36%', '4.2 / 1', '12%', '50%', chrome.bodyColor);
       break;
-    case 'iphone':
-      chrome.outerBorderRadius = radius(0.1);
-      break;
-    case 'android-bar':
-      chrome.outerBorderRadius = radius(0.025);
-      break;
     case 'android-notch':
-      chrome.outerBorderRadius = radius(0.025);
       chrome.notch = classicNotch('32%', '5 / 1', '12%', '60%', chrome.bodyColor);
       break;
     case 'android-punch-hole':
-      chrome.outerBorderRadius = radius(0.025);
       chrome.notch = punchHoleNotch();
       break;
-    case 'tablet':
-      chrome.outerBorderRadius = radius(0.02);
-      break;
     case 'ipad-pro-13':
-      // Modern iPad Pro/Air slab: uniform thin bezel, softly rounded body.
-      chrome.outerBorderRadius = radius(0.05);
-      chrome.bodyColor = '#1e1e1e';
-      break;
     case 'ipad-11':
-      chrome.outerBorderRadius = radius(0.055);
       chrome.bodyColor = '#1e1e1e';
-      break;
-    case 'tablet-7':
-      // Chunkier bezels than the 10-inch; typical budget Android slate.
-      chrome.outerBorderRadius = radius(0.045);
-      break;
-    case 'tablet-10':
-      chrome.outerBorderRadius = radius(0.032);
       break;
     case 'desktop':
-      chrome.outerBorderRadius = radius(0.013);
       chrome.bodyColor = '#333';
       break;
     case 'macbook': {
@@ -375,6 +349,12 @@ export function getFlatDeviceChrome(deviceType: DeviceType, effectiveWidth: numb
       chrome.chassis = imacChassis(px);
       break;
     }
+    // Nothing but the body corner and the bezels, which the registry holds.
+    case 'iphone':
+    case 'android-bar':
+    case 'tablet':
+    case 'tablet-7':
+    case 'tablet-10':
     case 'apple-watch':
     case 'custom':
       break;

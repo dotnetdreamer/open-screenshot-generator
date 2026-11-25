@@ -416,9 +416,12 @@ export function projectForDevice(
     // only scaled, so their languages' own places still hold.
     if (!takesPart(base)) return { ...rest, ...kept } as ArtboardState;
     const localized: Record<string, Record<string, ElementLocaleOverride>> = {};
+    // A picture this device does without (the hand that held a phone, where
+    // the frame is now an iPad) takes what the languages kept for it along.
+    const onDevice = new Set(board.elements.map((el) => el.id));
     for (const [code, rows] of Object.entries(base.localized ?? {})) {
       for (const [elementId, override] of Object.entries(rows ?? {})) {
-        if (!override) continue;
+        if (!override || !onDevice.has(elementId)) continue;
         const kept: ElementLocaleOverride = { ...override };
         for (const key of KEPT_GEOMETRY) delete kept[key];
         if (kept.detached) {

@@ -200,6 +200,42 @@ test.describe('the Every device view', () => {
     expect(boards(after).every((board) => board.deviceSetFormats?.includes('android'))).toBe(true);
   });
 
+  test('an iPad screenshot for a phone held in a hand shows the iPad on its own, and says so', async ({ app, page }) => {
+    test.skip(!(await canStoreBlobsInIndexedDb(page)), NO_BLOBS);
+    // Hushwave Sleep: on its third artboard a photographed hand holds the
+    // phone. The photo has a phone of its own in it, under the frame.
+    await app.startDialog.getByRole('tab', { name: /App Screenshots/ }).click();
+    await app.startDialog.getByAltText('Hushwave Sleep', { exact: true }).click();
+    await expect(app.startDialog).toBeHidden({ timeout: 30_000 });
+    await expect(app.artboards.first()).toBeVisible({ timeout: 30_000 });
+    await openEveryDevice(page);
+    await expect(everyDevice(page).getByRole('heading', { name: 'iPad 13-inch', exact: true })).toBeVisible();
+
+    const card = everyDevice(page).locator('figure').filter({ hasText: 'Fall Asleep Faster' });
+    // The artboard as it is drawn for the device, not the small layout choices under it.
+    const hand = card.locator('.osg-morph').first().locator('img[src*="touch-as522881486"]');
+    const note = card.getByText('"Hand" is left out here because it was made for a phone', { exact: true });
+    await expect(hand).toHaveCount(1);
+    await expect(note).toBeHidden();
+    expect((await screenShapes(card))[0]).toBeLessThan(0.6);
+
+    const chooser = page.waitForEvent('filechooser');
+    await card.getByRole('button', { name: /^Add a screenshot from an iPad/ }).click();
+    await (await chooser).setFiles({ name: 'ipad.png', mimeType: 'image/png', buffer: await pngOfSize(page, 2064, 2752) });
+    await expect(card.getByRole('button', { name: /^Change the iPad screenshot/ })).toBeVisible();
+    await expect.poll(async () => (await screenShapes(card))[0], { timeout: 15_000 }).toBeGreaterThan(0.65);
+    // An iPad is wider and shorter than the phone in the photo and would leave
+    // it showing above and below, so the artboard is drawn without the hand.
+    await expect(hand).toHaveCount(0);
+    await expect(note).toBeVisible();
+
+    // The phone's own screenshot back, and the hand holds it again.
+    await card.getByRole('button', { name: 'Remove the iPad screenshot' }).click();
+    await expect(card.getByRole('button', { name: /^Add a screenshot from an iPad/ })).toBeVisible();
+    await expect(hand).toHaveCount(1);
+    await expect(note).toBeHidden();
+  });
+
   test('a layout picked for one artboard is kept on it, and undo takes it back', async ({ app, page }) => {
     await openBudgetly(app);
     await openEveryDevice(page);
