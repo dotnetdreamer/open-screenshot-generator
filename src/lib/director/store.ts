@@ -3,11 +3,12 @@
 // cloud save or a version never carries a film, and AGENTS.md rule 1 would
 // drop a film stored on the project at the next keystroke anyway.
 //
-// A film holds no pictures: its recording is a row in the project database's
-// `media` table (shared by every view), named by id. The strip of pictures in
-// the timeline is made again from the recording when a film opens.
+// A film holds no recordings: each clip's recording is a row in the project
+// database's `media` table (shared by every view), named by id. A film saved
+// before films had clips is read as a film of one clip (upgradeFilm).
 
 import Dexie, { type Table } from 'dexie';
+import { upgradeFilm } from './timeline';
 import type { Film } from './types';
 
 class DirectorDatabase extends Dexie {
@@ -29,11 +30,12 @@ function db(): DirectorDatabase {
 /** Every film on this device, newest first. */
 export async function listFilms(): Promise<Film[]> {
   const rows = await db().films.toArray();
-  return rows.sort((a, b) => b.updatedAt - a.updatedAt);
+  return rows.map((row) => upgradeFilm(row)).sort((a, b) => b.updatedAt - a.updatedAt);
 }
 
 export async function getFilm(id: string): Promise<Film | undefined> {
-  return db().films.get(id);
+  const row = await db().films.get(id);
+  return row ? upgradeFilm(row) : undefined;
 }
 
 export async function saveFilm(film: Film): Promise<void> {

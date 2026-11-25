@@ -8,6 +8,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { CircleIcon, CrosshairIcon, Loader2Icon, SmartphoneIcon, SquareIcon } from 'lucide-react';
 import { readRemoteFragment, RoomLink, type LinkStatus } from '@/lib/director/link';
+import { depthZoom } from '@/lib/director/depth';
 import { askForMotion, keepScreenOn, PhoneMotion } from '@/lib/director/sensors';
 import { IDENTITY, type Quat } from '@/lib/director/motion';
 import { cn } from '@/lib/utils';
@@ -35,8 +36,15 @@ export function PhoneRemote() {
   const [note, setNote] = useState<string | null>(null);
   const [recording, setRecording] = useState(false);
   const [clock, setClock] = useState({ t: 0, duration: 0 });
-  const [zoom, setZoom] = useState(1);
+  /** Pinch and distance together, as sent: for the zoom shown on this screen. */
+  const [shownZoom, setShownZoom] = useState(1);
   const [turn, setTurn] = useState<Quat>(IDENTITY);
+  /** Forward and back, as the computer has it: off unless turned on there or here. */
+  const [depthOn, setDepthOn] = useState(false);
+  const depthOnRef = useRef(false);
+  depthOnRef.current = depthOn;
+  /** Forward and back as last tapped here, until the computer says the same or 3 seconds pass. */
+  const depthAskedRef = useRef<{ on: boolean; at: number; sent: number } | null>(null);
   const linkRef = useRef<RoomLink | null>(null);
   const motionRef = useRef<PhoneMotion | null>(null);
   const zoomRef = useRef(1);
@@ -76,6 +84,26 @@ export function PhoneRemote() {
       onState: (state) => {
         setRecording(state.recording);
         setClock({ t: state.t, duration: state.duration });
+        const on = state.depth;
+        if (on === undefined) return;
+        const asked = depthAskedRef.current;
+        const now = performance.now();
+        if (asked && now - asked.at < 3000) {
+          // Tapped here and the computer hasn't caught up: ask again, at most every 0.4 seconds.
+          if (on === asked.on) depthAskedRef.current = null;
+          else if (now - asked.sent > 400) {
+            asked.sent = now;
+            linkRef.current?.sendDepth(asked.on);
+          }
+          return;
+        }
+        depthAskedRef.current = null;
+        if (on !== depthOnRef.current) {
+          // Turned on at the computer: the distance starts from where the phone is now.
+          if (on) motionRef.current?.restartDepth();
+          depthOnRef.current = on;
+          setDepthOn(on);
+        }
       },
     }, target.room);
     linkRef.current = link;
@@ -106,18 +134,21 @@ export function PhoneRemote() {
     motionRef.current = motion;
     let heard = false;
     motion.start(
-      (q) => {
+      (q, _t, depth) => {
         // Readings came after all: the note about the sensors no longer holds.
         if (!heard) {
           heard = true;
           setNote(null);
         }
-        linkRef.current?.sendMotion({ q, zoom: zoomRef.current });
+        // The distance goes only while forward and back is on.
+        linkRef.current?.sendMotion(depthOnRef.current ? { q, zoom: zoomRef.current, depth } : { q, zoom: zoomRef.current });
+        const total = zoomRef.current * (depthOnRef.current ? depthZoom(depth) : 1);
         // The small phone on screen, at most 30 times a second.
         const now = performance.now();
         if (now - lastPaint.current > 33) {
           lastPaint.current = now;
           setTurn(q);
+          setShownZoom(total);
         }
       },
       () => setNote("No movement is coming from this phone's sensors.")
@@ -149,7 +180,6 @@ export function PhoneRemote() {
       const [a, b] = Array.from(pinch.ids.values());
       const next = Math.min(2.5, Math.max(0.7, (pinch.startZoom * Math.hypot(a.x - b.x, a.y - b.y)) / pinch.startDistance));
       zoomRef.current = next;
-      setZoom(next);
     }
   };
   const onPointerUp = (event: React.PointerEvent) => {
@@ -210,7 +240,6 @@ export function PhoneRemote() {
       onPointerCancel={onPointerUp}
       onDoubleClick={() => {
         zoomRef.current = 1;
-        setZoom(1);
       }}
       data-testid="remote-live"
     >
@@ -219,19 +248,43 @@ export function PhoneRemote() {
           <span className={cn('h-2 w-2 rounded-full', recording ? 'animate-pulse bg-red-500' : 'bg-emerald-400')} />
           {recording ? `Recording ${seconds(clock.t)} of ${seconds(clock.duration)}` : status === 'direct' ? 'Connected' : 'Connected through the internet'}
         </span>
-        <span className="tabular-nums">Zoom {zoom.toFixed(1)}x</span>
+        <span className="tabular-nums" data-testid="remote-zoom">
+          Zoom {shownZoom.toFixed(1)}x
+        </span>
       </div>
 
       <div className="flex flex-1 items-center justify-center [perspective:700px]">
         <div
           className="h-48 w-24 rounded-[1.6rem] border-[3px] border-white/80 bg-gradient-to-br from-indigo-500/40 to-fuchsia-500/30 shadow-[0_30px_60px_-20px_rgba(99,102,241,0.6)]"
-          style={{ transform: `${cssTurn(turn)} scale(${zoom})` }}
+          style={{ transform: `${cssTurn(turn)} scale(${shownZoom})` }}
           aria-hidden
         />
       </div>
 
-      <p className="px-6 text-center text-xs text-white/55">Hold the phone the way the phone in the video should face, then press Center. Pinch to move closer.</p>
+      <p className="px-6 text-center text-xs text-white/55">
+        Hold the phone the way the phone in the video should face, then press Center. {depthOn ? 'Bring it closer, or pinch, to move in.' : 'Pinch to move in.'}
+      </p>
       {note && <p className="px-6 pt-2 text-center text-xs text-amber-300">{note}</p>}
+      <div className="flex justify-center pt-3">
+        <button
+          type="button"
+          onClick={() => {
+            const next = !depthOnRef.current;
+            const now = performance.now();
+            depthAskedRef.current = { on: next, at: now, sent: now };
+            depthOnRef.current = next;
+            setDepthOn(next);
+            if (next) motionRef.current?.restartDepth();
+            linkRef.current?.sendDepth(next);
+          }}
+          aria-pressed={depthOn}
+          className={cn('flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium', depthOn ? 'bg-white/15 text-white' : 'bg-white/5 text-white/60')}
+          data-testid="remote-depth"
+        >
+          <span className={cn('h-2 w-2 rounded-full', depthOn ? 'bg-emerald-400' : 'bg-white/30')} />
+          Forward and back: {depthOn ? 'on' : 'off'}
+        </button>
+      </div>
 
       <div className="grid grid-cols-2 gap-3 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-4">
         <button

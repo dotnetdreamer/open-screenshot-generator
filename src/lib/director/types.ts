@@ -1,15 +1,24 @@
-// Director: a screen recording filmed on a 3D phone, with the camera moves
-// worked out from what happens in the recording (or from a phone the user
-// moves by hand). This file is the data model. Everything in it is plain JSON.
+// Director: screen recordings filmed on a 3D phone, with the camera moves
+// worked out from what happens in them (or from a phone the user moves by
+// hand). This file is the data model. Everything in it is plain JSON.
 //
-// Times are seconds of the film. The film starts at the recording's trim
-// start, so film time t shows the recording at trim.start + t. Places on the
+// A film is a row of clips, one after another: each clip shows a part of one
+// recording. Two clocks run through the model, and every field says which:
+// film seconds (from the film's start) and recording seconds (from the start
+// of a clip's own recording). A clip keeps its moments in recording seconds,
+// so trimming, splitting, moving or swapping clips never rewrites them; the
+// film's moments are worked out from the clips (timeline.ts). Places on the
 // screen are fractions of the recording's width and height, top left origin.
 
 import type { DeviceType } from '@/types/artboard';
 
-/** How much the camera does: Calm moves little and slowly, Bold moves more and faster. */
-export type DirectorStyle = 'calm' | 'lively' | 'bold';
+/**
+ * How much the camera does: Calm moves little and slowly, Bold moves more and
+ * faster. Cinematic opens close on the screen at a steep angle and pulls back
+ * fast, holds the phone big and low under the words, and spins it in at each
+ * new recording.
+ */
+export type DirectorStyle = 'calm' | 'lively' | 'bold' | 'cinematic';
 
 /** What happens in a stretch of the recording. */
 export type MomentKind =
@@ -46,7 +55,7 @@ export type ShotChoice = 'auto' | 'close' | 'wide' | 'skip';
 export interface Moment {
   id: string;
   kind: MomentKind;
-  /** Film seconds. */
+  /** Recording seconds inside a clip; film seconds once worked out for the whole film (filmMoments). */
   start: number;
   end: number;
   /** Where it happens: what a close-up frames. Null for a moment with no one place (a new screen, a still). */
@@ -60,6 +69,31 @@ export interface Moment {
   caption?: string;
   /** Changed by the user. Planning again from a new analysis keeps an edited moment as it is. */
   edited?: boolean;
+  /**
+   * Deleted by the user. Kept on the clip, unseen, so reading the recording
+   * again doesn't bring the same moment back. Nothing but a new reading looks at it.
+   */
+  removed?: boolean;
+  /**
+   * Where Director found this moment, in its recording's seconds, kept however
+   * the user moves or changes it. A new reading knows the moment by this, so
+   * the user's version stands and the moment never comes back twice. Absent on
+   * a moment the user added.
+   */
+  found?: MomentOrigin;
+  /**
+   * Moved here by the user from another clip. It stands for nothing found in
+   * this clip: the clip it came from keeps a deleted copy that stands for it.
+   */
+  movedIn?: boolean;
+}
+
+/** A moment as Director found it: the recording, the kind, and when, in the recording's seconds. */
+export interface MomentOrigin {
+  mediaId: string;
+  kind: MomentKind;
+  start: number;
+  end: number;
 }
 
 /** The phone and the camera at one instant. */
@@ -77,9 +111,12 @@ export interface Pose {
   zoom: number;
   /** Moves the phone up the picture, in phone heights. Negative is lower. */
   lift: number;
+  /** The lens's angle of view in degrees. Unset is the stage's long lens (22); a wider one close up makes a steep angle look steeper. */
+  lens?: number;
 }
 
-export type Ease = 'smooth' | 'snappy' | 'glide' | 'linear';
+/** `whip` is a fast move that speeds up hard and lands soft, for a pull-back. */
+export type Ease = 'smooth' | 'snappy' | 'glide' | 'linear' | 'whip';
 
 /** The pose the camera reaches at `t`, eased from the key before it. */
 export interface CameraKey {
@@ -121,6 +158,8 @@ export interface MotionSample {
   q: [number, number, number, number];
   /** Pinch: 1 is the plan's own framing, more moves in. */
   zoom?: number;
+  /** Metres the phone moved toward the person since Center; used only with the film's forward and back on. */
+  depth?: number;
 }
 
 /** A take: the phone's movements recorded while the film played. */
@@ -147,11 +186,32 @@ export interface FilmPhone {
   deviceType: DeviceType;
   /** A finish id of the model, or unset for its default. */
   finish?: string;
+  /** Picked by the user; otherwise the phone follows the first recording's shape. */
+  picked?: boolean;
 }
 
 export interface FilmSound {
   /** Keep the recording's own sound. */
   recording: boolean;
+}
+
+/**
+ * How the words look. Soft rises in word by word at the top. Headline is big
+ * and set to the left, line by line. Bold captions are capitals at the
+ * bottom, outlined, popping in word by word.
+ */
+export type WordsStyle = 'soft' | 'headline' | 'punchy';
+
+/** The last seconds of the film: the app's icon and name, and where to get it. */
+export interface EndCard {
+  on: boolean;
+  /** The app's name under the icon. Empty uses the title. */
+  name: string;
+  /** Apple's and Google's own badges, used as they come and never animated. */
+  appStore: boolean;
+  googlePlay: boolean;
+  /** A white card over the film; otherwise the film's own backdrop, with the phone moved down under the card. */
+  light: boolean;
 }
 
 export interface FilmText {
@@ -163,15 +223,27 @@ export interface FilmText {
   captions: boolean;
   /** Draw a ring where taps most likely happened. */
   taps: boolean;
+  /** How the words look. Unset is 'soft'. Words between *stars* take the highlight in every style. */
+  style?: WordsStyle;
+  /** The words' colour. Unset follows the style and the backdrop. */
+  ink?: string;
+  /** The highlight's colour. Unset follows the style and the backdrop. */
+  accent?: string;
+  /** The app's icon, a PNG data URL at most 512 pixels across: on the end card, and at the top with `logo`. */
+  icon?: string;
+  /** The icon at the top while the film plays, with rings going out from it. */
+  logo?: boolean;
+  card?: EndCard;
 }
 
-/** Where the recording comes from. */
+/** A recording: a row in the media table and what it is. */
 export interface FilmSource {
   /** Row id in the media table. */
   mediaId: string;
   name: string;
   width: number;
   height: number;
+  /** The whole recording's length, in seconds. */
   duration: number;
 }
 
@@ -181,6 +253,23 @@ export interface ActivityTrack {
   step: number;
   /** How much changed, 0 to 1, one value per step. */
   values: number[];
+  /** Recording seconds where the first value is. Unset is 0. */
+  start?: number;
+}
+
+/** One stretch of the film: a part of one recording. */
+export interface FilmClip extends FilmSource {
+  id: string;
+  /** The part of the recording the clip shows, in recording seconds. */
+  in: number;
+  out: number;
+  /** What happens in the recording, in recording seconds. */
+  moments: Moment[];
+  activity: ActivityTrack | null;
+  /** The part of the recording read for moments, and the rules it was read by; null before it's read. */
+  read: { start: number; end: number; version: number } | null;
+  /** Small pictures for the timeline, in recording seconds, kept so a film opens without reading the recording again. */
+  strip?: { t: number; url: string }[];
 }
 
 /** How the phone turns: from the plan, or from a take made by hand. */
@@ -188,14 +277,21 @@ export type MotionMode = 'auto' | 'hand';
 
 export interface Film {
   id: string;
+  /** 2 since films have clips; a stored film without it is upgraded when read (upgradeFilm). */
+  version: 2;
   name: string;
+  /** The user typed the name; until then the first recording names the film. */
+  named?: boolean;
   createdAt: number;
   updatedAt: number;
   /** The project open when the film was made, or null outside the editor. */
   projectId: string | null;
-  source: FilmSource;
-  /** The part of the recording the film uses, in the recording's seconds. */
-  trim: { start: number; end: number };
+  /** The template the film started from. */
+  template?: string;
+  /** The recordings, one after another. Empty while the moves come first. */
+  clips: FilmClip[];
+  /** Film seconds the film runs while it has no recording: a take made first is recorded against it. */
+  placeholderLength: number;
   format: FilmFormat;
   fps: 30 | 60;
   style: DirectorStyle;
@@ -203,14 +299,10 @@ export interface Film {
   phone: FilmPhone;
   text: FilmText;
   sound: FilmSound;
-  moments: Moment[];
-  activity: ActivityTrack | null;
-  /** Bumped when the analysis rules change, so an old film is read again. */
-  analysisVersion: number;
   motion: MotionMode;
   take: MotionTake | null;
   /** How strongly a take turns the phone, 0.2 to 1.5. */
   takeStrength: number;
-  /** Small pictures from the recording for the timeline, kept so a film opens without reading the recording again. */
-  strip?: { t: number; url: string }[];
+  /** Forward and back: a phone moved closer moves the phone in the film in. Off unless turned on, as a hand's push isn't always clean. */
+  handDepth?: boolean;
 }

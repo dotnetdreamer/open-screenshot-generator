@@ -47,6 +47,8 @@ export interface StageFrame {
   /** Moves the phone across the picture, in picture widths and heights (right and up are positive). */
   shift: { x: number; y: number };
   taps: ActiveTap[];
+  /** 0 to 1: the backdrop's solid discs shrinking away, for an end card. */
+  backdropOut?: number;
 }
 
 export interface ScreenSource {
@@ -70,13 +72,29 @@ uniform vec3 glowA;
 uniform vec3 glowB;
 uniform vec4 placeA; // x, y, radius, strength
 uniform vec4 placeB;
+uniform vec2 discs; // 1 where a glow is a solid disc instead
+uniform float grow; // 0 to 1: the discs growing in at the start
 uniform float aspect;
 uniform vec2 drift;
+uniform float pixel; // one pixel, in picture heights
 varying vec2 vUv;
 
 float glow(vec2 p, vec4 place) {
   float d = length(p - place.xy) / place.z;
   return exp(-d * d * 1.6) * place.w;
+}
+
+// A disc with a clean, smooth edge, shaded lighter towards its top left.
+vec3 disc(vec3 col, vec2 p, vec4 place, vec3 tint) {
+  float r = place.z * grow;
+  if (r <= 0.0) return col;
+  float d = length(p - place.xy);
+  float a = 1.0 - smoothstep(r - pixel, r + pixel, d);
+  vec2 q = (p - place.xy) / r;
+  // Lighter and a touch warmer towards the top left, deeper towards the bottom right.
+  float lean = clamp((q.y - q.x) * 0.5, -1.0, 1.0);
+  vec3 shaded = mix(tint * 0.78, min(vec3(1.0), tint * 1.28 + vec3(0.06, 0.0, 0.03)), 0.5 + 0.5 * lean);
+  return mix(col, shaded, a * place.w);
 }
 
 // A tiny noise to keep the gradients from banding in an 8-bit video.
@@ -87,8 +105,10 @@ float hash(vec2 p) {
 void main() {
   vec2 p = vec2((vUv.x - 0.5) * aspect, vUv.y - 0.5);
   vec3 col = mix(bottom, top, smoothstep(-0.05, 1.05, vUv.y));
-  col += glowA * glow(p, vec4(placeA.xy + drift, placeA.zw));
-  col += glowB * glow(p, vec4(placeB.xy - drift * 0.7, placeB.zw));
+  vec4 a = vec4(placeA.xy + drift, placeA.zw);
+  vec4 b = vec4(placeB.xy - drift * 0.7, placeB.zw);
+  if (discs.x > 0.5) col = disc(col, p, a, glowA); else col += glowA * glow(p, a);
+  if (discs.y > 0.5) col = disc(col, p, b, glowB); else col += glowB * glow(p, b);
   // A soft fall-off towards the corners.
   float v = length(vec2((vUv.x - 0.5) * 1.1, vUv.y - 0.5));
   col *= 1.0 - 0.22 * smoothstep(0.35, 0.85, v);
@@ -296,8 +316,11 @@ export class DirectorStage {
         glowB: { value: new THREE.Color() },
         placeA: { value: new THREE.Vector4() },
         placeB: { value: new THREE.Vector4() },
+        discs: { value: new THREE.Vector2() },
+        grow: { value: 1 },
         aspect: { value: 1 },
         drift: { value: new THREE.Vector2() },
+        pixel: { value: 0.001 },
       },
       depthTest: false,
       depthWrite: false,
@@ -358,10 +381,18 @@ export class DirectorStage {
     (u.top.value as THREE.Color).copy(color(backdrop.top));
     (u.bottom.value as THREE.Color).copy(color(backdrop.bottom));
     const [a, b] = backdrop.glows;
-    (u.glowA.value as THREE.Color).copy(color(a.color));
-    (u.glowB.value as THREE.Color).copy(color(b.color));
+    // The backdrop's shader writes its colours out as they are, so a solid disc
+    // takes its colour's own numbers to show as that colour; a soft glow keeps
+    // the converted ones the existing backdrops were made with.
+    const raw = (value: string) => {
+      const rgb = parseColor(value) ?? [0.5, 0.5, 0.5];
+      return new THREE.Color().setRGB(rgb[0], rgb[1], rgb[2], THREE.LinearSRGBColorSpace);
+    };
+    (u.glowA.value as THREE.Color).copy(a.disc ? raw(a.color) : color(a.color));
+    (u.glowB.value as THREE.Color).copy(b.disc ? raw(b.color) : color(b.color));
     (u.placeA.value as THREE.Vector4).set(a.x, a.y, a.r, a.strength);
     (u.placeB.value as THREE.Vector4).set(b.x, b.y, b.r, b.strength);
+    (u.discs.value as THREE.Vector2).set(a.disc ? 1 : 0, b.disc ? 1 : 0);
     const env = buildEnvironment(backdrop);
     const next = this.pmrem.fromScene(env, 0.02).texture;
     disposeScene(env);
@@ -558,7 +589,9 @@ export class DirectorStage {
     const H = model.height;
     const viewH = (WIDE_VIEW * H) / Math.max(0.2, pose.zoom);
     const viewW = viewH * (this.width / this.height);
-    const distance = viewH / 2 / Math.tan(THREE.MathUtils.degToRad(FOV / 2));
+    // A wider lens comes closer for the same framing, so a turned phone runs away from it more steeply.
+    const lens = Math.min(60, Math.max(12, pose.lens ?? FOV));
+    const distance = viewH / 2 / Math.tan(THREE.MathUtils.degToRad(lens / 2));
     const onScreen = this.recordingToDisplay(pose.fx, pose.fy);
     const local = new THREE.Vector3(
       (onScreen.x - 0.5) * this.display.width,
@@ -573,7 +606,7 @@ export class DirectorStage {
     this.camera.lookAt(cx, cy, focus.z);
     this.camera.near = Math.max(1, distance - H * 1.5);
     this.camera.far = distance + H * 4;
-    this.camera.fov = FOV;
+    this.camera.fov = lens;
     this.camera.updateProjectionMatrix();
 
     // The shadow falls on a wall behind the phone, away from the light.
@@ -594,6 +627,11 @@ export class DirectorStage {
 
     const u = this.backdropMaterial.uniforms;
     (u.aspect as { value: number }).value = this.width / this.height;
+    (u.pixel as { value: number }).value = 1.2 / Math.max(1, this.canvas.height);
+    // Solid discs grow in over the first second, from nothing, and shrink away for an end card.
+    const grown = Math.min(1, Math.max(0, frame.t / 0.9));
+    const gone = Math.min(1, Math.max(0, frame.backdropOut ?? 0));
+    (u.grow as { value: number }).value = (1 - Math.pow(1 - grown, 3)) * (1 - gone * gone * (3 - 2 * gone));
     // The glows drift slowly, and a little against the camera, so the space behind feels deep.
     (u.drift.value as THREE.Vector2).set(
       0.03 * Math.sin(frame.t * 0.21) - (cx / viewH) * 0.04,

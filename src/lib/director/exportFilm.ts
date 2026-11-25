@@ -1,6 +1,8 @@
 // A film to an MP4 file, in the browser: each frame is drawn by a stage of
 // its own at the file's size, the words go on top, and WebCodecs encodes it.
 // The same H.264 and AAC set-up as the App Preview export (videoExport.ts).
+// Each recording the film uses gets a hidden video; at a cut, the screen
+// takes its picture from the next clip's.
 //
 // It draws one frame at a time and waits for the encoder when it falls
 // behind, so it never holds more than a few frames in memory, and the page
@@ -10,10 +12,12 @@ import { ArrayBufferTarget, Muxer } from 'mp4-muxer';
 import { getMediaUrl } from '@/lib/mediaStore';
 import { createAudioTrack, mixAudio, pickEncoderConfig } from '@/lib/video/videoExport';
 import type { VideoElementProps } from '@/types/artboard';
-import { filmDuration, recordingTime, stageFrameAt } from './frame';
+import { blurTimes, filmDuration, stageFrameAt } from './frame';
 import { finishFor, planFor } from './film';
+import { clipSpans, sourceTime, spanAt } from './timeline';
 import { backdropFor } from './looks';
 import { drawOverlay } from './overlay';
+import { loadOverlayAssets } from './overlayAssets';
 import { DirectorStage } from './stage';
 import { hiddenVideo, loadVideo } from './video';
 import type { Film, FilmFormat } from './types';
@@ -157,23 +161,37 @@ export async function exportFilm(film: Film, options: ExportOptions = {}): Promi
   const plan = planFor(film);
   const backdrop = backdropFor(film.look);
 
-  const url = await getMediaUrl(film.source.mediaId);
-  if (!url) throw new Error('The recording is no longer on this device. Add it again.');
-
-  const video = hiddenVideo() as FrameCallbackVideo;
+  if (!film.clips.length) throw new Error('Add a recording first. A video needs at least one.');
+  const spans = clipSpans(film);
+  const urls = new Map<string, string>();
+  for (const span of spans) {
+    if (urls.has(span.clip.mediaId)) continue;
+    const url = await getMediaUrl(span.clip.mediaId);
+    if (!url) throw new Error(`"${span.clip.name}" is no longer on this device. Add it again.`);
+    urls.set(span.clip.mediaId, url);
+  }
+  const videos = new Map<string, FrameCallbackVideo>();
 
   const glCanvas = document.createElement('canvas');
   let stage: DirectorStage | null = null;
   let encoder: VideoEncoder | null = null;
   try {
-    await loadVideo(video, url, signal);
+    for (const [mediaId, url] of urls) {
+      const video = hiddenVideo() as FrameCallbackVideo;
+      videos.set(mediaId, video);
+      await loadVideo(video, url, signal);
+      if (signal?.aborted) throw stopped();
+    }
+
+    // The icon and the badges, decoded before the first frame needs them.
+    const assets = await loadOverlayAssets(film.text);
     if (signal?.aborted) throw stopped();
 
     stage = new DirectorStage(glCanvas);
     stage.setSize(width, height, 1);
     stage.setLook(backdrop);
     stage.setPhone(film.phone.deviceType, finishFor(film.phone.deviceType, film.phone.finish, film.look));
-    stage.setScreen({ image: video, width: video.videoWidth, height: video.videoHeight });
+    let onScreen: FrameCallbackVideo | null = null;
 
     const composite = document.createElement('canvas');
     composite.width = width;
@@ -185,7 +203,12 @@ export async function exportFilm(film: Film, options: ExportOptions = {}): Promi
     const mix = film.sound.recording
       ? await mixAudio(
           [],
-          [{ el: { mediaId: film.source.mediaId, name: film.source.name, volume: 1 } as VideoElementProps, trimStart: film.trim.start, trimEnd: film.trim.end }],
+          spans.map((span) => ({
+            el: { mediaId: span.clip.mediaId, name: span.clip.name, volume: 1 } as VideoElementProps,
+            trimStart: span.clip.in,
+            trimEnd: span.clip.out,
+            at: span.start,
+          })),
           duration
         )
       : null;
@@ -213,11 +236,24 @@ export async function exportFilm(film: Film, options: ExportOptions = {}): Promi
       if (signal?.aborted) throw stopped();
       if (failure) throw failure;
       const t = i / fps;
-      await showFrame(video, recordingTime(film, t));
+      const span = spanAt(film, t)!;
+      const video = videos.get(span.clip.mediaId)!;
+      await showFrame(video, sourceTime(span, t));
+      if (video !== onScreen) {
+        onScreen = video;
+        stage.setScreen({ image: video, width: video.videoWidth, height: video.videoHeight });
+      }
       stage.screenChanged();
-      stage.render(stageFrameAt(film, plan, t));
-      ctx.drawImage(glCanvas, 0, 0, width, height);
-      drawOverlay(ctx, width, height, t, plan.cues, film.format, backdrop);
+      // A fast move blurs: the pictures across half a frame, averaged one
+      // into the next (the k-th at 1/k); a still frame is one picture.
+      const times = blurTimes(film, plan, t, fps);
+      times.forEach((at, k) => {
+        stage!.render(stageFrameAt(film, plan, at));
+        ctx.globalAlpha = 1 / (k + 1);
+        ctx.drawImage(glCanvas, 0, 0, width, height);
+      });
+      ctx.globalAlpha = 1;
+      drawOverlay(ctx, width, height, t, plan.cues, film.format, backdrop, film.text, duration, assets, stageFrameAt(film, plan, t).pose.zoom);
       const frame = new VideoFrame(composite, { timestamp: Math.round((i * 1_000_000) / fps), duration: Math.round(1_000_000 / fps) });
       encoder.encode(frame, { keyFrame: i % (fps * 2) === 0 });
       frame.close();
@@ -257,10 +293,12 @@ export async function exportFilm(film: Film, options: ExportOptions = {}): Promi
       stage.dispose();
       stage.loseContext();
     }
-    video.pause();
-    video.removeAttribute('src');
-    video.load();
-    video.remove();
+    for (const video of videos.values()) {
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
+      video.remove();
+    }
   }
 }
 

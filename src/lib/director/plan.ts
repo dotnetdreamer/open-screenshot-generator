@@ -11,8 +11,14 @@
 //    happen, and stays a little after it ends.
 //  - Two close-ups close together are joined by a pan, without going back out.
 //  - At the end the phone turns to face the viewer for the end card.
+//
+// Cinematic changes the shape: it opens close on the screen at a steep
+// angle, drifts, and pulls back fast to the whole phone; it holds the phone
+// big and low, cut off by the bottom edge, so words sit above it; its
+// close-ups are closer and steeper and push in slowly while they hold; and
+// at each new recording the phone is seen side on and spins in.
 
-import type { CameraKey, CaptionCue, DirectorStyle, Ease, FilmFormat, FilmPlan, FilmText, Moment, Pose, TapMark } from './types';
+import type { CameraKey, CaptionCue, DirectorStyle, Ease, FilmFormat, FilmPlan, FilmText, Moment, Point01, Pose, TapMark } from './types';
 
 export interface StyleRules {
   /** Seconds the camera arrives before a moment starts. */
@@ -92,7 +98,27 @@ export const STYLES: Record<DirectorStyle, StyleRules> = {
     introTurn: 58,
     introSeconds: 1.05,
   },
+  cinematic: {
+    lead: 0.3,
+    hold: 0.7,
+    move: 0.6,
+    closeZoom: [2.2, 3],
+    heroYaw: 18,
+    heroPitch: 9,
+    heroRoll: 2,
+    wideYaw: 18,
+    closeYaw: 27,
+    drift: 1.1,
+    ease: 'whip',
+    joinWithin: 0.9,
+    closeShare: 0.45,
+    introTurn: 34,
+    introSeconds: 2.1,
+  },
 };
+
+/** The stage's own lens, in degrees: a long one, as product films use, so the phone keeps its shape. */
+export const LONG_LENS = 22;
 
 /** The phone's proportions, in phone heights: the body's width and the screen's size. */
 export interface PhoneShape {
@@ -118,6 +144,8 @@ export interface PlanInput {
   /** Where the recording's last frame is, in film seconds. */
   recordingEnd: number;
   moments: Moment[];
+  /** Where one recording gives way to the next, in film seconds. A close-up never runs across one. */
+  cuts?: number[];
   style: DirectorStyle;
   format: FilmFormat;
   phone: PhoneShape;
@@ -126,8 +154,17 @@ export interface PlanInput {
 
 export const REST_POSE: Pose = { yaw: 0, pitch: 0, roll: 0, fx: 0.5, fy: 0.5, zoom: 1, lift: 0 };
 
+/** Seconds the end card shows, at the end of the film. */
+export const CARD_SECONDS = 2.4;
+
+/** True when the film ends on a card with the app's icon and name. */
+export function hasCard(text: FilmText): boolean {
+  return !!text.card?.on;
+}
+
 /** Seconds the film runs on after the recording's last frame, holding it, for the end move and card. */
 export function endHold(text: FilmText): number {
+  if (hasCard(text)) return CARD_SECONDS + 0.2;
   return text.end.trim() ? 1.8 : 0.7;
 }
 
@@ -139,8 +176,43 @@ function hero(rules: StyleRules, side: number): Pose {
   return { yaw: side * rules.heroYaw, pitch: rules.heroPitch, roll: -side * rules.heroRoll, fx: 0.5, fy: 0.5, zoom: 1, lift: 0 };
 }
 
-function wide(rules: StyleRules, side: number): Pose {
+function wide(rules: StyleRules, side: number, cinematic = false, words = false): Pose {
+  if (cinematic) {
+    // With words showing: the phone big and low, cut off by the bottom edge, the words above it.
+    if (words) return { yaw: side * rules.wideYaw, pitch: 11, roll: -side * 2.5, fx: 0.5, fy: 0.5, zoom: 1.3, lift: -0.3, lens: 26 };
+    return { yaw: side * (rules.wideYaw + 2), pitch: 9, roll: -side * 2, fx: 0.5, fy: 0.5, zoom: 0.95, lift: 0, lens: 24 };
+  }
   return { yaw: side * rules.wideYaw, pitch: 3, roll: -side * 0.6, fx: 0.5, fy: 0.5, zoom: 1.04, lift: 0 };
+}
+
+/** Cinematic: the whole phone small in the middle, with space all round, where a pull-back lands. */
+function small(side: number): Pose {
+  return { yaw: side * 16, pitch: 8, roll: -side * 2, fx: 0.5, fy: 0.5, zoom: 0.72, lift: 0.02, lens: LONG_LENS };
+}
+
+/** Cinematic: seen side on, where the phone spins in from at a new recording. */
+function sideOn(side: number): Pose {
+  return { yaw: side * 82, pitch: 6, roll: 0, fx: 0.5, fy: 0.5, zoom: 1.12, lift: -0.2, lens: 26 };
+}
+
+/**
+ * Cinematic: close on a place on the screen at a steep angle, with a wider
+ * lens so the angle reads, never so far over that the picture runs off the phone.
+ */
+function macro(at: Point01, side: number, zoom: number, phone: PhoneShape, aspect: number): Pose {
+  const viewH = WIDE_VIEW / zoom;
+  const halfY = viewH / 2 / phone.screenH;
+  const halfX = (viewH * aspect) / 2 / phone.screenW;
+  const fx = halfX >= 0.5 ? 0.5 : clamp(at.x, halfX * 0.9, 1 - halfX * 0.9);
+  const fy = halfY >= 0.5 ? 0.5 : clamp(at.y, halfY * 0.9, 1 - halfY * 0.9);
+  return { yaw: side * 34, pitch: 22, roll: -side * 11, fx, fy, zoom, lift: 0, lens: 40 };
+}
+
+/** Where the film opens close in Cinematic: the first moment with a place, early on, or else the top of the screen, where most apps put what matters. */
+function openingPlace(input: PlanInput, within: number): Point01 {
+  const first = input.moments.find((m) => m.focus && m.start < within && (m.kind === 'tap' || m.kind === 'type' || m.kind === 'change'));
+  if (first?.focus) return { x: first.focus.x + first.focus.w / 2, y: first.focus.y + first.focus.h / 2 };
+  return { x: 0.5, y: 0.32 };
 }
 
 /** Close-ups showing more than this share of the screen's width widen to all of it, and a little more for the turn. */
@@ -180,19 +252,24 @@ interface Close {
   leave: number;
 }
 
-/** Two close-ups this near are joined by a pan rather than going back out between them. */
-function joins(rules: StyleRules, a: Close, b: Close): boolean {
-  return b.arrive - a.leave <= rules.joinWithin;
+/** True when a cut falls between film seconds `from` and `to`. */
+function cutBetween(cuts: number[] | undefined, from: number, to: number): boolean {
+  return !!cuts && cuts.some((cut) => cut > from && cut < to);
+}
+
+/** Two close-ups this near are joined by a pan rather than going back out between them, unless the recording changes between them. */
+function joins(rules: StyleRules, a: Close, b: Close, cuts?: number[]): boolean {
+  return b.arrive - a.leave <= rules.joinWithin && !cutBetween(cuts, a.moment.start, b.moment.end);
 }
 
 /** Seconds of close-ups: each close-up's own time, and the pans between joined ones. */
-function closeTime(rules: StyleRules, closes: Close[]): number {
+function closeTime(rules: StyleRules, closes: Close[], cuts?: number[]): number {
   const sorted = [...closes].sort((a, b) => a.arrive - b.arrive);
   let total = 0;
   sorted.forEach((c, i) => {
     total += c.leave - c.arrive;
     const next = sorted[i + 1];
-    if (next && joins(rules, c, next)) total += Math.max(0, next.arrive - c.leave);
+    if (next && joins(rules, c, next, cuts)) total += Math.max(0, next.arrive - c.leave);
   });
   return total;
 }
@@ -202,7 +279,7 @@ function closeTime(rules: StyleRules, closes: Close[]): number {
  * fit. Two close-ups may follow each other closely (a pan joins them), but
  * never so closely that the second starts before the first one's action ends.
  */
-function pickCloseUps(input: PlanInput, rules: StyleRules, introEnd: number): Close[] {
+function pickCloseUps(input: PlanInput, rules: StyleRules, introEnd: number, words: CaptionCue[] = []): Close[] {
   const limit = input.duration * rules.closeShare;
   const window = (m: Moment): Close => ({ moment: m, arrive: m.start - rules.lead, leave: m.end + rules.hold });
   const forced = input.moments.filter((m) => m.shot === 'close');
@@ -219,29 +296,45 @@ function pickCloseUps(input: PlanInput, rules: StyleRules, introEnd: number): Cl
     .filter((m) => m.shot === 'auto' && (m.kind === 'tap' || m.kind === 'type' || m.kind === 'change') && m.focus && m.focus.w * m.focus.h <= 0.35)
     .filter((m) => input.style === 'bold' || !opensScreen(m))
     .sort((a, b) => b.weight - a.weight || a.start - b.start);
+  const cuts = input.cuts;
   const chosen: Close[] = forced.map((m) => {
     const c = window(m);
-    // A close-up the user asked for always happens, even if it means a shorter move.
-    return { ...c, arrive: Math.max(c.arrive, 0.2), leave: Math.min(c.leave, input.recordingEnd + 0.4) };
+    // A close-up the user asked for always happens, even if it means a shorter
+    // move; it arrives after the cut before it and leaves before the next.
+    const before = cuts?.filter((cut) => cut <= m.start + 1e-6).pop();
+    const after = cuts?.find((cut) => cut > m.start + 1e-6);
+    return {
+      ...c,
+      arrive: Math.max(c.arrive, 0.2, before !== undefined ? before + 0.05 : 0),
+      leave: Math.min(c.leave, input.recordingEnd + 0.4, after !== undefined ? after - 0.05 : Infinity),
+    };
   });
   const clear = (a: Close, b: Close) => {
     const [first, second] = a.arrive <= b.arrive ? [a, b] : [b, a];
     // Joined by a pan: the first action has to be over before the camera leaves for the second.
-    if (joins(rules, first, second)) return second.moment.start - first.moment.end >= rules.move * 0.6 + 0.1;
+    if (joins(rules, first, second, cuts)) return second.moment.start - first.moment.end >= rules.move * 0.6 + 0.1;
     // Apart: time to go back out and come in again.
     return second.arrive - first.leave >= rules.move * 0.5;
   };
   for (const m of optional) {
     const c = window(m);
     if (c.arrive - rules.move < introEnd - 0.05 || c.leave > input.recordingEnd + 0.4) continue;
+    // Words on screen keep the camera wide (Cinematic passes them): they'd sit over the screen.
+    // A moment's own caption counts, so a captioned moment stays wide unless the user asked for a close-up.
+    if (words.some((cue) => cue.role !== 'end' && cue.start < c.leave + 0.1 && cue.end > c.arrive - rules.move)) continue;
+    // The recording changes while the camera would be close, or on its way in: stay wide.
+    if (cutBetween(cuts, c.arrive - rules.move * 0.5, c.leave + 0.1)) continue;
     if (!chosen.every((o) => clear(o, c))) continue;
-    if (closeTime(rules, [...chosen, c]) > limit) continue;
+    if (closeTime(rules, [...chosen, c], cuts) > limit) continue;
     chosen.push(c);
   }
   return chosen.sort((a, b) => a.arrive - b.arrive);
 }
 
-export function planFilm(input: PlanInput): FilmPlan {
+export function planFilm(given: PlanInput): FilmPlan {
+  // A moment the user left out is as if Director never found it: no close-up,
+  // caption or tap ring, no camera move for it, and no say in the moves around it.
+  const input: PlanInput = { ...given, moments: given.moments.filter((m) => m.shot !== 'skip') };
   const rules = STYLES[input.style];
   const aspect = FORMAT_ASPECT[input.format];
   const keys: CameraKey[] = [];
@@ -257,13 +350,34 @@ export function planFilm(input: PlanInput): FilmPlan {
   };
   const hold = (until: number, why?: string) => add(until, pose, 'linear', why);
 
-  // ---- the opening: the phone rises and turns in
-  const introEnd = Math.min(rules.introSeconds, Math.max(0.6, input.recordingEnd * 0.3));
-  pose = { yaw: -side * rules.introTurn, pitch: rules.heroPitch + 14, roll: side * 7, fx: 0.5, fy: 0.5, zoom: 0.8, lift: -0.42 };
-  keys.push({ t: 0, pose, ease: 'linear', why: 'intro' });
-  add(introEnd, hero(rules, side), input.style === 'calm' ? 'smooth' : 'snappy', 'hero');
+  const cinematic = input.style === 'cinematic';
+  const card = hasCard(input.text);
 
-  const closes = pickCloseUps(input, rules, introEnd);
+  // ---- the opening: the phone rises and turns in
+  const introEnd = Math.min(rules.introSeconds, Math.max(cinematic ? 1 : 0.6, input.recordingEnd * (cinematic ? 0.35 : 0.3)));
+  if (cinematic) {
+    // Close on the screen at a steep angle, drifting in, then a fast pull-back to the whole phone.
+    pose = macro(openingPlace(input, introEnd + 2), -side, 3, input.phone, aspect);
+    keys.push({ t: 0, pose, ease: 'linear', why: 'intro' });
+    add(introEnd * 0.68, { ...pose, zoom: 2.7, yaw: pose.yaw * 0.82, pitch: pose.pitch - 3 }, 'linear', 'drift');
+    add(introEnd, small(side), 'whip', 'pull back');
+  } else {
+    pose = { yaw: -side * rules.introTurn, pitch: rules.heroPitch + 14, roll: side * 7, fx: 0.5, fy: 0.5, zoom: 0.8, lift: -0.42 };
+    keys.push({ t: 0, pose, ease: 'linear', why: 'intro' });
+    add(introEnd, hero(rules, side), input.style === 'calm' ? 'smooth' : 'snappy', 'hero');
+  }
+
+  // The words, worked out first: Cinematic frames its wide shots by whether words show.
+  const cues = captionCues(input, rules, introEnd);
+  const wordsBetween = (from: number, to: number) => cues.some((cue) => cue.role !== 'end' && cue.start < to && cue.end > from);
+
+  /** Holds the shot until `until`; Cinematic keeps pushing in slowly while it holds a close-up. */
+  const stay = (until: number, why: string, close: boolean) => {
+    if (!cinematic || !close || until - now < 0.3) return hold(until, why);
+    add(until, { ...pose, zoom: pose.zoom * (1 + 0.035 * Math.min(2, until - now)), yaw: pose.yaw * 0.9 }, 'linear', why);
+  };
+
+  const closes = pickCloseUps(input, rules, introEnd, cinematic ? cues : []);
 
   /**
    * The wide shot until `until`, moving with what happens on the screen: a
@@ -276,8 +390,33 @@ export function planFilm(input: PlanInput): FilmPlan {
   let lastMove = -Infinity;
   const holdWide = (until: number) => {
     if (until <= now) return;
-    const ahead = input.moments.filter((m) => m.start >= now - 0.05 && m.start < until - 0.3).sort((a, b) => a.start - b.start);
-    for (const m of ahead) {
+    // What happens before `until`: the moments, and in Cinematic the captions, which the phone goes big and low under.
+    const ahead: { start: number; m?: Moment; words?: CaptionCue }[] = [
+      ...input.moments.filter((m) => m.start >= now - 0.05 && m.start < until - 0.3).map((m) => ({ start: m.start, m })),
+      ...(cinematic ? cues.filter((c) => c.role === 'caption' && c.start - 0.25 >= now - 0.05 && c.start < until - 0.3).map((c) => ({ start: c.start - 0.25, words: c })) : []),
+    ].sort((a, b) => a.start - b.start);
+    for (const item of ahead) {
+      if (item.words) {
+        const start = Math.max(now, item.start);
+        const end = Math.min(until, start + 0.7);
+        if (end - start < 0.4 || pose.lift <= -0.2) continue;
+        hold(start);
+        add(end, wide(rules, side, true, true), 'snappy', 'under words');
+        lastMove = end;
+        continue;
+      }
+      const m = item.m!;
+      // Cinematic: a new recording cuts to the phone side on, and it spins in.
+      if (cinematic && m.kind === 'screen' && m.id.startsWith('cut')) {
+        const start = Math.max(now, m.start);
+        if (until - start < 0.9) continue;
+        hold(start);
+        add(start + CUT_JUMP, sideOn(side), 'linear', `cut ${m.id}`);
+        side = -side;
+        add(start + 0.8, wide(rules, side, true, wordsBetween(start + 0.8, start + 3)), 'snappy', 'spin in');
+        lastMove = start + 0.8;
+        continue;
+      }
       if ((m.kind === 'screen' || m.kind === 'scroll') && m.start - lastMove < rules.move * 1.5) continue;
       if (m.kind === 'screen') {
         const start = Math.max(now, m.start);
@@ -285,7 +424,7 @@ export function planFilm(input: PlanInput): FilmPlan {
         if (end - start < 0.35) continue;
         hold(start);
         side = -side;
-        add(end, wide(rules, side), rules.ease, `with ${m.id}`);
+        add(end, wide(rules, side, cinematic, wordsBetween(end, end + 2)), rules.ease, `with ${m.id}`);
         lastMove = end;
       } else if (m.kind === 'scroll') {
         const start = Math.max(now, m.start);
@@ -310,60 +449,88 @@ export function planFilm(input: PlanInput): FilmPlan {
   for (let i = 0; i < closes.length; i++) {
     const close = closes[i];
     const previous = closes[i - 1];
-    const joined = !!previous && joins(rules, previous, close);
+    const joined = !!previous && joins(rules, previous, close, input.cuts);
     if (joined) side = -side;
-    const target = closePose(close.moment, rules, side, input.phone, aspect);
+    const flat = closePose(close.moment, rules, side, input.phone, aspect);
+    // Cinematic: tipped back and turned further, with a wider lens, so the screen runs away from the camera.
+    const target = cinematic ? { ...flat, pitch: 15, roll: -side * 6, lens: 32 } : flat;
     const move = joined ? panTime(previous, close) : rules.move;
     const start = Math.max(now, close.arrive - move);
     if (!joined) holdWide(start);
     else hold(start);
     add(Math.max(close.arrive, start + move * 0.6), target, rules.ease, `${joined ? 'pan to' : 'close on'} ${close.moment.id}`);
     const next = closes[i + 1];
-    if (next && joins(rules, close, next)) {
+    if (next && joins(rules, close, next, input.cuts)) {
       // Stay until the pan to the next one has to start.
-      hold(Math.min(close.leave, next.arrive - panTime(close, next)), `hold ${close.moment.id}`);
+      stay(Math.min(close.leave, next.arrive - panTime(close, next)), `hold ${close.moment.id}`, true);
     } else {
-      hold(close.leave, `hold ${close.moment.id}`);
+      stay(close.leave, `hold ${close.moment.id}`, true);
       side = -side;
-      add(close.leave + rules.move, wide(rules, side), rules.ease, 'back out');
+      add(close.leave + rules.move, wide(rules, side, cinematic, wordsBetween(close.leave + rules.move, close.leave + rules.move + 2)), rules.ease, 'back out');
     }
   }
 
   // ---- the end: the phone turns to face the viewer
-  const endStart = Math.max(now, input.recordingEnd - 0.3, input.duration - (input.text.end.trim() ? 1.9 : 1.2));
+  const endWords = !!input.text.end.trim();
+  const endStart = Math.max(now, input.recordingEnd - 0.3, input.duration - (card ? CARD_SECONDS + 0.2 : endWords ? 1.9 : 1.2));
   holdWide(endStart);
-  const endPose: Pose = { yaw: side * 6, pitch: 4, roll: 0, fx: 0.5, fy: 0.5, zoom: input.text.end.trim() ? 0.86 : 0.98, lift: input.text.end.trim() ? -0.08 : 0 };
-  add(Math.min(input.duration, endStart + Math.max(0.7, rules.move * 1.1)), endPose, rules.ease, 'end');
+  let endPose: Pose = { yaw: side * 6, pitch: 4, roll: 0, fx: 0.5, fy: 0.5, zoom: endWords ? 0.86 : 0.98, lift: endWords ? -0.08 : 0 };
+  // A card on the film's own backdrop sits in the top half: the phone goes down, smaller, under it.
+  if (card && !input.text.card?.light) endPose = { ...endPose, zoom: 0.62, lift: -0.55, pitch: 6 };
+  else if (cinematic) endPose = { ...small(side), yaw: side * 8, roll: 0 };
+  add(Math.min(input.duration, endStart + Math.max(0.7, rules.move * 1.1)), endPose, cinematic ? 'whip' : rules.ease, 'end');
   hold(input.duration);
 
-  return { duration: input.duration, keys, taps: tapMarks(input), cues: captionCues(input, rules, introEnd) };
+  return { duration: input.duration, keys, taps: tapMarks(input), cues };
 }
 
 function tapMarks(input: PlanInput): TapMark[] {
   if (!input.text.taps) return [];
   return input.moments
-    .filter((m) => m.kind === 'tap' && m.point && m.shot !== 'skip')
+    .filter((m) => m.kind === 'tap' && m.point)
     .map((m) => ({ t: Math.max(0, m.start - 0.06), point: m.point! }));
 }
 
 function captionCues(input: PlanInput, rules: StyleRules, introEnd: number): CaptionCue[] {
   const cues: CaptionCue[] = [];
   const title = input.text.title.trim();
-  if (title) cues.push({ start: 0.15, end: Math.max(introEnd + 0.9, 2.2), text: title, role: 'title' });
+  if (title) {
+    // Cinematic opens on the screen alone; the title comes with the pull-back.
+    const at = input.style === 'cinematic' ? Math.max(0.15, introEnd - 0.15) : 0.15;
+    cues.push({ start: at, end: input.style === 'cinematic' ? at + 2.3 : Math.max(introEnd + 0.9, 2.2), text: title, role: 'title' });
+  }
   if (input.text.captions) {
-    for (const m of input.moments) {
+    const cinematic = input.style === 'cinematic';
+    // Cinematic: the opening is the screen alone, then the title has the screen
+    // to itself; a caption that would come sooner waits its turn, one after another.
+    let clearFrom = cinematic ? Math.max(introEnd, cues[0]?.role === 'title' ? cues[0].end : 0) : 0;
+    for (const m of [...input.moments].sort((a, b) => a.start - b.start)) {
       const text = m.caption?.trim();
-      if (!text || m.shot === 'skip') continue;
-      cues.push({ start: Math.max(0, m.start - rules.lead), end: Math.min(input.duration, m.end + rules.hold + 0.3), text, role: 'caption' });
+      if (!text) continue;
+      let start = Math.max(0, m.start - rules.lead);
+      let end = Math.min(input.duration, m.end + rules.hold + 0.3);
+      if (cinematic) {
+        start = Math.max(start, clearFrom);
+        // A headline needs time to be read.
+        end = Math.min(input.duration, Math.max(end, start + 2.2));
+        if (end - start < 0.8) continue;
+        clearFrom = Math.max(clearFrom, end);
+      }
+      cues.push({ start, end, text, role: 'caption' });
     }
   }
   const end = input.text.end.trim();
-  if (end) cues.push({ start: Math.max(0, input.duration - 1.7), end: input.duration, text: end, role: 'end' });
+  const card = hasCard(input.text);
+  // With a card, the end words are its line under the app's name, for as long as it shows.
+  const endFrom = card ? Math.max(0, input.duration - CARD_SECONDS) : Math.max(0, input.duration - 1.7);
+  if (end) cues.push({ start: endFrom, end: input.duration, text: end, role: 'end' });
   // Captions never overlap: a later one cuts the one before it short.
   cues.sort((a, b) => a.start - b.start);
   for (let i = 1; i < cues.length; i++) {
     if (cues[i].start < cues[i - 1].end) cues[i - 1].end = Math.max(cues[i - 1].start + 0.4, cues[i].start);
   }
+  // Nothing runs into the card, even with no end words.
+  if (card) return cues.filter((cue) => cue.role === 'end' || cue.start < endFrom - 0.3).map((cue) => (cue.role === 'end' ? cue : { ...cue, end: Math.min(cue.end, endFrom) }));
   return cues;
 }
 
@@ -414,7 +581,22 @@ const CURVES: Record<Ease, (u: number) => number> = {
   smooth: cubicBezier(0.65, 0, 0.35, 1),
   // A quick start and a long, soft landing.
   snappy: cubicBezier(0.2, 0, 0, 1),
+  // Gathers speed, rushes through the middle and lands soft: a pull-back.
+  whip: cubicBezier(0.72, 0, 0.18, 1),
 };
+
+/** Keys this close together are a cut: the picture jumps, and nothing blurs across it. */
+export const CUT_JUMP = 0.001;
+
+/** True when the plan jumps (a cut) between film seconds `from` and `to`. */
+export function jumpsBetween(plan: FilmPlan, from: number, to: number): boolean {
+  for (let i = 1; i < plan.keys.length; i++) {
+    const a = plan.keys[i - 1];
+    const b = plan.keys[i];
+    if (b.t - a.t <= CUT_JUMP * 2 && b.t > from && a.t < to) return true;
+  }
+  return false;
+}
 
 export function ease(kind: Ease, u: number): number {
   return (CURVES[kind] ?? CURVES.smooth)(u);
@@ -433,6 +615,7 @@ export function mixPose(a: Pose, b: Pose, u: number): Pose {
     fy: mix(a.fy, b.fy, u),
     zoom: Math.exp(mix(Math.log(a.zoom), Math.log(b.zoom), u)),
     lift: mix(a.lift, b.lift, u),
+    lens: mix(a.lens ?? LONG_LENS, b.lens ?? LONG_LENS, u),
   };
 }
 

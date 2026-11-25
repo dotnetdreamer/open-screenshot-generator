@@ -4,11 +4,14 @@
 import { studioModelFor } from '@/lib/device3dStudio';
 import { displayInsetsOf } from '@/lib/device3dModels';
 import type { DeviceType } from '@/types/artboard';
-import { ANALYSIS_VERSION } from './analyze';
 import { backdropFor, DEFAULT_BACKDROP, luminance, parseColor } from './looks';
 import { planFilm, type PhoneShape } from './plan';
 import { filmDuration } from './frame';
-import type { ActivityTrack, Film, FilmLook, FilmPlan, FilmSource, Moment, MomentKind, Rect01 } from './types';
+import type { FilmTemplate } from './templates';
+import { bodyLength, cutTimes, filmMoments } from './timeline';
+import type { Film, FilmLook, FilmPlan, Moment, MomentKind, MotionTake } from './types';
+
+export { MAX_FILM_SECONDS } from './timeline';
 
 /** The phones a film can use, newest first, iPhones then Android. */
 export const FILM_PHONES: { deviceType: DeviceType; label: string; platform: 'ios' | 'android' }[] = [
@@ -86,111 +89,90 @@ export interface NewFilmOptions {
   title?: string;
   /** The project's colours, for the brand backdrop. */
   colors?: [string, string, string] | null;
+  /** The starting point the user picked. */
+  template?: FilmTemplate | null;
 }
 
-/** The longest recording a film takes, in seconds. A longer one is trimmed to it. */
-export const MAX_FILM_SECONDS = 90;
+/** Seconds a film without a recording runs at first, for moves recorded before the recording. */
+export const PLACEHOLDER_SECONDS = 15;
 
-export function newFilm(source: FilmSource, options: NewFilmOptions): Film {
+/** A new film with no recording yet: a template's look, or the defaults. */
+export function newFilm(options: NewFilmOptions): Film {
   const now = Date.now();
-  const end = Math.min(source.duration, MAX_FILM_SECONDS);
+  const template = options.template ?? null;
+  const brand = template ? template.backdrop === 'brand' && !!options.colors : !!options.colors;
+  const title = options.title?.trim() ?? '';
   return {
     id: newId('film'),
-    name: source.name.replace(/\.[a-z0-9]{2,4}$/i, '') || 'Film',
+    version: 2,
+    name: title ? `${title} video` : template ? `${template.name} video` : 'New video',
     createdAt: now,
     updatedAt: now,
     projectId: options.projectId,
-    source,
-    trim: { start: 0, end },
-    format: 'vertical',
+    template: template?.id,
+    clips: [],
+    placeholderLength: PLACEHOLDER_SECONDS,
+    format: template?.format ?? 'vertical',
     fps: 30,
-    style: 'lively',
-    look: options.colors ? { backdrop: 'brand', colors: options.colors } : { backdrop: DEFAULT_BACKDROP },
-    phone: { deviceType: phoneForRecording(source.width, source.height) },
-    text: { title: options.title?.trim() ?? '', end: '', captions: true, taps: true },
+    style: template?.style ?? 'lively',
+    look:
+      brand && options.colors
+        ? { backdrop: 'brand', colors: options.colors }
+        : { backdrop: template && template.backdrop !== 'brand' ? template.backdrop : DEFAULT_BACKDROP },
+    phone: { deviceType: 'iphone-17-pro' },
+    text: {
+      title: template && !template.title ? '' : title,
+      end: template?.end ?? '',
+      captions: template?.captions ?? true,
+      taps: template?.taps ?? true,
+      ...(template?.words ? { style: template.words } : {}),
+      ...(template?.logo ? { logo: true } : {}),
+      ...(template?.card ? { card: { on: true, name: '', appStore: true, googlePlay: true, light: template.card.light } } : {}),
+    },
     sound: { recording: true },
-    moments: [],
-    activity: null,
-    analysisVersion: 0,
     motion: 'auto',
     take: null,
     takeStrength: 0.85,
   };
 }
 
-/** The recording's length after the trim. */
-export function trimLength(film: Pick<Film, 'trim'>): number {
-  return Math.max(0.5, film.trim.end - film.trim.start);
+/**
+ * A take kept on the film, and used. Made before there's a recording and
+ * stopped early, it sets how long the film runs; one that ran to the end (the
+ * end words included) leaves the length as it was.
+ */
+export function withTake(film: Film, take: MotionTake): Film {
+  const end = take.samples[take.samples.length - 1]?.t ?? 0;
+  const early = !film.clips.length && end >= 3 && end < film.placeholderLength - 0.25;
+  return { ...film, take, motion: 'hand', placeholderLength: early ? Math.round(end * 2) / 2 : film.placeholderLength };
+}
+
+/** The phone that suits the film's first recording, unless the user picked one. */
+export function fitPhone(film: Film): Film {
+  const first = film.clips[0];
+  if (!first || film.phone.picked) return film;
+  const deviceType = phoneForRecording(first.width, first.height);
+  return deviceType === film.phone.deviceType ? film : { ...film, phone: { ...film.phone, deviceType, finish: undefined } };
+}
+
+/** Where the recording changes, as a new screen for the planner: the camera swings, and nothing closes up across it. */
+function cutMoment(t: number, index: number): Moment {
+  return { id: `cut${index + 1}`, kind: 'screen', start: t, end: t + 0.4, focus: null, weight: 0.8, shot: 'auto' };
 }
 
 /** The director's plan for a film as it is now. */
 export function planFor(film: Film): FilmPlan {
+  const cuts = cutTimes(film);
   return planFilm({
     duration: filmDuration(film),
-    recordingEnd: trimLength(film),
-    moments: film.moments,
+    recordingEnd: bodyLength(film),
+    moments: [...filmMoments(film), ...cuts.map(cutMoment)].sort((a, b) => a.start - b.start),
+    cuts,
     style: film.style,
     format: film.format,
     phone: phoneShape(film.phone.deviceType),
     text: film.text,
   });
-}
-
-/**
- * A new analysis's moments, keeping the ones the user changed: an edited
- * moment stays as it is, and found moments that overlap it are left out.
- */
-export function mergeMoments(found: Moment[], previous: Moment[]): Moment[] {
-  const kept = previous.filter((m) => m.edited);
-  const fresh = found.filter((m) => !kept.some((k) => m.start < k.end && m.end > k.start));
-  const all = [...kept, ...fresh].sort((a, b) => a.start - b.start);
-  // Fresh ids may repeat an edited one's: give every moment its own.
-  const seen = new Set<string>();
-  return all.map((m, index) => {
-    if (!seen.has(m.id)) {
-      seen.add(m.id);
-      return m;
-    }
-    let n = index + 1;
-    while (seen.has(`m${n}`)) n += 1;
-    seen.add(`m${n}`);
-    return { ...m, id: `m${n}` };
-  });
-}
-
-export function withAnalysis(film: Film, found: Moment[], activity: ActivityTrack): Film {
-  return { ...film, moments: mergeMoments(found, film.moments), activity, analysisVersion: ANALYSIS_VERSION, updatedAt: Date.now() };
-}
-
-/** A change to one moment, marking it as the user's. */
-export function editMoment(film: Film, id: string, patch: Partial<Omit<Moment, 'id'>>): Film {
-  const length = trimLength(film);
-  const moments = film.moments
-    .map((m) => {
-      if (m.id !== id) return m;
-      const next = { ...m, ...patch, edited: true };
-      const span = Math.max(0.2, next.end - next.start);
-      next.start = Math.min(Math.max(0, next.start), Math.max(0, length - 0.2));
-      next.end = Math.min(length, next.start + span);
-      return next;
-    })
-    .sort((a, b) => a.start - b.start);
-  return { ...film, moments, updatedAt: Date.now() };
-}
-
-/** A moment the user adds at `t`: a close-up on the middle of the screen, which they then move. */
-export function addMoment(film: Film, t: number, kind: MomentKind = 'tap', focus: Rect01 = { x: 0.2, y: 0.35, w: 0.6, h: 0.22 }): { film: Film; id: string } {
-  const length = trimLength(film);
-  let n = film.moments.length + 1;
-  while (film.moments.some((m) => m.id === `m${n}`)) n += 1;
-  const id = `m${n}`;
-  const start = Math.min(Math.max(0, t), Math.max(0, length - 0.6));
-  const moment: Moment = { id, kind, start, end: Math.min(length, start + 1.2), focus, weight: 1, shot: 'close', edited: true };
-  return { film: { ...film, moments: [...film.moments, moment].sort((a, b) => a.start - b.start), updatedAt: Date.now() }, id };
-}
-
-export function removeMoment(film: Film, id: string): Film {
-  return { ...film, moments: film.moments.filter((m) => m.id !== id), updatedAt: Date.now() };
 }
 
 /** Plain words for a moment's kind, for the timeline. */

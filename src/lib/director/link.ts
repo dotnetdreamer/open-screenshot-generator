@@ -88,10 +88,22 @@ export function readRemoteFragment(hash: string): { room: string; ticket: string
   return { room, ticket: params.get('t') };
 }
 
-/** A reading from the phone: its turn since it was centred, and the pinch. */
+/** A reading from the phone: its turn since it was centred, the pinch, and how far it moved toward the person. */
 export interface MotionReading {
   q: Quat;
   zoom: number;
+  /** Metres toward the person since Center or since forward and back was turned on. Sent only while it's on. */
+  depth?: number;
+}
+
+/** What the computer tells the phone, a few times a second. */
+export interface DeskState {
+  recording: boolean;
+  playing: boolean;
+  t: number;
+  duration: number;
+  /** Forward and back is on. */
+  depth?: boolean;
 }
 
 export type LinkMessage =
@@ -99,9 +111,10 @@ export type LinkMessage =
   | { kind: 'welcome'; from: string; to: string }
   | { kind: 'offer' | 'answer'; from: string; to: string; sdp: string }
   | { kind: 'ice'; from: string; to: string; candidate: RTCIceCandidateInit }
-  | { kind: 'm'; from: string; q: Quat; z: number }
+  | { kind: 'm'; from: string; q: Quat; z: number; d?: number }
   | { kind: 'record'; from: string; on: boolean }
-  | { kind: 'state'; from: string; recording: boolean; playing: boolean; t: number; duration: number }
+  | { kind: 'depth'; from: string; on: boolean }
+  | ({ kind: 'state'; from: string } & DeskState)
   | { kind: 'bye'; from: string };
 
 export type LinkStatus =
@@ -120,7 +133,9 @@ export interface LinkEvents {
   onStatus?: (status: LinkStatus, detail?: string) => void;
   onMotion?: (reading: MotionReading) => void;
   onRecord?: (on: boolean) => void;
-  onState?: (state: { recording: boolean; playing: boolean; t: number; duration: number }) => void;
+  /** The phone asks to turn forward and back on or off. */
+  onDepth?: (on: boolean) => void;
+  onState?: (state: DeskState) => void;
   /** The other side left or a new phone took over. */
   onPeer?: (present: boolean, device?: string) => void;
 }
@@ -275,13 +290,16 @@ export class RoomLink {
     if (message.from === this.id) return;
     switch (message.kind) {
       case 'm':
-        this.events.onMotion?.({ q: message.q, zoom: message.z });
+        this.events.onMotion?.({ q: message.q, zoom: message.z, depth: message.d });
         return;
       case 'record':
         this.events.onRecord?.(message.on);
         return;
+      case 'depth':
+        this.events.onDepth?.(message.on);
+        return;
       case 'state':
-        this.events.onState?.({ recording: message.recording, playing: message.playing, t: message.t, duration: message.duration });
+        this.events.onState?.({ recording: message.recording, playing: message.playing, t: message.t, duration: message.duration, depth: message.depth });
         return;
       case 'bye':
         if (message.from === this.peer) {
@@ -391,15 +409,22 @@ export class RoomLink {
 
   sendMotion(reading: MotionReading): void {
     const q = reading.q.map((v) => Math.round(v * 1e4) / 1e4) as Quat;
-    this.send({ kind: 'm', from: this.id, q, z: Math.round(reading.zoom * 1000) / 1000 }, true);
+    const d = reading.depth === undefined ? {} : { d: Math.round(reading.depth * 1000) / 1000 };
+    this.send({ kind: 'm', from: this.id, q, z: Math.round(reading.zoom * 1000) / 1000, ...d }, true);
   }
 
   sendRecord(on: boolean): void {
     this.send({ kind: 'record', from: this.id, on });
   }
 
-  sendState(state: { recording: boolean; playing: boolean; t: number; duration: number }): void {
-    this.send({ kind: 'state', from: this.id, ...state }, true);
+  /** From the phone: turn forward and back on or off. */
+  sendDepth(on: boolean): void {
+    this.send({ kind: 'depth', from: this.id, on });
+  }
+
+  /** `frequent` states may be dropped on the way, as a newer one follows; a change the phone must hear is sent with it false. */
+  sendState(state: DeskState, frequent = true): void {
+    this.send({ kind: 'state', from: this.id, ...state }, frequent);
   }
 
   close(): void {

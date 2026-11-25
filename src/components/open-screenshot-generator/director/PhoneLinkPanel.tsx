@@ -53,6 +53,19 @@ function useThisPhoneCanMove(): boolean {
   return can;
 }
 
+/** What the view can ask of the panel from outside it. */
+export interface PhoneLinkActions {
+  /** Shows the code for a phone to scan, as Use your phone does; after a failed try, tries again. */
+  connect: () => void;
+}
+
+/**
+ * Where the phone link stands, for the view's words outside the panel: not
+ * started, waiting for a sign-in, getting the code, the code up, tried and
+ * not connected, or a phone moving the film.
+ */
+export type PhoneLinkState = 'off' | 'signin' | 'starting' | 'code' | 'failed' | 'connected';
+
 const STATUS_WORDS: Record<LinkStatus, string> = {
   starting: 'Getting ready',
   waiting: 'Scan the code with your phone',
@@ -66,8 +79,11 @@ export function PhoneLinkPanel({
   film,
   player,
   live,
+  actionsRef,
+  autoConnect,
   getToken,
   onSignIn,
+  onLinkStateChange,
   onTake,
   onLiveChange,
   update,
@@ -75,9 +91,14 @@ export function PhoneLinkPanel({
   film: Film;
   player: FilmPlayer;
   live: LiveTurn;
+  actionsRef?: React.MutableRefObject<PhoneLinkActions | null>;
+  /** Show the code as soon as the panel is up. */
+  autoConnect?: boolean;
   /** The account's sign-in, for the connection server. */
   getToken: () => string | null;
   onSignIn?: () => void;
+  /** Hears where the link stands each time that changes, and 'off' when the panel goes. */
+  onLinkStateChange?: (state: PhoneLinkState) => void;
   onTake: (take: MotionTake) => void;
   /** Tells the view a phone is moving the film live, so it draws on every reading. */
   onLiveChange: () => void;
@@ -101,19 +122,47 @@ export function PhoneLinkPanel({
   const thisPhone = useThisPhoneCanMove();
   const filmRef = useRef(film);
   filmRef.current = film;
+  const updateRef = useRef(update);
+  updateRef.current = update;
   followingRef.current = following;
 
   /** One reading from either source: shown live, and kept when a take is being recorded. */
-  const onReading = (q: Quat, zoom: number) => {
+  const onReading = (q: Quat, zoom: number, depth?: number) => {
     const steady = filterRef.current.push(q, performance.now() / 1000);
-    live.current = followingRef.current || recordingRef.current ? { q: steady, zoom } : null;
+    live.current = followingRef.current || recordingRef.current ? { q: steady, zoom, depth } : null;
     if (recordingRef.current) {
       // The reading is a little late by the time it arrives: a direct link takes a few hundredths of a second.
       const late = linkRef.current?.currentStatus === 'relayed' ? 0.09 : 0.03;
-      samplesRef.current.push({ t: Math.max(0, player.time - (mode === 'this' ? 0 : late)), q, zoom });
+      const sample: MotionSample = { t: Math.max(0, player.time - (mode === 'this' ? 0 : late)), q, zoom };
+      if (depth !== undefined) sample.depth = depth;
+      samplesRef.current.push(sample);
     }
     onLiveChange();
   };
+
+  /** Tells the phone where the film is, and whether forward and back is on. */
+  const sendState = (frequent = true) => {
+    const link = linkRef.current;
+    if (!link) return;
+    const f = filmRef.current;
+    link.sendState(
+      {
+        recording: recordingRef.current,
+        playing: player.isPlaying,
+        t: Math.round(player.time * 10) / 10,
+        duration: Math.round(filmDuration(f) * 10) / 10,
+        depth: !!f.handDepth,
+      },
+      frequent
+    );
+  };
+
+  // Once a second as well: the phone catches up on a state the link dropped,
+  // and its clock keeps up while the film is paused.
+  useEffect(() => {
+    const timer = window.setInterval(() => sendState(), 1000);
+    return () => window.clearInterval(timer);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const stopRecording = (keep: boolean) => {
     if (!recordingRef.current) return;
@@ -140,7 +189,8 @@ export function PhoneLinkPanel({
 
   const startingRef = useRef(false);
   const startRecording = async () => {
-    if (recordingRef.current || startingRef.current) return;
+    // Out of sight (the phone's Record with Director hidden): nothing starts, and the film stays where it was.
+    if (recordingRef.current || startingRef.current || player.hidden) return;
     startingRef.current = true;
     samplesRef.current = [];
     setFollowing(true);
@@ -166,14 +216,24 @@ export function PhoneLinkPanel({
     () =>
       player.subscribe(() => {
         if (recordingRef.current && !player.isPlaying) stopRecording(true);
-        const link = linkRef.current;
-        if (link) link.sendState({ recording: recordingRef.current, playing: player.isPlaying, t: Math.round(player.time * 10) / 10, duration: Math.round(filmDuration(filmRef.current) * 10) / 10 });
+        sendState();
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [player]
   );
 
+  // Forward and back turned on or off, here or on the phone: the phone hears it
+  // at once, and a phone just turned on starts the distance from where it is.
+  useEffect(() => {
+    sendState(false);
+    if (film.handDepth) motionRef.current?.restartDepth();
+  }, [film.handDepth]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** Bumped by every connect and disconnect: a connect still on its way when another starts gives up. */
+  const connectSeq = useRef(0);
+
   const disconnect = () => {
+    connectSeq.current += 1;
     stopRecording(false);
     linkRef.current?.close();
     linkRef.current = null;
@@ -192,34 +252,59 @@ export function PhoneLinkPanel({
 
   useEffect(() => () => disconnect(), []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // A film made moves first: the code shows without a click. In development
+  // React runs this twice, with a disconnect between; the second run connects again.
+  useEffect(() => {
+    if (autoConnect && isLinkConfigured()) void connectPhone();
+  }, [autoConnect]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const connectPhone = async () => {
+    const seq = ++connectSeq.current;
+    // A link left from a try that failed goes first.
+    linkRef.current?.close();
+    linkRef.current = null;
     setMode('link');
     setDetail(null);
     setNeedsSignIn(false);
     setStatus('starting');
     try {
       const ticket = await getTicket(getToken());
+      if (seq !== connectSeq.current) return;
       const link = new RoomLink('desk', ticket, {
         onStatus: (next, why) => {
           setStatus(next);
           setDetail(why ?? null);
         },
-        onMotion: (reading: MotionReading) => onReading(reading.q, reading.zoom),
+        onMotion: (reading: MotionReading) => onReading(reading.q, reading.zoom, reading.depth),
         onRecord: (on) => (on ? void startRecording() : stopRecording(true)),
+        onDepth: (on) => updateRef.current((f) => (!!f.handDepth === on ? f : { ...f, handDepth: on })),
         onPeer: (present) => {
           filterRef.current.reset();
-          if (!present) {
-            live.current = null;
-            onLiveChange();
+          if (present) {
+            // A phone that just joined learns the film's state, forward and back included.
+            sendState(false);
+            return;
           }
+          live.current = null;
+          onLiveChange();
         },
       });
       linkRef.current = link;
       await link.connect();
+      if (seq !== connectSeq.current) {
+        link.close();
+        if (linkRef.current === link) linkRef.current = null;
+        return;
+      }
       setUrl(remotePageUrl(link.room, ticket));
     } catch (error) {
+      // The answer to a try that a newer one (or Cancel) overtook: the link as it is now stands.
+      if (seq !== connectSeq.current) return;
       if (error instanceof LinkSignInRequired) {
+        // Signing in is the way forward: the note and its button show at once,
+        // with Use your phone above them for after.
         setNeedsSignIn(true);
+        setMode('off');
         setStatus('closed');
         return;
       }
@@ -249,12 +334,13 @@ export function PhoneLinkPanel({
     motionRef.current = motion;
     let heard = false;
     motion.start(
-      (q) => {
+      (q, _t, depth) => {
         if (!heard) {
           heard = true;
           setMotionNote(null);
         }
-        onReading(q, 1);
+        // Bringing this phone closer moves in, with forward and back on, as on the phone page.
+        onReading(q, 1, filmRef.current.handDepth ? depth : undefined);
       },
       () => setMotionNote("No movement came from this phone's sensors.")
     );
@@ -263,6 +349,31 @@ export function PhoneLinkPanel({
 
   const take = film.take;
   const connected = mode === 'this' || status === 'direct' || status === 'relayed';
+  const linkState: PhoneLinkState = connected
+    ? 'connected'
+    : mode === 'link'
+      ? status === 'starting'
+        ? 'starting'
+        : status === 'waiting'
+          ? 'code'
+          : 'failed'
+      : needsSignIn
+        ? 'signin'
+        : 'off';
+  // The view's card under the picture says what to do next, so it hears each change.
+  const linkStateRef = useRef(onLinkStateChange);
+  linkStateRef.current = onLinkStateChange;
+  useEffect(() => {
+    linkStateRef.current?.(linkState);
+  }, [linkState]);
+  useEffect(() => () => linkStateRef.current?.('off'), []);
+  if (actionsRef) {
+    actionsRef.current = {
+      connect: () => {
+        if (isLinkConfigured() && (linkState === 'off' || linkState === 'signin' || linkState === 'failed')) void connectPhone();
+      },
+    };
+  }
 
   return (
     <div className="space-y-3" data-testid="director-phone-panel">
@@ -330,7 +441,8 @@ export function PhoneLinkPanel({
             {recording ? 'Recording your moves' : mode === 'this' ? 'This phone moves the video' : STATUS_WORDS[status]}
           </div>
           <p className="text-[11px] text-muted-foreground">
-            Hold the phone the way the phone in the video should face, then press Center. Pinch on your phone to move closer.
+            Hold the phone the way the phone in the video should face, then press Center.{' '}
+            {film.handDepth ? 'Bring your phone closer or pinch on it to move in.' : 'Pinch on your phone to move closer.'}
           </p>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -366,6 +478,18 @@ export function PhoneLinkPanel({
               />
             </label>
           )}
+        </div>
+      )}
+
+      {(connected || take) && (
+        <div className="flex items-center justify-between gap-2 text-xs" data-testid="director-depth">
+          <span className="flex items-center gap-1">
+            Forward and back
+            <InfoTip label="About forward and back">
+              Bring your phone toward you and the phone in the video comes closer. Take it away and it goes back. Leave this off if the picture jumps around.
+            </InfoTip>
+          </span>
+          <Switch checked={!!film.handDepth} onCheckedChange={(on) => update((f) => ({ ...f, handDepth: on }))} aria-label="Forward and back" />
         </div>
       )}
 

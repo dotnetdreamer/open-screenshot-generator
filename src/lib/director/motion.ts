@@ -181,11 +181,11 @@ export function steadySamples(samples: MotionSample[], options: SmoothingOptions
 }
 
 /** The take's turn at film time `t`, between the readings either side. */
-export function takeAt(samples: MotionSample[], t: number): { q: Quat; zoom: number } | null {
+export function takeAt(samples: MotionSample[], t: number): { q: Quat; zoom: number; depth: number } | null {
   if (samples.length === 0) return null;
-  if (t <= samples[0].t) return { q: samples[0].q, zoom: samples[0].zoom ?? 1 };
+  if (t <= samples[0].t) return { q: samples[0].q, zoom: samples[0].zoom ?? 1, depth: samples[0].depth ?? 0 };
   const last = samples[samples.length - 1];
-  if (t >= last.t) return { q: last.q, zoom: last.zoom ?? 1 };
+  if (t >= last.t) return { q: last.q, zoom: last.zoom ?? 1, depth: last.depth ?? 0 };
   let lo = 0;
   let hi = samples.length - 1;
   while (hi - lo > 1) {
@@ -198,7 +198,9 @@ export function takeAt(samples: MotionSample[], t: number): { q: Quat; zoom: num
   const u = (t - a.t) / Math.max(1e-6, b.t - a.t);
   const za = a.zoom ?? 1;
   const zb = b.zoom ?? 1;
-  return { q: slerp(a.q, b.q, u), zoom: za + (zb - za) * u };
+  const da = a.depth ?? 0;
+  const db = b.depth ?? 0;
+  return { q: slerp(a.q, b.q, u), zoom: za + (zb - za) * u, depth: da + (db - da) * u };
 }
 
 /**
@@ -212,7 +214,10 @@ export function compactSamples(samples: MotionSample[], rate = 60): MotionSample
     if (s.t < next) continue;
     next = s.t + 1 / rate - 1e-6;
     const q = s.q.map((v) => Math.round(v * 1e4) / 1e4) as Quat;
-    out.push(s.zoom !== undefined ? { t: Math.round(s.t * 1000) / 1000, q, zoom: Math.round(s.zoom * 1000) / 1000 } : { t: Math.round(s.t * 1000) / 1000, q });
+    const kept: MotionSample = { t: Math.round(s.t * 1000) / 1000, q };
+    if (s.zoom !== undefined) kept.zoom = Math.round(s.zoom * 1000) / 1000;
+    if (s.depth !== undefined) kept.depth = Math.round(s.depth * 1000) / 1000;
+    out.push(kept);
   }
   return out;
 }

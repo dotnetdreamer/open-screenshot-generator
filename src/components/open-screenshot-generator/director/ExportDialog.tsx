@@ -36,7 +36,7 @@ export function ExportDialog({ film, open, onOpenChange, onExporting }: { film: 
   const [phase, setPhase] = useState<Phase>({ kind: 'ready' });
   const [fps, setFps] = useState<30 | 60>(film.fps);
   const abortRef = useRef<AbortController | null>(null);
-  const blocker = exportBlocker();
+  const blocker = film.clips.length ? exportBlocker() : 'Add a recording first. The video is made from it.';
   const size = FILM_SIZES[film.format];
   const seconds = Math.round(filmDuration(film) * 10) / 10;
   const name = filmFileName(film);

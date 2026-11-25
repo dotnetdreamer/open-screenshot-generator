@@ -13,6 +13,8 @@ export interface Glow {
   r: number;
   /** 0 to 1. */
   strength: number;
+  /** A solid disc with a clean edge instead of a soft glow, growing in at the start. */
+  disc?: boolean;
 }
 
 export interface Backdrop {
@@ -107,6 +109,34 @@ export const BACKDROPS: Backdrop[] = [
     dark: true,
     room: { top: '#7a3a26', floor: '#0a0403', light: '#fff0e2' },
     shadow: 0.55,
+  },
+  {
+    // Black, lit from above, as phone makers film their launches.
+    id: 'noir',
+    name: 'Noir',
+    top: '#0d0d10',
+    bottom: '#000000',
+    glows: [
+      { color: '#34343c', x: 0, y: 0.58, r: 0.62, strength: 0.42 },
+      { color: '#1b1b21', x: 0.46, y: -0.5, r: 0.5, strength: 0.25 },
+    ],
+    dark: true,
+    room: { top: '#6a6a72', floor: '#000000', light: '#ffffff' },
+    shadow: 0.7,
+  },
+  {
+    // A pale room with two big violet discs, for bright ads.
+    id: 'bloom',
+    name: 'Bloom',
+    top: '#f4f3f8',
+    bottom: '#e3e1ec',
+    glows: [
+      { color: '#7b2ff2', x: 0.34, y: 0.47, r: 0.36, strength: 1, disc: true },
+      { color: '#a646ff', x: 0.4, y: -0.5, r: 0.44, strength: 1, disc: true },
+    ],
+    dark: false,
+    room: { top: '#d9d2f2', floor: '#2b1a4a', light: '#ffffff' },
+    shadow: 0.26,
   },
 ];
 

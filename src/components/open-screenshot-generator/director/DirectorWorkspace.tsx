@@ -1,33 +1,58 @@
 "use client";
 
-// Director: a screen recording in, a film of it on a 3D phone out. The view
-// reads the recording for its moments (taps, typing, scrolls, new screens),
-// plans a camera that follows them, and plays the film while the person
-// changes the look, the moments, or moves the phone with their own phone.
+// Director: screen recordings in, a film of them on a 3D phone out. A new
+// film starts from a template, then either from a recording (Director reads
+// it for its moments, taps, typing, scrolls and new screens, and plans a
+// camera that follows them) or from moves recorded with the user's phone
+// against a stand-in screen, with the recording added later. The editor then
+// has the film's picture, its timeline (clips of recordings, the camera, the
+// moments, the words) and a panel for whatever is picked.
 //
 // Films are kept in their own database (src/lib/director/store.ts), one row
-// each, saved half a second after a change. The recording stays a row in the
-// shared media table.
+// each, saved half a second after a change. Recordings stay rows in the
+// shared media table. Each clip is read for its moments once, in the
+// background, one clip at a time.
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeftIcon, ClapperboardIcon, DownloadIcon, FilmIcon, Loader2Icon, PlusIcon, Redo2Icon, Trash2Icon, Undo2Icon, UploadIcon } from 'lucide-react';
+import { ArrowLeftIcon, ClapperboardIcon, DownloadIcon, FilmIcon, HandIcon, Loader2Icon, QrCodeIcon, Redo2Icon, Undo2Icon, UploadIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { getMediaAsset, getMediaUrl, saveMedia } from '@/lib/mediaStore';
-import { ANALYSIS_VERSION } from '@/lib/director/analyze';
-import { addMoment, editMoment, MAX_FILM_SECONDS, newFilm, planFor, removeMoment, trimLength, withAnalysis } from '@/lib/director/film';
+import { fitPhone, newFilm, planFor } from '@/lib/director/film';
 import { filmDuration } from '@/lib/director/frame';
-import { FilmPlayer } from '@/lib/director/player';
-import { readRecording } from '@/lib/director/read';
+import { FilmPlayer, type PlayerSchedule } from '@/lib/director/player';
+import { readClip } from '@/lib/director/read';
 import { deleteFilm, listFilms, saveFilm } from '@/lib/director/store';
-import type { Film, FilmSource, Moment } from '@/lib/director/types';
+import type { FilmTemplate } from '@/lib/director/templates';
+import {
+  addClip,
+  addMoment,
+  changeRecordingFrom,
+  clipNeedsRead,
+  clipSpans,
+  editMoment,
+  filmMoments,
+  MAX_FILM_SECONDS,
+  moveClip,
+  removeClip,
+  removeMoment,
+  replaceClip,
+  retimeMoment,
+  splitAt,
+  trimClip,
+  withClipReading,
+  type ClipReading,
+} from '@/lib/director/timeline';
+import type { Film, FilmClip, FilmSource, Moment } from '@/lib/director/types';
 import { cn } from '@/lib/utils';
-import { InfoTip } from '../capture/InfoTip';
 import { DirectorInspector } from './DirectorInspector';
-import { DirectorTimeline } from './DirectorTimeline';
+import { BeginStep, PickRecordingStep, RecordingList, TemplateStep } from './DirectorStart';
+import { DirectorTimeline, type TimelineSelection } from './DirectorTimeline';
 import { DirectorViewport, type LiveTurn } from './DirectorViewport';
 import { ExportDialog } from './ExportDialog';
+import type { PhoneLinkActions, PhoneLinkState } from './PhoneLinkPanel';
 
 export interface DirectorRecording {
   mediaId: string;
@@ -60,12 +85,7 @@ const ACCEPT = 'video/mp4,video/quicktime,video/webm,.mp4,.mov,.m4v,.webm';
 function isTyping(target: EventTarget | null): boolean {
   const el = target as HTMLElement | null;
   if (!el) return false;
-  return el.isContentEditable || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || !!el.closest('[role="dialog"]');
-}
-
-function formatLength(seconds: number): string {
-  const s = Math.round(seconds);
-  return s < 60 ? `${s}s` : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  return el.isContentEditable || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || !!el.closest('[role="dialog"]') || !!el.closest('[role="slider"]');
 }
 
 /** Undo and redo for a film: whole films as steps, quick changes (typing, dragging) merged into one. */
@@ -122,122 +142,35 @@ function useHistory() {
   return api.current;
 }
 
-function StartScreen({
-  project,
-  films,
-  dragging,
-  onChoose,
-  onUseRecording,
-  onOpenFilm,
-  onDeleteFilm,
-}: {
-  project: DirectorProject | null;
-  films: Film[];
-  dragging: boolean;
-  onChoose: () => void;
-  onUseRecording: (recording: DirectorRecording) => void;
-  onOpenFilm: (film: Film) => void;
-  onDeleteFilm: (film: Film) => void;
-}) {
-  return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8 sm:py-12" data-testid="director-start">
-      <div className="text-center">
-        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white shadow-lg">
-          <ClapperboardIcon className="h-6 w-6" />
-        </div>
-        <h1 className="text-xl font-semibold sm:text-2xl">Turn a screen recording into a phone video</h1>
-        <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">
-          Director finds the taps, typing and scrolling in your recording, and films them on a 3D phone with the camera moving to each one. Or move the phone yourself with your own phone.
-        </p>
-      </div>
+/** What a recording picked in the file chooser (or from the project) is for. */
+type PickAction = { kind: 'new'; template: FilmTemplate | null } | { kind: 'add' } | { kind: 'replace'; clipId: string } | { kind: 'from'; t: number };
 
-      <button
-        type="button"
-        onClick={onChoose}
-        className={cn(
-          'flex flex-col items-center gap-2 rounded-2xl border-2 border-dashed px-6 py-10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-          dragging ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/40'
-        )}
-        data-testid="director-drop"
-      >
-        <UploadIcon className="h-6 w-6 text-muted-foreground" />
-        <span className="text-sm font-semibold">Drop a screen recording here, or choose one</span>
-        <span className="text-xs text-muted-foreground">MP4 or MOV, from an iPhone, an Android phone or the Capture screenshots view. Up to {MAX_FILM_SECONDS} seconds is used</span>
-      </button>
+type Step = { kind: 'templates' } | { kind: 'begin'; template: FilmTemplate | null } | { kind: 'pick'; template: FilmTemplate | null };
 
-      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1">
-          Recording on iPhone
-          <InfoTip label="How to record your screen on iPhone">
-            Open Control Center and tap the record button. If it isn&apos;t there, add Screen Recording in Settings, Control Center.
-          </InfoTip>
-        </span>
-        <span className="flex items-center gap-1">
-          Recording on Android
-          <InfoTip label="How to record your screen on Android">Swipe down twice from the top and tap Screen record. Turn on Show touches if you want your taps in the video too.</InfoTip>
-        </span>
-      </div>
+/** The moves-first card's words for each state of the phone link, so it never asks for a code that isn't there. */
+const MOVES_FIRST_WORDS: Record<PhoneLinkState, string> = {
+  off: 'Connect your phone, then record a take while the stand-in screen plays. Add your recording after.',
+  signin: 'Sign in to connect your phone, then record a take while the stand-in screen plays. Add your recording after.',
+  starting: 'Getting the code for your phone ready.',
+  code: 'Scan the code with your phone, then press Record a take. Add your recording after.',
+  failed: "Your phone couldn't connect. Try again, then record a take while the stand-in screen plays.",
+  connected: 'Your phone is connected. Press Record a take and move it while the stand-in screen plays. Add your recording after.',
+};
 
-      {project && project.recordings.length > 0 && (
-        <section className="space-y-2">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Recordings in this project</h2>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {project.recordings.map((recording) => (
-              <button
-                key={recording.mediaId}
-                type="button"
-                onClick={() => onUseRecording(recording)}
-                className="flex items-center gap-3 rounded-xl border bg-card px-3 py-2.5 text-left transition-colors hover:bg-muted/50"
-              >
-                <FilmIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium">{recording.name}</span>
-                  <span className="block truncate text-xs text-muted-foreground">{recording.where}</span>
-                </span>
-                <span className="text-xs font-medium text-primary">Use this</span>
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
+const PICK_TITLES: Record<Exclude<PickAction['kind'], 'new'>, string> = {
+  add: 'Add a recording',
+  replace: 'Change this recording',
+  from: 'Change the recording from here',
+};
 
-      {films.length > 0 && (
-        <section className="space-y-2">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Your videos</h2>
-          <div className="grid gap-2 sm:grid-cols-2" data-testid="director-films">
-            {films.map((film) => (
-              <div key={film.id} className="group flex items-center gap-3 rounded-xl border bg-card px-3 py-2.5">
-                <button type="button" className="flex min-w-0 flex-1 items-center gap-3 text-left" onClick={() => onOpenFilm(film)}>
-                  {film.strip?.[0] ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={film.strip[Math.min(film.strip.length - 1, 2)].url} alt="" className="h-10 w-5 shrink-0 rounded object-cover" />
-                  ) : (
-                    <FilmIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                  )}
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-medium">{film.name}</span>
-                    <span className="block text-xs text-muted-foreground">
-                      {formatLength(filmDuration(film))}, {new Date(film.updatedAt).toLocaleDateString()}
-                    </span>
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  aria-label={`Delete ${film.name}`}
-                  title="Delete"
-                  className="text-muted-foreground opacity-60 transition-opacity hover:text-destructive group-hover:opacity-100"
-                  onClick={() => onDeleteFilm(film)}
-                >
-                  <Trash2Icon className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+/** The film's name follows its first recording until the user names it. */
+function namedAfter(film: Film, source: FilmSource): Film {
+  return film.named || film.clips.length !== 1 ? film : { ...film, name: source.name.replace(/\.[a-z0-9]{2,4}$/i, '') || film.name };
+}
 
-    </div>
-  );
+/** A recording read once is kept for the session, so undo or a split never reads it again. */
+function readingKey(clip: Pick<FilmClip, 'mediaId' | 'in' | 'out'>): string {
+  return `${clip.mediaId}@${clip.in.toFixed(2)}-${clip.out.toFixed(2)}`;
 }
 
 export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onBackToEditor }: DirectorWorkspaceProps) {
@@ -245,17 +178,31 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
   const [project, setProject] = useState<DirectorProject | null>(null);
   const [films, setFilms] = useState<Film[]>([]);
   const [film, setFilm] = useState<Film | null>(null);
-  const [thumbs, setThumbs] = useState<{ t: number; url: string }[]>([]);
-  const [reading, setReading] = useState<number | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [step, setStep] = useState<Step>({ kind: 'templates' });
+  const [reading, setReading] = useState<{ clipId: string; fraction: number } | null>(null);
+  const [selection, setSelection] = useState<TimelineSelection>(null);
   const [exportOpen, setExportOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [picker, setPicker] = useState<Exclude<PickAction, { kind: 'new' }> | null>(null);
   const [player, setPlayer] = useState<FilmPlayer | null>(null);
   const live = useRef<LiveTurn['current']>(null);
+  const linkActions = useRef<PhoneLinkActions | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const filmRef = useRef<Film | null>(null);
+  const pendingRef = useRef<PickAction | null>(null);
   const readAbort = useRef<AbortController | null>(null);
+  const readingRef = useRef<string | null>(null);
+  const failedReads = useRef(new Set<string>());
+  const readCache = useRef(new Map<string, ClipReading>());
+  const autoplayRef = useRef(false);
+  /** Where a film just opened starts, applied once the player has its schedule. */
+  const pendingSeek = useRef<number | null>(null);
+  /** A film made moves first shows the code for the phone as soon as it opens: its id, while that holds. */
+  const [autoConnectFor, setAutoConnectFor] = useState<string | null>(null);
+  /** Where the phone link stands: the moves-first card says what to do next from it. */
+  const [linkState, setLinkState] = useState<PhoneLinkState>('off');
+  const [loadedMedia, setLoadedMedia] = useState<string | null>(null);
   const saveTimer = useRef(0);
   const history = useHistory();
   filmRef.current = film;
@@ -267,9 +214,12 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
     return () => next.dispose();
   }, []);
 
-  // Every video on this device, whichever project was open when it was made:
-  // a video made before a new project has its id was kept under none, and
-  // would drop out of a list of the project's own.
+  // Out of sight, nothing plays: not a film whose reading ends then, nor a take a phone starts.
+  useEffect(() => {
+    if (player) player.hidden = !active;
+  }, [player, active]);
+
+  // Every video on this device, whichever project was open when it was made.
   const refreshFilms = useCallback(async () => {
     try {
       setFilms(await listFilms());
@@ -298,7 +248,9 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
     (change: (film: Film) => Film) => {
       const current = filmRef.current;
       if (!current) return;
-      const next = { ...change(current), updatedAt: Date.now() };
+      const changed = change(current);
+      if (changed === current) return;
+      const next = { ...changed, updatedAt: Date.now() };
       history.record(current);
       filmRef.current = next;
       setFilm(next);
@@ -307,91 +259,208 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
     [history, persist]
   );
 
+  /** A change made by Director itself (a reading arriving): saved and drawn, but not a step to undo. */
+  const quietly = useCallback(
+    (next: Film) => {
+      filmRef.current = next;
+      setFilm(next);
+      persist(next);
+    },
+    [persist]
+  );
+
   const plan = useMemo(() => (film ? planFor(film) : null), [film]);
 
-  // The player follows the film's timing and sound.
+  // The player follows the clips, the film's length and the sound.
+  const scheduleKey = film
+    ? `${film.id}|` +
+      clipSpans(film)
+        .map((span) => `${span.clip.mediaId}@${span.start.toFixed(3)}-${span.end.toFixed(3)}:${span.clip.in.toFixed(3)}`)
+        .join('|') + `|${filmDuration(film).toFixed(3)}`
+    : '';
+  const schedule = useMemo<PlayerSchedule | null>(() => {
+    const current = filmRef.current;
+    if (!current) return null;
+    return { segments: clipSpans(current).map((span) => ({ mediaId: span.clip.mediaId, start: span.start, end: span.end, in: span.clip.in })), duration: filmDuration(current) };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scheduleKey]);
   useEffect(() => {
-    if (!player || !film) return;
-    player.setTiming({ trimStart: film.trim.start, trimEnd: film.trim.end, duration: filmDuration(film) });
-    player.sound = film.sound.recording;
-  }, [player, film]);
+    if (!player || !schedule) return;
+    player.setSchedule(schedule);
+    // A film just opened goes to its start point now that the player knows its length.
+    if (pendingSeek.current !== null) {
+      void player.seek(pendingSeek.current);
+      pendingSeek.current = null;
+    }
+  }, [player, schedule]);
+  useEffect(() => {
+    if (player && film) player.sound = film.sound.recording;
+  }, [player, film?.sound.recording]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const read = useCallback(
-    async (target: Film) => {
-      readAbort.current?.abort();
-      const controller = new AbortController();
-      readAbort.current = controller;
-      const url = await getMediaUrl(target.source.mediaId);
-      if (!url) throw new Error('The recording is no longer on this device.');
-      setReading(0);
+  // A video for each recording the film uses.
+  const mediaKey = film ? Array.from(new Set(film.clips.map((clip) => clip.mediaId))).join(',') : '';
+  const filmId = film?.id ?? '';
+  useEffect(() => {
+    if (!player || !filmId) return;
+    let cancelled = false;
+    void (async () => {
+      const urls = new Map<string, string>();
+      const missing: string[] = [];
+      for (const mediaId of mediaKey ? mediaKey.split(',') : []) {
+        const url = await getMediaUrl(mediaId);
+        if (url) urls.set(mediaId, url);
+        else missing.push(mediaId);
+      }
+      if (cancelled) return;
+      if (missing.length) {
+        const names = (filmRef.current?.clips ?? []).filter((clip) => missing.includes(clip.mediaId)).map((clip) => clip.name);
+        toast({ title: 'A recording in this video is missing', description: `${names[0] ?? 'A recording'} is no longer on this device. Pick its clip and change the recording.` });
+      }
       try {
-        const result = await readRecording(target, url, { signal: controller.signal, onProgress: (f) => setReading(f) });
-        if (controller.signal.aborted) return;
+        await player.load(urls);
+      } catch (error) {
+        if (!cancelled) toast({ title: "A recording can't be played here", description: error instanceof Error ? error.message : 'Try an MP4 file.' });
+        return;
+      }
+      if (!cancelled) setLoadedMedia(`${filmId}|${mediaKey}`);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [player, filmId, mediaKey, toast]);
+
+  // Each clip read for its moments, one at a time, in the background.
+  const readOne = useCallback(
+    async (target: Film, clip: FilmClip) => {
+      const key = readingKey(clip);
+      const cached = readCache.current.get(key);
+      const apply = (result: ClipReading) => {
         const current = filmRef.current;
         if (!current || current.id !== target.id) return;
-        const next = { ...withAnalysis(current, result.moments, result.activity), strip: result.thumbs };
-        filmRef.current = next;
-        setFilm(next);
-        setThumbs(result.thumbs);
-        await saveFilm(next);
+        const now = current.clips.find((c) => c.id === clip.id);
+        if (!now || now.mediaId !== clip.mediaId) return;
+        quietly(withClipReading(current, clip.id, result));
+      };
+      if (cached) {
+        apply(cached);
+        return;
+      }
+      readingRef.current = clip.id;
+      setReading({ clipId: clip.id, fraction: 0 });
+      // The film playing while the recording is read would take frames from the reader.
+      const wasPlaying = !!player?.isPlaying;
+      player?.pause();
+      const controller = new AbortController();
+      readAbort.current = controller;
+      try {
+        const url = await getMediaUrl(clip.mediaId);
+        if (!url) throw new Error(`${clip.name} is no longer on this device.`);
+        // Progress at most five times a second: each one draws the editor again,
+        // and the reader needs the page's time for its frames.
+        let shownAt = 0;
+        const onProgress = (fraction: number) => {
+          const now = performance.now();
+          if (now - shownAt < 200 && fraction < 1) return;
+          shownAt = now;
+          setReading({ clipId: clip.id, fraction });
+        };
+        const result = await readClip(clip, url, { signal: controller.signal, onProgress });
+        if (controller.signal.aborted) return;
+        readCache.current.set(key, result);
+        apply(result);
+      } catch (error) {
+        if ((error as { name?: string })?.name === 'AbortError') return;
+        failedReads.current.add(key);
+        console.error('Director could not read the recording', error);
+        toast({ title: "Director couldn't read a recording", description: error instanceof Error ? error.message : 'Try another recording.' });
       } finally {
-        if (readAbort.current === controller) {
-          readAbort.current = null;
+        if (readingRef.current === clip.id) {
+          readingRef.current = null;
           setReading(null);
         }
+        if (readAbort.current === controller) readAbort.current = null;
+        if (wasPlaying && filmRef.current?.id === target.id && !controller.signal.aborted) void player?.play();
       }
     },
-    []
+    [quietly, toast, player]
   );
+
+  useEffect(() => {
+    if (!film || readingRef.current) return;
+    // Reading waits for the film's own videos, so the two never fight over frames.
+    if (film.clips.length && loadedMedia !== `${film.id}|${mediaKey}`) return;
+    const next = film.clips.find((clip) => clipNeedsRead(clip) && !failedReads.current.has(readingKey(clip)));
+    if (next) {
+      void readOne(film, next);
+      return;
+    }
+    // Everything read: a film just opened starts playing, once its videos are ready.
+    if (autoplayRef.current && player && film.clips.length && loadedMedia === `${film.id}|${mediaKey}`) {
+      autoplayRef.current = false;
+      void player.play();
+    }
+  }, [film, reading, readOne, player, loadedMedia, mediaKey]);
 
   const open = useCallback(
-    async (target: Film) => {
-      if (!player) return;
+    (target: Film, autoplay = true, at = 0) => {
       readAbort.current?.abort();
+      readingRef.current = null;
+      setReading(null);
       history.clear();
-      setSelectedId(null);
+      setSelection(null);
       filmRef.current = target;
+      autoplayRef.current = autoplay && target.clips.length > 0;
+      player?.pause();
+      pendingSeek.current = at;
       setFilm(target);
-      setThumbs(target.strip ?? []);
-      const url = await getMediaUrl(target.source.mediaId);
-      if (!url) {
-        toast({ title: 'That recording is no longer on this device', description: 'Add the recording again to make a new video.' });
-        setFilm(null);
-        return;
-      }
-      player.setTiming({ trimStart: target.trim.start, trimEnd: target.trim.end, duration: filmDuration(target) });
-      try {
-        await player.load(url);
-      } catch (error) {
-        toast({ title: "This recording can't be played here", description: error instanceof Error ? error.message : 'Try an MP4 file.' });
-        return;
-      }
-      if (target.analysisVersion < ANALYSIS_VERSION || !target.strip?.length) {
-        try {
-          await read(target);
-        } catch (error) {
-          if ((error as { name?: string })?.name === 'AbortError') return;
-          console.error('Director could not read the recording', error);
-          toast({ title: "Director couldn't read the recording", description: error instanceof Error ? error.message : 'Try another recording.' });
-          return;
-        }
-      }
-      void player.play();
     },
-    [player, history, read, toast]
+    [player, history]
   );
 
-  const start = useCallback(
+  const full = useCallback(() => {
+    toast({ title: 'There is no room for that recording', description: `A video can be up to ${MAX_FILM_SECONDS} seconds. Trim a recording or take one out first.` });
+  }, [toast]);
+
+  /** A recording picked in the file chooser or from the project, used for what was asked. */
+  const applySource = useCallback(
     async (source: FilmSource) => {
-      const made = newFilm(source, { projectId: project?.id ?? null, title: project?.appName ?? '', colors: project?.colors ?? null });
-      if (source.duration > MAX_FILM_SECONDS) {
-        toast({ title: `Director uses the first ${MAX_FILM_SECONDS} seconds`, description: 'Trim the recording to pick another part.' });
+      const action = pendingRef.current ?? { kind: 'new' as const, template: null };
+      pendingRef.current = null;
+      setPicker(null);
+      if (action.kind === 'new') {
+        const made = newFilm({ projectId: project?.id ?? null, title: project?.appName ?? '', colors: project?.colors ?? null, template: action.template });
+        const added = addClip(made, source);
+        if (!added) {
+          full();
+          return;
+        }
+        const ready = namedAfter(fitPhone(added.film), source);
+        await saveFilm(ready);
+        setFilms((list) => [ready, ...list]);
+        setStep({ kind: 'templates' });
+        open(ready);
+        return;
       }
-      await saveFilm(made);
-      setFilms((list) => [made, ...list]);
-      await open(made);
+      const current = filmRef.current;
+      if (!current) return;
+      const result =
+        action.kind === 'add'
+          ? addClip(current, source)
+          : action.kind === 'replace'
+            ? { film: replaceClip(current, action.clipId, source), clipId: action.clipId }
+            : changeRecordingFrom(current, action.t, source);
+      if (!result) {
+        full();
+        return;
+      }
+      // The first recording in a film made moves first plays once it's read, as a new film does.
+      if (!current.clips.length) autoplayRef.current = true;
+      update(() => namedAfter(fitPhone(result.film), source));
+      setSelection({ kind: 'clip', id: result.clipId });
+      const span = clipSpans(result.film).find((s) => s.clip.id === result.clipId);
+      if (span && player) void player.seek(span.start);
     },
-    [project, open, toast]
+    [project, full, open, update, player]
   );
 
   const addFile = useCallback(
@@ -405,32 +474,60 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
         if (probe.width > probe.height) {
           toast({ title: 'This recording is sideways', description: 'Director shows it on a phone held upright. Record in portrait for the best result.' });
         }
-        await start({ mediaId: id, name: file.name, width: probe.width, height: probe.height, duration: probe.duration });
+        await applySource({ mediaId: id, name: file.name, width: probe.width, height: probe.height, duration: probe.duration });
       } catch (error) {
         toast({ title: "That recording couldn't be read", description: error instanceof Error ? error.message : 'Use an MP4 or MOV file.' });
       }
     },
-    [start, toast]
+    [applySource, toast]
   );
 
-  const useRecording = useCallback(
+  const applyRecording = useCallback(
     async (recording: DirectorRecording) => {
       const asset = await getMediaAsset(recording.mediaId);
       if (!asset) {
         toast({ title: 'That recording is no longer on this device', description: 'Add it to the project again.' });
         return;
       }
-      await start({ mediaId: recording.mediaId, name: recording.name, width: asset.width ?? 886, height: asset.height ?? 1920, duration: asset.duration ?? 10 });
+      await applySource({ mediaId: recording.mediaId, name: recording.name, width: asset.width ?? 886, height: asset.height ?? 1920, duration: asset.duration ?? 10 });
     },
-    [start, toast]
+    [applySource, toast]
+  );
+
+  /** Asks for a recording: straight to the file chooser, or a choice when the project has recordings. */
+  const ask = useCallback(
+    (action: PickAction) => {
+      pendingRef.current = action;
+      if (action.kind !== 'new' && project && project.recordings.length > 0) setPicker(action);
+      else fileRef.current?.click();
+    },
+    [project]
+  );
+
+  const startMovesFirst = useCallback(
+    async (template: FilmTemplate | null) => {
+      const made = newFilm({ projectId: project?.id ?? null, title: project?.appName ?? '', colors: project?.colors ?? null, template });
+      await saveFilm(made);
+      setFilms((list) => [made, ...list]);
+      setStep({ kind: 'templates' });
+      // On a computer the phone's code shows at once; on a phone, Move this phone is the way in.
+      setAutoConnectFor(typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches ? null : made.id);
+      // Past the opening rise, so the phone shows at rest, whole.
+      open(made, false, 2);
+    },
+    [project, open]
   );
 
   const close = useCallback(() => {
     readAbort.current?.abort();
     player?.pause();
+    clearTimeout(saveTimer.current);
+    const current = filmRef.current;
+    if (current) void saveFilm(current);
     setFilm(null);
     filmRef.current = null;
-    setSelectedId(null);
+    setSelection(null);
+    setAutoConnectFor(null);
     history.clear();
     void refreshFilms();
   }, [player, history, refreshFilms]);
@@ -444,34 +541,65 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
     [toast]
   );
 
-  // Space plays, Delete removes the picked moment, Cmd+Z and Cmd+Shift+Z undo and redo.
+  const split = useCallback(() => {
+    if (!player) return;
+    const current = filmRef.current;
+    if (!current) return;
+    const result = splitAt(current, player.time);
+    if (!result) return;
+    update(() => result.film);
+    setSelection({ kind: 'clip', id: result.right });
+  }, [player, update]);
+
+  const deleteSelected = useCallback(() => {
+    if (!selection) return;
+    if (selection.kind === 'moment') update((f) => removeMoment(f, selection.id));
+    else update((f) => removeClip(f, selection.id));
+    setSelection(null);
+  }, [selection, update]);
+
+  const undo = useCallback(
+    (redo: boolean) => {
+      const current = filmRef.current;
+      if (!current) return;
+      const next = redo ? history.redo(current) : history.undo(current);
+      if (next) {
+        filmRef.current = next;
+        setFilm(next);
+        persist(next);
+      }
+    },
+    [history, persist]
+  );
+
+  // Space plays, S splits, Delete takes out what's picked, the arrows step, Cmd+Z and Cmd+Shift+Z undo and redo.
   useEffect(() => {
     if (!active || !film) return;
     const onKey = (event: KeyboardEvent) => {
       if (isTyping(event.target)) return;
       const mod = event.metaKey || event.ctrlKey;
       if (event.key === ' ' && !mod) {
+        if ((event.target as HTMLElement)?.tagName === 'BUTTON') return;
         event.preventDefault();
         void player?.toggle();
-      } else if ((event.key === 'Delete' || event.key === 'Backspace') && selectedId) {
+      } else if ((event.key === 's' || event.key === 'S') && !mod) {
         event.preventDefault();
-        update((f) => removeMoment(f, selectedId));
-        setSelectedId(null);
+        split();
+      } else if ((event.key === 'Delete' || event.key === 'Backspace') && selection) {
+        event.preventDefault();
+        deleteSelected();
+      } else if ((event.key === 'ArrowLeft' || event.key === 'ArrowRight') && !mod && player && (event.target === document.body || event.target === null)) {
+        event.preventDefault();
+        const delta = (event.shiftKey ? 1 : 1 / 30) * (event.key === 'ArrowLeft' ? -1 : 1);
+        void player.seek(player.time + delta);
       } else if (mod && event.key.toLowerCase() === 'z') {
         event.preventDefault();
-        const current = filmRef.current;
-        if (!current) return;
-        const next = event.shiftKey ? history.redo(current) : history.undo(current);
-        if (next) {
-          filmRef.current = next;
-          setFilm(next);
-          persist(next);
-        }
+        undo(event.shiftKey);
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [active, film, player, selectedId, update, history, persist]);
+  }, [active, film, player, selection, split, deleteSelected, undo]);
 
   // Saving what's waiting when the view goes away.
   useEffect(
@@ -484,14 +612,41 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
     []
   );
 
-  const selected = film && selectedId ? film.moments.find((m) => m.id === selectedId) ?? null : null;
-  const busy = reading !== null ? `Finding the moments in your recording, ${Math.round(reading * 100)}%` : null;
+  const moments = useMemo(() => (film ? filmMoments(film) : []), [film]);
+  const selectedMoment = film && selection?.kind === 'moment' ? moments.find((m) => m.id === selection.id) ?? null : null;
+  const selectedClip = film && selection?.kind === 'clip' ? film.clips.find((c) => c.id === selection.id) ?? null : null;
+  const readingClip = reading && film ? film.clips.find((clip) => clip.id === reading.clipId) : null;
+  const busy = reading ? `Finding the moments in ${readingClip?.name.replace(/\.[a-z0-9]{2,4}$/i, '') ?? 'your recording'}, ${Math.round(reading.fraction * 100)}%` : null;
+  const noRecording = !!film && film.clips.length === 0;
 
   const onDrop = (event: React.DragEvent) => {
     event.preventDefault();
     setDragging(false);
     const file = Array.from(event.dataTransfer.files).find((f) => f.type.startsWith('video/') || /\.(mp4|mov|m4v|webm)$/i.test(f.name));
-    if (file) void addFile(file);
+    if (!file) return;
+    if (film) pendingRef.current = { kind: 'add' };
+    else pendingRef.current = { kind: 'new', template: step.kind === 'templates' ? null : step.template };
+    void addFile(file);
+  };
+
+  const clipActions = {
+    onTrim: (clipId: string, patch: { in?: number; out?: number }) => update((f) => trimClip(f, clipId, patch)),
+    onReplace: (clipId: string) => ask({ kind: 'replace', clipId }),
+    onChangeFrom: () => player && ask({ kind: 'from', t: player.time }),
+    onSplit: split,
+    onMove: (clipId: string, toIndex: number) => update((f) => moveClip(f, clipId, toIndex)),
+    onRemove: (clipId: string) => {
+      update((f) => removeClip(f, clipId));
+      setSelection(null);
+    },
+    onReadAgain: (clipId: string) => {
+      const clip = filmRef.current?.clips.find((c) => c.id === clipId);
+      if (clip) {
+        readCache.current.delete(readingKey(clip));
+        failedReads.current.delete(readingKey(clip));
+      }
+      quietly({ ...filmRef.current!, clips: filmRef.current!.clips.map((c) => (c.id === clipId ? { ...c, read: null } : c)) });
+    },
   };
 
   return (
@@ -517,7 +672,10 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
         onChange={(event) => {
           const file = event.target.files?.[0];
           event.target.value = '';
-          if (file) void addFile(file);
+          if (!file) return;
+          // A file chosen with nothing asked for: a new film from the step the user is on.
+          if (!pendingRef.current) pendingRef.current = filmRef.current ? { kind: 'add' } : { kind: 'new', template: step.kind === 'templates' ? null : step.template };
+          void addFile(file);
         }}
         data-testid="director-file"
       />
@@ -536,7 +694,7 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
           {film ? (
             <Input
               value={film.name}
-              onChange={(e) => update((f) => ({ ...f, name: e.target.value }))}
+              onChange={(e) => update((f) => ({ ...f, name: e.target.value, named: true }))}
               className="h-8 max-w-xs border-transparent bg-transparent px-1.5 text-sm font-semibold shadow-none hover:border-border focus-visible:border-border"
               aria-label="Video name"
               maxLength={80}
@@ -551,34 +709,28 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
         <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
           {film && (
             <>
-              <Button type="button" variant="ghost" size="icon" className="h-8 w-8" aria-label="Undo" title="Undo" disabled={history.past.length === 0} onClick={() => {
-                const next = filmRef.current && history.undo(filmRef.current);
-                if (next) {
-                  filmRef.current = next;
-                  setFilm(next);
-                  persist(next);
-                }
-              }}>
+              <Button type="button" variant="ghost" size="icon" className="h-8 w-8" aria-label="Undo" title="Undo" disabled={history.past.length === 0} onClick={() => undo(false)}>
                 <Undo2Icon className="h-4 w-4" />
               </Button>
-              <Button type="button" variant="ghost" size="icon" className="h-8 w-8" aria-label="Redo" title="Redo" disabled={history.future.length === 0} onClick={() => {
-                const next = filmRef.current && history.redo(filmRef.current);
-                if (next) {
-                  filmRef.current = next;
-                  setFilm(next);
-                  persist(next);
-                }
-              }}>
+              <Button type="button" variant="ghost" size="icon" className="h-8 w-8" aria-label="Redo" title="Redo" disabled={history.future.length === 0} onClick={() => undo(true)}>
                 <Redo2Icon className="h-4 w-4" />
               </Button>
-              <Button type="button" size="sm" className="h-8 gap-1.5" onClick={() => setExportOpen(true)} disabled={reading !== null} title={reading !== null ? 'Wait until the recording has been read' : undefined} data-testid="director-export">
+              <Button
+                type="button"
+                size="sm"
+                className="h-8 gap-1.5"
+                onClick={() => setExportOpen(true)}
+                disabled={reading !== null || noRecording}
+                title={noRecording ? 'Add a recording first' : reading !== null ? 'Wait until the recording has been read' : undefined}
+                data-testid="director-export"
+              >
                 {exporting ? <Loader2Icon className="h-3.5 w-3.5 animate-spin" /> : <DownloadIcon className="h-3.5 w-3.5" />}
                 Export video
               </Button>
             </>
           )}
-          {!film && (
-            <Button type="button" size="sm" className="h-8 gap-1.5" onClick={() => fileRef.current?.click()}>
+          {!film && step.kind === 'pick' && (
+            <Button type="button" size="sm" className="h-8 gap-1.5" onClick={() => ask({ kind: 'new', template: step.template })}>
               <UploadIcon className="h-3.5 w-3.5" />
               Choose a recording
             </Button>
@@ -594,75 +746,153 @@ export function DirectorWorkspace({ active, readProject, getToken, onSignIn, onB
 
       {!film || !plan || !player ? (
         <div className="min-h-0 flex-1 overflow-y-auto">
-          <StartScreen
-            project={project}
-            films={films}
-            dragging={dragging}
-            onChoose={() => fileRef.current?.click()}
-            onUseRecording={(recording) => void useRecording(recording)}
-            onOpenFilm={(f) => void open(f)}
-            onDeleteFilm={(f) => void remove(f)}
-          />
+          {step.kind === 'templates' && (
+            <TemplateStep
+              project={project}
+              films={films}
+              onPick={(template) => setStep({ kind: 'begin', template })}
+              onOpenFilm={(f) => {
+                setStep({ kind: 'templates' });
+                open(f);
+              }}
+              onDeleteFilm={(f) => void remove(f)}
+            />
+          )}
+          {step.kind === 'begin' && (
+            <BeginStep
+              template={step.template}
+              onBack={() => setStep({ kind: 'templates' })}
+              onRecordingFirst={() => setStep({ kind: 'pick', template: step.template })}
+              onMovesFirst={() => void startMovesFirst(step.template)}
+            />
+          )}
+          {step.kind === 'pick' && (
+            <PickRecordingStep
+              project={project}
+              dragging={dragging}
+              onBack={() => setStep({ kind: 'begin', template: step.template })}
+              onChoose={() => ask({ kind: 'new', template: step.template })}
+              onUseRecording={(recording) => {
+                pendingRef.current = { kind: 'new', template: step.template };
+                void applyRecording(recording);
+              }}
+            />
+          )}
         </div>
       ) : (
         // On a phone, one column that scrolls: the picture, the timeline, then the panel.
         <div className="min-h-0 flex-1 overflow-y-auto md:flex md:flex-row md:overflow-hidden" data-testid="director-film">
           <div className="flex min-w-0 flex-col md:min-h-0 md:flex-1">
-            <div className="h-[56svh] min-h-[18rem] p-3 sm:p-5 md:h-auto md:flex-1">
+            <div className="h-[52svh] min-h-[18rem] p-3 sm:p-5 md:h-auto md:flex-1">
               <DirectorViewport film={film} plan={plan} player={player} active={active} live={live} busy={busy} onError={(message) => toast({ title: "The 3D picture couldn't start", description: message })} />
             </div>
+            {noRecording && (
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t bg-amber-500/[0.06] px-4 py-2.5" data-testid="director-moves-first-card">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400">
+                  <HandIcon className="h-4 w-4" />
+                </span>
+                <div className="min-w-[14rem] flex-1 text-xs">
+                  <p className="font-semibold">{film.take ? 'Your moves are recorded' : 'Moves first'}</p>
+                  <p className="text-muted-foreground">{film.take ? 'Add your recording to see it on the phone.' : MOVES_FIRST_WORDS[linkState]}</p>
+                </div>
+                <div className="flex gap-1.5">
+                  {!film.take && linkState === 'signin' && onSignIn && (
+                    <Button type="button" size="sm" variant="outline" className="h-8" onClick={onSignIn}>
+                      Sign in
+                    </Button>
+                  )}
+                  {!film.take && (linkState === 'off' || linkState === 'failed') && (
+                    <Button type="button" size="sm" variant="outline" className="h-8 gap-1.5" onClick={() => linkActions.current?.connect()}>
+                      <QrCodeIcon className="h-3.5 w-3.5" />
+                      {linkState === 'failed' ? 'Try again' : 'Use your phone'}
+                    </Button>
+                  )}
+                  <Button type="button" size="sm" className="h-8 gap-1.5" onClick={() => ask({ kind: 'add' })}>
+                    <FilmIcon className="h-3.5 w-3.5" />
+                    Add recording
+                  </Button>
+                </div>
+              </div>
+            )}
             <div className="border-t">
               <DirectorTimeline
                 film={film}
                 plan={plan}
                 player={player}
-                thumbs={thumbs}
-                selectedId={selectedId}
-                onSelect={setSelectedId}
-                onRetime={(id, start, end) => update((f) => editMoment(f, id, { start, end }))}
+                selection={selection}
+                onSelect={setSelection}
+                reading={reading}
+                onRetimeMoment={(id, start, end) => {
+                  const current = filmRef.current;
+                  if (!current) return;
+                  const moved = retimeMoment(current, id, { start, end });
+                  update(() => moved.film);
+                  // Moved into another clip, the moment has that clip's id now: what had it picked follows it.
+                  if (moved.id !== id) setSelection((picked) => (picked?.kind === 'moment' && picked.id === id ? { kind: 'moment', id: moved.id } : picked));
+                }}
+                onTrimClip={(clipId, patch) => update((f) => trimClip(f, clipId, patch))}
+                onMoveClip={(clipId, toIndex) => update((f) => moveClip(f, clipId, toIndex))}
+                onSplit={split}
+                onChangeFrom={() => ask(film.clips.length ? { kind: 'from', t: player.time } : { kind: 'add' })}
+                onAddRecording={() => ask({ kind: 'add' })}
+                onAddCloseUp={() => {
+                  const result = addMoment(film, player.time);
+                  if (!result) return;
+                  update(() => result.film);
+                  setSelection({ kind: 'moment', id: result.id });
+                }}
+                onDeleteSelected={deleteSelected}
               />
-              <div className="flex flex-wrap items-center gap-2 px-4 pb-3 text-xs text-muted-foreground">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-7 gap-1"
-                  onClick={() => {
-                    const { film: next, id } = addMoment(film, Math.min(player.time, trimLength(film) - 0.6));
-                    update(() => next);
-                    setSelectedId(id);
-                  }}
-                >
-                  <PlusIcon className="h-3.5 w-3.5" />
-                  Add a close-up here
-                </Button>
-                <span>
-                  {film.moments.length === 0 && reading === null ? 'No moments found yet. Add a close-up where something happens.' : `${film.moments.length} moments. Click one to change it`}
-                </span>
-              </div>
             </div>
           </div>
           <aside className="w-full border-t md:min-h-0 md:w-80 md:shrink-0 md:overflow-y-auto md:border-l md:border-t-0">
             <DirectorInspector
               film={film}
               player={player}
-              selected={selected}
+              selected={selectedMoment}
+              selectedClip={selectedClip}
+              clipActions={clipActions}
               brandColors={project?.colors ?? null}
               live={live}
+              linkActions={linkActions}
+              autoConnect={autoConnectFor === film.id}
               getToken={() => getToken?.() ?? null}
               onSignIn={onSignIn}
+              // No code to scan until the user signs in: the moves-first card says connect instead.
+              onLinkStateChange={setLinkState}
               onLiveChange={() => player.requestDraw()}
               update={update}
               editMoment={(id, patch: Partial<Moment>) => update((f) => editMoment(f, id, patch))}
               removeMoment={(id) => {
                 update((f) => removeMoment(f, id));
-                setSelectedId(null);
+                setSelection(null);
               }}
             />
           </aside>
         </div>
       )}
       {film && <ExportDialog film={film} open={exportOpen} onOpenChange={setExportOpen} onExporting={setExporting} />}
+      <Dialog
+        open={!!picker}
+        onOpenChange={(open) => {
+          if (open) return;
+          setPicker(null);
+          pendingRef.current = null;
+        }}
+      >
+        <DialogContent className="sm:max-w-lg" data-testid="director-recording-picker">
+          <DialogHeader>
+            <DialogTitle>{picker ? PICK_TITLES[picker.kind] : ''}</DialogTitle>
+            <DialogDescription>Choose a file, or a recording already in this project.</DialogDescription>
+          </DialogHeader>
+          <Button type="button" className="w-full gap-1.5" onClick={() => fileRef.current?.click()}>
+            <UploadIcon className="h-4 w-4" />
+            Choose a file
+          </Button>
+          {project && project.recordings.length > 0 && <RecordingList recordings={project.recordings} onUse={(recording) => void applyRecording(recording)} />}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+

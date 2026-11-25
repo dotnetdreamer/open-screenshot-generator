@@ -226,6 +226,8 @@ export interface RecordingSound {
   el: VideoElementProps | VideoDeviceElementProps;
   trimStart: number;
   trimEnd: number;
+  /** Seconds into the export where this recording's sound starts. Unset is 0. */
+  at?: number;
 }
 
 /**
@@ -273,9 +275,10 @@ export async function mixAudio(
     }
     play(buffer, el.volume, range.start, range.sourceStart, range.end - range.start);
   }
-  for (const { el, trimStart, trimEnd } of recordings) {
+  for (const { el, trimStart, trimEnd, at = 0 } of recordings) {
+    if (at >= seconds) continue;
     // Nothing past the end of the export is decoded, however long the file is.
-    const end = Math.min(trimEnd > trimStart ? trimEnd : Infinity, trimStart + seconds);
+    const end = Math.min(trimEnd > trimStart ? trimEnd : Infinity, trimStart + (seconds - at));
     const name = el.name || 'Recording';
     const blob = await loadRecordingBlob(el);
     if (!blob) continue; // the picture already fell back to a placeholder
@@ -287,7 +290,7 @@ export async function mixAudio(
       throw new Error(`The sound in "${name}" could not be read. Turn off its sound in Properties to export without it.`);
     }
     if (!audio) continue;
-    play(audio.buffer, el.volume, audio.lead, audio.offset, audio.duration);
+    play(audio.buffer, el.volume, at + audio.lead, audio.offset, audio.duration);
   }
   const rendered = await context.startRendering();
   return Array.from({ length: AUDIO_CHANNELS }, (_, i) =>

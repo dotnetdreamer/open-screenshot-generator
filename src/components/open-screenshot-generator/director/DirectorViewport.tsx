@@ -13,12 +13,13 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Loader2Icon, PauseIcon, PlayIcon } from 'lucide-react';
 import { DirectorStage } from '@/lib/director/stage';
 import { backdropFor } from '@/lib/director/looks';
-import { stageFrameAt } from '@/lib/director/frame';
-import { drawOverlay } from '@/lib/director/overlay';
+import { stageFrameAt, type HandMoves } from '@/lib/director/frame';
+import { drawOverlay, type OverlayAssets } from '@/lib/director/overlay';
+import { loadOverlayAssets, overlayAssetsKey } from '@/lib/director/overlayAssets';
 import { FORMAT_ASPECT } from '@/lib/director/plan';
 import { finishFor } from '@/lib/director/film';
+import { placeholderScreen, PLACEHOLDER_SIZE } from '@/lib/director/placeholder';
 import type { FilmPlayer } from '@/lib/director/player';
-import { scaleTurn, type Quat } from '@/lib/director/motion';
 import type { Film, FilmPlan } from '@/lib/director/types';
 import { cn } from '@/lib/utils';
 
@@ -26,8 +27,8 @@ import { cn } from '@/lib/utils';
 const RELEASE_AFTER_MS = 20_000;
 
 export interface LiveTurn {
-  /** Read on every frame: the phone's turn now, or null. */
-  current: { q: Quat; zoom: number } | null;
+  /** Read on every frame: the phone's moves now, or null. */
+  current: HandMoves | null;
 }
 
 export function DirectorViewport({
@@ -59,6 +60,8 @@ export function DirectorViewport({
   const [canvasKey, setCanvasKey] = useState(0);
   const [playing, setPlaying] = useState(player.isPlaying);
   const ratioRef = useRef({ draft: 1.25, lastFrame: 0, slow: 0, fast: 0 });
+  /** The icon and badges the words draw, once decoded. */
+  const assetsRef = useRef<OverlayAssets | null>(null);
   filmRef.current = film;
   planRef.current = plan;
 
@@ -118,13 +121,7 @@ export function DirectorViewport({
         stage.setSize(cssW, cssH, ratio);
       }
       if (newFrame) stage.screenChanged();
-      const frame = stageFrameAt(f, p, t);
-      const held = live?.current;
-      if (held) {
-        // What a take of these moves would show: the same strength and the same limit.
-        frame.turn = scaleTurn(held.q, f.takeStrength);
-        frame.pose = { ...frame.pose, zoom: frame.pose.zoom * held.zoom };
-      }
+      const frame = stageFrameAt(f, p, t, live?.current);
       try {
         stage.render(frame);
       } catch (error) {
@@ -140,7 +137,7 @@ export function DirectorViewport({
       const ctx = overlay.getContext('2d');
       if (ctx) {
         ctx.clearRect(0, 0, ow, oh);
-        drawOverlay(ctx, ow, oh, t, p.cues, f.format, backdropFor(f.look));
+        drawOverlay(ctx, ow, oh, t, p.cues, f.format, backdropFor(f.look), f.text, p.duration, assetsRef.current, frame.pose.zoom);
       }
     },
     [player, live]
@@ -164,9 +161,9 @@ export function DirectorViewport({
   }, []);
 
   // The stage: made when Director shows, given back a while after it's left.
+  // (The film itself pauses when Director is left: the view tells the player.)
   useEffect(() => {
     if (!active) {
-      player.pause();
       const timer = window.setTimeout(() => {
         if (player.render === draw) player.render = null;
         release();
@@ -218,6 +215,16 @@ export function DirectorViewport({
 
   useEffect(() => () => release(), [release]);
 
+  /** The phone's screen: the video playing now, or the placeholder in a film with no recording yet. */
+  const applyScreen = useCallback(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const video = player.video;
+    if (video && video.videoWidth) stage.setScreen({ image: video, width: video.videoWidth, height: video.videoHeight });
+    else if (!video) stage.setScreen({ image: placeholderScreen(), ...PLACEHOLDER_SIZE });
+    player.requestDraw();
+  }, [player]);
+
   // The look, the phone and the picture on its screen.
   useEffect(() => {
     const stage = stageRef.current;
@@ -225,34 +232,34 @@ export function DirectorViewport({
     try {
       stage.setLook(backdropFor(film.look));
       stage.setPhone(film.phone.deviceType, finishFor(film.phone.deviceType, film.phone.finish, film.look));
-      const video = player.video;
-      if (video.videoWidth) stage.setScreen({ image: video, width: video.videoWidth, height: video.videoHeight });
+      applyScreen();
     } catch (error) {
       console.error('Director could not set up the stage', error);
     }
     player.requestDraw();
-  }, [film.look, film.phone.deviceType, film.phone.finish, player, active, canvasKey, film.source.mediaId]);
+  }, [film.look, film.phone.deviceType, film.phone.finish, player, active, canvasKey, applyScreen]);
 
   // Anything else that changes the picture draws it again.
   useEffect(() => {
     player.requestDraw();
   }, [film, plan, size, player]);
 
-  // A newly loaded recording goes on the screen.
+  // The icon and the badges, decoded once each; the picture draws again when they come.
+  const assetsKey = overlayAssetsKey(film.text);
   useEffect(() => {
-    const video = player.video;
-    const onLoaded = () => {
-      const stage = stageRef.current;
-      if (stage && video.videoWidth) stage.setScreen({ image: video, width: video.videoWidth, height: video.videoHeight });
+    let current = true;
+    void loadOverlayAssets(filmRef.current.text).then((assets) => {
+      if (!current) return;
+      assetsRef.current = assets;
       player.requestDraw();
-    };
-    video.addEventListener('loadeddata', onLoaded);
-    video.addEventListener('osg-ready', onLoaded);
+    });
     return () => {
-      video.removeEventListener('loadeddata', onLoaded);
-      video.removeEventListener('osg-ready', onLoaded);
+      current = false;
     };
-  }, [player]);
+  }, [assetsKey, player]);
+
+  // Another recording (or none) comes on the screen: at a cut, or when one is added.
+  useEffect(() => player.onScreen(applyScreen), [player, applyScreen]);
 
   return (
     <div ref={boxRef} className="relative flex h-full w-full min-h-0 items-center justify-center" data-testid="director-viewport">
