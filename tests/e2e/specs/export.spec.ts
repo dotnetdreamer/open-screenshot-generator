@@ -1,9 +1,11 @@
 import { readFileSync, statSync } from 'node:fs';
-import type { Download, Page } from '@playwright/test';
+import path from 'node:path';
+import type { BrowserContext, Download, Page } from '@playwright/test';
 import { test, expect } from '../fixtures/test';
 import type { TauriHarness } from '../fixtures/tauri';
-import { readProjects, waitForProject } from '../fixtures/db';
+import { put, readProjects, waitForProject } from '../fixtures/db';
 import { expectBoardSize } from '../helpers/canvas';
+import type { Editor } from '../helpers/editor';
 
 /**
  * Exporting artboards as PNG files, which is the whole point of the app.
@@ -417,6 +419,248 @@ test.describe('exporting to a file', () => {
     // itself must come back exactly as it was.
     await expect(app.artboards).toHaveCount(1);
     await expect(app.canvasSizeButton).toHaveAttribute('title', /1206 × 2622/);
+  });
+});
+
+/** A face that ships with the repo, served in place of Google's (the suite runs offline). */
+const NOTO_SANS_FILE = path.resolve('node_modules/next/dist/compiled/@vercel/og/noto-sans-v27-latin-regular.ttf');
+
+/**
+ * The built-in families' stylesheet kept from the page until `release`, the way
+ * a slow connection keeps it. It declares `family` alone, as Noto Sans drawn at
+ * 140%, so a line set in it is far wider than the same line in the fallback and
+ * breaks somewhere else. The font file itself is answered at once.
+ */
+async function holdFontsStylesheet(context: BrowserContext, family: string): Promise<{ release: () => void }> {
+  let release!: () => void;
+  const released = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const cors = { 'access-control-allow-origin': '*' };
+  const file = readFileSync(NOTO_SANS_FILE);
+  await context.route('https://fonts.gstatic.com/**', (route) =>
+    route.fulfill({ status: 200, headers: { ...cors, 'content-type': 'font/ttf' }, body: file })
+  );
+  await context.route('https://fonts.googleapis.com/**', async (route) => {
+    await released;
+    await route.fulfill({
+      status: 200,
+      headers: { ...cors, 'content-type': 'text/css' },
+      body: `@font-face { font-family: '${family}'; font-style: normal; font-weight: 700; size-adjust: 140%; src: url(https://fonts.gstatic.com/e2e/late-sheet.ttf) format('truetype'); }`,
+    });
+  });
+  return { release };
+}
+
+/** A stored project with one headline set in `fontFamily`, opened in the editor. */
+async function openHeadlineProject(app: Editor, page: Page, fontFamily: string): Promise<void> {
+  await expect(app.startDialog).toBeVisible();
+  await expect
+    .poll(
+      () =>
+        page.evaluate(
+          () =>
+            new Promise<boolean>((resolve) => {
+              const open = indexedDB.open('ProjectDatabase');
+              open.onerror = () => resolve(false);
+              open.onsuccess = () => {
+                const has = open.result.objectStoreNames.contains('projects');
+                open.result.close();
+                resolve(has);
+              };
+            })
+        ),
+      { timeout: 30_000 }
+    )
+    .toBe(true);
+  await put(page, 'projects', {
+    id: 'export_late_fonts',
+    name: 'Late Fonts',
+    timestamp: new Date('2026-11-25T10:00:00.000Z'),
+    projectData: [
+      {
+        id: 'export_late_fonts_board',
+        name: 'Headline',
+        size: { width: 1206, height: 2622 },
+        backgroundColor: '#14213D',
+        zoom: 1,
+        position: { x: 50, y: 50 },
+        elements: [
+          {
+            id: 'export_late_fonts_headline',
+            type: 'text',
+            name: 'Headline',
+            position: { x: 103, y: 300 },
+            size: { width: 1000, height: 1700 },
+            rotation: 0,
+            scale: 1,
+            content: 'Calm mornings for the whole family',
+            fontSize: 48,
+            color: '#FFFFFF',
+            fontFamily,
+            fontWeight: '700',
+            textAlign: 'center',
+            lineHeight: 1.2,
+          },
+        ],
+      },
+    ],
+  });
+  await app.goto('/?projectId=export_late_fonts');
+  await expect(app.artboards).toHaveCount(1, { timeout: 45_000 });
+  await expect(app.board(0).locator('[data-element-id="export_late_fonts_headline"]')).toBeVisible({ timeout: 45_000 });
+}
+
+/**
+ * The built-in families' stylesheet answered at once, and the font file it
+ * names kept back until `release`: the page knows the face and starts loading
+ * it, and the load does not finish. A connection that stalls, not one that
+ * fails. Declared the way holdFontsStylesheet declares it.
+ */
+async function holdFontFile(context: BrowserContext, family: string): Promise<{ release: () => void }> {
+  let release!: () => void;
+  const released = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const cors = { 'access-control-allow-origin': '*' };
+  const file = readFileSync(NOTO_SANS_FILE);
+  await context.route('https://fonts.gstatic.com/**', async (route) => {
+    await released;
+    // A request the app gave up on is gone by now, and has nothing to answer.
+    await route.fulfill({ status: 200, headers: { ...cors, 'content-type': 'font/ttf' }, body: file }).catch(() => undefined);
+  });
+  await context.route('https://fonts.googleapis.com/**', (route) =>
+    route.fulfill({
+      status: 200,
+      headers: { ...cors, 'content-type': 'text/css' },
+      body: `@font-face { font-family: '${family}'; font-style: normal; font-weight: 700; size-adjust: 140%; src: url(https://fonts.gstatic.com/e2e/stalled-file.ttf) format('truetype'); }`,
+    })
+  );
+  return { release };
+}
+
+/** What the tests below ask of the Late Fonts project: its headline's lines, and its exports. */
+function lateFontsProject(app: Editor, page: Page, tauri: TauriHarness, isDesktop: boolean, downloads: Download[]) {
+  const headline = app.board(0).locator('[data-element-id="export_late_fonts_headline"] [data-text-body]');
+  return {
+    /** How many lines the headline is drawn on, from its own line boxes. */
+    lines: () =>
+      headline.evaluate((node) => {
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        return new Set([...range.getClientRects()].filter((box) => box.width > 0.5).map((box) => Math.round(box.top))).size;
+      }),
+    /** What the page knows of the face: nothing yet, loading it, or holding it. */
+    face: () =>
+      page.evaluate(() => {
+        const found = [...document.fonts].filter((entry) => entry.family.replace(/["']/g, '') === 'Outfit');
+        return found.length === 0 ? 'unknown' : found.some((entry) => entry.status === 'loaded') ? 'loaded' : found[0].status;
+      }),
+    /** How many files the export has written so far. */
+    written: async () => (isDesktop ? (await tauri.files()).length : downloads.length),
+    exported: async (index: number): Promise<Buffer> => {
+      const names = await exportedNames(isDesktop, tauri, downloads, index + 1);
+      expect(names[index]).toBe('01_Headline_iPhone-6_3-Portrait_1206x2622.png');
+      if (isDesktop) return Buffer.from((await tauri.lastPng())!.base64, 'base64');
+      return readFileSync(await downloads[index].path());
+    },
+    runExport: async () => {
+      await app.openExportDialog();
+      await app.exportDialog.getByRole('button', { name: 'Export', exact: true }).click();
+      await expect(app.exportDialog).toBeHidden();
+    },
+  };
+}
+
+test.describe('exporting before the fonts have arrived', () => {
+  test('an export started before the fonts stylesheet lands is drawn in the faces it declares', async ({
+    app,
+    page,
+    context,
+    tauri,
+    isDesktop,
+  }) => {
+    test.setTimeout(180_000);
+    const sheet = await holdFontsStylesheet(context, 'Outfit');
+    const downloads = collectDownloads(page);
+    await openHeadlineProject(app, page, 'Outfit');
+
+    const { lines, face, exported, runExport } = lateFontsProject(app, page, tauri, isDesktop, downloads);
+    const declared = async () => (await face()) !== 'unknown';
+
+    // The page has no rule for the face yet, so it is drawing the fallback and
+    // nothing is loading. This is the moment an export used to go ahead in.
+    expect(await declared()).toBe(false);
+    const fallbackLines = await lines();
+
+    await runExport();
+    // The export is under way. Only now does the stylesheet land.
+    await page.waitForTimeout(1500);
+    sheet.release();
+    const early = await exported(0);
+    await expect(progressDialog(page)).toBeHidden({ timeout: 60_000 });
+
+    // The face is on the page now, and it breaks the headline differently.
+    await expect.poll(declared, { timeout: 15_000 }).toBe(true);
+    await expect.poll(lines, { timeout: 15_000 }).toBeGreaterThan(fallbackLines);
+
+    // The same board exported with everything in place is the same picture.
+    await runExport();
+    const settled = await exported(1);
+    expect(pngHeader(early)).toEqual({ signature: '89504e470d0a1a0a', width: 1206, height: 2622, colorType: 2 });
+    expect(early.equals(settled), 'the early export is the picture the settled export is').toBe(true);
+  });
+
+  test('a font file that never comes holds the export up once, for ten seconds, and the export says so', async ({
+    app,
+    page,
+    context,
+    tauri,
+    isDesktop,
+  }) => {
+    test.setTimeout(240_000);
+    const file = await holdFontFile(context, 'Outfit');
+    const downloads = collectDownloads(page);
+    await openHeadlineProject(app, page, 'Outfit');
+    const { lines, face, written, exported, runExport } = lateFontsProject(app, page, tauri, isDesktop, downloads);
+
+    // The page has the rule and has asked for the file, which is not coming.
+    // `document.fonts.ready` is unsettled for as long as that lasts.
+    await expect.poll(face, { timeout: 30_000 }).toBe('loading');
+    const fallbackLines = await lines();
+
+    // The export waits its ten seconds for the face, then goes ahead in the
+    // fallback the canvas is showing. It used to wait for as long as the file took.
+    let started = Date.now();
+    await runExport();
+    await expect.poll(written, { timeout: 30_000 }).toBeGreaterThanOrEqual(1);
+    const first = Date.now() - started;
+    expect(first, 'the wait for the face').toBeGreaterThan(8_000);
+    const stalled = await exported(0);
+    expect(await face()).toBe('loading');
+    await expect(page.getByText('Outfit did not load', { exact: true })).toBeVisible();
+    await expect(progressDialog(page)).toBeHidden({ timeout: 30_000 });
+
+    // Nothing has changed, so the next export does not wait all over again.
+    started = Date.now();
+    await runExport();
+    await expect.poll(written, { timeout: 30_000 }).toBeGreaterThanOrEqual(2);
+    expect(Date.now() - started, 'the second export').toBeLessThan(Math.min(first - 3_000, 9_000));
+    expect((await exported(1)).equals(stalled), 'the same fallback picture').toBe(true);
+    await expect(progressDialog(page)).toBeHidden({ timeout: 30_000 });
+
+    // The file arrives. The headline breaks differently in it, and the exports
+    // from here on are drawn in it: nothing remembers the face as missing.
+    file.release();
+    await expect.poll(face, { timeout: 30_000 }).toBe('loaded');
+    await expect.poll(lines, { timeout: 15_000 }).toBeGreaterThan(fallbackLines);
+    await runExport();
+    const arrived = await exported(2);
+    await expect(progressDialog(page)).toBeHidden({ timeout: 30_000 });
+    await runExport();
+    const settled = await exported(3);
+    expect(arrived.equals(stalled), 'the face is in the picture now').toBe(false);
+    expect(arrived.equals(settled), 'and stays in it').toBe(true);
   });
 });
 

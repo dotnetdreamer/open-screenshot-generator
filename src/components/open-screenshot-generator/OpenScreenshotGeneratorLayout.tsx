@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, useDeferredValue } from 'react';
 import { captureNodeToPng } from '@/lib/exportRaster';
+import { takeFontsLeftOut } from '@/lib/fontEmbed';
 import { updateStudioLive } from '@/lib/device3dStudioLive';
 import { preloadGoogleFonts } from '@/services/fontService';
 import { loadCustomFontFamilies, loadCustomFonts, useCustomFonts } from '@/services/customFonts';
@@ -4857,13 +4858,7 @@ export function OpenScreenshotGeneratorLayout() {
     return withLocaleOnCanvas(translated ? null : undefined, async () => {
       const node = document.querySelector(`[data-artboard-dom-id="${boardId}"]`) as HTMLElement | null;
       if (!node) return null;
-      if (typeof document !== 'undefined' && document.fonts?.ready) {
-        try {
-          await document.fonts.ready;
-        } catch {
-          // A browser that cannot report font loading captures what it has.
-        }
-      }
+      // Each capture below waits for the icon's own faces, with a limit (see captureArtboardDataUrl).
       const backIds = new Set(board.elements.filter((el) => el.iconLayer === 'back').map((el) => el.id));
       const chrome = (el: HTMLElement) => !!(el?.hasAttribute?.('data-export-exclude') || el?.hasAttribute?.('data-interaction-handle'));
       const layerOf = (el: HTMLElement): 'back' | 'front' | null => {
@@ -6042,6 +6037,19 @@ export function OpenScreenshotGeneratorLayout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /**
+   * Which fonts the pictures just taken went without, as the title of the
+   * toast that says so, or null when every font was there. A capture waits ten
+   * seconds for a font that is not coming and is then taken in the font the
+   * canvas falls back to. It used to say nothing, and the wrong font is easy
+   * to miss in a file until it is on the store.
+   */
+  const fontsLeftOutTitle = (): string | null => {
+    const families = takeFontsLeftOut();
+    if (families.length === 0) return null;
+    return `${families.length <= 2 ? families.join(' and ') : `${families.length} fonts`} did not load`;
+  };
+
   // Capture a list of artboards to PNG downloads by grabbing each board's
   // live DOM node (matched by artboard id). The list must be what the canvas
   // is currently rendering — for generated formats, handleConfirmExport
@@ -6065,16 +6073,12 @@ export function OpenScreenshotGeneratorLayout() {
       return null;
     }
 
-    // toPng does not wait for webfonts. Exporting straight after switching to
-    // a language in another script used to rasterize the fallback face with
-    // no error at all, which is invisible until the store rejects it.
-    if (typeof document !== 'undefined' && document.fonts?.ready) {
-      try {
-        await document.fonts.ready;
-      } catch {
-        // A browser that cannot report font loading just captures what it has.
-      }
-    }
+    // The capture waits for the faces this artboard is set in itself, for ten
+    // seconds at most (resolveFontEmbedCss): exporting straight after
+    // switching to a language in another script used to rasterize the fallback
+    // face with no error at all. `document.fonts.ready` was awaited here as
+    // well, with no limit, and it does not settle while any font file on the
+    // page is stalled: one that never came held the export for as long.
 
     // Use html-to-image to capture the artboard at exact specified dimensions.
     // The unscale goes through the `style` option, which html-to-image applies
@@ -6241,6 +6245,8 @@ export function OpenScreenshotGeneratorLayout() {
     // Both exports rasterize the live canvas, so a timeline left running would
     // bake a mid-animation frame into the output.
     stopPlayback();
+    // Whatever older captures went without is not this export's to report.
+    takeFontsLeftOut();
 
     const original = artboardsRef.current;
 
@@ -6459,8 +6465,25 @@ export function OpenScreenshotGeneratorLayout() {
       pngExportCancelRef.current = false;
 
       // One summary instead of a toast per file. A single-file export names
-      // where it went, which is the useful bit on desktop.
-      if (saved.length === 1 && !cancelled) {
+      // where it went, which is the useful bit on desktop. Only one toast
+      // shows at a time, so a run that went without a font says that and where
+      // its files are in the same one.
+      const missingFonts = saved.length > 0 && !cancelled ? fontsLeftOutTitle() : null;
+      if (missingFonts) {
+        const where =
+          saved.length === 1
+            ? saved[0].path
+              ? `Saved to ${saved[0].path}`
+              : `"${saved[0].filename}" has been downloaded`
+            : exportDir
+              ? `${saved.length} of ${totalFiles} images saved to ${exportDir}`
+              : `${saved.length} of ${totalFiles} images downloaded`;
+        toast({
+          title: missingFonts,
+          description: `${where}, with the text in a different font. Check your connection, then export again.`,
+          variant: 'destructive',
+        });
+      } else if (saved.length === 1 && !cancelled) {
         toast({
           title: "Artboard Exported",
           description: saved[0].path
@@ -6545,10 +6568,21 @@ export function OpenScreenshotGeneratorLayout() {
     const capturePass = async (list: ArtboardState[]) => {
       window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'begin' } }));
       await new Promise((resolve) => setTimeout(resolve, 100));
+      // Whatever older captures went without is not this upload's to report.
+      takeFontsLeftOut();
       try {
         return await buildImages(list);
       } finally {
         window.dispatchEvent(new CustomEvent('artboard:export', { detail: { phase: 'end' } }));
+        // Said before the images reach the store, where the wrong font stays.
+        const missingFonts = fontsLeftOutTitle();
+        if (missingFonts) {
+          toast({
+            title: missingFonts,
+            description: 'The text in these images is in a different font. Check your connection, then upload again.',
+            variant: 'destructive',
+          });
+        }
       }
     };
 
@@ -11080,13 +11114,7 @@ const generateRandomProjectName = (): string => {
       throw new Error('Another project is open now. Open the project again to take its screenshots');
     }
     return withLocaleOnCanvas(request.locale, async () => {
-      if (typeof document !== 'undefined' && document.fonts?.ready) {
-        try {
-          await document.fonts.ready;
-        } catch {
-          // A browser that cannot report font loading captures what it has.
-        }
-      }
+      // Each capture below waits for its artboard's faces, with a limit (see captureArtboardDataUrl).
       const out: CapturedBoard[] = [];
       for (const id of request.boardIds) {
         const board = artboards.find((ab) => ab.id === id);
