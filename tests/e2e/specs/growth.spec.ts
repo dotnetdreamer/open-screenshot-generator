@@ -185,13 +185,14 @@ test.describe('growth', () => {
       await app.startBlankProject();
     });
 
-    test('Growth opens on Ask AI for the app, and the overview measures the new screenshots', async ({ page }) => {
+    test('Growth opens on Today with a key, and the overview measures the new screenshots', async ({ page }) => {
       const view = await openGrowth(page);
+      await expect(section(view, 'Today')).toHaveAttribute('aria-current', 'page');
+      await expect(view.getByRole('button', { name: 'Refresh all', exact: true })).toBeEnabled();
+      await section(view, 'Overview').click();
       await expect(view.getByRole('combobox', { name: 'App' })).toContainText(TEST_APP.name);
       await expect(view.getByTestId('growth-no-app')).toHaveCount(0);
       await expect(view.getByRole('button', { name: 'Refresh', exact: true })).toBeEnabled();
-      await expect(section(view, 'Ask AI')).toHaveAttribute('aria-current', 'page');
-      await section(view, 'Overview').click();
 
       const impact = view.getByTestId('growth-impact');
       await expect(impact).toContainText('Did the new screenshots work?');

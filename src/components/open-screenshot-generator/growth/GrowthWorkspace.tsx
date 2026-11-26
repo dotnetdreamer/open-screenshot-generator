@@ -53,6 +53,7 @@ import {
   SparklesIcon,
   SquareIcon,
   StarIcon,
+  SunIcon,
   TypeIcon,
   UsersIcon,
 } from 'lucide-react';
@@ -86,6 +87,7 @@ import { checkListing } from '@/lib/growth/listingChecks';
 import { EMPTY_GROWTH_DATA } from '@/lib/growth/loadData';
 import { completeThrough, defaultWindow, indexRecords } from '@/lib/growth/metrics';
 import { getGrowthSettings, setGrowthSettings, useGrowthSettings } from '@/lib/growth/settings';
+import { localDay, manualCounts, useManualTodos } from '@/lib/growth/manualTodos';
 import { configureAssistant, useAssistantNeedsYou, type RefreshResult } from '@/lib/growth/setup/assistant';
 import { isSyncing, metaKeys, syncApp } from '@/lib/growth/sync';
 import { bucketFromUri } from '@/lib/growth/play';
@@ -130,11 +132,19 @@ import { GrowthReviews } from './GrowthReviews';
 import { GrowthRivalReviews } from './GrowthRivalReviews';
 import { Gated, GrowthProvider, StoreImage, type GrowthTab, type GrowthTabOptions, type GrowthView, type OpenProject } from './GrowthShared';
 import { GrowthTimeline } from './GrowthTimeline';
+import { GrowthToday, TodayAppStack } from './GrowthToday';
 
 const DESKTOP_URL = 'https://openscrgen.app';
 
 /** Stands in for the app while there is none, so every screen can draw itself empty. */
 const NO_APP: GrowthApp = { id: '', name: 'Your app', bundleId: '' };
+
+/** The desktop app has a store key saved, so Growth has apps to show. */
+function hasStoreKey(): boolean {
+  if (!isStorePublishingAvailable()) return false;
+  const saved = getStoreCredentials();
+  return !!saved.appstore || !!saved.playstore?.packageName.trim();
+}
 
 const RANGES = [
   { days: 7, label: 'Last 7 days' },
@@ -153,6 +163,7 @@ interface NavItem {
 const NAV: Array<{ label?: string; items: NavItem[] }> = [
   {
     items: [
+      { tab: 'today', label: 'Today', icon: SunIcon },
       { tab: 'ask', label: 'Ask AI', icon: BotIcon },
       { tab: 'overview', label: 'Overview', icon: LayoutDashboardIcon },
       { tab: 'insights', label: 'Insights', icon: LightbulbIcon },
@@ -222,9 +233,10 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
   // Null until the account's apps have been asked for with this key.
   const [appsListed, setAppsListed] = useState<string | null>(null);
   const [appsError, setAppsError] = useState<string | null>(null);
-  // Ask AI first: with nothing set up its assistant does the setup, and
-  // afterwards it answers questions about the numbers.
-  const [tab, setTab] = useState<GrowthTab>(() => request?.tab ?? 'ask');
+  // Today once a store key is saved, so every app is one look away. Before
+  // that Ask AI, whose assistant does the setup. The view mounts on its first
+  // visit, long after the page has loaded, so the keys can be read here.
+  const [tab, setTab] = useState<GrowthTab>(() => request?.tab ?? (hasStoreKey() ? 'today' : 'ask'));
   const [tabOptions, setTabOptions] = useState<GrowthTabOptions>(request?.options ?? {});
   // Bumped on every navigation, so going to the tab already open with new
   // options (a filter from an insight card) starts that screen afresh.
@@ -382,15 +394,18 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
               ? 'Loading your apps from App Store Connect'
               : 'Your App Store Connect account has no apps yet';
 
-  const runSync = useCallback((): Promise<SyncStatus> | undefined => {
+  // Any app of the account, not only the one in the picker: Today refreshes
+  // them all.
+  const runSyncFor = useCallback((target: GrowthApp | null): Promise<SyncStatus> | undefined => {
     // Read at call time rather than from the render: a key saved a moment ago
     // under Setup is in the store before this component re-renders.
     const latest = getStoreCredentials();
-    if (!desktop || !picked) return undefined;
-    const id = picked.id;
+    if (!desktop || !target) return undefined;
+    const id = target.id;
     const play = isPlayApp(id);
     const playCredentials = play && latest.playstore && playAppId(latest.playstore.packageName) === id ? latest.playstore : null;
-    if (play ? !playCredentials : !latest.appstore || !ascApp) return undefined;
+    const targetAsc = play ? undefined : apps.find((entry) => entry.id === id);
+    if (play ? !playCredentials : !latest.appstore || !targetAsc) return undefined;
     // A sync the background monitor started is joined (syncApp hands back the
     // one running), so the header shows it rather than a Refresh that does nothing.
     if (controllers.current.has(id)) return syncWork.current.get(id);
@@ -410,8 +425,8 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
       onProgress: (next: SyncProgress | null) => patch({ progress: next }),
     };
     const work = playCredentials
-      ? syncPlayApp({ ...callbacks, credentials: playCredentials, app: picked, bucket: bucketFromUri(current.playReportsUri) })
-      : syncApp({ ...callbacks, credentials: latest.appstore!, app: ascApp!, allApps: apps, vendorNumber: current.vendorNumber });
+      ? syncPlayApp({ ...callbacks, credentials: playCredentials, app: target, bucket: bucketFromUri(current.playReportsUri) })
+      : syncApp({ ...callbacks, credentials: latest.appstore!, app: targetAsc!, allApps: apps, vendorNumber: current.vendorNumber });
     syncWork.current.set(id, work);
     void work
       .catch((error) => console.error('Growth sync failed', error))
@@ -431,7 +446,49 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
         if (!stop.signal.aborted) latestRunOwed.current();
       });
     return work;
-  }, [desktop, picked, ascApp, apps, reload]);
+  }, [desktop, apps, reload]);
+
+  const runSync = useCallback(() => runSyncFor(picked), [runSyncFor, picked]);
+
+  // Today's Refresh all: one app after another, never side by side, as the
+  // background monitor does, so a refresh of ten apps never runs ten at once.
+  const [refreshing, setRefreshing] = useState<{ appId: string; index: number; total: number } | null>(null);
+  const refreshStop = useRef<AbortController | null>(null);
+  const latestRunSyncFor = useRef(runSyncFor);
+  latestRunSyncFor.current = runSyncFor;
+  const everyAppRef = useRef<GrowthApp[]>([]);
+  const refreshApps = useCallback((appIds: string[]) => {
+    if (refreshStop.current) return;
+    const list = everyAppRef.current.filter((entry) => appIds.includes(entry.id));
+    if (list.length === 0) return;
+    const stop = new AbortController();
+    refreshStop.current = stop;
+    void (async () => {
+      try {
+        for (const [index, target] of list.entries()) {
+          if (stop.signal.aborted) break;
+          setRefreshing({ appId: target.id, index, total: list.length });
+          const work = latestRunSyncFor.current(target);
+          if (!work) continue;
+          // Stop ends the app being read too, not only the ones after it.
+          const end = () => controllers.current.get(target.id)?.abort();
+          stop.signal.addEventListener('abort', end);
+          try {
+            await work;
+          } catch (error) {
+            console.error(`Refreshing ${target.name} failed`, error);
+          } finally {
+            stop.signal.removeEventListener('abort', end);
+          }
+        }
+      } finally {
+        if (refreshStop.current === stop) refreshStop.current = null;
+        setRefreshing(null);
+      }
+    })();
+  }, []);
+  const stopRefresh = useCallback(() => refreshStop.current?.abort(), []);
+  useEffect(() => () => refreshStop.current?.abort(), []);
 
   // The app on screen syncs if it owes one: at once, or when the sync under
   // way ends (its finally calls this again), since that one began earlier.
@@ -647,9 +704,13 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
   const assistantNeedsYou = useAssistantNeedsYou();
 
   const everyApp: GrowthApp[] = useMemo(() => [...apps, ...(playApp ? [playApp] : [])], [apps, playApp]);
+  everyAppRef.current = everyApp;
   // The picked app's reviews and marks, for the count of reviews to do on its button.
   const ownInbox = useReviewInbox(useMemo(() => (picked ? [picked.id] : []), [picked]));
   const toDo = useMemo(() => statusCounts(ownInbox.reviews, ownInbox.marks).todo, [ownInbox.reviews, ownInbox.marks]);
+  // The user's own to-dos due today or late, for the count on Today's button.
+  const manualTodos = useManualTodos();
+  const ownTodos = manualCounts(manualTodos.list, localDay());
   // The reviews are on screen here, so the background message about them is not needed.
   useEffect(() => {
     if (active && picked) void clearUntoldReviews(picked.id);
@@ -688,6 +749,22 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
     },
     tabOptions,
     goTo,
+    openApp: (appId, next, options) => {
+      setSettings({ appId });
+      goTo(next, options);
+    },
+    refreshApps,
+    stopRefresh,
+    refreshing,
+    syncProgress: Object.fromEntries(Object.entries(syncs).map(([id, entry]) => [id, entry.progress])),
+    refreshReason: (appId) => {
+      if (!mounted) return 'Loading';
+      if (!desktop) return 'Growth works in the desktop app only';
+      if (isPlayApp(appId)) {
+        return playKey && playAppId(playKey.packageName) === appId ? null : 'Add your Google Play service account key under Setup first';
+      }
+      return key && apps.some((entry) => entry.id === appId) ? null : 'Add your App Store Connect API key under Setup first';
+    },
     dismissInsight: (id) => {
       if (!picked) return;
       void writeMeta(metaKeys.insightsDismissed(picked.id), [...data.dismissed, id]).then(data.reload);
@@ -707,6 +784,7 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
   };
 
   const badge = (target: GrowthTab): number => {
+    if (target === 'today') return ownTodos.dueToday + ownTodos.late;
     if (target === 'ask') return assistantNeedsYou && tab !== 'ask' ? 1 : 0;
     if (target === 'insights') return insights.filter((insight) => insight.tone === 'problem' || insight.tone === 'warning').length;
     if (target === 'reviews') return toDo;
@@ -720,6 +798,26 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
 
   const iconUrl = picked ? data.live?.iconUrl ?? app.iconUrl : undefined;
 
+  // Today speaks for every app: its header refreshes them all, and its bar
+  // follows the whole refresh rather than one app's.
+  const onToday = tab === 'today';
+  // A refresh of one app (the automatic one, or one from a row) shows here too.
+  const runningId = refreshing?.appId ?? Object.keys(syncs)[0] ?? null;
+  const refreshingApp = runningId ? everyApp.find((entry) => entry.id === runningId) ?? null : null;
+  const refreshingProgress = runningId ? syncs[runningId]?.progress ?? null : null;
+  const share = (done: number, total: number) => Math.max(0.05, total > 0 ? done / total : 0);
+  const barShare = onToday
+    ? refreshing
+      ? share(refreshing.index + (refreshingProgress && refreshingProgress.total > 0 ? refreshingProgress.done / refreshingProgress.total : 0), refreshing.total)
+      : refreshingProgress
+        ? share(refreshingProgress.done, refreshingProgress.total)
+        : null
+    : progress
+      ? progress.total > 0
+        ? progress.done / progress.total
+        : 0.05
+      : null;
+
   return (
     <section className="flex h-full min-h-0 flex-col bg-background" data-testid="growth-view" aria-labelledby="growth-view-title">
       <h1 id="growth-view-title" className="sr-only">
@@ -727,6 +825,14 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
       </h1>
 
       <header className="relative flex flex-wrap items-center gap-2 border-b px-4 py-3">
+        {onToday ? (
+          <div className="flex min-w-0 items-center gap-2.5">
+            <TodayAppStack apps={everyApp} />
+            <p className="truncate text-sm font-semibold">
+              {everyApp.length > 1 ? `All ${everyApp.length} apps` : everyApp.length === 1 ? everyApp[0].name : 'All your apps'}
+            </p>
+          </div>
+        ) : (
         <div className="flex min-w-0 items-center gap-2">
           {iconUrl ? (
             <StoreImage src={iconUrl} alt="" className="h-8 w-8 shrink-0 rounded-lg border" />
@@ -766,8 +872,21 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
             <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">{words.store}</span>
           )}
         </div>
+        )}
         <div className="ml-auto flex flex-wrap items-center gap-2">
-          {progress ? (
+          {onToday ? (
+            refreshingApp ? (
+              <span role="status" className="sr-only text-xs text-muted-foreground lg:not-sr-only lg:flex lg:max-w-[320px] lg:items-center lg:gap-1.5">
+                <Loader2Icon className="h-3.5 w-3.5 shrink-0 animate-spin" />
+                <span className="min-w-0 truncate">Refreshing {refreshingApp.name}</span>
+                {refreshing && refreshing.total > 1 && (
+                  <span className="shrink-0 tabular-nums">
+                    {refreshing.index + 1} of {refreshing.total}
+                  </span>
+                )}
+              </span>
+            ) : null
+          ) : progress ? (
             // In the dates' place, on the same line. As a line of its own it
             // made the header 24 px taller while a refresh ran, so everything
             // under it moved when one started or ended, under the pointer too.
@@ -797,7 +916,41 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
               ))}
             </SelectContent>
           </Select>
-          {syncing ? (
+          {onToday ? (
+            <>
+              {(refreshing || runningId) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8"
+                  onClick={() => {
+                    stopRefresh();
+                    for (const stop of controllers.current.values()) stop.abort();
+                  }}
+                  title="Stop refreshing and keep everything loaded so far"
+                >
+                  <SquareIcon className="mr-1.5 h-3.5 w-3.5" />
+                  Stop
+                </Button>
+              )}
+              {/* While one app refreshes on its own, every app can still be
+                  asked for: the refresh joins the one under way. */}
+              {!refreshing && (
+                <Gated reason={anyApps ? null : appReason}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                    onClick={() => refreshApps(everyApp.map((entry) => entry.id))}
+                    title="Get the latest numbers for every app, one app after another"
+                  >
+                    <RefreshCwIcon className="mr-1.5 h-3.5 w-3.5" />
+                    Refresh all
+                  </Button>
+                </Gated>
+              )}
+            </>
+          ) : syncing ? (
             <Button variant="outline" size="sm" className="h-8" onClick={() => controllers.current.get(app.id)?.abort()} title="Stop refreshing and keep everything loaded so far">
               <SquareIcon className="mr-1.5 h-3.5 w-3.5" />
               Stop
@@ -811,18 +964,15 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
             </Gated>
           )}
         </div>
-        {progress && (
+        {barShare !== null && (
           // Over the header's bottom border, so it takes no room of its own.
           <div className="pointer-events-none absolute inset-x-0 -bottom-px h-0.5 overflow-hidden" aria-hidden>
-            <div
-              className="h-full bg-[hsl(var(--growth-series))] transition-[width]"
-              style={{ width: `${progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 5}%` }}
-            />
+            <div className="h-full bg-[hsl(var(--growth-series))] transition-[width]" style={{ width: `${Math.round(barShare * 100)}%` }} />
           </div>
         )}
       </header>
 
-      {mounted && !picked && tab !== 'competitors' && tab !== 'keywords' && tab !== 'ask' && tab !== 'rival-reviews' && tab !== 'review-summary' && (
+      {mounted && !picked && tab !== 'competitors' && tab !== 'keywords' && tab !== 'ask' && tab !== 'rival-reviews' && tab !== 'review-summary' && tab !== 'today' && (
         <div className="flex flex-wrap items-center gap-2 border-b bg-muted/50 px-4 py-2 text-xs" role="status" data-testid="growth-no-app">
           <span className="min-w-0 flex-1">{appReason}.</span>
           {!desktop ? (
@@ -872,17 +1022,18 @@ export function GrowthWorkspace({ active, request, onPublish, onLocalize, onAskA
 
         <main
           className={cn('min-h-0 flex-1', tab === 'ask' ? 'overflow-hidden' : 'overflow-y-auto p-4')}
-          // Ask AI keeps nothing per app, so a key that brings the first app
-          // does not start the screen again.
-          key={tab === 'ask' ? `ask:${navEpoch}` : `${app.id}:${tab}:${navEpoch}`}
+          // Ask AI and Today keep nothing per app, so a key that brings the
+          // first app, or another app picked, does not start them again.
+          key={tab === 'ask' || tab === 'today' ? `${tab}:${navEpoch}` : `${app.id}:${tab}:${navEpoch}`}
         >
-          {!data.loaded ? (
+          {!data.loaded && tab !== 'today' ? (
             <p className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2Icon className="h-4 w-4 animate-spin" />
               Loading {app.name}
             </p>
           ) : (
             <GrowthProvider value={view}>
+              {tab === 'today' && <GrowthToday />}
               {tab === 'overview' && <GrowthOverview />}
               {tab === 'insights' && <GrowthInsights />}
               {tab === 'ratings' && <GrowthRatings />}

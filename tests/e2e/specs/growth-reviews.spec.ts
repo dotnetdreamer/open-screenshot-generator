@@ -2,7 +2,7 @@ import { generateKeyPairSync } from 'node:crypto';
 import type { Page } from '@playwright/test';
 import { test, expect } from '../fixtures/test';
 import type { TauriHttpRule } from '../fixtures/tauri-runtime';
-import { TEST_ACCOUNT_RULES, TEST_APP, TEST_KEY, connectTestAccount, gateOf, growthMeta, openGrowth, putGrowthRows, section } from '../helpers/growth';
+import { TEST_ACCOUNT_RULES, TEST_APP, TEST_KEY, connectTestAccount, gateOf, growthMeta, openGrowth, openGrowthSection, putGrowthRows, section } from '../helpers/growth';
 import { sampleRatings, sampleReviews } from '../../fixtures/growthSample';
 
 // The Ratings and reviews group of Growth: Ratings, the review inbox, the
@@ -145,7 +145,7 @@ async function followRival(page: Page) {
  * when the app arrives, so nothing is pressed before then.
  */
 async function openApp(page: Page) {
-  const view = await openGrowth(page);
+  const view = await openGrowthSection(page, 'Overview');
   await expect(view.getByRole('combobox', { name: 'App' })).toContainText(TEST_APP.name);
   return view;
 }

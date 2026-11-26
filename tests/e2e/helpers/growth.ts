@@ -35,6 +35,18 @@ export async function openGrowth(page: Page): Promise<Locator> {
   return view;
 }
 
+/**
+ * Switch to Growth and open one app's section there. With a store key saved
+ * Growth opens on Today, which speaks for every app and has no app picker, so
+ * a spec about one app goes to that app's section first.
+ */
+export async function openGrowthSection(page: Page, name: string): Promise<Locator> {
+  const view = await openGrowth(page);
+  await section(view, name).click();
+  await expect(section(view, name)).toHaveAttribute('aria-current', 'page');
+  return view;
+}
+
 /** Switch back to the editor. Growth stays mounted, out of sight. */
 export async function backToEditor(page: Page): Promise<void> {
   await viewButton(page, 'Editor').click();
