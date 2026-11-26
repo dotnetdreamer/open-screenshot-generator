@@ -570,7 +570,7 @@ export function PublishDialog({
 
   // Suggest a Play slot from the first selected board, until the user picks one.
   // A foldable board has no slot here, so it never picks one: its size would
-  // suggest the 10-inch tablet slot.
+  // suggest a tablet slot.
   useEffect(() => {
     if (store !== 'playstore' || imageTypePicked || selected.length === 0) return;
     const size = selected.map(targetSize).find((entry) => !isPlayFoldableSize(entry.width, entry.height));
@@ -678,7 +678,8 @@ export function PublishDialog({
   const reviewBlocked = noEditableVersion && versions!.some((v) => v.inReview);
 
   const playSlot = PLAY_IMAGE_TARGETS.find((entry) => entry.imageType === imageType);
-  const playSlotLabel = playSlot?.label.toLowerCase() ?? 'this slot';
+  // As Play Console writes it: "Wear OS" and "Android TV" keep their capitals.
+  const playSlotLabel = playSlot?.label ?? 'this slot';
   const playSlotMax = playSlot?.max ?? 8;
 
   const toggle = (id: string) =>
@@ -1381,7 +1382,7 @@ export function PublishDialog({
                           ? previewRows.length > 0
                             ? `yours are added alongside what is already there. The App Store holds ${MAX_SCREENSHOTS_PER_SET} screenshots and ${MAX_PREVIEWS_PER_SET} App Previews per size, and refuses the upload if either total would go over`
                             : `yours are added alongside the screenshots already there. The App Store holds ${MAX_SCREENSHOTS_PER_SET} per size and refuses the upload if the total would go over`
-                          : `yours are added alongside the images already there. ${playSlotLabel} holds ${playSlotMax} image${playSlotMax === 1 ? '' : 's'} in total`}
+                          : `yours are added alongside the images already there. ${playSlot?.label ?? 'The slot'} holds ${playSlotMax} image${playSlotMax === 1 ? '' : 's'} in total`}
                       </p>
                     </div>
                   </div>

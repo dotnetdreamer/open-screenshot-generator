@@ -115,6 +115,23 @@ export const DEFAULTS: Required<Pick<OsgConfig, 'out' | 'project' | 'formats' | 
   assetsBaseUrl: 'https://editor.openscrgen.app',
 };
 
+/**
+ * The sizes to render when the config names none: the store's required phone
+ * screenshot. DEFAULTS.formats is the App Store's; a Play project gets Play's
+ * 1080 x 1920 phone, not an iPhone.
+ */
+export function defaultFormatsFor(store: string | undefined): string[] {
+  return store === 'play' ? ['play-phone'] : DEFAULTS.formats;
+}
+
+/** A store name as the flags take it, with the spellings people type for each. */
+export function storeFromFlag(value: string): 'appstore' | 'play' {
+  const raw = value.trim().toLowerCase();
+  if (raw === 'appstore' || raw === 'ios' || raw === 'apple') return 'appstore';
+  if (raw === 'play' || raw === 'playstore' || raw === 'android' || raw === 'google') return 'play';
+  throw usageError(`Unknown store: ${value}`, 'Use --store appstore or --store play');
+}
+
 async function loadModule(file: string): Promise<unknown> {
   if (file.endsWith('.json')) {
     return JSON.parse(fs.readFileSync(file, 'utf8'));

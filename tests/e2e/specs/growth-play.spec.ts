@@ -586,6 +586,37 @@ test.describe('a Google Play upload from the editor', () => {
     const sent = await requests(page);
     expect(sent.filter((request) => request.url.includes('/upload/androidpublisher/'))).toHaveLength(0);
   });
+
+  test('a 20:9 phone board starts in the phone slot, held either way', async ({ app, page }) => {
+    await connect(page);
+    await app.goto();
+    await app.startBlankProject();
+    const dialog = page.getByRole('dialog').filter({ hasText: 'Upload to the store' });
+    // 1440 x 3200 is wide enough to be taken for a tablet by its width alone.
+    for (const [width, height] of [[1080, 2400], [2400, 1080], [1440, 3200]]) {
+      await app.canvasSizeButton.click();
+      await app.canvasSizeDialog.locator('#size-custom').click();
+      await app.canvasSizeDialog.locator('#canvas-custom-width').fill(String(width));
+      await app.canvasSizeDialog.locator('#canvas-custom-height').fill(String(height));
+      await app.canvasSizeDialog.getByRole('button', { name: 'Apply', exact: true }).click();
+      await expect(app.canvasSizeDialog).toBeHidden();
+      await app.chooseFromMenu(app.saveButton, /To App Store Connect or Google Play/i);
+      await dialog.getByRole('button', { name: 'Google Play', exact: true }).click();
+      await expect(dialog.getByText(PACKAGE)).toBeVisible();
+
+      // These started in the 10-inch tablet, Android TV and 10-inch tablet slots before.
+      await expect(dialog.getByText(`${width}x${height}, Phone screenshots`, { exact: true })).toBeVisible();
+      await expect(dialog.getByRole('combobox').filter({ hasText: 'Phone screenshots' })).toBeVisible();
+      await expect(dialog.getByRole('button', { name: /^Upload 1/ })).toBeEnabled({ timeout: 30_000 });
+      // The slot keeps Play Console's capitals, and so does the sentence it starts.
+      await expect(dialog).toContainText('the images currently in Phone screenshots are deleted first');
+      await expect(dialog).toContainText('Phone screenshots holds 8 images in total');
+      await page.keyboard.press('Escape');
+      await expect(dialog).toBeHidden();
+    }
+    const sent = await requests(page);
+    expect(sent.filter((request) => request.url.includes('/upload/androidpublisher/'))).toHaveLength(0);
+  });
 });
 
 test.describe('growth on Google Play, next to competitors', () => {

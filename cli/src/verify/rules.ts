@@ -15,7 +15,8 @@
  *   appleDisplayAwaitingUpload  sizes Apple lists that App Store Connect
  *                           cannot take uploads for yet (the iPhone Duo's)
  *   nearestAppleSizes       the same table's own "did you mean" hint
- *   validatePlayImage       Play's 320 to 3840 px and 2.3:1 bounds
+ *   validatePlayImage       Play's 320 to 3840 px, 2.3:1 for phones and
+ *                           tablets, square for Wear OS
  *   isPlayFoldableSize      foldable shots, which only Play Console takes
  *   suggestPlayImageType    which Play slot a size belongs to
  *   PLAY_IMAGE_TARGETS      the fixed-size slots and how many Play keeps
@@ -432,8 +433,8 @@ export function isCreativeArt(width: number, height: number, ruleset: StoreRules
 
 /**
  * True for a Google Play foldable shot. Play counts those across the whole
- * Foldable screenshots section (3 to 8, one of each kind), not per size, and
- * they go up by hand, so `osg verify` leaves them out of its per-size counts.
+ * Foldable screenshots section (3 to 8, one of each kind), not per slot, and
+ * they go up by hand, so `osg verify` leaves them out of its set counts.
  */
 export function isPlayConsoleOnlyArt(width: number, height: number, ruleset: StoreRuleset): boolean {
   return ruleset.png.sizing === 'play-bounds' && isPlayFoldableSize(width, height);
@@ -536,27 +537,78 @@ export function checkMp4(info: Mp4Info, ruleset: StoreRuleset): Finding[] {
  * Count rules, which no single file can answer. `label` names what was counted,
  * so the message reads as a sentence about one set, e.g. 'iPhone 6.9-inch'.
  */
-export function checkScreenshotCount(count: number, label: string, ruleset: StoreRuleset): Finding[] {
+/** The slot an image goes in, and how many of them that slot takes. */
+export interface ScreenshotSlot {
+  /** Apple's display type, or Play's image type. */
+  id: string;
+  label: string;
+  min: number;
+  max: number;
+}
+
+/**
+ * The store slot a screenshot lands in, which is what a store counts by. Play
+ * counts a listing's phone screenshots together whichever way up each one is,
+ * and an Apple display type takes a device's portrait and landscape sizes, and
+ * 1290x2796 beside 1320x2868. Play's slot is the one the upload picks by
+ * default (suggestPlayImageType). Null for a size no slot takes, which fails on
+ * its own.
+ */
+export function screenshotSlot(width: number, height: number, ruleset: StoreRuleset): ScreenshotSlot | null {
   const rules = ruleset.png;
-  if (count > rules.maxPerSet) {
+  if (rules.sizing === 'apple-table') {
+    const target = appleTargetForSize(width, height);
+    return target ? { id: target.displayType, label: target.label, min: rules.minPerSet, max: rules.maxPerSet } : null;
+  }
+  const fixed = rules.fixedSlots.find((entry) => entry.width === width && entry.height === height);
+  const imageType = fixed?.slot ?? suggestPlayImageType(width, height);
+  const target = PLAY_IMAGE_TARGETS.find((entry) => entry.imageType === imageType);
+  if (!target) return null;
+  // Answer 9866151: 2 to 8 phone screenshots. Tablet, Wear OS and TV shots
+  // have no minimum of their own, and the fixed slots take exactly one.
+  return {
+    id: imageType,
+    label: target.label,
+    min: imageType === 'phoneScreenshots' ? rules.minPerSet : 1,
+    max: target.max,
+  };
+}
+
+/**
+ * Whether a set's count fits its slot. Without a slot the ruleset's own limits
+ * apply, which are the Apple set's and Play's phone screenshots'.
+ */
+export function checkScreenshotCount(
+  count: number,
+  label: string,
+  ruleset: StoreRuleset,
+  slot?: Pick<ScreenshotSlot, 'min' | 'max'> | null
+): Finding[] {
+  const rules = ruleset.png;
+  const max = slot?.max ?? rules.maxPerSet;
+  const min = slot?.min ?? rules.minPerSet;
+  // Play's feature graphic and icon are images, not screenshots.
+  const noun = ruleset.id === 'play' ? 'image' : 'screenshot';
+  const amount = `${count} ${noun}${count === 1 ? '' : 's'}`;
+  if (count > max) {
     return [
       {
         level: 'fail',
         code: 'set-too-many',
-        message: `${label} has ${count} screenshots and ${ruleset.label} keeps at most ${rules.maxPerSet} per size`,
+        message: `${label} has ${amount} and ${ruleset.label} keeps at most ${max}`,
       },
     ];
   }
-  if (count < rules.minPerSet) {
+  if (count < min) {
     return [
       {
         level: 'fail',
         code: 'set-too-few',
-        message: `${label} has ${count} screenshots and ${ruleset.label} needs at least ${rules.minPerSet} to publish`,
+        message: `${label} has ${amount} and ${ruleset.label} needs at least ${min} to publish`,
       },
     ];
   }
-  return [{ level: 'ok', code: 'set-ok', message: `${label}: ${count} screenshots` }];
+  return [{ level: 'ok', code: 'set-ok', message: `${label}: ${amount}` }];
 }
 
 /**

@@ -589,7 +589,9 @@ export const PLAY_IMAGE_TARGETS: PlayImageTarget[] = [
  * Google Play's foldable screenshots. Play Console has had a Foldable
  * screenshots section on the store listing since November 2026, and from
  * April 2027 a new app or an update needs at least one 1:1 and one 4:3 of the
- * open inner screen and one 10:16 of the closed outer screen there
+ * open inner screen and one 10:16 of the closed outer screen there. A game
+ * needs the 1:1, a 4:3 or 3:4 open and a 16:10 or 10:16 closed, held the way
+ * the game is played
  * (https://support.google.com/googleplay/android-developer/answer/9866151,
  * read 26 November 2026). AppImageType has no foldable value
  * (https://developers.google.com/android-publisher/api-ref/rest/v3/AppImageType),
@@ -602,7 +604,7 @@ export const PLAY_IMAGE_TARGETS: PlayImageTarget[] = [
  * Play Foldable presets. Play takes other sizes at these shapes too, but 10:16
  * and 16:10 are tablet shapes as well, so only these exact sizes are known to
  * be foldable shots. Without the check, a
- * foldable board was offered the 10-inch tablet slot, and would have gone up
+ * foldable board was offered a tablet slot, and would have gone up
  * beside the tablet screenshots, or in their place.
  */
 export const PLAY_FOLDABLE_SIZES: ReadonlyArray<{ width: number; height: number }> = [
@@ -623,7 +625,8 @@ export const PLAY_FOLDABLE_PROBLEM =
 
 /**
  * A sensible default slot for a size, always overridable in the dialog. Play
- * does not tie sizes to slots, so this is a convenience, not a rule.
+ * does not tie sizes to slots, so this is a convenience, not a rule. Each of
+ * the canvas's own Google Play sizes lands in the slot it is named for.
  */
 export function suggestPlayImageType(width: number, height: number): string {
   const exact = PLAY_IMAGE_TARGETS.find(
@@ -633,18 +636,31 @@ export function suggestPlayImageType(width: number, height: number): string {
   if (exact) return exact.imageType;
   const long = Math.max(width, height);
   const short = Math.min(width, height);
-  if (long <= 600) return 'wearScreenshots';
-  if (width > height && long / short > 1.5) return 'tvScreenshots';
-  if (short >= 1200 || long >= 2400) return 'tenInchScreenshots';
+  // Wear OS takes only squares of 384 px and up, and a square that small is a watch screen.
+  if (width === height && short >= 384 && long <= 600) return 'wearScreenshots';
+  // Longer than 16:9 is a phone held either way (20:9 phones, the iPhone
+  // canvas). No tablet or TV screen has that shape.
+  if (long * 9 > short * 16) return 'phoneScreenshots';
+  // 16:9 held sideways is a landscape game's phone shot as often as a TV's,
+  // and every listing needs phone shots, while TV shots show only on Android
+  // TV. Only a 4K one is taken for a TV's.
+  if (width > height && long * 9 === short * 16 && short >= 2160) return 'tvScreenshots';
+  // A tablet: 1200 px across is a 7-inch one, 1440 px and up a 10-inch one.
+  if (short >= 1440) return 'tenInchScreenshots';
+  if (short >= 1200) return 'sevenInchScreenshots';
   return 'phoneScreenshots';
 }
 
 /**
- * Play's published limits: PNG or JPEG, every side 320 to 3840 px, and the
- * long side at most 2.3 times the short one. Answer 9866151 says 2.3 "for
- * standard phone and tablet screenshots" (read 26 November 2026; this check
- * said twice before that), and Google's capture guide makes 20:9 phone
- * shots. A foldable shot passes all of that but no API slot takes it.
+ * Play's published limits (answer 9866151, read 26 November 2026): PNG or
+ * JPEG, every side 320 to 3840 px, and then one shape rule per slot.
+ * - Phone and tablet: the long side at most 2.3 times the short one, which
+ *   the page says "for standard phone and tablet screenshots". This check
+ *   said twice before that, and Google's capture guide makes 20:9 phone shots.
+ * - Wear OS: square, at least 384 x 384.
+ * - Android TV: the page gives no shape, so the twice it gave for every
+ *   screenshot before stays.
+ * A foldable shot passes all of that but no API slot takes it.
  * Returns a sentence when something is off, null when the image is fine.
  */
 export function validatePlayImage(
@@ -664,6 +680,15 @@ export function validatePlayImage(
   const short = Math.min(width, height);
   if (short < 320) return 'Play needs every side to be at least 320 px';
   if (long > 3840) return 'Play needs every side to be at most 3840 px';
+  if (imageType === 'wearScreenshots') {
+    if (width !== height) return 'Wear OS screenshots have to be square';
+    if (short < 384) return 'Wear OS screenshots have to be at least 384x384';
+    return null;
+  }
+  if (imageType === 'tvScreenshots') {
+    if (long > short * 2) return 'Play needs the long side to be at most twice the short side';
+    return null;
+  }
   // In whole numbers: 2.3 has no exact binary form, and 1080 x 2484 is right on the line.
   if (long * 10 > short * 23) return 'Play needs the long side to be at most 2.3 times the short side';
   return null;

@@ -63,7 +63,7 @@ Play Console access is granted through **Users and permissions**. You do not nee
 
 ### Slots and sizes
 
-The dialog suggests a destination from each artboard's size. Check it before uploading.
+The dialog suggests a destination from each artboard's size. Check it before uploading. Phone sizes go to **Phone screenshots** held either way, 1920x1080 included, since landscape games use it. For Android TV screenshots smaller than 3840x2160, pick **Android TV screenshots** yourself.
 
 | Image type | Limit |
 | --- | --- |
@@ -74,9 +74,9 @@ The dialog suggests a destination from each artboard's size. Check it before upl
 | Android TV banner | One, exactly 1280x720 |
 | Foldable screenshots | Not through the dialog. Add them in Play Console |
 
-For Play screenshots, each side must be 320 to 3840 pixels, the long side can be at most 2.3 times the short side, and each image must be at most 8 MB. An iPhone image at 1206x2622 fits, but Play recommends 1080x1920 for phones: choose **Android phone 1080x1920** in the **Size** menu.
+For Play screenshots, each side must be 320 to 3840 pixels and each image must be at most 8 MB. On phone and tablet screenshots the long side can be at most 2.3 times the short side. Wear OS screenshots must be square and at least 384x384. On Android TV screenshots the dialog keeps the long side to at most twice the short side, Google's limit for every screenshot until November 2026. An iPhone image at 1206x2622 fits, but Play recommends 1080x1920 for phones: choose **Android phone 1080x1920** in the **Size** menu.
 
-From April 2027, Google Play needs 3 foldable screenshots to publish a new app or an update: one 1:1 and one 4:3 of the open inner screen, and one 10:16 of the closed outer screen. Make them with the **Google Play Foldable** sizes under **Canvas Size**. Google's upload API has no place for them, so the dialog won't upload an artboard at those sizes. Export them and add them in Play Console, under **Foldable screenshots** on the store listing.
+From April 2027, Google Play needs 3 foldable screenshots to publish a new app or an update: one 1:1 and one 4:3 of the open inner screen, and one 10:16 of the closed outer screen. A game needs the 1:1 too, and the inner and outer screens held the way the game is played: 4:3 and 16:10 when it is played sideways, 3:4 and 10:16 when it is played upright. Make them with the **Google Play Foldable** sizes under **Canvas Size**. Google's upload API has no place for them, so the dialog won't upload an artboard at those sizes. Export them and add them in Play Console, under **Foldable screenshots** on the store listing.
 
 ### If the app is in review
 

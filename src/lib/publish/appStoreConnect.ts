@@ -1111,6 +1111,43 @@ export interface AppStoreBatchUploadOptions {
   appId?: string;
 }
 
+/** One language of a run as it goes up: its screenshots and previews, by the set each lands in. */
+export interface PlannedAppStoreSet {
+  set: AppStoreLocaleUpload;
+  /** Screenshots by display type. */
+  groups: Map<string, PublishImage[]>;
+  /** App Previews by preview type. */
+  previewGroups: Map<string, PublishVideo[]>;
+}
+
+/**
+ * What a run would send, worked out with nothing sent: each language's files
+ * matched to the sets they go in, a warning for each file no set takes, and a
+ * throw when nothing is left. The upload goes through here, and `osg upload
+ * --dry-run` stops here, so the two agree.
+ */
+export function planAppStoreUpload(options: AppStoreBatchUploadOptions, warnings: string[]): PlannedAppStoreSet[] {
+  const planned: PlannedAppStoreSet[] = [];
+  for (const set of options.sets) {
+    const groups = groupByDisplayType(set.images, warnings);
+    const previewGroups = groupByPreviewType(set.videos ?? [], options.platform, warnings);
+    if (groups.size === 0 && previewGroups.size === 0) {
+      warnings.push(
+        `${set.label ?? 'One language'} had nothing the App Store accepts at these sizes, so it was skipped.`
+      );
+      continue;
+    }
+    planned.push({ set, groups, previewGroups });
+  }
+
+  if (planned.length === 0) {
+    throw new StoreRejectedError(
+      warnings[0] ?? 'None of these artboards are an App Store screenshot or App Preview size.'
+    );
+  }
+  return planned;
+}
+
 /**
  * Upload every language in one run.
  *
@@ -1135,28 +1172,7 @@ export async function uploadAppStoreScreenshotsForLocales(
 
   onProgress?.({ stage: 'preparing', message: 'Matching files to App Store sizes' });
 
-  const planned: Array<{
-    set: AppStoreLocaleUpload;
-    groups: Map<string, PublishImage[]>;
-    previewGroups: Map<string, PublishVideo[]>;
-  }> = [];
-  for (const set of options.sets) {
-    const groups = groupByDisplayType(set.images, warnings);
-    const previewGroups = groupByPreviewType(set.videos ?? [], options.platform, warnings);
-    if (groups.size === 0 && previewGroups.size === 0) {
-      warnings.push(
-        `${set.label ?? 'One language'} had nothing the App Store accepts at these sizes, so it was skipped.`
-      );
-      continue;
-    }
-    planned.push({ set, groups, previewGroups });
-  }
-
-  if (planned.length === 0) {
-    throw new StoreRejectedError(
-      warnings[0] ?? 'None of these artboards are an App Store screenshot or App Preview size.'
-    );
-  }
+  const planned = planAppStoreUpload(options, warnings);
 
   const countIn = (groups: Map<string, unknown[]>) =>
     Array.from(groups.values()).reduce((sum, list) => sum + list.length, 0);

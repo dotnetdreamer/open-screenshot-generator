@@ -103,11 +103,12 @@ Caps and formats:
 | Phone screenshots | 320 to 3840 px per side, long side at most 2.3x the short side | 2 to 8, at least 2 required |
 | 7 inch tablet | same rule, 1200x1920 recommended | up to 8 |
 | 10 inch tablet | same rule, 1600x2560 recommended | up to 8 |
-| Wear OS, Android TV | same rule | up to 8 each |
+| Wear OS | square, at least 384x384 | up to 8 |
+| Android TV | long side at most 2x the short side | up to 8 |
 | Feature graphic | exactly 1024x500 | 1, required on every listing |
 | App icon | exactly 512x512 | 1, required to publish |
 | Android TV banner | exactly 1280x720 | 1 |
-| Foldable screenshots | one 1:1 and one 4:3 of the open inner screen, one 10:16 of the closed outer screen, 960 to 3840 px per side | 3 to 8, needed from April 2027 |
+| Foldable screenshots | 960 to 3840 px per side. An app: one 1:1 and one 4:3 of the open inner screen, one 10:16 of the closed outer screen. A game: the 1:1, then 4:3 and 16:10 if played sideways, 3:4 and 10:16 if played upright | 3 to 8, needed from April 2027 |
 
 PNG or JPEG, 8 MB maximum per image.
 
@@ -115,8 +116,9 @@ PNG or JPEG, 8 MB maximum per image.
 2.3 times the short side, so 1206x2622 at 2.17:1 fits, but the `play-phone` preset (1080x1920) is the
 size Google recommends, and converting to it puts the screenshots in Android phones instead of iPhones.
 
-**Foldable screenshots go in by hand.** The Play upload API has no slot for them, so `upload` skips
-them and `verify` warns `png-size-play-console-only` without counting them into a set. Make them
+**Foldable screenshots go in by hand.** The Play upload API has no slot for them, so `upload` leaves
+them out with a warning and `verify` warns `png-size-play-console-only` without counting them into a
+set. Make them
 with the canvas presets `play-fold-square` (2106x2106), `play-fold-inner` (2688x2016) and
 `play-fold-outer` (1260x2016), render with `--formats as-is`, and add them in Play Console under
 Foldable screenshots. `play-fold-outer-landscape` (2016x1260) and `play-fold-inner-portrait`
@@ -147,32 +149,37 @@ Rules, in priority order:
    You do not need to see it to use it.
 5. If the user pastes a key into the conversation anyway, tell them to rotate it.
 
-Set the environment variables the CLI documents, then run the command. Confirm the exact names with
-`osg upload --help` for the release in use:
+Set the environment variables the CLI reads, then run the command with `--dry-run` first: it reads
+the store, renders, and says where each image would go without uploading anything. The key id comes
+from the `.p8` file's name, `AuthKey_<keyid>.p8`, so keep that name.
 
 ```bash
-export OSG_ASC_ISSUER_ID=...          # App Store Connect API issuer id, a UUID
-export OSG_ASC_KEY_ID=...             # the key id
-export OSG_ASC_KEY_FILE=./secrets/AuthKey_XXXX.p8
+export OSG_APPSTORE_ISSUER_ID=...                              # App Store Connect API issuer id, a UUID
+export OSG_APPSTORE_KEY_PATH=./secrets/AuthKey_XXXXXXXXXX.p8
+npx -y open-screenshot-generator@0 upload --dry-run
 npx -y open-screenshot-generator@0 upload
 ```
 
 ```powershell
-$env:OSG_ASC_ISSUER_ID = '...'
-$env:OSG_ASC_KEY_ID    = '...'
-$env:OSG_ASC_KEY_FILE  = './secrets/AuthKey_XXXX.p8'
-npx -y open-screenshot-generator@0 upload
+$env:OSG_APPSTORE_ISSUER_ID = '...'
+$env:OSG_APPSTORE_KEY_PATH  = './secrets/AuthKey_XXXXXXXXXX.p8'
+npx -y open-screenshot-generator@0 upload --dry-run
 ```
 
 PowerShell has no inline environment prefix, so `VAR=x command` does not work there. Set them on
-their own lines, as above.
+their own lines, as above. When the key sees more than one app, name it with `--app <bundle id>`.
 
-For Google Play, one variable pointing at the service account JSON:
+For Google Play, the service account JSON and the app's package name:
 
 ```bash
-export OSG_PLAY_KEY_FILE=./secrets/play-service-account.json
-npx -y open-screenshot-generator@0 upload --store play
+export OSG_PLAY_SERVICE_ACCOUNT=./secrets/play-service-account.json
+export OSG_PLAY_PACKAGE=com.example.app
+npx -y open-screenshot-generator@0 upload --store play --dry-run
 ```
+
+The upload renders the project again at the config's `formats`, the same way `render` does, so
+`verify` and the upload see the same sizes. `--replace` clears each set or slot first; without it the
+images are added.
 
 The Apple key needs the **App Manager** role. The Play service account has to be invited in Play
 Console **and** the Android Developer API has to be enabled on the project.

@@ -2,7 +2,8 @@
 // Google's capture guide makes, nothing puts them in an API slot (Play
 // Console is the only way in), and `osg verify` warns instead of failing them.
 // Play's phone and tablet limit, a long side up to 2.3 times the short one, is
-// pinned here too, since the same check refuses the foldables.
+// pinned here too, since the same check refuses the foldables, with the other
+// slots' shapes and the slot each size starts in.
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -77,7 +78,79 @@ test('Play takes a long side up to 2.3 times the short side, so 20:9 phones and 
   assert.equal(validatePlayImage(1700, 3841, 'phoneScreenshots'), 'Play needs every side to be at most 3840 px');
 });
 
-test('osg verify warns about a foldable shot and leaves it out of the per-size counts', () => {
+test('each Google Play canvas size starts in the slot it is named for', () => {
+  const slotFor: Record<string, string> = {
+    'play-phone': 'phoneScreenshots',
+    'play-phone-tall': 'phoneScreenshots',
+    'play-phone-landscape': 'phoneScreenshots',
+    'play-7': 'sevenInchScreenshots',
+    'play-10': 'tenInchScreenshots',
+    'play-10-hd': 'tenInchScreenshots',
+    'play-tablet-landscape': 'tenInchScreenshots',
+    'play-feature-graphic': 'featureGraphic',
+    'app-icon': 'icon',
+  };
+  const play = CANVAS_SIZE_PRESET_GROUPS.filter((group) => group.key === 'play-phone' || group.key === 'play-tablet').flatMap((group) => group.presets);
+  assert.deepEqual(play.map((preset) => preset.id).sort(), Object.keys(slotFor).filter((id) => id.startsWith('play-') && id !== 'play-feature-graphic').sort(), 'a new Play preset gets a slot here');
+  for (const [id, slot] of Object.entries(slotFor)) {
+    const preset = ALL_CANVAS_SIZE_PRESETS.find((entry) => entry.id === id);
+    assert.ok(preset, id);
+    assert.equal(suggestPlayImageType(preset.width, preset.height), slot, `${id} ${preset.width}x${preset.height}`);
+    assert.equal(validatePlayImage(preset.width, preset.height, slot), null, `${id} fits ${slot}`);
+  }
+});
+
+test('a phone shot longer than 16:9 starts in the phone slot, held either way', () => {
+  // Before, 1080 x 2400 started in the 10-inch tablet slot and 2400 x 1080 in the TV one.
+  for (const [width, height] of [[1080, 2400], [2400, 1080], [1080, 2160], [2160, 1080], [1206, 2622], [2622, 1206], [1080, 2484], [1440, 3200]]) {
+    assert.equal(suggestPlayImageType(width, height), 'phoneScreenshots', `${width}x${height}`);
+  }
+  // 16:9 held sideways is a landscape game's phone shot; only a 4K one is a TV's.
+  assert.equal(suggestPlayImageType(1920, 1080), 'phoneScreenshots');
+  assert.equal(suggestPlayImageType(3840, 2160), 'tvScreenshots');
+  // Tablet shapes held sideways are tablet shots, not TV ones.
+  assert.equal(suggestPlayImageType(2560, 1600), 'tenInchScreenshots');
+  assert.equal(suggestPlayImageType(1920, 1200), 'sevenInchScreenshots');
+  assert.equal(suggestPlayImageType(1800, 1800), 'tenInchScreenshots');
+});
+
+test('Wear OS takes only squares of 384 px and up, and Android TV keeps the 2:1 limit', () => {
+  assert.equal(validatePlayImage(384, 840, 'wearScreenshots'), 'Wear OS screenshots have to be square');
+  assert.equal(validatePlayImage(450, 451, 'wearScreenshots'), 'Wear OS screenshots have to be square');
+  assert.equal(validatePlayImage(383, 383, 'wearScreenshots'), 'Wear OS screenshots have to be at least 384x384');
+  assert.equal(validatePlayImage(384, 384, 'wearScreenshots'), null);
+  assert.equal(validatePlayImage(1800, 1800, 'wearScreenshots'), null);
+  assert.equal(suggestPlayImageType(384, 384), 'wearScreenshots');
+  assert.equal(suggestPlayImageType(454, 454), 'wearScreenshots');
+  // A small screenshot that is not square was offered Wear OS before; it fits the phone slot.
+  assert.equal(suggestPlayImageType(400, 600), 'phoneScreenshots');
+  assert.equal(suggestPlayImageType(383, 383), 'phoneScreenshots');
+
+  const twice = 'Play needs the long side to be at most twice the short side';
+  assert.equal(validatePlayImage(2400, 1080, 'tvScreenshots'), twice);
+  assert.equal(validatePlayImage(2161, 1080, 'tvScreenshots'), twice);
+  assert.equal(validatePlayImage(2160, 1080, 'tvScreenshots'), null);
+  assert.equal(validatePlayImage(1920, 1080, 'tvScreenshots'), null);
+  // Phones and tablets have the 2.3 limit.
+  assert.equal(validatePlayImage(2400, 1080, 'phoneScreenshots'), null);
+  assert.equal(validatePlayImage(2400, 1080, 'tenInchScreenshots'), null);
+});
+
+test('every size Play takes as a phone shot starts in a slot that takes it', () => {
+  const sides = [320, 383, 384, 400, 454, 600, 601, 720, 1080, 1199, 1200, 1260, 1439, 1440, 1600, 1920, 2016, 2106, 2160, 2400, 2484, 2560, 2688, 3200, 3840];
+  let checked = 0;
+  for (const width of sides) {
+    for (const height of sides) {
+      if (validatePlayImage(width, height, 'phoneScreenshots') !== null) continue;
+      const slot = suggestPlayImageType(width, height);
+      assert.equal(validatePlayImage(width, height, slot), null, `${width}x${height} starts in ${slot}, which refuses it`);
+      checked += 1;
+    }
+  }
+  assert.ok(checked > 300, `${checked} sizes`);
+});
+
+test('osg verify warns about a foldable shot and leaves it out of the set counts', () => {
   const play = rulesetFor('play');
   for (const size of PLAY_FOLDABLE_SIZES) {
     const png = { ...size, bitDepth: 8, colorType: 2, hasAlpha: false, interlace: 0, bytes: 1_000_000 };

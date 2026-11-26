@@ -125,15 +125,17 @@ export const CANVAS_SIZE_PRESET_GROUPS: CanvasSizePresetGroup[] = [
   {
     // The sizes PLAY_FOLDABLE_SIZES in publish/storeTargets.ts lists, with
     // where each one comes from: Play Console takes them under Foldable
-    // screenshots, and the Play upload API has no slot for them.
+    // screenshots, and the Play upload API has no slot for them. The notes
+    // say which ones an app and a game need, from answer 9866151.
     key: 'play-foldable',
     label: 'Google Play Foldable',
     presets: [
-      { id: 'play-fold-square', label: 'Foldable inner display, square', width: 2106, height: 2106, aspectLabel: '1:1', note: 'Open, on a foldable with a square inner screen. Google Play needs one from April 2027' },
-      { id: 'play-fold-inner', label: 'Foldable inner display (Landscape)', width: 2688, height: 2016, aspectLabel: '4:3', note: 'Open, on a foldable with a wide inner screen. Google Play needs one from April 2027' },
-      { id: 'play-fold-outer', label: 'Foldable outer display (Portrait)', width: 1260, height: 2016, aspectLabel: '10:16', note: 'Closed. Google Play needs one from April 2027' },
-      { id: 'play-fold-outer-landscape', label: 'Foldable outer display (Landscape)', width: 2016, height: 1260, aspectLabel: '16:10', note: 'Closed and held sideways. Optional' },
-      { id: 'play-fold-inner-portrait', label: 'Foldable inner display (Portrait)', width: 2016, height: 2688, aspectLabel: '3:4', note: 'Open and held upright. For a game played upright, or as an extra' },
+      // The card shows about 40 characters of a note, the tooltip the rest, so who needs it comes first.
+      { id: 'play-fold-square', label: 'Foldable inner display, square', width: 2106, height: 2106, aspectLabel: '1:1', note: 'Needed from April 2027 by every app and game. Shows the open, square inner screen' },
+      { id: 'play-fold-inner', label: 'Foldable inner display (Landscape)', width: 2688, height: 2016, aspectLabel: '4:3', note: 'Needed from April 2027 by apps and landscape games. Shows the open, wide inner screen' },
+      { id: 'play-fold-outer', label: 'Foldable outer display (Portrait)', width: 1260, height: 2016, aspectLabel: '10:16', note: 'Needed from April 2027 by apps and portrait games. Shows the closed, outer screen' },
+      { id: 'play-fold-outer-landscape', label: 'Foldable outer display (Landscape)', width: 2016, height: 1260, aspectLabel: '16:10', note: 'Needed from April 2027 by landscape games, and apps can add one. Shows the closed, outer screen held sideways' },
+      { id: 'play-fold-inner-portrait', label: 'Foldable inner display (Portrait)', width: 2016, height: 2688, aspectLabel: '3:4', note: 'Needed from April 2027 by portrait games, and apps can add one. Shows the open inner screen held upright' },
     ],
   },
   {

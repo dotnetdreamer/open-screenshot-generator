@@ -18,7 +18,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { flagBool, flagString } from '../args.js';
-import { DEFAULTS } from '../config.js';
+import { DEFAULTS, defaultFormatsFor } from '../config.js';
 import type { CommandContext } from '../context.js';
 import { loadManifest } from '../editor/assets.js';
 import { manifestPath, resolveEditor } from '../editor/resolve.js';
@@ -33,6 +33,7 @@ import {
   checkPreviewCount,
   checkScreenshotCount,
   rulesetFor,
+  screenshotSlot,
   worstLevel,
   VERIFIED_ON,
   type Finding,
@@ -211,11 +212,15 @@ function describeFile(
  * would invent a second complaint about the same file.
  */
 function describeSets(files: ManifestFile[], ruleset: StoreRuleset): ManifestSet[] {
-  const groups = new Map<string, { tier: string; locale: string | null; kind: 'png' | 'mp4'; count: number }>();
+  const groups = new Map<
+    string,
+    { tier: string; locale: string | null; kind: 'png' | 'mp4'; count: number; width: number | null; height: number | null }
+  >();
   for (const file of files) {
     if (file.kind === 'other' || !file.tier) continue;
     const key = `${file.kind}:${file.tier}:${file.locale ?? ''}`;
-    const group = groups.get(key) ?? { tier: file.tier, locale: file.locale, kind: file.kind, count: 0 };
+    const group =
+      groups.get(key) ?? { tier: file.tier, locale: file.locale, kind: file.kind, count: 0, width: file.width, height: file.height };
     group.count++;
     groups.set(key, group);
   }
@@ -223,9 +228,11 @@ function describeSets(files: ManifestFile[], ruleset: StoreRuleset): ManifestSet
   const sets: ManifestSet[] = [];
   for (const group of groups.values()) {
     const label = group.locale ? `${group.tier} (${group.locale})` : group.tier;
+    // The slot's own limits: Play's feature graphic is one image, not a set of two.
+    const slot = group.width && group.height ? screenshotSlot(group.width, group.height, ruleset) : null;
     const findings =
       group.kind === 'png'
-        ? checkScreenshotCount(group.count, label, ruleset)
+        ? checkScreenshotCount(group.count, label, ruleset, slot)
         : checkPreviewCount(group.count, label, ruleset);
     if (!findings.length) continue;
     sets.push({
@@ -376,7 +383,7 @@ export async function run(ctx: CommandContext): Promise<number> {
       out: outDir,
       screenshots: ctx.config.screenshots ? path.resolve(ctx.root, ctx.config.screenshots) : null,
       template: ctx.config.template ?? null,
-      formats: ctx.config.formats ?? DEFAULTS.formats,
+      formats: ctx.config.formats ?? defaultFormatsFor(ctx.config.store),
       locales: ctx.config.locales ?? null,
       baseLocale: ctx.config.baseLocale ?? null,
       assetsBaseUrl: ctx.config.assetsBaseUrl ?? DEFAULTS.assetsBaseUrl,

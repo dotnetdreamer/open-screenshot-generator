@@ -118,6 +118,8 @@ so `--locales en --locales de` and `--locales en,de` are the same thing.
 | `OSG_BROWSER` | Same as `--browser` |
 | `OSG_CACHE_DIR` | Move every cache this CLI owns under one root you name |
 | `OSG_API_KEY` | The key `osg design` uses, unless `ai.apiKeyEnv` names another variable |
+| `OSG_APPSTORE_KEY_PATH`, `OSG_APPSTORE_ISSUER_ID`, `OSG_APPSTORE_KEY_ID` | `osg upload`: the App Store Connect `.p8` file's path, the issuer id, and the key id when the file name doesn't carry it |
+| `OSG_PLAY_SERVICE_ACCOUNT`, `OSG_PLAY_PACKAGE` | `osg upload`: the Play service account JSON file's path, and the app's package name |
 | `CHROME_PATH`, `PUPPETEER_EXECUTABLE_PATH` | Honoured when nothing more specific is set |
 | `NO_COLOR` | Turn off the ANSI colours on stderr |
 | `CI` | Treated as a container signal on Linux. See [CI](#ci) |
@@ -150,14 +152,17 @@ is what keeps `--json` parseable and lets `osg all` call the others in process.
 ### `osg init`
 
 Scaffolds `osg/osg.config.ts` and `osg/.gitignore`, then prints the next three
-commands. Writes nothing else and never overwrites an existing config.
+commands. Writes nothing else, and replaces an existing config only with `--force`.
 
 | Flag | Effect |
 | --- | --- |
-| `--format ts\|js\|json` | Which config flavour to write. Default `ts` |
+| `--format ts\|js\|json` | Which config flavour to write: `osg.config.ts`, `osg.config.mjs` or `osg.config.json`. Default `ts` |
 | `--name <app name>` | Prefill `name` |
-| `--store appstore\|play` | Prefill `store` |
-| `--force` | Overwrite an existing config |
+| `--store appstore\|play` | Prefill `store`, and `formats` with that store's phone size (`ios-6-3`, or `play-phone`). Without it the store is read from an `ios/` or `android/` folder |
+| `--template <slug>` | Prefill `template`. Default `auto` |
+| `--force` | Replace the config in that flavour. A config in another file is left alone, and the command says to delete it first |
+
+A config that names no `formats` renders the store's phone size: `ios-6-3` for the App Store, `play-phone` for Google Play.
 
 ### `osg doctor`
 
@@ -405,6 +410,10 @@ Play feature graphic being exactly 1024 x 500 with no transparency, colour type
 and bit depth, file size, video length inside 15 to 30 seconds, video codec and
 frame rate, and the per locale set being complete.
 
+A set is one folder and one store slot, counted the way the store counts it:
+Play's phone screenshots together whichever way up, 2 to 8, one feature
+graphic, and an App Store display type up to 10 across all its sizes.
+
 | Flag | Effect |
 | --- | --- |
 | `--store appstore\|play` | Which rule set. Default `config.store` |
@@ -434,21 +443,35 @@ Equivalent to `--headed` on a command that idles, and useful with
 
 ### `osg upload`
 
-Pushes the rendered set to App Store Connect or Google Play with your own
-developer credentials. Reads `osg.manifest.json` so it uploads exactly what
-`verify` passed.
+Renders the project's boards the way `render` does and uploads them to App
+Store Connect or Google Play with your own developer credentials. The upload
+runs in the editor page, through the same store clients as the app's upload
+dialog, and the CLI lends the page its network connection, since neither store
+lets a browser page call it. Run `verify` on the same formats first.
 
 | Flag | Effect |
 | --- | --- |
-| `--store appstore\|play` | Which store |
-| `--app-id <id>` | The app record to update |
-| `--locales <codes>` | Upload a subset |
-| `--dry-run` | Resolve every target slot and report, upload nothing |
+| `--store appstore\|play` | Which store. Default `config.store` |
+| `--dry-run` | Read the store, render, and say where each image would go. Uploads nothing |
+| `--formats <ids>` | The sizes to render, as `render` takes them, with the same default, so what `verify` passed is what goes up. `as-is` keeps each board's size |
+| `--locales <codes>` | Upload some of the project's languages |
+| `--artboards <ids>` | Upload some of the boards |
+| `--replace` | Delete what each set or slot holds first. Without it, the images are added |
+| `--app <id or bundle id>`, `--version <version>` | App Store: which app and version, when the key sees more than one |
+| `--image-type <type>` | Play: every image in one slot, such as `tenInchScreenshots`. Otherwise each image goes in the slot the app's upload dialog suggests for its size |
 
-Credentials come from the environment, never the config. The store slot mapping
-is the same [storeTargets.ts](../src/lib/publish/storeTargets.ts) the desktop app
-uses, so a set that uploads from one uploads from the other. See
-[STORE-UPLOAD.md](STORE-UPLOAD.md) for what each store wants.
+Keys are named by path, never by value, and read for the run only: `--key` or
+`OSG_APPSTORE_KEY_PATH` for the App Store Connect `.p8` (its key id is read from
+the `AuthKey_<id>.p8` name, or given with `--key-id` or `OSG_APPSTORE_KEY_ID`)
+with `--issuer` or `OSG_APPSTORE_ISSUER_ID`, and `--service-account` or
+`OSG_PLAY_SERVICE_ACCOUNT` for the Play service account JSON with `--package` or
+`OSG_PLAY_PACKAGE`. The config's `publish` block can hold the same paths and ids.
+A language the store listing doesn't have is skipped with a warning. The store
+slots are the same [storeTargets.ts](../src/lib/publish/storeTargets.ts) the
+desktop app uses, so a set that uploads from one uploads from the other. Exits
+`1` for a key the store refuses, `3` for an image a store rule refuses, and `2`
+when nothing was uploaded. See [STORE-UPLOAD.md](STORE-UPLOAD.md) for what each
+store wants.
 
 ### `osg mcp`
 
@@ -553,7 +576,7 @@ A `.ts` config is loaded with `jiti`, so there is no build step. `export default
 | `out` | string | `osg/out` | Where rendered files land |
 | `screenshots` | string | none | Directory of the app screenshots placed into the device frames |
 | `template` | string | `auto` | Template slug to start from, or `auto` to rank and pick |
-| `formats` | string[] | `['ios-6-3']` | Supported conversion ids to render, or `['as-is']` to keep the canvas sizes |
+| `formats` | string[] | `['ios-6-3']`, or `['play-phone']` when `store` is `play` | Supported conversion ids to render, or `['as-is']` to keep the canvas sizes |
 | `locales` | string[] | the base only | Locale codes. The first is the base unless `baseLocale` says otherwise |
 | `baseLocale` | string | the first locale | The language the others derive from |
 | `store` | `appstore` \| `play` | `appstore` | Which rule set `verify` and `upload` use |
@@ -612,12 +635,14 @@ accepted alternatives for the required slot, `ios-6-1` (1179 x 2556),
 `ios-6-3-landscape` (2622 x 1206) and `ios-6-1-landscape` (2556 x 1179), and
 `ios-6-9-promax` (1320 x 2868) for the optional large slot, and Google Play's
 foldable sizes: `play-fold-square` (2106 x 2106), `play-fold-inner`
-(2688 x 2016) and `play-fold-outer` (1260 x 2016), needed from April 2027, plus
-`play-fold-outer-landscape` (2016 x 1260) and `play-fold-inner-portrait`
-(2016 x 2688). These are canvas presets, so passing them to `render --formats`
-or `upload --formats` is an error. Play's upload API has no slot for foldable
-screenshots, so `upload` skips them and `verify` warns
-`png-size-play-console-only`: add them in Play Console.
+(2688 x 2016) and `play-fold-outer` (1260 x 2016), which an app needs from
+April 2027, plus `play-fold-outer-landscape` (2016 x 1260) and
+`play-fold-inner-portrait` (2016 x 2688), which a game played sideways or
+upright needs in place of the 10:16 or the 4:3. These are canvas presets, so
+passing them to `render --formats` or `upload --formats` is an error. Play's
+upload API has no slot for foldable screenshots, so `upload` leaves them out
+with a warning and `verify` warns `png-size-play-console-only`: add them in Play
+Console.
 
 For those sizes, Watch, Mac, or a Play feature graphic, create an artboard with
 `create_artboard` and its `preset` id, or resize an existing artboard with

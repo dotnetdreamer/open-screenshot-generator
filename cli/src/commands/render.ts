@@ -16,7 +16,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { flagList, flagString, flagNumber } from '../args.js';
-import { DEFAULTS } from '../config.js';
+import { DEFAULTS, defaultFormatsFor } from '../config.js';
 import { isCanvasFormat, resolveDeviceFormat, type DeviceFormat } from '../formats.js';
 import { readPngFile } from '../verify/png.js';
 import { checkRequiredIphoneSlot, rulesetFor } from '../verify/rules.js';
@@ -412,7 +412,7 @@ function resolveFormats(ctx: CommandContext): {
   generateFormats: DeviceFormatId[];
   requested: string[];
 } {
-  const requested = flagList(ctx.args.flags, 'formats') ?? ctx.config.formats ?? DEFAULTS.formats;
+  const requested = flagList(ctx.args.flags, 'formats') ?? ctx.config.formats ?? defaultFormatsFor(ctx.config.store);
   if (requested.length === 0 || requested.some(isCanvasFormat)) {
     return { asIs: true, generateFormats: [], requested };
   }

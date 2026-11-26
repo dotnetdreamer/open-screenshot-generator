@@ -1,3 +1,4 @@
+import { generateKeyPairSync } from 'node:crypto';
 import { test, expect, type Page } from '../fixtures/test';
 import {
   holdProjects,
@@ -887,5 +888,68 @@ test.describe('the headless bridge', () => {
     // A document with an artboard still opens afterwards.
     await openWithBridge(page, BOARD, 'Real document', 'proj_real_document');
     await expect(editor.artboards).toHaveCount(1);
+  });
+
+  test('publish, for osg upload: reads the Play listing and plans an upload, with Google answered where the CLI lends its socket', async ({ page }) => {
+    await openHeadless(page);
+    const privateKey = generateKeyPairSync('rsa', { modulusLength: 2048 }).privateKey.export({ type: 'pkcs8', format: 'pem' }).toString();
+    const serviceAccountJson = JSON.stringify({
+      type: 'service_account',
+      client_email: 'cli@example.iam.gserviceaccount.com',
+      private_key: privateKey,
+      token_uri: 'https://oauth2.googleapis.com/token',
+    });
+
+    const answer = await page.evaluate(async (keyJson) => {
+      type Publish = (request: unknown) => Promise<{ ok: boolean; error?: string; data?: unknown }>;
+      const publish = (window as unknown as { __osg: { publish: Publish } }).__osg.publish;
+      // The CLI swaps window.fetch for node's socket while it runs. Here the page answers Google itself.
+      const calls: string[] = [];
+      const original = window.fetch;
+      window.fetch = async (input, init) => {
+        const url = input instanceof Request ? input.url : String(input);
+        if (!/^https:\/\/(oauth2|androidpublisher)\.googleapis\.com\//.test(url)) return original(input, init);
+        const method = init?.method ?? 'GET';
+        calls.push(`${method} ${url.replace(/^https:\/\/[^/]+/, '')}`);
+        const json = (value: unknown) => new Response(JSON.stringify(value), { status: 200 });
+        if (url.endsWith('/token')) return json({ access_token: 'page-token', expires_in: 3600 });
+        if (method === 'POST' && url.endsWith('/edits')) return json({ id: 'e1' });
+        if (url.endsWith('/edits/e1/listings')) return json({ listings: [{ language: 'en-US', title: 'Pebble' }] });
+        if (method === 'DELETE') return new Response(null, { status: 204 });
+        return new Response('{"error":{"message":"unexpected"}}', { status: 404 });
+      };
+      try {
+        const credentials = { packageName: 'com.example.pebble', serviceAccountJson: keyJson };
+        const languages = await publish({ store: 'play', action: 'languages', credentials });
+        const image = (name: string, width: number, height: number) => ({
+          artboardId: name,
+          fileName: `${name}.png`,
+          base64: btoa(`png ${name}`),
+          width,
+          height,
+          locale: null,
+        });
+        await publish({ store: 'play', action: 'stage', credentials: null, images: [image('portrait', 1080, 1920), image('landscape', 1920, 1080), image('fold', 2106, 2106)] });
+        const plan = await publish({ store: 'play', action: 'upload', credentials, entries: [{ locale: null, language: 'en-US' }], dryRun: true });
+        await publish({ store: 'play', action: 'clear', credentials: null });
+        return { languages, plan, calls };
+      } finally {
+        window.fetch = original;
+      }
+    }, serviceAccountJson);
+
+    expect(answer.languages.ok, answer.languages.error).toBe(true);
+    expect((answer.languages.data as Array<{ language: string }>).map((row) => row.language)).toEqual(['en-US']);
+    // The token request carries an RS256 assertion signed in the page, then one edit is read and deleted.
+    expect(answer.calls).toEqual([
+      'POST /token',
+      'POST /androidpublisher/v3/applications/com.example.pebble/edits',
+      'GET /androidpublisher/v3/applications/com.example.pebble/edits/e1/listings',
+      'DELETE /androidpublisher/v3/applications/com.example.pebble/edits/e1',
+    ]);
+    expect(answer.plan.ok, answer.plan.error).toBe(true);
+    const plan = answer.plan.data as { plan: unknown[]; warnings: string[] };
+    expect(plan.plan).toEqual([{ label: 'en-US', target: 'Phone screenshots', count: 2, files: ['portrait.png', 'landscape.png'] }]);
+    expect(plan.warnings).toEqual(['fold.png skipped: Google Play takes foldable screenshots only in Play Console. Add them there, under Foldable screenshots']);
   });
 });

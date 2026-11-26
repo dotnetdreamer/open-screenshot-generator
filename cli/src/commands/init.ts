@@ -7,17 +7,41 @@
  * in six months, human or agent, learns the template, the formats, the locales
  * and the design decisions without running anything.
  *
- * It never overwrites. A config that already exists is somebody's decisions,
- * and quietly replacing it with defaults would be the worst thing this command
- * could do.
+ * It never overwrites unless told to. A config that already exists is
+ * somebody's decisions, and quietly replacing it with defaults would be the
+ * worst thing this command could do, so only --force replaces one, and only
+ * the one in the flavour asked for: a second config beside it would be the one
+ * the CLI loads, or the one it ignores.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import type { CommandContext } from '../context.js';
-import { flagString } from '../args.js';
-import { DEFAULTS } from '../config.js';
-import { EXIT } from '../errors.js';
+import { flagBool, flagString } from '../args.js';
+import { DEFAULTS, defaultFormatsFor, storeFromFlag } from '../config.js';
+import { EXIT, usageError } from '../errors.js';
 import { info, step, ok, warn, emit, bold, dim, cyan } from '../log.js';
+
+type Flavour = 'ts' | 'js' | 'json';
+
+/**
+ * The file each flavour writes. A .js file with `export default` loads only
+ * where package.json says "type": "module", so the js flavour is .mjs, which
+ * loads as a module in every repo.
+ */
+const FLAVOUR_FILES: Record<Flavour, string> = {
+  ts: 'osg.config.ts',
+  js: 'osg.config.mjs',
+  json: 'osg.config.json',
+};
+
+function flavourFromFlag(value: string | undefined): Flavour {
+  if (!value) return 'ts';
+  const raw = value.trim().toLowerCase().replace(/^\./, '');
+  if (raw === 'ts' || raw === 'typescript') return 'ts';
+  if (raw === 'js' || raw === 'mjs' || raw === 'javascript') return 'js';
+  if (raw === 'json') return 'json';
+  throw usageError(`Unknown config format: ${value}`, 'Use --format ts, js or json');
+}
 
 /** Directories people already keep app screenshots in, most specific first. */
 const SCREENSHOT_CANDIDATES = [
@@ -42,18 +66,34 @@ interface Detected {
 export async function run(ctx: CommandContext): Promise<number> {
   const root = ctx.root;
   const osgDir = path.join(root, 'osg');
-  const configFile = path.join(osgDir, 'osg.config.ts');
+  // Read before anything is looked at, so a typo fails without touching a file.
+  const flavour = flavourFromFlag(flagString(ctx.args.flags, 'format'));
+  const storeFlag = flagString(ctx.args.flags, 'store');
+  const force = flagBool(ctx.args.flags, 'force', false);
+  const configFile = path.join(osgDir, FLAVOUR_FILES[flavour]);
   const localIgnore = path.join(osgDir, '.gitignore');
   const repoIgnore = path.join(root, '.gitignore');
 
   const detected = detect(root, {
     name: flagString(ctx.args.flags, 'name'),
     template: flagString(ctx.args.flags, 'template'),
+    store: storeFlag ? storeFromFlag(storeFlag) : undefined,
   });
   const created: string[] = [];
   const skipped: string[] = [];
 
-  if (fs.existsSync(configFile)) {
+  // The config the CLI loads now, or this flavour's file if nothing loads it.
+  const inUse = ctx.loaded.file ?? (fs.existsSync(configFile) ? configFile : null);
+  const replacing = force && inUse !== null && path.resolve(inUse) === path.resolve(configFile);
+
+  if (inUse && force && !replacing) {
+    throw usageError(
+      `--force replaces ${rel(root, configFile)}, but the config in use is ${rel(root, inUse)}.`,
+      'Delete that one first, or pass the --format it is written in, so the repo keeps a single config.'
+    );
+  }
+
+  if (inUse && !replacing && path.resolve(inUse) === path.resolve(configFile)) {
     warn(`${rel(root, configFile)} already exists, nothing was written`);
     info('');
     info('Edit these, then re-run the pipeline:');
@@ -61,6 +101,7 @@ export async function run(ctx: CommandContext): Promise<number> {
     info(`  ${bold('formats')}     the store sizes to render`);
     info(`  ${bold('locales')}     the languages the listing ships in`);
     info(`  ${bold('design')}      background, fonts, colours and the device frame`);
+    info(dim(`Or run ${cyan('osg init --force')} to start it again from the defaults`));
     skipped.push(configFile);
     if (ctx.json) {
       emit({
@@ -74,27 +115,27 @@ export async function run(ctx: CommandContext): Promise<number> {
     return EXIT.ok;
   }
 
-  if (ctx.loaded.file) {
-    // A config elsewhere still loads, so writing osg/osg.config.ts would give
-    // this repo two of them and the resolution order would pick the new one.
-    warn(`a config is already in use at ${rel(root, ctx.loaded.file)}`);
+  if (inUse && !replacing) {
+    // A config elsewhere still loads, so writing another one would give this
+    // repo two of them, and the resolution order would pick one of the two.
+    warn(`a config is already in use at ${rel(root, inUse)}`);
     info('Delete or rename it first, or keep editing it instead of running init');
     if (ctx.json) {
       emit({
         ok: true,
         reason: 'another config is already in use',
         created: [],
-        skipped: [rel(root, ctx.loaded.file)],
-        configFile: rel(root, ctx.loaded.file),
+        skipped: [rel(root, inUse)],
+        configFile: rel(root, inUse),
       });
     }
     return EXIT.ok;
   }
 
   fs.mkdirSync(osgDir, { recursive: true });
-  fs.writeFileSync(configFile, configTemplate(detected), 'utf8');
+  fs.writeFileSync(configFile, configTemplate(detected, flavour), 'utf8');
   created.push(configFile);
-  step(`wrote ${rel(root, configFile)}`);
+  step(`${replacing ? 'replaced' : 'wrote'} ${rel(root, configFile)}`);
 
   if (!fs.existsSync(localIgnore)) {
     fs.writeFileSync(localIgnore, LOCAL_IGNORE, 'utf8');
@@ -143,6 +184,8 @@ export async function run(ctx: CommandContext): Promise<number> {
       skipped: skipped.map((f) => rel(root, f)),
       repoGitignoreUpdated: touchedRepoIgnore,
       configFile: rel(root, configFile),
+      format: flavour,
+      replaced: replacing,
       detected: {
         name: detected.name,
         nameSource: detected.nameSource,
@@ -165,7 +208,38 @@ const LOCAL_IGNORE = `# Rendered output. Everything here can be rebuilt from osg
 out/
 `;
 
-function configTemplate(detected: Detected): string {
+function configTemplate(detected: Detected, flavour: Flavour): string {
+  const formats = defaultFormatsFor(detected.store);
+  // JSON has no comments, so it carries the values and nothing else.
+  if (flavour === 'json') {
+    const config = {
+      name: detected.name,
+      project: DEFAULTS.project,
+      out: DEFAULTS.out,
+      screenshots: detected.screenshots,
+      template: detected.template,
+      formats,
+      store: detected.store,
+      design: {},
+      video: { mode: 'store-raw', fps: 30, duration: 20 },
+      ai: { apiKeyEnv: 'OSG_API_KEY' },
+    };
+    return `${JSON.stringify(config, null, 2)}\n`;
+  }
+  const typeNote =
+    flavour === 'ts'
+      ? ` * The type comes from the package. If your editor cannot resolve it, run
+ * npm i -D open-screenshot-generator. The import is erased before the file is
+ * loaded, so the config works either way.`
+      : ` * The type comment gives your editor completions once the package is
+ * installed (npm i -D open-screenshot-generator). The file loads either way.`;
+  const declaration =
+    flavour === 'ts'
+      ? `import type { OsgConfig } from 'open-screenshot-generator';
+
+const config: OsgConfig = {`
+      : `/** @type {import('open-screenshot-generator').OsgConfig} */
+const config = {`;
   return `/**
  * Open Screenshot Generator config.
  *
@@ -177,13 +251,9 @@ function configTemplate(detected: Detected): string {
  * its own, so deleting a line changes nothing. Commented fields are the ones
  * with no inferred value: uncomment one and it overrides the template.
  *
- * The type comes from the package. If your editor cannot resolve it, run
- * npm i -D open-screenshot-generator. The import is erased before the file is
- * loaded, so the config works either way.
+${typeNote}
  */
-import type { OsgConfig } from 'open-screenshot-generator';
-
-const config: OsgConfig = {
+${declaration}
   // Used in output filenames, in osg.manifest.json, and by the AI agent as the
   // name of the app it is writing copy for.
   name: ${quote(detected.name)},
@@ -204,7 +274,7 @@ const config: OsgConfig = {
   template: ${quote(detected.template)},
 
   // Store size presets to render. Run "osg render --help" for the full list.
-  formats: [${DEFAULTS.formats.map(quote).join(', ')}],
+  formats: [${formats.map(quote).join(', ')}],
 
   // The languages the listing ships in. Uncomment once "osg localize --add"
   // has actually put them in the project: a project with no languages renders
@@ -273,9 +343,12 @@ export default config;
  * config to learn a display string is not a trade worth making, so that one is
  * matched with a regex and left alone.
  */
-function detect(root: string, overrides: { name?: string; template?: string }): Detected {
+function detect(
+  root: string,
+  overrides: { name?: string; template?: string; store?: 'appstore' | 'play' }
+): Detected {
   const name = overrides.name ? { value: overrides.name, source: '--name' } : detectName(root);
-  const store = detectStore(root);
+  const store = overrides.store ? { value: overrides.store, source: '--store' } : detectStore(root);
   const screenshots = SCREENSHOT_CANDIDATES.find((candidate) => isDirectory(path.join(root, candidate)));
 
   return {

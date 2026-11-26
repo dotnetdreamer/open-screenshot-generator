@@ -15,7 +15,7 @@
  * file only decides what to read, how to group it and how to print it.
  *
  * Two kinds of finding: per file, and per set. A store counts screenshots per
- * size, so "too few to publish" is not a fact about any one PNG, which is what
+ * slot, so "too few to publish" is not a fact about any one PNG, which is what
  * checkScreenshotCount and the grouping below exist for.
  *
  * Warnings never fail the run. A 9 MB PNG is worth saying out loud and is not
@@ -39,9 +39,11 @@ import {
   isCreativeArt,
   isPlayConsoleOnlyArt,
   rulesetFor,
+  screenshotSlot,
   worstLevel,
   type Finding,
   type RuleLevel,
+  type ScreenshotSlot,
   type StoreId,
   type StoreRuleset,
 } from '../verify/rules.js';
@@ -49,7 +51,7 @@ import {
 const PNG_EXT = new Set(['.png']);
 const VIDEO_EXT = new Set(['.mp4', '.m4v', '.mov']);
 
-interface FileReport {
+export interface FileReport {
   /** Relative to the audited directory, forward slashes on every OS. */
   file: string;
   kind: 'png' | 'video';
@@ -62,7 +64,7 @@ interface FileReport {
   findings: Finding[];
 }
 
-interface SetReport {
+export interface SetReport {
   label: string;
   kind: 'png' | 'video';
   files: number;
@@ -149,13 +151,23 @@ function auditFile(file: string, rel: string, ruleset: StoreRuleset): FileReport
 }
 
 /**
- * A set is one folder at one pixel size, because that is how a store counts:
- * per display size, per locale. Grouping on the folder alone would call two
- * formats rendered side by side one set of twenty and fail a good run; grouping
- * on the size alone would merge every locale into one.
+ * A set is one folder and one store slot, because that is how a store counts:
+ * per locale, and per slot (screenshotSlot). Play takes a portrait and a
+ * landscape phone shot as one set of two, and an Apple display type takes
+ * 1290x2796 beside 1320x2868. Grouping on the folder alone would call two
+ * formats rendered side by side one set of twenty and fail a good run. A size
+ * no slot takes, and every preview, is counted at its pixel size.
  */
-function auditSets(rows: FileReport[], ruleset: StoreRuleset): SetReport[] {
-  const groups = new Map<string, { label: string; kind: 'png' | 'video'; files: number }>();
+export function auditSets(rows: FileReport[], ruleset: StoreRuleset): SetReport[] {
+  interface Group {
+    name: string;
+    folder: string;
+    kind: 'png' | 'video';
+    files: number;
+    sizes: Set<string>;
+    slot: ScreenshotSlot | null;
+  }
+  const groups = new Map<string, Group>();
   for (const row of rows) {
     if (!row.width || !row.height) continue;
     // One header per language is the whole set, and it is not a screenshot.
@@ -163,18 +175,29 @@ function auditSets(rows: FileReport[], ruleset: StoreRuleset): SetReport[] {
     // Play counts foldable shots across their own section, uploaded by hand.
     if (row.kind === 'png' && isPlayConsoleOnlyArt(row.width, row.height, ruleset)) continue;
     const folder = path.posix.dirname(row.file);
-    const label = `${folder === '.' ? '' : `${folder} `}${row.width}x${row.height}`;
-    const key = `${row.kind}:${label}`;
+    const size = `${row.width}x${row.height}`;
+    const slot = row.kind === 'png' ? screenshotSlot(row.width, row.height, ruleset) : null;
+    const key = `${row.kind}:${folder}:${slot?.id ?? size}`;
     const existing = groups.get(key);
-    if (existing) existing.files += 1;
-    else groups.set(key, { label, kind: row.kind, files: 1 });
+    if (existing) {
+      existing.files += 1;
+      existing.sizes.add(size);
+    } else {
+      groups.set(key, { name: slot?.label ?? size, folder, kind: row.kind, files: 1, sizes: new Set([size]), slot });
+    }
   }
 
+  const labelled = [...groups.values()].map((group) => {
+    const where = group.folder === '.' ? '' : `${group.folder} `;
+    // A slot names its sizes, so a set that fails points at its files.
+    const sizes = group.slot ? ` (${[...group.sizes].sort().join(', ')})` : '';
+    return { ...group, label: `${where}${group.name}${sizes}` };
+  });
   const sets: SetReport[] = [];
-  for (const group of [...groups.values()].sort((a, b) => a.label.localeCompare(b.label))) {
+  for (const group of labelled.sort((a, b) => a.label.localeCompare(b.label))) {
     const findings =
       group.kind === 'png'
-        ? checkScreenshotCount(group.files, group.label, ruleset)
+        ? checkScreenshotCount(group.files, group.label, ruleset, group.slot)
         : checkPreviewCount(group.files, group.label, ruleset);
     if (findings.length === 0) continue;
     sets.push({ label: group.label, kind: group.kind, files: group.files, level: worstLevel(findings), findings });

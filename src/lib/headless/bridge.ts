@@ -19,6 +19,7 @@
  *   capture()       -> handlePublishCapture               bytes for an upload
  *   loadProject()   -> loadProjectFromData                open a project
  *   agent()         -> generatePlan + buildProjectFromPlan the AI agent
+ *   publish()       -> src/lib/publish (./publish.ts)      `osg upload`
  *
  * Protocol versioning is deliberate: the CLI checks `protocol` and refuses to
  * drive a bundle it does not understand, naming both versions, because
@@ -29,8 +30,12 @@ import type { DeviceFormat } from '@/lib/deviceRegistry';
 import type { McpDesignApi } from '@/lib/mcp/desktopMcpServer';
 import { createSerialMcpRunner } from '@/lib/mcp/desktopMcpServer';
 import type { PublishImage } from '@/lib/publish/types';
+import { createHeadlessPublisher, type HeadlessPublishRequest, type HeadlessPublishResponse } from './publish';
 
-/** Bumped whenever a method here changes shape. The CLI pins it. */
+/**
+ * Bumped whenever a method here changes shape. The CLI pins it. A new method
+ * (publish) leaves it alone: the CLI looks for that one by name.
+ */
 export const HEADLESS_PROTOCOL = 1;
 
 export interface HeadlessSaved {
@@ -128,6 +133,8 @@ export interface HeadlessBridge {
    */
   loadProject: (data: ArtboardState[], name: string, id: string) => Promise<boolean>;
   agent: (input: HeadlessAgentInput) => Promise<HeadlessAgentResult>;
+  /** `osg upload`: store lookups, staged images and the upload itself (./publish.ts). */
+  publish: (request: HeadlessPublishRequest) => Promise<HeadlessPublishResponse>;
 }
 
 declare global {
@@ -265,6 +272,8 @@ export function installHeadlessBridge(host: HeadlessHost): () => void {
         };
       }
     },
+
+    publish: createHeadlessPublisher(),
   };
 
   window.__osg = bridge;

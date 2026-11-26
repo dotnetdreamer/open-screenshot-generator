@@ -343,24 +343,19 @@ function usableImages(
   });
 }
 
-/**
- * Send every (language, slot) pair through ONE edit.
- *
- * An edit is a staged transaction over the whole listing, and it is not scoped
- * to a language, so nothing forces one edit per language. Committing per
- * language would mean five languages times three slots is fifteen commits, and
- * a failure at number nine leaves the first eight already public with the rest
- * missing, which is the worst possible state for a store listing. One edit
- * makes the whole run atomic: it either all goes live or none of it does, and
- * the discard on failure leaves the listing exactly as it was.
- */
-export async function uploadPlayScreenshotsForLanguages(
-  credentials: PlayCredentials,
-  options: PlayBatchUploadOptions,
-  onProgress?: PublishProgressFn
-): Promise<PublishResult> {
-  const warnings: string[] = [];
+/** One (language, slot) pair as a run sends it: the images Play takes, and the slot's name. */
+export interface PlannedPlayEntry extends PlayUploadEntry {
+  usable: PublishImage[];
+  slotLabel: string;
+}
 
+/**
+ * What a run would send, worked out with nothing sent. Each image Play would
+ * refuse is dropped with a warning naming why, and a slot given more images
+ * than it keeps throws. The upload goes through here, and `osg upload
+ * --dry-run` stops here, so the two agree.
+ */
+export function planPlayUpload(options: PlayBatchUploadOptions, warnings: string[]): PlannedPlayEntry[] {
   const planned = options.entries
     .map((entry) => {
       const target = PLAY_IMAGE_TARGETS.find((slot) => slot.imageType === entry.imageType);
@@ -384,6 +379,27 @@ export async function uploadPlayScreenshotsForLanguages(
       'this';
     throw new StoreRejectedError(warnings[0] ?? `None of these artboards fit the ${label} slot.`);
   }
+  return planned;
+}
+
+/**
+ * Send every (language, slot) pair through ONE edit.
+ *
+ * An edit is a staged transaction over the whole listing, and it is not scoped
+ * to a language, so nothing forces one edit per language. Committing per
+ * language would mean five languages times three slots is fifteen commits, and
+ * a failure at number nine leaves the first eight already public with the rest
+ * missing, which is the worst possible state for a store listing. One edit
+ * makes the whole run atomic: it either all goes live or none of it does, and
+ * the discard on failure leaves the listing exactly as it was.
+ */
+export async function uploadPlayScreenshotsForLanguages(
+  credentials: PlayCredentials,
+  options: PlayBatchUploadOptions,
+  onProgress?: PublishProgressFn
+): Promise<PublishResult> {
+  const warnings: string[] = [];
+  const planned = planPlayUpload(options, warnings);
 
   // Only worth naming the language once there is more than one in the run.
   const manyLanguages = new Set(planned.map((entry) => entry.language)).size > 1;

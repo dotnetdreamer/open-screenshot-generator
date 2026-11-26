@@ -35,7 +35,7 @@ const COMMANDS: CommandSpec[] = [
   {
     name: 'init',
     summary: 'Create osg/osg.config.ts so later prompts edit a committed file',
-    usage: 'osg init [--template <slug>] [--name <app>]',
+    usage: 'osg init [--store appstore|play] [--format ts|js|json] [--name <app>] [--template <slug>] [--force]',
     load: () => import('./commands/init.js'),
   },
   {
@@ -118,8 +118,8 @@ const COMMANDS: CommandSpec[] = [
   },
   {
     name: 'upload',
-    summary: 'Push the rendered set to App Store Connect or Google Play',
-    usage: 'osg upload --store appstore|play [--locales <codes>] [--dry-run]',
+    summary: 'Render the project and upload it to App Store Connect or Google Play',
+    usage: 'osg upload --store appstore|play [--dry-run] [--formats <ids>] [--locales <codes>] [--replace]',
     load: () => import('./commands/upload.js'),
   },
   {

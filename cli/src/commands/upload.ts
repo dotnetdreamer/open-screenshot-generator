@@ -48,8 +48,10 @@ import type { CommandContext } from '../context.js';
 import type { Session } from '../driver/session.js';
 import { flagBool, flagList, flagString } from '../args.js';
 import { resolveDeviceFormat } from '../formats.js';
+import { defaultFormatsFor } from '../config.js';
 import { EXIT, OsgError, driverError, usageError } from '../errors.js';
 import { bold, cyan, debug, dim, emit, humanBytes, info, ok, step, warn } from '../log.js';
+import { openProject } from './render.js';
 
 // --- the page contract ------------------------------------------------------
 //
@@ -199,6 +201,10 @@ export async function run(ctx: CommandContext): Promise<number> {
 
   const session = await ctx.session();
   await requirePublishBridge(session);
+  // The committed project, opened the way `osg render` opens it: its boards
+  // are what gets captured, and its languages pick the store listings.
+  // Without it the run would capture whatever a fresh editor shows.
+  await openProject(ctx, session);
   const releaseSockets = await useNodeSockets(session);
 
   try {
@@ -249,8 +255,8 @@ export async function run(ctx: CommandContext): Promise<number> {
       result,
     });
   } finally {
-    // Both of these matter for the same reason: the page outlives this command
-    // inside `osg all`, and neither the shim nor the staged bytes belong to it.
+    // Both of these matter for the same reason: the session's page can outlive
+    // this command, and neither the shim nor the staged bytes belong to what runs next.
     await clearStage(session, store).catch(() => {});
     await releaseSockets().catch(() => {});
   }
@@ -615,9 +621,10 @@ async function captureSet(
   const artboardIds = requested ?? status.artboards.map((artboard) => artboard.id);
   if (artboardIds.length === 0) return [];
 
-  const formats = (flagList(ctx.args.flags, 'formats') ?? ctx.config.formats ?? []).map(resolveDeviceFormat);
-  // No format at all means "whatever size the boards already are", which is the
-  // right default for a project built from a store-sized template.
+  // The sizes `render` would make, so what `verify` passed is what goes up:
+  // the config's formats, else the store's phone size. `as-is` (and an empty
+  // list) keeps each board at the size it already is.
+  const formats = (flagList(ctx.args.flags, 'formats') ?? ctx.config.formats ?? defaultFormatsFor(store)).map(resolveDeviceFormat);
   const formatList: (string | null)[] = formats.length ? formats : [null];
 
   const expected = artboardIds.length * formatList.length * locales.length;
@@ -762,7 +769,7 @@ async function useNodeSockets(session: Session): Promise<() => Promise<void>> {
     await session.page.exposeFunction(FETCH_BINDING, bridge);
   } catch (error) {
     // Already bound by an earlier upload in this process, which is the same
-    // function; `osg all` can reach here twice.
+    // function.
     debug(`${FETCH_BINDING}: ${(error as Error).message}`);
   }
 
