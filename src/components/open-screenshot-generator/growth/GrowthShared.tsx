@@ -27,6 +27,7 @@ import { formatChange } from '@/lib/growth/impact';
 import { useStoreImage } from '@/lib/growth/storeImages';
 
 export type GrowthTab =
+  | 'today'
   | 'overview'
   | 'insights'
   | 'ratings'
@@ -128,6 +129,17 @@ export interface GrowthView {
   };
   tabOptions: GrowthTabOptions;
   goTo: (tab: GrowthTab, options?: GrowthTabOptions) => void;
+  /** Show another app in the picker and open one of its sections, as Today does. */
+  openApp: (appId: string, tab: GrowthTab, options?: GrowthTabOptions) => void;
+  /** Today: refresh these apps one after another, and stop that. */
+  refreshApps: (appIds: string[]) => void;
+  stopRefresh: () => void;
+  /** Today: the refresh of several apps under way, and the app it is on. */
+  refreshing: { appId: string; index: number; total: number } | null;
+  /** Each app with a sync running in this view, and how far it got. */
+  syncProgress: Record<string, SyncProgress | null>;
+  /** Why an app cannot be refreshed now, null when it can. */
+  refreshReason: (appId: string) => string | null;
   dismissInsight: (id: string) => void;
   restoreInsights: () => void;
   onPublish: () => void;

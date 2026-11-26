@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '../fixtures/test';
 import type { TauriHarness } from '../fixtures/tauri';
 import { FakeAppStore, shotUrl, storeRow, type StoreRow } from '../helpers/appStore';
-import { TEST_KEY, openGrowth, putGrowthRows, section } from '../helpers/growth';
+import { TEST_KEY, openGrowth, openGrowthSection, putGrowthRows, section } from '../helpers/growth';
 
 // Growth's Keywords: where the user's App Store app shows up when people search
 // the App Store, read from Apple's public search, which needs no key, so the
@@ -422,7 +422,7 @@ test.describe('growth keywords', () => {
       await store.install();
       await app.startBlankProject();
       // Growth keeps the account's apps once it has listed them, which is how the tools find the app.
-      const view = await openGrowth(page);
+      const view = await openGrowthSection(page, 'Overview');
       await expect(view.getByRole('combobox', { name: 'App' })).toContainText('Ludo Wala: 3D & Action');
 
       const all = await mcpCall(tauri, 'list_store_keywords', {}, true);

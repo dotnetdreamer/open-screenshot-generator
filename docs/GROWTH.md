@@ -12,9 +12,9 @@ Growth shows how your app is doing in the App Store and on Google Play, in the s
 
 To open Growth, click **Growth** on the bar at the left of the window. After you upload screenshots to App Store Connect, you can also click **See results in Growth**. **Editor**, at the top of the same bar, takes you back to the editor, just as you left it.
 
-Growth works in the desktop app only, except **Competitors** and **Keywords**. Competitors and Keywords need no key, so both also work in the web version. Growth opens on **Ask AI**. In the web version, and in the desktop app before you add a key, every other screen of Growth is empty. Buttons that need your app are turned off. Point at a button to see why the button is off.
+Growth works in the desktop app only, except **Competitors** and **Keywords**. Competitors and Keywords need no key, so both also work in the web version. Before you add a key, Growth opens on **Ask AI**, which helps you set Growth up. After that, Growth opens on **Today**, with all your apps on one page. In the web version, and in the desktop app before you add a key, every other screen of Growth is empty. Buttons that need your app are turned off. Point at a button to see why the button is off.
 
-At the top of Growth, pick the app. With both keys, the list shows your App Store apps and your Google Play app in two groups.
+At the top of Growth, pick the app. With both keys, the list shows your App Store apps and your Google Play app in two groups. **Today** doesn't need a pick: it shows every app at once.
 
 ## Set up Growth with Ask AI
 
@@ -102,6 +102,19 @@ Competitors checks the apps you follow twice a day while the editor is open, in 
 
 ## The sections of Growth
 
+**Today.** All your apps on one page. At the top, a few sentences say what changed lately: your new downloads, a round number one of your apps just passed, and what your newest screenshots did. Under the sentences:
+
+- **Totals for all your apps:** new downloads, page visits, download rate, earnings, rating and reviews to answer. The colored bar under a number shows how much each app adds to it. Earnings stay in the currency Apple paid them in, so euros are never added to dollars.
+- **Did your new screenshots work?** For each app with new screenshots in the last 90 days, the numbers before and after the new screenshots went live.
+- **A chart by day**, with one color for each app. Click an app's name under the chart to hide or show that app. Lighter columns are days where some apps' numbers aren't in yet: Google adds each day's numbers a few days after Apple does. **Show the numbers** shows the same numbers as a table.
+- **Your apps**, one row for each app, with its new downloads, rating and reviews to answer. Click a row to open that app's Overview.
+- **A world map** of where your new downloads come from. Point at a country to see its numbers.
+- **To do**, on the right. Growth writes most of the list from your apps, like reviews waiting for a reply or problems on a store page, and each one has a button for the next step. An item goes away by itself once it's done. Click **Add a to-do** to add your own, with the app it's about and the day it's due. Your own to-dos stay on this computer. The number on **Today** at the left shows your to-dos that are due today or late.
+- **What's new**: new reviews, new versions, screenshot uploads and good news from the last few weeks. A dot marks what came in since you last looked.
+- **Milestones**: the next round number for each app, like 100 downloads or 50 ratings, and roughly when your app gets there if the last four weeks keep their pace.
+
+Each app counts its own last days, the same days its Overview shows, so a number on Today matches the number on the app's own page. When an app's numbers start later, a change only compares the apps that have numbers from before, and the card says how many apps that is. **Refresh all** at the top refreshes every app, one app after another. Today also refreshes the apps you refreshed before, once their numbers are older than your setting. An app you never refreshed waits for you, because its first refresh reads a whole year.
+
 **Overview.** Your main numbers for the time you pick, compared with the same number of days before. A chart shows any of the numbers, with your new versions and screenshot uploads marked on the chart. At the top, **Did the new screenshots work?** compares your newest screenshots with your previous screenshots (see below). For a Google Play app, the main numbers are page visits, download rate, new downloads and updates.
 
 **Insights.** Cards about what changed and what to do next. For example: your app was seen more or less often, Apple probably featured your app, a country where your store page is not in the main language, complaints that come up again and again in reviews, a lower rating after a new version, or problems on your store page. Each card has a button for the next step. Hide a card when you are done with the card. If the same change still shows the next week, a new card appears.
@@ -124,7 +137,7 @@ A Google Play store page has a title (30 characters), a short description (80 ch
 
 **Reports.** A weekly, monthly or yearly report. The report compares your numbers with the period before, and shows your top countries, how people found your app, your reviews and your events. The newest yearly report covers the year so far, next to the same days of the year before. Reports for older years come after the newest yearly report. Growth only compares a number when Growth has the number for the whole period before, and the report names the numbers Growth could not compare. With an AI set up, **Write summary** adds a few sentences about what changed and what to do next. Save the report as PDF, Markdown or text, or copy the report.
 
-**Ask AI.** Where Growth opens. The assistant sets Growth up for you (see Set up Growth with Ask AI), and answers questions about your numbers. The AI you chose answers from the data on your computer. If you use the Claude Code or Codex agent, **Ask the agent** sends the question to the agent instead. The agent can then change your screenshots in the same chat.
+**Ask AI.** Where Growth opens before you add a key. The assistant sets Growth up for you (see Set up Growth with Ask AI), and answers questions about your numbers. The AI you chose answers from the data on your computer. If you use the Claude Code or Codex agent, **Ask the agent** sends the question to the agent instead. The agent can then change your screenshots in the same chat.
 
 ## Ratings and reviews
 

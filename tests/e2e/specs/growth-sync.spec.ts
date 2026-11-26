@@ -2,7 +2,7 @@ import { gzipSync } from 'node:zlib';
 import { test, expect, type Page } from '../fixtures/test';
 import type { TauriHttpRule } from '../fixtures/tauri-runtime';
 import type { TauriHarness } from '../fixtures/tauri';
-import { appleShapedKey, backToEditor, openGrowth, section, viewButton, views, GROWTH_BUTTON } from '../helpers/growth';
+import { appleShapedKey, backToEditor, openGrowth, openGrowthSection, section, viewButton, views, GROWTH_BUTTON } from '../helpers/growth';
 
 // A whole Growth sync on the desktop build, against App Store Connect answers
 // shaped like Apple's documentation: the apps, the listing, reviews and their
@@ -286,7 +286,7 @@ test.describe('growth sync', () => {
     await app.goto();
     await app.dismissStartDialog();
 
-    const view = await openGrowth(page);
+    const view = await openGrowthSection(page, 'Overview');
     await expect(view.getByRole('combobox', { name: 'App' })).toContainText('Pebble Notes');
 
     // Opening on an app that has never synced starts a sync. The ratings sweep
@@ -446,7 +446,7 @@ test.describe('growth sync', () => {
       await connect(page);
       await app.goto();
       await app.dismissStartDialog();
-      const view = await openGrowth(page);
+      const view = await openGrowthSection(page, 'Overview');
       await expect(view.getByRole('combobox', { name: 'App' })).toContainText('Pebble Notes');
 
       const requests = () => page.evaluate(() => (window as any).__E2E_TAURI__.httpRequests as Array<{ url: string }>);
@@ -519,7 +519,7 @@ test.describe('growth sync', () => {
       await connect(page);
       await app.goto();
       await app.dismissStartDialog();
-      const view = await openGrowth(page);
+      const view = await openGrowthSection(page, 'Overview');
       const held = () => page.evaluate(() => (window as any).__E2E_TAURI__.httpHeld.length as number);
       await expect.poll(held, { timeout: 30_000 }).toBe(1);
 
@@ -568,7 +568,7 @@ test.describe('growth sync', () => {
       await connect(page, { vendor: false });
       await app.goto();
       await app.dismissStartDialog();
-      const view = await openGrowth(page);
+      const view = await openGrowthSection(page, 'Overview');
       await expect(view.getByRole('combobox', { name: 'App' })).toContainText('Pebble Notes');
       const held = () => page.evaluate(() => (window as any).__E2E_TAURI__.httpHeld.length as number);
       await expect.poll(held, { timeout: 30_000 }).toBe(1);

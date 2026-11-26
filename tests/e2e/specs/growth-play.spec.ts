@@ -3,7 +3,7 @@ import { test, expect, type Page } from '../fixtures/test';
 import type { TauriHttpRule } from '../fixtures/tauri-runtime';
 import type { TauriHarness } from '../fixtures/tauri';
 import { FakeAppStore, playListing, playShot, type PlayListing } from '../helpers/appStore';
-import { TEST_ACCOUNT_RULES, TEST_APP, TEST_KEY, backToEditor, openGrowth, putGrowthRows, section } from '../helpers/growth';
+import { TEST_ACCOUNT_RULES, TEST_APP, TEST_KEY, backToEditor, openGrowth, openGrowthSection, putGrowthRows, section } from '../helpers/growth';
 
 // Growth for a Google Play app on the desktop build, against answers shaped
 // like Google's: a service account token, the store page read through an
@@ -257,7 +257,7 @@ test.describe('growth on Google Play', () => {
     await app.goto();
     await app.dismissStartDialog();
 
-    const view = await openGrowth(page);
+    const view = await openGrowthSection(page, 'Overview');
     // Named after its package until the store page has been read, then after its title.
     await expect(view.getByRole('combobox', { name: 'App' })).toContainText(/Pebble Notes|com\.example\.pebble/);
 

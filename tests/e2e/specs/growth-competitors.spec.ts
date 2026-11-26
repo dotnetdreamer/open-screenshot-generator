@@ -587,9 +587,9 @@ test.describe('growth competitors', () => {
       await store.install();
       await app.startBlankProject();
 
-      // With a key, Growth opens on Ask AI too.
+      // With a key, Growth opens on Today.
       const view = await openGrowth(page);
-      await expect(section(view, 'Ask AI')).toHaveAttribute('aria-current', 'page');
+      await expect(section(view, 'Today')).toHaveAttribute('aria-current', 'page');
       await section(view, 'Competitors').click();
       const screen = competitors(page);
       await expect(screen.getByTestId('growth-competitors-checked')).toContainText('Checked just now', { timeout: 30_000 });

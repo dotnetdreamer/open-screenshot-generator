@@ -95,6 +95,15 @@ body {
     --growth-tag-6: 120 100% 26%;
     --growth-tag-7: 248 62% 58%;
     --growth-tag-8: 0 73% 59%;
+    /* Apps on Growth's Today screen take the tag slots above, in the account's
+       order. The map's five shades of downloads are one hue, palest for the
+       fewest: steps 150, 250, 400, 550 and 700 of the dataviz reference's
+       sequential blue. */
+    --growth-map-1: 212 83% 84%;
+    --growth-map-2: 211 82% 74%;
+    --growth-map-3: 211 84% 56%;
+    --growth-map-4: 213 75% 43%;
+    --growth-map-5: 215 80% 27%;
     /* Store compliance: the shield's green, and the four levels of a rule or a
        deadline. Each is a text colour, drawn on its own 12% tint, and reads at
        4.5:1 or more on the card, the tint, the grey ground and a muted row. */
@@ -186,6 +195,13 @@ body {
     --growth-tag-6: 120 100% 26%;
     --growth-tag-7: 247 69% 72%;
     --growth-tag-8: 0 72% 65%;
+    /* On the dark card the most downloads is the brightest shade: steps 650,
+       550, 400, 300 and 150. */
+    --growth-map-1: 214 82% 32%;
+    --growth-map-2: 213 75% 43%;
+    --growth-map-3: 211 84% 56%;
+    --growth-map-4: 211 83% 68%;
+    --growth-map-5: 212 83% 84%;
     /* The same, lighter for the dark card (4.8:1 or more on its tint). */
     --rules-accent: 156 60% 55%;
     --rules-critical: 0 85% 72%;
