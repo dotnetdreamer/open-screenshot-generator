@@ -12,8 +12,9 @@ import { AppleIcon, CheckIcon, ClipboardCopyIcon, ExternalLinkIcon, GlobeIcon, P
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { openExternal } from '@/lib/desktop';
-import { repoPath } from '@/lib/storeCompliance/parse';
+import { deadlinePeriod, isMonthOnly, repoPath } from '@/lib/storeCompliance/parse';
 import { deadlineTitle, plainBlocks, ruleFix, ruleProblem, ruleTitle } from '@/lib/storeCompliance/plain';
+import { fromToday } from '@/lib/storeCompliance/search';
 import { filePageUrl } from '@/lib/storeCompliance/source';
 import type { RulesState } from '@/lib/storeCompliance/sync';
 import type { Deadline, RejectionRule, RuleStore, RulesLibrary, Severity, ShipStore } from '@/lib/storeCompliance/types';
@@ -180,16 +181,23 @@ export function formatDay(day: string | null): string {
   return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 }
 
-/** "in 12 days", "tomorrow", "3 months ago". */
-export function fromToday(days: number): string {
-  if (days === 0) return 'Today';
-  if (days === 1) return 'Tomorrow';
-  if (days === -1) return 'Yesterday';
-  const ahead = days > 0;
-  const span = Math.abs(days);
-  const amount = span < 45 ? `${span} days` : span < 548 ? `${Math.round(span / 30.4)} months` : `${Math.round(span / 365)} years`;
-  return ahead ? `In ${amount}` : `${amount} ago`;
+/** "April 2027", for a month given without a day. */
+export function formatMonth(day: string): string {
+  const date = new Date(`${day}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return day;
+  return date.toLocaleDateString(undefined, { month: 'long', year: 'numeric', timeZone: 'UTC' });
 }
+
+/**
+ * One of a deadline's days as its source gave it: "1 Apr 2027", or "April
+ * 2027" when it named no day, or the period it named instead, "Spring 2027".
+ */
+export function formatDeadlineDay(deadline: Deadline, day: string | null): string {
+  if (!day || !isMonthOnly(deadline, day)) return formatDay(day);
+  return deadlinePeriod(deadline, day) ?? formatMonth(day);
+}
+
+export { fromToday };
 
 export function formatAgo(at: number | null): string {
   if (!at) return 'never';

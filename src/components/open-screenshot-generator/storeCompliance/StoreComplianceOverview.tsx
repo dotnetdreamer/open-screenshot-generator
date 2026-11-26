@@ -25,13 +25,13 @@ import { rulePack, type RulePack } from '@/lib/storeCompliance/freshness';
 import { checklistItemsFor, deadlineDay } from '@/lib/storeCompliance/parse';
 import { checkText, deadlineTitle, placeName, ruleTitle } from '@/lib/storeCompliance/plain';
 import { readinessChecks, summarize, useReadiness } from '@/lib/storeCompliance/readiness';
-import { daysUntil, deadlineStore, deadlinesByDay, ruleForStores } from '@/lib/storeCompliance/search';
+import { daysUntil, deadlineCountdown, deadlineStore, deadlinesByDay, ruleForStores } from '@/lib/storeCompliance/search';
 import { markNewsSeen } from '@/lib/storeCompliance/sync';
 import { countsAsDone, DEVICE_LIST, useTicks } from '@/lib/storeCompliance/ticks';
 import type { CheckResult } from '@/lib/storeCompliance/ai';
 import { cn } from '@/lib/utils';
 import { InlineMarkdown } from './RulesMarkdown';
-import { PlainText, SEVERITY_STYLE, SeverityBadge, StoreMarks, formatAgo, formatDay, fromToday, useRulesView } from './StoreComplianceShared';
+import { PlainText, SEVERITY_STYLE, SeverityBadge, StoreMarks, formatAgo, formatDay, formatDeadlineDay, useRulesView } from './StoreComplianceShared';
 
 export function ProgressRing({ done, total, size = 76 }: { done: number; total: number; size?: number }) {
   const stroke = 7;
@@ -332,7 +332,7 @@ export function StoreComplianceOverview() {
           icon={CalendarClockIcon}
           value={String(within90.length)}
           label="Deadlines in the next 90 days"
-          detail={coming[0] ? `Next: ${deadlineTitle(coming[0])}, ${fromToday(daysUntil(deadlineDay(coming[0])!, today)).toLowerCase()}` : 'Nothing dated ahead'}
+          detail={coming[0] ? `Next: ${deadlineTitle(coming[0])}, ${deadlineCountdown(coming[0], today)!.text.toLowerCase()}` : 'Nothing dated ahead'}
           onClick={() => view.goTo('deadlines')}
         />
         <Tile icon={BookOpenIcon} value={String(guideCount)} label="Guides" detail="Apple, Google Play, appeals and the laws for apps" onClick={() => view.goTo('guides')} />
@@ -350,7 +350,7 @@ export function StoreComplianceOverview() {
           </div>
           <ul className="divide-y">
             {coming.slice(0, 5).map((deadline) => {
-              const days = daysUntil(deadlineDay(deadline)!, today);
+              const countdown = deadlineCountdown(deadline, today)!;
               return (
                 <li key={deadline.id}>
                   <button type="button" className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50" onClick={() => view.goTo('deadlines', { deadline: deadline.id })}>
@@ -360,8 +360,8 @@ export function StoreComplianceOverview() {
                       <span className="block truncate text-xs text-muted-foreground">{placeName(deadline.jurisdiction)}</span>
                     </span>
                     <span className="shrink-0 text-right">
-                      <span className={cn('block text-xs font-semibold tabular-nums', days <= 30 && 'text-[hsl(var(--rules-high))]')}>{fromToday(days)}</span>
-                      <span className="block text-[11px] text-muted-foreground">{formatDay(deadlineDay(deadline))}</span>
+                      <span className={cn('block text-xs font-semibold tabular-nums', countdown.soon && 'text-[hsl(var(--rules-high))]')}>{countdown.text}</span>
+                      <span className="block text-[11px] text-muted-foreground">{formatDeadlineDay(deadline, deadlineDay(deadline))}</span>
                     </span>
                   </button>
                 </li>

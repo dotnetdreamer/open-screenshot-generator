@@ -11,12 +11,12 @@ import { ChevronDownIcon, ExternalLinkIcon, SearchIcon, SparklesIcon } from 'luc
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { openExternal } from '@/lib/desktop';
-import { deadlineDay } from '@/lib/storeCompliance/parse';
+import { deadlineDay, isMonthOnly } from '@/lib/storeCompliance/parse';
 import { deadlineSummary, deadlineTitle, firstLine, placeName } from '@/lib/storeCompliance/plain';
-import { daysUntil, deadlineStore, deadlinesByDay, searchDeadlines } from '@/lib/storeCompliance/search';
+import { daysUntil, deadlineCountdown, deadlineStore, deadlinesByDay, searchDeadlines } from '@/lib/storeCompliance/search';
 import type { Deadline } from '@/lib/storeCompliance/types';
 import { cn } from '@/lib/utils';
-import { PlainText, SEVERITY_STYLE, SeverityBadge, formatDay, fromToday, useRulesView } from './StoreComplianceShared';
+import { PlainText, SEVERITY_STYLE, SeverityBadge, formatDay, formatDeadlineDay, useRulesView } from './StoreComplianceShared';
 
 const REGIONS = ['App Store', 'Google Play', 'EU', 'USA', 'UK', 'Other countries'] as const;
 type Region = (typeof REGIONS)[number];
@@ -62,19 +62,22 @@ function DeadlineCard({
   onAsk: () => void;
 }) {
   const day = deadlineDay(deadline);
-  const days = day ? daysUntil(day, today) : null;
+  const countdown = deadlineCountdown(deadline, today);
   const date = day ? new Date(`${day}T00:00:00Z`) : null;
+  // A month given without a day shows the month where the day would be, and its year under it.
+  const monthOnly = isMonthOnly(deadline, day);
+  const shortMonth = date ? date.toLocaleDateString(undefined, { month: 'short', timeZone: 'UTC' }) : '';
   const dates: Array<[string, string | null]> = [
-    ['Takes effect', deadline.effective ? formatDay(deadline.effective) : null],
+    ['Takes effect', deadline.effective ? formatDeadlineDay(deadline, deadline.effective) : null],
     ['Time to get ready', deadline.grace],
-    ['Has to be done by', deadline.mandatory ? formatDay(deadline.mandatory) : null],
-    ['Enforced from', deadline.enforcement ? formatDay(deadline.enforcement) : null],
+    ['Has to be done by', deadline.mandatory ? formatDeadlineDay(deadline, deadline.mandatory) : null],
+    ['Enforced from', deadline.enforcement ? formatDeadlineDay(deadline, deadline.enforcement) : null],
   ];
   return (
     <li id={`deadline-${deadline.id}`} className="relative pl-16" data-deadline={deadline.id}>
-      <div className="absolute left-0 top-3 flex w-12 flex-col items-center" aria-hidden>
-        <span className="text-lg font-semibold leading-none tabular-nums">{date ? date.getUTCDate() : '?'}</span>
-        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{date ? date.toLocaleDateString(undefined, { month: 'short', timeZone: 'UTC' }) : ''}</span>
+      <div className="absolute left-0 top-3 flex w-12 flex-col items-center" aria-hidden data-testid="store-deadline-date">
+        <span className="text-lg font-semibold leading-none tabular-nums">{date ? (monthOnly ? shortMonth : date.getUTCDate()) : '?'}</span>
+        <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{date ? (monthOnly ? date.getUTCFullYear() : shortMonth) : ''}</span>
       </div>
       <span aria-hidden className={cn('absolute left-[54px] top-4 h-2.5 w-2.5 rounded-full ring-4 ring-background', SEVERITY_STYLE[deadline.priority].dot)} />
       <div className={cn('rounded-xl border bg-card transition-shadow', open && 'shadow-md')}>
@@ -103,14 +106,14 @@ function DeadlineCard({
             )}
           </span>
           <span className="flex shrink-0 flex-col items-end gap-1">
-            {days !== null && (
+            {countdown && (
               <span
                 className={cn(
                   'rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums',
-                  days >= 0 && days <= 30 ? 'bg-[hsl(var(--rules-high))]/10 text-[hsl(var(--rules-high))]' : 'bg-muted text-muted-foreground'
+                  countdown.soon ? 'bg-[hsl(var(--rules-high))]/10 text-[hsl(var(--rules-high))]' : 'bg-muted text-muted-foreground'
                 )}
               >
-                {days < 0 ? `Started ${fromToday(days).toLowerCase()}` : fromToday(days)}
+                {countdown.text}
               </span>
             )}
             <ChevronDownIcon className={cn('h-4 w-4 text-muted-foreground transition-transform', open && 'rotate-180')} />
@@ -198,8 +201,7 @@ export function StoreComplianceDeadlines() {
     if (!options.deadline || scrolled.current) return;
     const target = library.deadlines.find((deadline) => deadline.id === options.deadline);
     if (!target) return;
-    const day = deadlineDay(target);
-    if (day && day < today) setTab('past');
+    if (deadlinesByDay([target], today).past.length > 0) setTab('past');
     scrolled.current = true;
     window.requestAnimationFrame(() => document.getElementById(`deadline-${target.id}`)?.scrollIntoView({ block: 'center' }));
   }, [options.deadline, library.deadlines, today]);
@@ -284,7 +286,7 @@ export function StoreComplianceDeadlines() {
                 }
                 onAsk={() => {
                   const day = deadlineDay(deadline);
-                  view.ask(`What does "${deadlineTitle(deadline)}" [${deadline.id}] mean for my app, and what do I have to do${day ? ` by ${formatDay(day)}` : ''}?`);
+                  view.ask(`What does "${deadlineTitle(deadline)}" [${deadline.id}] mean for my app, and what do I have to do${day ? ` by ${formatDeadlineDay(deadline, day)}` : ''}?`);
                 }}
               />
             ))}

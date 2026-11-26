@@ -614,6 +614,67 @@ test.describe('Store compliance', () => {
     await expect(view.locator('[data-readiness-check="demo_account"]').getByTestId('store-readiness-when')).toHaveCount(0);
   });
 
+  test('a deadline its source gave only a month for shows that month, never a day', async ({ page, app, browserName }) => {
+    const monthOnly = {
+      id: 'MONTH-ONLY',
+      jurisdiction: 'Google Play (Global)',
+      law: 'A rule with a month and no day',
+      requirement: 'From April 2099 (exact day not published) apps must do a thing.',
+      effective_date: '2026-11-18',
+      mandatory_date: '2099-04-01',
+      enforcement_date: '2099-04-01',
+      priority: 'high',
+    };
+    // A season in place of a month, and a month named with no day and no note saying so.
+    const season = { id: 'SEASON', jurisdiction: 'United Kingdom (UK)', law: 'A rule for a season', requirement: 'Comes in spring 2099 (exact day not yet published, tracked here as 1 March 2099).', mandatory_date: '2099-03-01', priority: 'medium' };
+    const fromMonth = { id: 'FROM-MONTH', jurisdiction: 'Brazil', law: 'A rule from a month', requirement: 'Enforced from January 2099.', mandatory_date: '2099-01-01', priority: 'medium' };
+    const repo = new FakeRepo(
+      files({ 'data/regulatory-deadlines.json': JSON.stringify({ deadlines: [...DEADLINES.deadlines, monthOnly, season, fromMonth] }) }),
+      browserName !== 'webkit'
+    );
+    await repo.install(page);
+    await app.dismissStartDialog();
+    const view = await openRules(page);
+    const overview = view.getByTestId('store-compliance-overview');
+    await expect(overview).toBeVisible({ timeout: 30_000 });
+    // The browser's own words for the month, for the 1st the playbook wrote in its place, and for a real day.
+    const [month, shortMonth, standIn, announced] = await page.evaluate(() => {
+      const first = new Date(Date.UTC(2099, 3, 1));
+      const long = { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' } as const;
+      return [
+        first.toLocaleDateString(undefined, { month: 'long', year: 'numeric', timeZone: 'UTC' }),
+        first.toLocaleDateString(undefined, { month: 'short', timeZone: 'UTC' }),
+        first.toLocaleDateString(undefined, long),
+        new Date(Date.UTC(2026, 10, 18)).toLocaleDateString(undefined, long),
+      ];
+    });
+    const row = overview.getByRole('button', { name: /A rule with a month and no day/ });
+    await expect(row).toContainText(month);
+    await expect(row).not.toContainText(standIn);
+
+    await section(view, 'Deadlines').click();
+    const card = view.locator('[data-deadline="MONTH-ONLY"]');
+    await expect(card.getByTestId('store-deadline-date')).toHaveText(new RegExp(`^${shortMonth}\\s*2099$`));
+    await card.locator('button[aria-expanded]').click();
+    const value = (label: string) => card.locator('dl > div', { has: page.locator('dt', { hasText: label }) }).locator('dd');
+    await expect(value('Has to be done by')).toHaveText(month);
+    await expect(value('Enforced from')).toHaveText(month);
+    // The day it was announced is a real day.
+    await expect(value('Takes effect')).toHaveText(announced);
+    await expect(card).not.toContainText(standIn);
+    // A deadline whose source names its day keeps the day.
+    await expect(view.locator('[data-deadline="FAR-AHEAD"]').getByTestId('store-deadline-date')).toHaveText(/^1\s*\D+$/);
+
+    // The season the source gave, and a month named without a day.
+    const january = await page.evaluate(() => new Date(Date.UTC(2099, 0, 1)).toLocaleDateString(undefined, { month: 'long', year: 'numeric', timeZone: 'UTC' }));
+    const seasonCard = view.locator('[data-deadline="SEASON"]');
+    await seasonCard.locator('button[aria-expanded]').click();
+    await expect(seasonCard.locator('dl > div', { has: page.locator('dt', { hasText: 'Has to be done by' }) }).locator('dd')).toHaveText('Spring 2099');
+    const fromMonthCard = view.locator('[data-deadline="FROM-MONTH"]');
+    await fromMonthCard.locator('button[aria-expanded]').click();
+    await expect(fromMonthCard.locator('dl > div', { has: page.locator('dt', { hasText: 'Has to be done by' }) }).locator('dd')).toHaveText(january);
+  });
+
   test('boxes for one store, a corrected deadline, how old the rules are, and the guide on what a scan proves', async ({ page, app, browserName }) => {
     test.setTimeout(180_000);
     // Days in the local time zone, as the app counts them.

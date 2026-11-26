@@ -192,6 +192,71 @@ export function deadlineDay(deadline: Deadline): string | null {
   return deadline.mandatory ?? deadline.enforcement ?? deadline.effective;
 }
 
+/** How the playbook says its source named a month and no day. */
+const NO_DAY_NAMED = /\b(?:exact day not (?:yet )?published|no exact day|month only)\b/i;
+
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+/** The entry's own words about its dates. */
+function deadlineWords(deadline: Deadline): string {
+  return [deadline.requirement, deadline.grace, deadline.sourceNote].filter(Boolean).join('\n');
+}
+
+/**
+ * True when the words name the month and year of `day` ("from January 2027")
+ * and never that day itself, written any way the playbook writes one: "1
+ * January 2027", "January 1, 2027", "2027-01-01".
+ */
+function namesMonthNotDay(words: string, day: string): boolean {
+  const month = MONTH_NAMES[Number(day.slice(5, 7)) - 1];
+  if (!month || !new RegExp(`\\b${month} ${day.slice(0, 4)}\\b`, 'i').test(words)) return false;
+  return !new RegExp(`\\b1(?:st)?\\s+${month}\\b|\\b${month}\\s+1(?:st)?\\b|\\b${day}\\b`, 'i').test(words);
+}
+
+/**
+ * True when `day` stands in for a month: the source named the month and no
+ * day, and the playbook wrote the 1st, the earliest the day can be. The entry
+ * says so ("exact day not published", "the month only, no exact day"), or names
+ * that month and year and never the day. Only the day the deadline counts
+ * from, or its must-be-met and enforced days, can be one; the day a rule took
+ * effect is usually the day it was announced.
+ */
+export function isMonthOnly(deadline: Deadline, day: string | null = deadlineDay(deadline)): boolean {
+  if (!day || !/^\d{4}-\d{2}-01$/.test(day)) return false;
+  if (day !== deadlineDay(deadline) && day !== deadline.mandatory && day !== deadline.enforcement) return false;
+  const words = deadlineWords(deadline);
+  return NO_DAY_NAMED.test(words) || namesMonthNotDay(words, day);
+}
+
+/** The months each period word covers, as the playbook's sources use them. */
+const PERIOD_MONTHS: Record<string, number[]> = {
+  spring: [3, 4, 5],
+  summer: [6, 7, 8],
+  autumn: [9, 10, 11],
+  fall: [9, 10, 11],
+  winter: [12, 1, 2],
+  early: [1, 2, 3, 4],
+  mid: [5, 6, 7, 8],
+  late: [9, 10, 11, 12],
+};
+
+/**
+ * The period a month-only deadline's source gave instead of a month, "Spring
+ * 2027" or "Early 2027", read from the entry's own words when `day` falls
+ * inside it. The playbook writes the period's first month then ("spring 2027
+ * ... tracked here as 1 March 2027"), so the period is what the source said.
+ */
+export function deadlinePeriod(deadline: Deadline, day: string | null = deadlineDay(deadline)): string | null {
+  if (!day || !isMonthOnly(deadline, day)) return null;
+  const year = day.slice(0, 4);
+  const month = Number(day.slice(5, 7));
+  for (const match of deadlineWords(deadline).matchAll(/\b(spring|summer|autumn|fall|winter|early|mid|late)[\s-]+(\d{4})\b/gi)) {
+    const word = match[1].toLowerCase();
+    if (match[2] === year && PERIOD_MONTHS[word].includes(month)) return `${word[0].toUpperCase()}${word.slice(1)} ${year}`;
+  }
+  return null;
+}
+
 // --- Markdown ------------------------------------------------------------------
 
 /** Lines without front matter, HTML blocks and the CRs of Windows line ends. */

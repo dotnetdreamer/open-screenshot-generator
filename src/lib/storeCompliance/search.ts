@@ -3,7 +3,7 @@
 // word matching, here, offline: the playbook is small enough that nothing
 // cleverer is needed, and a rule found here is a rule that exists.
 
-import { checklistItems, deadlineDay } from './parse';
+import { checklistItems, deadlineDay, isMonthOnly } from './parse';
 import type { Deadline, RejectionRule, RulesLibrary, RuleStore, ShipStore } from './types';
 
 const STOP = new Set(
@@ -108,12 +108,15 @@ export function deadlineStore(deadline: Deadline): ShipStore | null {
 /** Deadlines from today on, soonest first, then the ones already in force, newest first. */
 export function deadlinesByDay(deadlines: Deadline[], today: string): { coming: Deadline[]; past: Deadline[] } {
   const dated = deadlines.map((deadline) => ({ deadline, day: deadlineDay(deadline) }));
+  // A month given without a day may still be ahead until that month is over.
+  const ahead = (entry: { deadline: Deadline; day: string | null }) =>
+    !!entry.day && (entry.day >= today || (isMonthOnly(entry.deadline, entry.day) && monthsUntil(entry.day, today) === 0));
   const coming = dated
-    .filter((entry) => entry.day && entry.day >= today)
+    .filter(ahead)
     .sort((a, b) => a.day!.localeCompare(b.day!))
     .map((entry) => entry.deadline);
   const past = dated
-    .filter((entry) => !entry.day || entry.day < today)
+    .filter((entry) => !ahead(entry))
     .sort((a, b) => (b.day ?? '').localeCompare(a.day ?? ''))
     .map((entry) => entry.deadline);
   return { coming, past };
@@ -122,6 +125,46 @@ export function deadlinesByDay(deadlines: Deadline[], today: string): { coming: 
 /** Days from `today` to `day`, both YYYY-MM-DD, negative for the past. */
 export function daysUntil(day: string, today: string): number {
   return Math.round((Date.parse(`${day}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000);
+}
+
+/** Calendar months from the month of `today` to the month of `day`, both YYYY-MM-DD. */
+export function monthsUntil(day: string, today: string): number {
+  return (Number(day.slice(0, 4)) - Number(today.slice(0, 4))) * 12 + Number(day.slice(5, 7)) - Number(today.slice(5, 7));
+}
+
+/** "In 12 days", "Tomorrow", "3 months ago". */
+export function fromToday(days: number): string {
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Tomorrow';
+  if (days === -1) return 'Yesterday';
+  const ahead = days > 0;
+  const span = Math.abs(days);
+  const months = Math.round(span / 30.4);
+  const amount = span < 45 ? `${span} days` : span < 548 ? `${months} month${months === 1 ? '' : 's'}` : `${Math.round(span / 365)} years`;
+  return ahead ? `In ${amount}` : `${amount} ago`;
+}
+
+/**
+ * The countdown on a deadline, and whether it is close enough to stand out:
+ * "In 12 days", "Started 3 months ago". A month given without a day
+ * (isMonthOnly) counts to its 1st, the earliest the day can be, and never in
+ * days, which would claim a day the source never named: "This month", "Next
+ * month", "In 4 months".
+ */
+export function deadlineCountdown(deadline: Deadline, today: string): { text: string; soon: boolean } | null {
+  const day = deadlineDay(deadline);
+  if (!day) return null;
+  const days = daysUntil(day, today);
+  const soon = days >= 0 && days <= 30;
+  const count = (value: number) => (value < 0 ? `Started ${fromToday(value).toLowerCase()}` : fromToday(value));
+  if (!isMonthOnly(deadline, day)) return { text: count(days), soon };
+  const months = monthsUntil(day, today);
+  if (months === 0) return { text: 'This month', soon: true };
+  if (months === 1) return { text: 'Next month', soon };
+  if (months === -1) return { text: 'Started last month', soon: false };
+  if (Math.abs(days) >= 45) return { text: count(days), soon };
+  // Two months on, but fewer than 45 days to the 1st.
+  return { text: 'In 1 month', soon };
 }
 
 export interface Extracts {

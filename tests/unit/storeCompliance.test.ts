@@ -22,7 +22,9 @@ import {
   changeNote,
   checklistItems,
   checklistItemsFor,
+  deadlinePeriod,
   docsPath,
+  isMonthOnly,
   parseChecklist,
   parseDeadlines,
   parseGuideIndex,
@@ -51,7 +53,7 @@ import {
   ruleProblem,
   ruleTitle,
 } from '@/lib/storeCompliance/plain';
-import { daysUntil, deadlinesByDay, extractsFor, searchRules, termsOf } from '@/lib/storeCompliance/search';
+import { daysUntil, deadlineCountdown, deadlinesByDay, extractsFor, fromToday, monthsUntil, searchRules, termsOf } from '@/lib/storeCompliance/search';
 import { BRANCH_HEAD_URL, RULES_REPO, isCorePath, isGuidePath } from '@/lib/storeCompliance/source';
 import { memoryRulesStore } from '@/lib/storeCompliance/store';
 import { dayOf, readinessChecks, readinessFileText, readRecord, summarize } from '@/lib/storeCompliance/readiness';
@@ -1325,6 +1327,68 @@ test('deadlines: a corrected deadline carries the playbook note and its day, the
   assert.deepEqual(deadlines[0].change, { day: '2026-11-19', text: 'Obligation narrowed in place.' });
   assert.equal(deadlines[1].change, null);
   assert.equal(deadlineFingerprint(deadlines[0]), deadlineFingerprint(parseDeadlines(JSON.stringify(DEADLINES))[0]), 'a note leaves the plain words fresh');
+});
+
+test('deadlines: a month the source gave without a day is a month, counted to its 1st and never in days', () => {
+  const [month, note, named, mid, effective] = parseDeadlines(
+    JSON.stringify({
+      deadlines: [
+        { id: 'MONTH', law: 'A law', requirement: 'From April 2027 (exact day not published) apps must do a thing.', effective_date: '2026-11-18', mandatory_date: '2027-04-01', enforcement_date: '2027-04-01', priority: 'high' },
+        { id: 'NOTE', law: 'A law', requirement: 'Apps must do a thing. The store has published the month only, no exact day.', mandatory_date: '2027-01-01', priority: 'medium' },
+        { id: 'NAMED', law: 'A law', requirement: 'From 1 April 2027 apps must do a thing.', mandatory_date: '2027-04-01', priority: 'low' },
+        { id: 'MID', law: 'A law', requirement: 'Exact day not published, so the latest it can be is used.', mandatory_date: '2027-04-16', priority: 'low' },
+        { id: 'EFFECTIVE', law: 'A law', requirement: 'Starts in September 2026 (no exact day published).', effective_date: '2026-09-01', priority: 'low' },
+      ],
+    })
+  );
+  assert.equal(isMonthOnly(month), true);
+  assert.equal(isMonthOnly(month, month.enforcement), true);
+  assert.equal(isMonthOnly(month, month.effective), false, 'the day it was announced is a real day');
+  assert.equal(isMonthOnly(note), true);
+  assert.equal(isMonthOnly(named), false, 'a 1st the source names is a day');
+  assert.equal(isMonthOnly(mid), false, 'only the 1st stands in for a month');
+  assert.equal(isMonthOnly(effective), true, 'a deadline dated only by when it starts');
+
+  assert.equal(monthsUntil('2027-04-01', '2026-11-26'), 5);
+  assert.deepEqual(deadlineCountdown(month, '2026-11-26'), { text: 'In 4 months', soon: false });
+  assert.deepEqual(deadlineCountdown(month, '2027-03-10'), { text: 'Next month', soon: true });
+  assert.deepEqual(deadlineCountdown(month, '2027-04-01'), { text: 'This month', soon: true });
+  assert.deepEqual(deadlineCountdown(month, '2027-04-20'), { text: 'This month', soon: true }, 'not "started 19 days ago"');
+  assert.deepEqual(deadlineCountdown(month, '2027-05-02'), { text: 'Started last month', soon: false });
+  assert.deepEqual(deadlineCountdown(month, '2027-07-15'), { text: 'Started 3 months ago', soon: false });
+  assert.deepEqual(deadlineCountdown(note, '2026-11-30'), { text: 'In 1 month', soon: false }, 'two months on, 32 days to the 1st');
+  assert.deepEqual(deadlineCountdown(named, '2027-03-25'), { text: 'In 7 days', soon: true });
+  assert.deepEqual(deadlineCountdown(named, '2027-04-20'), { text: 'Started 19 days ago', soon: false });
+
+  // Until its month is over, a month without a day may still be ahead.
+  assert.deepEqual(deadlinesByDay([month, named], '2027-04-20').coming.map((deadline) => deadline.id), ['MONTH']);
+  assert.deepEqual(deadlinesByDay([month, named], '2027-04-20').past.map((deadline) => deadline.id), ['NAMED']);
+  assert.deepEqual(deadlinesByDay([month], '2027-05-01').past.map((deadline) => deadline.id), ['MONTH']);
+
+  assert.equal(fromToday(45), 'In 1 month', 'never "1 months"');
+  assert.equal(fromToday(-45), '1 month ago');
+  assert.equal(fromToday(126), 'In 4 months');
+});
+
+test('deadlines: a month named without its day counts as one, and a period the source gave shows as that period', () => {
+  const [fromMonth, dayNamed, spring, early, otherPeriod] = parseDeadlines(
+    JSON.stringify({
+      deadlines: [
+        { id: 'FROM-MONTH', law: 'A law', requirement: 'The regulator enforces it from January 2027.', mandatory_date: '2027-01-01', priority: 'high' },
+        { id: 'DAY-NAMED', law: 'A law', requirement: 'From 1 January 2027 apps must do a thing, and January 2027 is when checks start.', mandatory_date: '2027-01-01', priority: 'high' },
+        { id: 'SPRING', law: 'A law', requirement: 'The rules come in spring 2027 (exact day not yet published, tracked here as 1 March 2027).', mandatory_date: '2027-03-01', priority: 'high' },
+        { id: 'EARLY', law: 'A law', requirement: 'The store has published no exact day, so 1 January 2027 is the earliest it can be.', grace_period: 'until early 2027', mandatory_date: '2027-01-01', priority: 'high' },
+        { id: 'OTHER-PERIOD', law: 'A law', requirement: 'Exact day not published. A review follows in summer 2027.', mandatory_date: '2027-03-01', priority: 'low' },
+      ],
+    })
+  );
+  assert.equal(isMonthOnly(fromMonth), true, 'January 2027, and no day');
+  assert.equal(isMonthOnly(dayNamed), false, 'its day is named as well');
+  assert.equal(deadlinePeriod(fromMonth), null, 'a month, not a period');
+  assert.equal(deadlinePeriod(spring), 'Spring 2027');
+  assert.equal(deadlinePeriod(early), 'Early 2027');
+  assert.equal(deadlinePeriod(otherPeriod), null, 'a period that leaves the date out is about something else');
+  assert.equal(deadlinePeriod(dayNamed), null);
 });
 
 test('checklist: a box that names one store first is only for that store', () => {
