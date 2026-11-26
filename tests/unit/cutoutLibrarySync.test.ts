@@ -1511,6 +1511,9 @@ test('a picture deleted on another computer stays here when it is edited, or is 
     a.use();
     await deleteLibraryImage('img_x');
     await syncLibrary();
+    // The edit comes after the deletion. A deletion wins a tie, and a fast run
+    // made both in the same millisecond about one time in five.
+    await new Promise((resolve) => setTimeout(resolve, 2));
 
     // While the second computer backs up (it sends the renamed cat), another
     // window there saves an edit of the dog, or puts it on an artboard.
