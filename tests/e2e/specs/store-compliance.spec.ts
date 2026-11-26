@@ -677,9 +677,12 @@ test.describe('Store compliance', () => {
 
   test('boxes for one store, a corrected deadline, how old the rules are, and the guide on what a scan proves', async ({ page, app, browserName }) => {
     test.setTimeout(180_000);
-    // Days in the local time zone, as the app counts them.
+    // Days in the local time zone, as the app counts them. setDate counts back
+    // calendar days: steps of 24 hours land a day late in the hour before
+    // midnight when a clock change falls in between.
     const day = (ago: number) => {
-      const at = new Date(Date.now() - ago * 86_400_000);
+      const at = new Date();
+      at.setDate(at.getDate() - ago);
       return `${at.getFullYear()}-${String(at.getMonth() + 1).padStart(2, '0')}-${String(at.getDate()).padStart(2, '0')}`;
     };
     const checklist = `${CHECKLIST}
