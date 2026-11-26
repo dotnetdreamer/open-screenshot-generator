@@ -949,8 +949,8 @@ export function PublishDialog({
             Upload to the store
           </DialogTitle>
           <DialogDescription>
-            Send these artboards straight to your app listing with your own developer
-            credentials. Nothing passes through our servers, because there are none.
+            Choose a store for your screenshots. The app saves your store account
+            details on this computer for your next upload.
           </DialogDescription>
         </DialogHeader>
 
