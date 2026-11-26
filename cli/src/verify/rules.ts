@@ -15,7 +15,8 @@
  *   appleDisplayAwaitingUpload  sizes Apple lists that App Store Connect
  *                           cannot take uploads for yet (the iPhone Duo's)
  *   nearestAppleSizes       the same table's own "did you mean" hint
- *   validatePlayImage       Play's 320 to 3840 px and 2:1 bounds
+ *   validatePlayImage       Play's 320 to 3840 px and 2.3:1 bounds
+ *   isPlayFoldableSize      foldable shots, which only Play Console takes
  *   suggestPlayImageType    which Play slot a size belongs to
  *   PLAY_IMAGE_TARGETS      the fixed-size slots and how many Play keeps
  *   CANVAS_SIZE_PRESET_GROUPS  which tiers the canvas marks `required: true`
@@ -36,6 +37,7 @@ import {
   PLAY_IMAGE_TARGETS,
   appleDisplayAwaitingUpload,
   appleTargetForSize,
+  isPlayFoldableSize,
   missesRequiredIphoneSlot,
   nearestAppleSizes,
   suggestPlayImageType,
@@ -351,6 +353,14 @@ export function checkPng(info: PngInfo, ruleset: StoreRuleset): Finding[] {
             }
       );
     }
+  } else if (isPlayConsoleOnlyArt(info.width, info.height, ruleset)) {
+    // A foldable shot is right for Play, but the upload API has no slot for
+    // it: warn, so a foldable set passes and the hand upload shows.
+    findings.push({
+      level: 'warn',
+      code: 'png-size-play-console-only',
+      message: `${size(info.width, info.height)} is a Google Play foldable size, which only Play Console takes, under Foldable screenshots`,
+    });
   } else {
     // validatePlayImage owns Play's numbers and its wording. Give it the slot
     // the app would have picked, so a 1024x500 file is judged as the feature
@@ -418,6 +428,15 @@ export function checkPng(info: PngInfo, ruleset: StoreRuleset): Finding[] {
  */
 export function isCreativeArt(width: number, height: number, ruleset: StoreRuleset): boolean {
   return ruleset.png.sizing === 'apple-table' && !!creativeSpecForSize(width, height);
+}
+
+/**
+ * True for a Google Play foldable shot. Play counts those across the whole
+ * Foldable screenshots section (3 to 8, one of each kind), not per size, and
+ * they go up by hand, so `osg verify` leaves them out of its per-size counts.
+ */
+export function isPlayConsoleOnlyArt(width: number, height: number, ruleset: StoreRuleset): boolean {
+  return ruleset.png.sizing === 'play-bounds' && isPlayFoldableSize(width, height);
 }
 
 /** Findings for one exported app preview MP4. */

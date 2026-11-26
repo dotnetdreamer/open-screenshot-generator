@@ -37,6 +37,7 @@ import {
   checkRequiredIphoneSlot,
   checkScreenshotCount,
   isCreativeArt,
+  isPlayConsoleOnlyArt,
   rulesetFor,
   worstLevel,
   type Finding,
@@ -159,6 +160,8 @@ function auditSets(rows: FileReport[], ruleset: StoreRuleset): SetReport[] {
     if (!row.width || !row.height) continue;
     // One header per language is the whole set, and it is not a screenshot.
     if (row.kind === 'png' && isCreativeArt(row.width, row.height, ruleset)) continue;
+    // Play counts foldable shots across their own section, uploaded by hand.
+    if (row.kind === 'png' && isPlayConsoleOnlyArt(row.width, row.height, ruleset)) continue;
     const folder = path.posix.dirname(row.file);
     const label = `${folder === '.' ? '' : `${folder} `}${row.width}x${row.height}`;
     const key = `${row.kind}:${label}`;

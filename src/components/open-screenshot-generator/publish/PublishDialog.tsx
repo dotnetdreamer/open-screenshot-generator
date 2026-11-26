@@ -81,6 +81,7 @@ import {
   StoreAuthError,
   appleDisplayAwaitingUpload,
   appleTargetForSize,
+  isPlayFoldableSize,
   isStorePublishingAvailable,
   listAppStoreApps,
   listAppStoreLocalizations,
@@ -568,10 +569,12 @@ export function PublishDialog({
       : null;
 
   // Suggest a Play slot from the first selected board, until the user picks one.
+  // A foldable board has no slot here, so it never picks one: its size would
+  // suggest the 10-inch tablet slot.
   useEffect(() => {
     if (store !== 'playstore' || imageTypePicked || selected.length === 0) return;
-    const size = targetSize(selected[0]);
-    setImageType(suggestPlayImageType(size.width, size.height));
+    const size = selected.map(targetSize).find((entry) => !isPlayFoldableSize(entry.width, entry.height));
+    if (size) setImageType(suggestPlayImageType(size.width, size.height));
   }, [store, selected, targetSize, imageTypePicked]);
 
   /**
@@ -638,7 +641,9 @@ export function PublishDialog({
               : null
             : store === 'appstore'
               ? appleTarget?.label ?? null
-              : PLAY_IMAGE_TARGETS.find((entry) => entry.imageType === imageType)?.label ?? null,
+              : isPlayFoldableSize(size.width, size.height)
+                ? null
+                : PLAY_IMAGE_TARGETS.find((entry) => entry.imageType === imageType)?.label ?? null,
           problem: isPreview ? previewProblem() : imageProblem,
         };
       }),

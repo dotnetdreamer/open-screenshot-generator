@@ -107,8 +107,8 @@ export const CANVAS_SIZE_PRESET_GROUPS: CanvasSizePresetGroup[] = [
     key: 'play-phone',
     label: 'Google Play Phone',
     presets: [
-      { id: 'play-phone', label: 'Phone (Portrait)', width: 1080, height: 1920, aspectLabel: '9:16', note: 'Recommended Play phone screenshot. Any 320 to 3840px side, max 2:1 aspect; min 2 shots to publish.', required: true },
-      { id: 'play-phone-tall', label: 'Phone Tall (Portrait)', width: 1080, height: 2160, aspectLabel: '1:2', note: "18:9, exactly Google Play's maximum 2:1 aspect ratio." },
+      { id: 'play-phone', label: 'Phone (Portrait)', width: 1080, height: 1920, aspectLabel: '9:16', note: 'Recommended Play phone screenshot. Any 320 to 3840px side, long side at most 2.3 times the short; min 2 shots to publish.', required: true },
+      { id: 'play-phone-tall', label: 'Phone Tall (Portrait)', width: 1080, height: 2160, aspectLabel: '1:2', note: '18:9, for a tall phone screen.' },
       { id: 'play-phone-landscape', label: 'Phone (Landscape)', width: 1920, height: 1080, aspectLabel: '16:9', note: '16:9 landscape variant for landscape apps/games.' },
     ],
   },
@@ -120,6 +120,20 @@ export const CANVAS_SIZE_PRESET_GROUPS: CanvasSizePresetGroup[] = [
       { id: 'play-10', label: '10" Tablet (Portrait)', width: 1600, height: 2560, aspectLabel: '5:8', note: "Google's recommended 10\" tablet size. 1440×2560 also accepted." },
       { id: 'play-10-hd', label: '10" Tablet (1440p, Portrait)', width: 1440, height: 2560, aspectLabel: '9:16', note: "9:16 hi-res 10\" tablet variant (matches the app's built-in 10\" size)." },
       { id: 'play-tablet-landscape', label: 'Tablet (Landscape)', width: 2560, height: 1600, aspectLabel: '8:5', note: 'Landscape tablet / Chromebook screenshots.' },
+    ],
+  },
+  {
+    // The sizes PLAY_FOLDABLE_SIZES in publish/storeTargets.ts lists, with
+    // where each one comes from: Play Console takes them under Foldable
+    // screenshots, and the Play upload API has no slot for them.
+    key: 'play-foldable',
+    label: 'Google Play Foldable',
+    presets: [
+      { id: 'play-fold-square', label: 'Foldable inner display, square', width: 2106, height: 2106, aspectLabel: '1:1', note: 'Open, on a foldable with a square inner screen. Google Play needs one from April 2027' },
+      { id: 'play-fold-inner', label: 'Foldable inner display (Landscape)', width: 2688, height: 2016, aspectLabel: '4:3', note: 'Open, on a foldable with a wide inner screen. Google Play needs one from April 2027' },
+      { id: 'play-fold-outer', label: 'Foldable outer display (Portrait)', width: 1260, height: 2016, aspectLabel: '10:16', note: 'Closed. Google Play needs one from April 2027' },
+      { id: 'play-fold-outer-landscape', label: 'Foldable outer display (Landscape)', width: 2016, height: 1260, aspectLabel: '16:10', note: 'Closed and held sideways. Optional' },
+      { id: 'play-fold-inner-portrait', label: 'Foldable inner display (Portrait)', width: 2016, height: 2688, aspectLabel: '3:4', note: 'Open and held upright. For a game played upright, or as an extra' },
     ],
   },
   {

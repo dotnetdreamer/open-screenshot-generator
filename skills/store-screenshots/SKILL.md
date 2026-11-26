@@ -185,6 +185,9 @@ npx -y open-screenshot-generator@0 render
 | App Store | Apple Watch Ultra 3 | `watch-ultra-3` | 422x514 | required for a watch app; canvas preset, render as-is |
 | App Store | Mac | `mac-2560` | 2560x1600 | required for a Mac app; canvas preset, render as-is |
 | Play | Phone | `play-phone` | 1080x1920 | required, minimum 2 shots |
+| Play | Foldable inner display, square | `play-fold-square` | 2106x2106 | needed from April 2027; canvas preset, render as-is, upload in Play Console |
+| Play | Foldable inner display, landscape | `play-fold-inner` | 2688x2016 | needed from April 2027; canvas preset, render as-is, upload in Play Console |
+| Play | Foldable outer display, portrait | `play-fold-outer` | 1260x2016 | needed from April 2027; canvas preset, render as-is, upload in Play Console |
 | Play | Feature graphic | `play-feature-graphic` | 1024x500 | required on every Play listing; canvas preset, render as-is |
 
 Apple scales the required medium tier down to the smaller ones, so `formats: ['ios-6-3']`

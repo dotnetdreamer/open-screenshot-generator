@@ -586,6 +586,42 @@ export const PLAY_IMAGE_TARGETS: PlayImageTarget[] = [
 ];
 
 /**
+ * Google Play's foldable screenshots. Play Console has had a Foldable
+ * screenshots section on the store listing since November 2026, and from
+ * April 2027 a new app or an update needs at least one 1:1 and one 4:3 of the
+ * open inner screen and one 10:16 of the closed outer screen there
+ * (https://support.google.com/googleplay/android-developer/answer/9866151,
+ * read 26 November 2026). AppImageType has no foldable value
+ * (https://developers.google.com/android-publisher/api-ref/rest/v3/AppImageType),
+ * so the API can't upload them: they go in by hand in Play Console.
+ *
+ * The first four are the sizes Google's capture guide makes
+ * (https://developer.android.com/google/play/requirements/screenshots-android-cli).
+ * 2016x2688 is its 4:3 inner screen held upright, for the 3:4 shot answer
+ * 9866151 allows and the guide doesn't list. All five are the canvas's Google
+ * Play Foldable presets. Play takes other sizes at these shapes too, but 10:16
+ * and 16:10 are tablet shapes as well, so only these exact sizes are known to
+ * be foldable shots. Without the check, a
+ * foldable board was offered the 10-inch tablet slot, and would have gone up
+ * beside the tablet screenshots, or in their place.
+ */
+export const PLAY_FOLDABLE_SIZES: ReadonlyArray<{ width: number; height: number }> = [
+  { width: 2106, height: 2106 },
+  { width: 2688, height: 2016 },
+  { width: 1260, height: 2016 },
+  { width: 2016, height: 1260 },
+  { width: 2016, height: 2688 },
+];
+
+export function isPlayFoldableSize(width: number, height: number): boolean {
+  return PLAY_FOLDABLE_SIZES.some((size) => size.width === width && size.height === height);
+}
+
+/** Why a foldable shot can't go up from this app, and where it goes instead. */
+export const PLAY_FOLDABLE_PROBLEM =
+  'Google Play takes foldable screenshots only in Play Console. Add them there, under Foldable screenshots';
+
+/**
  * A sensible default slot for a size, always overridable in the dialog. Play
  * does not tie sizes to slots, so this is a convenience, not a rule.
  */
@@ -604,9 +640,12 @@ export function suggestPlayImageType(width: number, height: number): string {
 }
 
 /**
- * Play's published limits: PNG or JPEG, every side 320 to 3840 px, and no side
- * more than twice the other. Returns a sentence when something is off, null
- * when the image is fine.
+ * Play's published limits: PNG or JPEG, every side 320 to 3840 px, and the
+ * long side at most 2.3 times the short one. Answer 9866151 says 2.3 "for
+ * standard phone and tablet screenshots" (read 26 November 2026; this check
+ * said twice before that), and Google's capture guide makes 20:9 phone
+ * shots. A foldable shot passes all of that but no API slot takes it.
+ * Returns a sentence when something is off, null when the image is fine.
  */
 export function validatePlayImage(
   width: number,
@@ -620,11 +659,13 @@ export function validatePlayImage(
     }
     return null;
   }
+  if (isPlayFoldableSize(width, height)) return PLAY_FOLDABLE_PROBLEM;
   const long = Math.max(width, height);
   const short = Math.min(width, height);
   if (short < 320) return 'Play needs every side to be at least 320 px';
   if (long > 3840) return 'Play needs every side to be at most 3840 px';
-  if (long > short * 2) return 'Play needs the long side to be at most twice the short side';
+  // In whole numbers: 2.3 has no exact binary form, and 1080 x 2484 is right on the line.
+  if (long * 10 > short * 23) return 'Play needs the long side to be at most 2.3 times the short side';
   return null;
 }
 

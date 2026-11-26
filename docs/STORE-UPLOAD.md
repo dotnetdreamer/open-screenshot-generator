@@ -72,8 +72,11 @@ The dialog suggests a destination from each artboard's size. Check it before upl
 | Feature graphic | One, exactly 1024x500 |
 | App icon | One, exactly 512x512 |
 | Android TV banner | One, exactly 1280x720 |
+| Foldable screenshots | Not through the dialog. Add them in Play Console |
 
-For Play screenshots, each side must be 320 to 3840 pixels, the long side can be at most twice the short side, and each image must be at most 8 MB. An iPhone image at 1206x2622 is too tall for Play. Choose **Android phone 1080x1920** in the **Size** menu instead.
+For Play screenshots, each side must be 320 to 3840 pixels, the long side can be at most 2.3 times the short side, and each image must be at most 8 MB. An iPhone image at 1206x2622 fits, but Play recommends 1080x1920 for phones: choose **Android phone 1080x1920** in the **Size** menu.
+
+From April 2027, Google Play needs 3 foldable screenshots to publish a new app or an update: one 1:1 and one 4:3 of the open inner screen, and one 10:16 of the closed outer screen. Make them with the **Google Play Foldable** sizes under **Canvas Size**. Google's upload API has no place for them, so the dialog won't upload an artboard at those sizes. Export them and add them in Play Console, under **Foldable screenshots** on the store listing.
 
 ### If the app is in review
 

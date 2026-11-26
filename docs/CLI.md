@@ -610,8 +610,14 @@ in [deviceRegistry.ts](../src/lib/deviceRegistry.ts).
 The canvas catalog in [sizePresets.ts](../src/lib/sizePresets.ts) also includes
 accepted alternatives for the required slot, `ios-6-1` (1179 x 2556),
 `ios-6-3-landscape` (2622 x 1206) and `ios-6-1-landscape` (2556 x 1179), and
-`ios-6-9-promax` (1320 x 2868) for the optional large slot. These are canvas
-presets, so passing them to `render --formats` or `upload --formats` is an error.
+`ios-6-9-promax` (1320 x 2868) for the optional large slot, and Google Play's
+foldable sizes: `play-fold-square` (2106 x 2106), `play-fold-inner`
+(2688 x 2016) and `play-fold-outer` (1260 x 2016), needed from April 2027, plus
+`play-fold-outer-landscape` (2016 x 1260) and `play-fold-inner-portrait`
+(2016 x 2688). These are canvas presets, so passing them to `render --formats`
+or `upload --formats` is an error. Play's upload API has no slot for foldable
+screenshots, so `upload` skips them and `verify` warns
+`png-size-play-console-only`: add them in Play Console.
 
 For those sizes, Watch, Mac, or a Play feature graphic, create an artboard with
 `create_artboard` and its `preset` id, or resize an existing artboard with

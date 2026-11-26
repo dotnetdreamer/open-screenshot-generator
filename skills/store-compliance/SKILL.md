@@ -52,7 +52,7 @@ what to parse when reporting back.
 | Too few images | under the store's floor (Play needs 2 phone shots) | add a board |
 | Transparency | the PNG carries an alpha channel | give the board an opaque background, then re-render |
 | File too large | over the store's per image limit | reduce visual complexity, or render the smaller accepted size |
-| Aspect ratio | Play's long side is more than twice the short side | render the Play tier, not the iPhone tier, see below |
+| Aspect ratio | Play's long side is more than 2.3 times the short side | render the Play tier, not the iPhone tier, see below |
 | Locale gap | one language has fewer boards than the base | the missing boards did not render, check the locale list |
 | Placeholder copy | a headline still says the template's text, or a board is still named "Blank Artboard" | rename the board and write the copy, the board name becomes the file name |
 | Empty device frame | a device slot still holds shipped placeholder art | place the app's real screenshot in it |
@@ -100,20 +100,27 @@ Caps and formats:
 
 | Slot | Size rule | Count |
 | --- | --- | --- |
-| Phone screenshots | 320 to 3840 px per side, long side at most 2x the short side | 2 to 8, at least 2 required |
+| Phone screenshots | 320 to 3840 px per side, long side at most 2.3x the short side | 2 to 8, at least 2 required |
 | 7 inch tablet | same rule, 1200x1920 recommended | up to 8 |
 | 10 inch tablet | same rule, 1600x2560 recommended | up to 8 |
 | Wear OS, Android TV | same rule | up to 8 each |
 | Feature graphic | exactly 1024x500 | 1, required on every listing |
 | App icon | exactly 512x512 | 1, required to publish |
 | Android TV banner | exactly 1280x720 | 1 |
+| Foldable screenshots | one 1:1 and one 4:3 of the open inner screen, one 10:16 of the closed outer screen, 960 to 3840 px per side | 3 to 8, needed from April 2027 |
 
 PNG or JPEG, 8 MB maximum per image.
 
-**Play's aspect rule blocks the iPhone canvas.** 1206x2622 is 2.17:1, and Play needs the long side to
-be at most twice the short side. Play rejects it. Use the `play-phone` preset (1080x1920) for the
-Play tier rather than re-uploading the App Store files. That rule is Google's, verified in their own
-docs, and it is not negotiable.
+**Render the Play tier rather than re-uploading the App Store files.** Play takes a long side up to
+2.3 times the short side, so 1206x2622 at 2.17:1 fits, but the `play-phone` preset (1080x1920) is the
+size Google recommends, and converting to it puts the screenshots in Android phones instead of iPhones.
+
+**Foldable screenshots go in by hand.** The Play upload API has no slot for them, so `upload` skips
+them and `verify` warns `png-size-play-console-only` without counting them into a set. Make them
+with the canvas presets `play-fold-square` (2106x2106), `play-fold-inner` (2688x2016) and
+`play-fold-outer` (1260x2016), render with `--formats as-is`, and add them in Play Console under
+Foldable screenshots. `play-fold-outer-landscape` (2016x1260) and `play-fold-inner-portrait`
+(2016x2688) are the same screens held the other way, for a game played that way or as extras.
 
 Play also wants a promo video as a **YouTube URL**, not an uploaded file. The `styled` video mode
 produces a good file for that, but you upload it to YouTube and paste the link into Play Console.

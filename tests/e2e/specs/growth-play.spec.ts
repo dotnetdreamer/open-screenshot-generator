@@ -554,6 +554,38 @@ test.describe('a Google Play upload from the editor', () => {
     await expect(hero).toContainText('Google Play holds the new screenshots until you send the changes for review in Play Console');
     await expect(hero.getByLabel('Day the new screenshots went live')).toBeVisible();
   });
+
+  test('a foldable board stays out of every Play slot until it is converted to a phone size', async ({ app, page }) => {
+    await connect(page);
+    await app.goto();
+    await app.startBlankProject();
+    await app.canvasSizeButton.click();
+    await app.canvasSizeDialog.locator('#size-play-fold-square').click();
+    await app.canvasSizeDialog.getByRole('button', { name: 'Apply', exact: true }).click();
+    await expect(app.canvasSizeDialog).toBeHidden();
+    await app.chooseFromMenu(app.saveButton, /To App Store Connect or Google Play/i);
+    const dialog = page.getByRole('dialog').filter({ hasText: 'Upload to the store' });
+    await dialog.getByRole('button', { name: 'Google Play', exact: true }).click();
+    await expect(dialog.getByText(PACKAGE)).toBeVisible();
+
+    // Play's API has no foldable slot, and a tablet slot would take the board and replace the tablet shots.
+    const foldable = dialog.getByText('Google Play takes foldable screenshots only in Play Console. Add them there, under Foldable screenshots', { exact: true });
+    await expect(foldable).toBeVisible();
+    // The row names no slot: it would have said "2106x2106, 10-inch tablet screenshots".
+    await expect(dialog.getByText('2106x2106', { exact: true })).toBeVisible();
+    // Nor does the board pick the listing slot, which its size would have made the 10-inch tablet one.
+    await expect(dialog.getByRole('combobox').filter({ hasText: 'Phone screenshots' })).toBeVisible();
+    await expect(dialog.getByText('Nothing selected that this store accepts')).toBeVisible();
+    await expect(dialog.getByRole('button', { name: /^Upload/ })).toBeDisabled();
+
+    // At a phone size the same board is a phone screenshot again.
+    await dialog.getByRole('combobox').filter({ hasText: 'Current canvas' }).click();
+    await page.getByRole('option', { name: /^Android 1080x1920/ }).click();
+    await expect(foldable).toHaveCount(0);
+    await expect(dialog.getByRole('button', { name: /^Upload \d/ })).toBeEnabled({ timeout: 30_000 });
+    const sent = await requests(page);
+    expect(sent.filter((request) => request.url.includes('/upload/androidpublisher/'))).toHaveLength(0);
+  });
 });
 
 test.describe('growth on Google Play, next to competitors', () => {

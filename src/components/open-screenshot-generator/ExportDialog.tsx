@@ -23,7 +23,7 @@ import {
 import { getBaseLocale, getProjectLocales, hasLocales } from '@/lib/i18n/localization';
 import { localeLabel, localeName } from '@/lib/i18n/locales';
 import { isTauri } from '@/lib/desktop';
-import { appleDisplayAwaitingUpload, appleTargetForSize, missesRequiredIphoneSlot } from '@/lib/publish/storeTargets';
+import { appleDisplayAwaitingUpload, appleTargetForSize, isPlayFoldableSize, missesRequiredIphoneSlot } from '@/lib/publish/storeTargets';
 
 export interface ExportSelection {
   // Export the artboards exactly as they are on the canvas.
@@ -309,6 +309,8 @@ export function ExportDialog({
     : null;
   const currentAppleWaiting =
     effectiveSize && !currentAppleTarget ? appleDisplayAwaitingUpload(effectiveSize.width, effectiveSize.height) : null;
+  // The upload dialog can't send these, so say where they go.
+  const currentPlayFoldable = !!effectiveSize && isPlayFoldableSize(effectiveSize.width, effectiveSize.height);
 
   const scopeDescription = !canScopeToArtboard
     ? 'Select an artboard on the canvas first'
@@ -352,6 +354,11 @@ export function ExportDialog({
               {currentAppleWaiting && (
                 <p className="text-xs text-muted-foreground">
                   App Store Connect takes no {currentAppleWaiting.label} screenshots yet
+                </p>
+              )}
+              {currentPlayFoldable && (
+                <p className="text-xs text-muted-foreground">
+                  Upload {effectiveSize!.width}×{effectiveSize!.height} images to Foldable screenshots in Play Console
                 </p>
               )}
               {creativeInScope > 0 && (

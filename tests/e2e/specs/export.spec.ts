@@ -157,6 +157,20 @@ test.describe('the export dialog', () => {
     await expect(app.exportDialog.getByText(/^Upload \d+×\d+ images to /)).toHaveCount(0);
   });
 
+  test('a Google Play foldable canvas says its screenshots go in Play Console', async ({ app, page }) => {
+    await app.startBlankProject();
+    await app.canvasSizeButton.click();
+    await expect(app.canvasSizeDialog).toBeVisible();
+    await app.canvasSizeDialog.locator('#size-play-fold-inner').click();
+    await app.canvasSizeDialog.getByRole('button', { name: 'Apply', exact: true }).click();
+    await expect(app.canvasSizeDialog).toBeHidden();
+    await app.openExportDialog();
+
+    // The upload from this app can't send it, so the line names Play Console and no App Store slot.
+    await expect(app.exportDialog.getByText('Upload 2688×2016 images to Foldable screenshots in Play Console', { exact: true })).toBeVisible();
+    await expect(app.exportDialog.getByText(/^Upload \d+×\d+ images to "/)).toHaveCount(0);
+  });
+
   test('the file count follows the tick boxes, and an empty selection cannot be exported', async ({ app, page }) => {
     await app.startBlankProject();
     await app.openExportDialog();
