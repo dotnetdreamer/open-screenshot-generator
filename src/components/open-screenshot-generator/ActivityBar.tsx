@@ -7,8 +7,9 @@
 // a simulator or emulator, Remove background, where people and products are
 // cut out of photos for them, Growth, where their numbers come back, Store
 // compliance, what the stores reject apps for and the checks to make before
-// sending one, Website, where the app's own site is made from them, and SEO,
-// where that site is checked for Google and AI search.
+// sending one, Website, where the app's own site is made from them, SEO,
+// where that site is checked for Google and AI search, and Uptime, where that
+// site, the app's servers and its store listing are watched for going down.
 //
 // A new view is one entry in ACTIVITIES and one branch where the layout draws
 // the views (OpenScreenshotGeneratorLayout.tsx, `activity`). The editor stays
@@ -19,13 +20,13 @@
 // and at the bottom the account and the app's own settings, where VS Code
 // keeps Accounts and Manage. Those are `actions`: buttons with no view. A view
 // can also sit under the actions (`belowActions`): Website, the app's own
-// site, sits under Discover, and SEO under Website.
+// site, sits under Discover, SEO under Website, and Uptime under SEO.
 
 import React from 'react';
-import { CameraIcon, GlobeIcon, PenToolIcon, ScissorsIcon, SearchCheckIcon, ShieldCheckIcon, TrendingUpIcon } from 'lucide-react';
+import { ActivityIcon, CameraIcon, GlobeIcon, PenToolIcon, ScissorsIcon, SearchCheckIcon, ShieldCheckIcon, TrendingUpIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type ActivityId = 'editor' | 'capture' | 'cutout' | 'growth' | 'compliance' | 'website' | 'seo';
+export type ActivityId = 'editor' | 'capture' | 'cutout' | 'growth' | 'compliance' | 'website' | 'seo' | 'uptime';
 
 export interface Activity {
   id: ActivityId;
@@ -46,6 +47,7 @@ export const ACTIVITIES: Activity[] = [
   { id: 'compliance', name: 'Store compliance', label: 'Store compliance: avoid App Store and Google Play rejections', icon: ShieldCheckIcon },
   { id: 'website', name: 'Website', label: "Website: your app's home, support and privacy pages", icon: GlobeIcon, belowActions: true },
   { id: 'seo', name: 'SEO', label: "SEO: get your app's website found on Google and in AI answers", icon: SearchCheckIcon, belowActions: true },
+  { id: 'uptime', name: 'Uptime', label: 'Uptime: know when your website or server goes down', icon: ActivityIcon, belowActions: true },
 ];
 
 /**
@@ -89,7 +91,10 @@ function Face({ icon, name, selected = false, badge }: { icon: React.ReactNode; 
   );
 }
 
-function ViewButton({ activity, selected, count, onSelect }: { activity: Activity; selected: boolean; count: number; onSelect: (id: ActivityId) => void }) {
+/** A badge is amber for news, and red when something is wrong (a monitor that is down). */
+export type BadgeTone = 'news' | 'alarm';
+
+function ViewButton({ activity, selected, count, tone = 'news', onSelect }: { activity: Activity; selected: boolean; count: number; tone?: BadgeTone; onSelect: (id: ActivityId) => void }) {
   const Icon = activity.icon;
   return (
     <button
@@ -111,7 +116,10 @@ function ViewButton({ activity, selected, count, onSelect }: { activity: Activit
             <span
               aria-hidden
               data-testid={`${activity.id}-badge`}
-              className="absolute -right-3 -top-1.5 min-w-[1.1rem] rounded-full bg-amber-500 px-1 text-center text-[10px] font-semibold leading-[1.1rem] text-white ring-2 ring-sidebar"
+              className={cn(
+                'absolute -right-3 -top-1.5 min-w-[1.1rem] rounded-full px-1 text-center text-[10px] font-semibold leading-[1.1rem] text-white ring-2 ring-sidebar',
+                tone === 'alarm' ? 'bg-[hsl(var(--uptime-down))]' : 'bg-amber-500'
+              )}
             >
               {count > 9 ? '9+' : count}
             </span>
@@ -134,6 +142,7 @@ export function ActivityBar({
   active,
   onSelect,
   badges = {},
+  badgeTones = {},
   actions = [],
   bottomActions = [],
   className,
@@ -142,6 +151,8 @@ export function ActivityBar({
   onSelect: (id: ActivityId) => void;
   /** A count to show on a view's button, such as Growth's new insights. */
   badges?: Partial<Record<ActivityId, number>>;
+  /** How a view's count reads: news (amber, the default) or alarm (red). */
+  badgeTones?: Partial<Record<ActivityId, BadgeTone>>;
   /** Under the views. */
   actions?: ActivityAction[];
   /** At the foot of the bar. */
@@ -163,14 +174,14 @@ export function ActivityBar({
       data-testid="activity-bar"
     >
       {ACTIVITIES.filter((activity) => !activity.belowActions).map((activity) => (
-        <ViewButton key={activity.id} activity={activity} selected={activity.id === active} count={badges[activity.id] ?? 0} onSelect={onSelect} />
+        <ViewButton key={activity.id} activity={activity} selected={activity.id === active} count={badges[activity.id] ?? 0} tone={badgeTones[activity.id]} onSelect={onSelect} />
       ))}
       {actions.length > 0 && <span aria-hidden className="my-1 h-px w-8 shrink-0 bg-sidebar-border" />}
       {actions.map((action) => (
         <ActionButton key={action.id} action={action} />
       ))}
       {ACTIVITIES.filter((activity) => activity.belowActions).map((activity) => (
-        <ViewButton key={activity.id} activity={activity} selected={activity.id === active} count={badges[activity.id] ?? 0} onSelect={onSelect} />
+        <ViewButton key={activity.id} activity={activity} selected={activity.id === active} count={badges[activity.id] ?? 0} tone={badgeTones[activity.id]} onSelect={onSelect} />
       ))}
       {bottomActions.length > 0 && (
         <div className="mt-auto flex flex-col items-center gap-0.5">

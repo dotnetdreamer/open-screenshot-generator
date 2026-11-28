@@ -230,6 +230,8 @@ import { CaptureWorkspace, type CaptureRequest, type ClipOutcome } from './captu
 import { WebsiteWorkspace, type CaptureRequest as WebsiteCaptureRequest, type CapturedBoard } from './website/WebsiteWorkspace';
 import { StoreComplianceWorkspace } from './storeCompliance/StoreComplianceWorkspace';
 import { LazySeoWorkspace } from './seo/LazySeoWorkspace';
+import { LazyUptimeWorkspace } from './uptime/LazyUptimeWorkspace';
+import { useUptimeAlerts } from './uptime/useUptimeAlerts';
 import { CutoutWorkspace, type CutoutRequest } from './cutout/CutoutWorkspace';
 import { placementProps } from './cutout/CustomPaletteTab';
 import { markLibraryImagePlaced, refOf, type LibraryImageRow } from '@/lib/cutout/library';
@@ -1697,6 +1699,17 @@ export function OpenScreenshotGeneratorLayout() {
   // SEO: how the app's website does in Google and AI answers (src/lib/seo).
   // Mounted on its first visit and kept, so a check on its way goes on.
   const [seoMounted, setSeoMounted] = useState(false);
+  // Uptime: the user's websites, servers and store listings, checked by the
+  // desktop app (src-tauri/src/uptime/). The checks run from the app's start
+  // whether or not the view was opened; the view is mounted on its first
+  // visit and kept. A request opens one monitor, as an alert's toast does.
+  const [uptimeMounted, setUptimeMounted] = useState(false);
+  const [uptimeRequest, setUptimeRequest] = useState<{ id: string; nonce: number } | null>(null);
+  const showUptime = useCallback((id?: string) => {
+    setUptimeMounted(true);
+    if (id) setUptimeRequest((current) => ({ id, nonce: (current?.nonce ?? 0) + 1 }));
+    setActivity('uptime');
+  }, []);
   // Remove background: cutting people and products out of photos, and the
   // user's own pictures the palette's Custom tab places (src/lib/cutout).
   // Mounted on its first visit and kept, so a picture being cut carries on
@@ -1711,6 +1724,9 @@ export function OpenScreenshotGeneratorLayout() {
   // While the desktop app runs, Growth keeps the apps synced there fresh and
   // says when something new turns up (src/lib/growth/monitor.ts). The main
   // window only: a tab window would sync the same apps a second time.
+  // Monitors that are down, for the activity bar's red badge, and a toast for
+  // each Uptime alert in the main window (a tab window would show it twice).
+  const uptimeDown = useUptimeAlerts({ enabled: isTauri(), toasts: !isSecondaryWindow, onOpen: showUptime });
   const growthMonitor = useGrowthMonitor({
     enabled: isTauri() && !isSecondaryWindow,
     paused: activity === 'growth',
@@ -1823,6 +1839,7 @@ export function OpenScreenshotGeneratorLayout() {
         if (next === 'website') setWebsiteMounted(true);
         if (next === 'compliance') setComplianceMounted(true);
         if (next === 'seo') setSeoMounted(true);
+        if (next === 'uptime') setUptimeMounted(true);
         if (next === 'cutout') setCutoutMounted(true);
         setActivity(next);
         return;
@@ -12473,7 +12490,8 @@ const generateRandomProjectName = (): string => {
       <ActivityBar
         active={activity}
         onSelect={selectActivity}
-        badges={{ growth: growthMonitor.unseen + rivalWatch.unseen }}
+        badges={{ growth: growthMonitor.unseen + rivalWatch.unseen, uptime: uptimeDown }}
+        badgeTones={{ uptime: 'alarm' }}
         actions={
           HAS_DISCOVER
             ? [
@@ -13839,6 +13857,11 @@ const generateRandomProjectName = (): string => {
       {seoMounted && (
         <div className={cn('fixed inset-0 z-30', BAR_INSET.left, activity !== 'seo' && 'hidden')}>
           <LazySeoWorkspace active={activity === 'seo'} readProject={readProjectForCompliance} onSetUpGoogle={setUpGoogleForSeo} />
+        </div>
+      )}
+      {uptimeMounted && (
+        <div className={cn('fixed inset-0 z-30', BAR_INSET.left, activity !== 'uptime' && 'hidden')}>
+          <LazyUptimeWorkspace active={activity === 'uptime'} request={uptimeRequest} />
         </div>
       )}
       {websiteMounted && (

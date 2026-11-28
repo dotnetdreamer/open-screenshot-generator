@@ -90,6 +90,46 @@ export interface TauriMockConfig {
    */
   growthPages: Record<string, string>;
   growthDriver: string;
+  /**
+   * Uptime's engine (src-tauri/src/uptime/), modelled: monitors, summaries
+   * and settings are kept in sessionStorage the way Rust keeps its files, so
+   * they outlive a reload. A save answers with the monitor and emits
+   * uptime://state; a check answers from `outcomes` by the monitor's name,
+   * else its kind, else up, and moves the monitor up, checking again or down
+   * as Rust does, with an uptime://alert for down and back up. `seed` is the
+   * history a spec starts from.
+   */
+  uptime: TauriUptimeConfig;
+}
+
+export interface TauriUptimeOutcome {
+  ok: boolean;
+  ms?: number;
+  code?: number;
+  why?: string;
+  msg?: string;
+  detail?: Record<string, unknown>;
+}
+
+export interface TauriUptimeConfig {
+  seed: {
+    monitors: unknown[];
+    summaries: unknown[];
+    settings?: unknown;
+    events?: unknown[];
+    hours?: Record<string, unknown[]>;
+  } | null;
+  /** By monitor name or kind. */
+  outcomes: Record<string, TauriUptimeOutcome>;
+  notifications: 'native' | 'page' | 'none';
+  /** Run the first check of a new monitor at once, as Rust does. */
+  autoCheck: boolean;
+  /**
+   * Answer the page's first read of the state only when the test calls
+   * `window.__E2E_TAURI__.releaseUptimeState()`, with the view as it was
+   * when asked for.
+   */
+  holdFirstState?: boolean;
 }
 
 export interface TauriHttpRule {
@@ -119,6 +159,7 @@ export const DEFAULT_TAURI_CONFIG: TauriMockConfig = {
   http: [],
   growthPages: {},
   growthDriver: '',
+  uptime: { seed: null, outcomes: {}, notifications: 'native', autoCheck: true },
 };
 
 /**
@@ -479,6 +520,290 @@ export function tauriInitScript(config: TauriMockConfig): string {
     return null;
   }
 
+  // ---- Uptime (src-tauri/src/uptime/), modelled --------------------------
+  const UPTIME_KEY = '__e2e_tauri_uptime__';
+  function uptimeFresh() {
+    const seed = (config.uptime && config.uptime.seed) || null;
+    return {
+      monitors: seed ? seed.monitors : [],
+      summaries: seed ? seed.summaries : [],
+      settings: (seed && seed.settings) || { desktop: true, sound: true, badge: true, remind: 0, targets: [] },
+      events: seed && seed.events ? seed.events : [],
+      hours: seed && seed.hours ? seed.hours : {},
+      deliveries: [],
+      next: 1,
+    };
+  }
+  function uptimeLoad() {
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(UPTIME_KEY) || 'null');
+      return saved && Array.isArray(saved.monitors) ? saved : uptimeFresh();
+    } catch {
+      return uptimeFresh();
+    }
+  }
+  const uptime = uptimeLoad();
+  state.uptime = uptime;
+  // As load() in mod.rs: every monitor read from disk gets a stamp.
+  for (const summary of uptime.summaries) {
+    if (typeof summary.stamp !== 'number') summary.stamp = uptime.stamp = (uptime.stamp || 0) + 1;
+    if (typeof summary.revision !== 'number') summary.revision = 0;
+  }
+  function uptimeSave() {
+    try {
+      sessionStorage.setItem(UPTIME_KEY, JSON.stringify(uptime));
+    } catch {
+      // A full sessionStorage only loses the reload case.
+    }
+  }
+  /** What crosses the real IPC is JSON, so the page never shares an object with Rust. */
+  function uptimeCopy(value) {
+    return JSON.parse(JSON.stringify(value));
+  }
+  function uptimeView() {
+    return uptimeCopy({
+      loaded: true,
+      monitors: uptime.monitors,
+      summaries: uptime.summaries,
+      settings: uptime.settings,
+      offlineSince: null,
+      deliveries: uptime.deliveries,
+      notifications: (config.uptime && config.uptime.notifications) || 'native',
+      now: Date.now(),
+      stamp: uptime.stamp || 0,
+    });
+  }
+  function uptimeSummary(id) {
+    return { id, state: 'unknown', since: null, last: null, recent: [], next: Date.now() + 60000, running: false, fails: 0, uptime24: null, uptime7: null, uptime30: null, avg24: null, detail: { at: 0 }, downSince: null, downMsg: '', version: null, revision: uptimeBump(), stamp: uptimeStamp() };
+  }
+  /** Rust's Engine::stamps: moves on with every change to any monitor's state. */
+  function uptimeStamp() {
+    uptime.stamp = (uptime.stamp || 0) + 1;
+    return uptime.stamp;
+  }
+  /** Rust's Engine::history: moves on with every change to a monitor's history. */
+  function uptimeBump() {
+    uptime.revision = (uptime.revision || 0) + 1;
+    return uptime.revision;
+  }
+  function uptimeEmitState() {
+    uptimeSave();
+    state.emitFromBackend('uptime://state', uptimeView());
+  }
+  function uptimeOutcome(monitor) {
+    const outcomes = (config.uptime && config.uptime.outcomes) || {};
+    return state.uptimeOutcomes?.[monitor.name] || outcomes[monitor.name] || state.uptimeOutcomes?.[monitor.kind] || outcomes[monitor.kind] || { ok: true, ms: 120, code: monitor.kind === 'http' ? 200 : undefined };
+  }
+  /** One check, as record() in mod.rs: the beat, the new state, the alerts. */
+  state.uptimeCheck = (id, forced) => {
+    const monitor = uptime.monitors.find((m) => m.id === id);
+    const summary = uptime.summaries.find((s) => s.id === id);
+    if (!monitor || !summary || monitor.paused) return null;
+    const outcome = forced || uptimeOutcome(monitor);
+    const now = Date.now();
+    const status = outcome.ok ? 'up' : outcome.inconclusive ? 'unclear' : summary.state === 'down' || summary.fails + 1 > monitor.retries ? 'down' : 'pending';
+    const beat = { t: now, s: status };
+    if (outcome.ms !== undefined) beat.ms = outcome.ms;
+    if (outcome.code !== undefined) beat.code = outcome.code;
+    if (!outcome.ok) {
+      beat.why = outcome.why || 'error';
+      beat.msg = outcome.msg || 'The check failed';
+    }
+    const alerts = [];
+    if (status === 'up') {
+      if (summary.state === 'down') {
+        const span = now - (summary.downSince || now);
+        uptime.events.push({ id, t: now, kind: 'up', dur: span, seen: span });
+        alerts.push({ id, name: monitor.name, kind: 'up', title: monitor.name + ' is back up', body: 'It was down for less than a minute.', target: monitor.url || monitor.host, at: now, downFor: span });
+        summary.since = now;
+      } else if (summary.state === 'unknown' || !summary.since) {
+        summary.since = now;
+      }
+      summary.state = 'up';
+      summary.fails = 0;
+      summary.downSince = null;
+      summary.downMsg = '';
+    } else if (status === 'unclear') {
+      // As record() in mod.rs: a check that couldn't tell leaves the state alone.
+    } else if (status === 'pending') {
+      summary.fails += 1;
+      summary.state = 'pending';
+    } else {
+      summary.fails += 1;
+      if (summary.state !== 'down') {
+        summary.downSince = now;
+        summary.since = now;
+        summary.downMsg = beat.msg;
+        uptime.events.push({ id, t: now, kind: 'down', msg: beat.msg, why: beat.why, code: beat.code });
+        alerts.push({ id, name: monitor.name, kind: 'down', title: monitor.name + ' is down', body: beat.msg + '.', target: monitor.url || monitor.host, at: now, why: beat.why });
+      }
+      summary.state = 'down';
+    }
+    if (alerts.length) summary.revision = uptimeBump();
+    summary.stamp = uptimeStamp();
+    summary.last = beat;
+    summary.recent = [...summary.recent, beat].slice(-100);
+    if (status !== 'unclear') summary.detail = Object.assign({ at: now }, outcome.detail || {});
+    const passed = summary.recent.filter((b) => b.s === 'up').length;
+    const counted = summary.recent.filter((b) => b.s !== 'offline' && b.s !== 'unclear').length;
+    summary.uptime24 = counted ? (passed * 100) / counted : null;
+    summary.uptime7 = summary.uptime24;
+    summary.uptime30 = summary.uptime24;
+    const times = summary.recent.filter((b) => b.s === 'up' && b.ms !== undefined).map((b) => b.ms);
+    summary.avg24 = times.length ? times.reduce((a, b) => a + b, 0) / times.length : null;
+    summary.running = false;
+    summary.next = now + (status === 'pending' ? monitor.retryInterval : monitor.interval) * 1000;
+    uptimeSave();
+    state.emitFromBackend('uptime://beat', uptimeCopy({ id, beat, summary, offlineSince: null }));
+    for (const alert of alerts) state.emitFromBackend('uptime://alert', uptimeCopy(alert));
+    return beat;
+  };
+  let uptimeFirstReadHeld = false;
+  function uptimeInvoke(cmd, args) {
+    switch (cmd) {
+      case 'abs_uptime_state': {
+        const view = uptimeView();
+        // onStateRead: a test's one-shot step right after a read is answered,
+        // as another window's change landing just then.
+        const after = uptime.onStateRead;
+        uptime.onStateRead = null;
+        if (typeof after === 'function') after();
+        if (config.uptime && config.uptime.holdFirstState && !uptimeFirstReadHeld) {
+          uptimeFirstReadHeld = true;
+          return new Promise((resolve) => {
+            state.releaseUptimeState = () => resolve(view);
+          });
+        }
+        return view;
+      }
+      case 'abs_uptime_save': {
+        const monitor = Object.assign({}, args.monitor);
+        monitor.name = String(monitor.name || '').trim();
+        if (!monitor.name) throw new Error('Give the monitor a name');
+        // As serde in Rust: half an emoji isn't valid text, and the call fails.
+        if (/[\\uD800-\\uDBFF](?![\\uDC00-\\uDFFF])|(?<![\\uD800-\\uDBFF])[\\uDC00-\\uDFFF]/.test(monitor.name)) throw new Error('invalid args monitor for command abs_uptime_save: lone leading surrogate in hex escape');
+        if (monitor.kind === 'http' && !/^https?:[/][/][^/]+/.test(String(monitor.url || '').trim())) throw new Error('Type the full web address, starting with https://');
+        if ((monitor.kind === 'port' || monitor.kind === 'ping' || monitor.kind === 'dns') && !String(monitor.host || '').trim()) throw new Error("Type the server's name or address, such as example.com");
+        const index = uptime.monitors.findIndex((m) => m.id && m.id === monitor.id);
+        if (index >= 0) {
+          monitor.created = uptime.monitors[index].created;
+          monitor.paused = uptime.monitors[index].paused;
+          monitor.pausedUntil = uptime.monitors[index].pausedUntil;
+          uptime.monitors[index] = monitor;
+          uptime.events.push({ id: monitor.id, t: Date.now(), kind: 'changed' });
+          const summary = uptime.summaries.find((s) => s.id === monitor.id);
+          if (summary) summary.stamp = uptimeStamp();
+        } else {
+          monitor.id = 'me2e' + String(uptime.next++).padStart(4, '0');
+          monitor.created = Date.now();
+          monitor.paused = false;
+          monitor.pausedUntil = null;
+          uptime.monitors.push(monitor);
+          uptime.summaries.push(uptimeSummary(monitor.id));
+          uptime.events.push({ id: monitor.id, t: Date.now(), kind: 'added' });
+          if (!config.uptime || config.uptime.autoCheck !== false) setTimeout(() => state.uptimeCheck(monitor.id), 200);
+        }
+        uptimeEmitState();
+        return uptimeCopy(monitor);
+      }
+      case 'abs_uptime_delete':
+        uptimeStamp();
+        uptime.monitors = uptime.monitors.filter((m) => m.id !== args.id);
+        uptime.summaries = uptime.summaries.filter((s) => s.id !== args.id);
+        uptimeEmitState();
+        return null;
+      case 'abs_uptime_pause':
+      case 'abs_uptime_resume': {
+        const monitor = uptime.monitors.find((m) => m.id === args.id);
+        const summary = uptime.summaries.find((s) => s.id === args.id);
+        if (!monitor || !summary) throw new Error("That monitor isn't there any more");
+        const pausing = cmd === 'abs_uptime_pause';
+        monitor.paused = pausing;
+        monitor.pausedUntil = pausing ? args.until ?? null : null;
+        summary.revision = uptimeBump();
+        summary.stamp = uptimeStamp();
+        summary.state = pausing ? 'paused' : summary.last ? summary.last.s === 'down' ? 'down' : 'up' : 'unknown';
+        uptime.events.push({ id: args.id, t: Date.now(), kind: pausing ? 'paused' : 'resumed' });
+        uptimeEmitState();
+        return null;
+      }
+      case 'abs_uptime_check': {
+        const ids = args.id ? [args.id] : uptime.monitors.filter((m) => !m.paused).map((m) => m.id);
+        ids.forEach((id, i) => setTimeout(() => state.uptimeCheck(id), 100 + i * 50));
+        return null;
+      }
+      case 'abs_uptime_test': {
+        const outcome = uptimeOutcome(args.monitor);
+        return { ok: outcome.ok, ms: outcome.ms ?? null, code: outcome.code ?? null, why: outcome.why || '', msg: outcome.msg || '', detail: Object.assign({ at: Date.now() }, outcome.detail || {}), inconclusive: Boolean(outcome.inconclusive) };
+      }
+      case 'abs_uptime_clear': {
+        const summary = uptime.summaries.find((s) => s.id === args.id);
+        const monitor = uptime.monitors.find((m) => m.id === args.id);
+        if (summary) Object.assign(summary, uptimeSummary(args.id));
+        // As Summary in mod.rs: a paused monitor reads paused, cleared or not.
+        if (summary && monitor && monitor.paused) summary.state = 'paused';
+        uptime.events = uptime.events.filter((e) => e.id !== args.id);
+        delete uptime.hours[args.id];
+        uptimeEmitState();
+        return null;
+      }
+      case 'abs_uptime_reorder':
+        uptimeStamp();
+        uptime.monitors.sort((a, b) => args.ids.indexOf(a.id) - args.ids.indexOf(b.id));
+        uptimeEmitState();
+        return null;
+      case 'abs_uptime_settings': {
+        // As save_settings in mod.rs: a save made from older settings is refused.
+        const current = uptime.settings || {};
+        if ((args.settings.rev || 0) !== (current.rev || 0)) {
+          uptime.refusals = (uptime.refusals || 0) + 1;
+          throw new Error('Alerts were changed in another window at the same moment. Try again');
+        }
+        const settings = Object.assign({}, args.settings, { rev: (current.rev || 0) + 1 });
+        settings.targets = (settings.targets || []).map((t, i) => Object.assign({}, t, { id: t.id || 'ae2e' + String(i + 1).padStart(4, '0'), name: t.name || t.kind }));
+        uptime.settings = settings;
+        uptimeStamp();
+        // As save_settings in mod.rs, which waits for a request under way to
+        // a place it removed or changed. settingsHoldNextMs holds the next
+        // answer and its state event that long, the settings already stored,
+        // as the auditor held the native callbacks.
+        const hold = uptime.settingsHoldNextMs || 0;
+        uptime.settingsHoldNextMs = 0;
+        if (hold > 0) {
+          uptimeSave();
+          return new Promise((resolve) => setTimeout(() => {
+            uptimeEmitState();
+            resolve(uptimeCopy(settings));
+          }, hold));
+        }
+        uptimeEmitState();
+        return settings;
+      }
+      case 'abs_uptime_alert_test': {
+        if (!args.target) {
+          state.emitFromBackend('uptime://alert', { id: '', name: 'Uptime', kind: 'test', title: 'Uptime alerts work', body: 'This is how an alert from Uptime looks.', target: '', at: Date.now() });
+          return (config.uptime && config.uptime.notifications) || 'native';
+        }
+        uptime.deliveries.unshift({ at: Date.now(), target: args.target.id || 'new', name: args.target.name || args.target.kind, ok: true, note: 'Sent', title: 'Uptime alerts work' });
+        uptimeSave();
+        return 'Sent';
+      }
+      case 'abs_uptime_beats': {
+        const summary = uptime.summaries.find((s) => s.id === args.id);
+        return uptimeCopy(summary ? summary.recent.filter((b) => b.t >= args.from && b.t < args.to) : []);
+      }
+      case 'abs_uptime_hours':
+        return uptimeCopy((uptime.hours[args.id] || []).filter((h) => h.t + 3600000 > args.from && h.t < args.to));
+      case 'abs_uptime_events': {
+        const rows = uptime.events.filter((e) => !args.id || e.id === args.id).slice().sort((a, b) => b.t - a.t);
+        return uptimeCopy(rows.slice(0, args.limit || 50));
+      }
+      default:
+        state.unhandled.push(cmd);
+        return null;
+    }
+  }
+
   // ---- the IPC itself ----------------------------------------------------
   async function invoke(cmd, args, options) {
     args = args ?? {};
@@ -500,6 +825,8 @@ export function tauriInitScript(config: TauriMockConfig): string {
       }
       return answer;
     }
+
+    if (cmd.startsWith('abs_uptime_')) return uptimeInvoke(cmd, args);
 
     switch (cmd) {
       // -- the app's own Rust commands (src-tauri/src/lib.rs) --------------

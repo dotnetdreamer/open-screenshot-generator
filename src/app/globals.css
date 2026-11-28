@@ -106,6 +106,23 @@ body {
     /* SEO: the view's indigo, a text colour on its own 12% tint (6.6:1 there,
        8.1:1 on the card). Severity badges reuse the --rules-* levels above. */
     --seo-accent: 248 62% 50%;
+    /* Uptime: the view's teal, a text colour on its own 12% tint (4.5:1
+       there, 5.3:1 on the card), and the four steps of the validated status
+       palette (dataviz reference), the same in both themes. Red and green
+       are only 4.0 apart for deuteranopia, so status never rests on colour:
+       a check's bar is taller the worse it went, and every chip carries an
+       icon and a word. The -text steps read at 5:1 or more on their tint. */
+    --uptime-accent: 168 76% 27%;
+    --uptime-up: 129 89% 36%;
+    --uptime-pending: 41 97% 53%;
+    --uptime-serious: 19 84% 65%;
+    --uptime-down: 0 70% 55%;
+    --uptime-offline: 215 14% 70%;
+    --uptime-empty: 0 0% 87%;
+    --uptime-series: 213 68% 50%;
+    --uptime-up-text: 129 100% 21%;
+    --uptime-pending-text: 36 92% 28%;
+    --uptime-down-text: 0 72% 40%;
   }
 
   /* Dark editor chrome. Same roles as the light palette above, same slate blue
@@ -194,6 +211,18 @@ body {
     --rules-low: 215 18% 68%;
     /* The same, lighter for the dark card (6.4:1 there). */
     --seo-accent: 248 90% 76%;
+    /* The same, lighter for the dark card (6.8:1 on its tint). */
+    --uptime-accent: 166 64% 52%;
+    --uptime-up: 129 89% 36%;
+    --uptime-pending: 41 97% 53%;
+    --uptime-serious: 19 84% 65%;
+    --uptime-down: 0 70% 55%;
+    --uptime-offline: 215 10% 38%;
+    --uptime-empty: 220 10% 24%;
+    --uptime-series: 213 77% 56%;
+    --uptime-up-text: 122 50% 55%;
+    --uptime-pending-text: 43 90% 60%;
+    --uptime-down-text: 0 85% 72%;
   }
 
   /* The tokens alone are not enough: an artboard also has to opt out of the
@@ -670,5 +699,25 @@ html[data-growth-browser] [data-toast-viewport] {
 @media (prefers-reduced-motion: reduce) {
   .osg-icon-drift {
     animation: none;
+  }
+}
+
+/* Uptime's heartbeat line (UptimeOverview.tsx): a short bright stretch runs
+   along the faint line. Left still for people who ask for less motion. */
+@keyframes uptime-trace {
+  from {
+    stroke-dashoffset: 850;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.uptime-trace {
+  stroke-dasharray: 0 850;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .uptime-trace {
+    stroke-dasharray: 90 760;
+    animation: uptime-trace 3.2s linear infinite;
   }
 }

@@ -15,6 +15,7 @@ mod panels;
 mod settings;
 mod splash;
 mod updater;
+mod uptime;
 mod store_package;
 mod web_session;
 mod webview_crash;
@@ -56,6 +57,7 @@ pub fn run() {
         .manage(webview_crash::WebviewCrashState::default())
         .manage(device_capture::CaptureState::default())
         .manage(growth_browser::GrowthBrowserState::default())
+        .manage(uptime::UptimeState::default())
         // A reload of the editor must not strand a Claude Code or Codex
         // process that was still starting for the page it replaced.
         .on_page_load(|webview, payload| {
@@ -154,6 +156,20 @@ pub fn run() {
             growth_browser::abs_growth_browser_run,
             growth_browser::abs_growth_browser_close,
             growth_browser::abs_growth_browser_info,
+            uptime::abs_uptime_state,
+            uptime::abs_uptime_save,
+            uptime::abs_uptime_delete,
+            uptime::abs_uptime_pause,
+            uptime::abs_uptime_resume,
+            uptime::abs_uptime_check,
+            uptime::abs_uptime_test,
+            uptime::abs_uptime_clear,
+            uptime::abs_uptime_reorder,
+            uptime::abs_uptime_settings,
+            uptime::abs_uptime_alert_test,
+            uptime::abs_uptime_beats,
+            uptime::abs_uptime_hours,
+            uptime::abs_uptime_events,
         ])
         .setup(|app| {
             // Settings first: it manages the state the other modules read.
@@ -186,6 +202,9 @@ pub fn run() {
             // Claude Code and Codex processes the agent started die with the editor.
             claude_code::register(app.handle());
             codex::register(app.handle());
+            // Uptime's checks start with the app, before its view is opened,
+            // and run while the app is open.
+            uptime::register(app.handle());
             Ok(())
         })
         .build(context)
@@ -206,6 +225,8 @@ pub fn run() {
                 codex::kill_all(app);
                 // Recordings stop, and the status bars Capture tidied come back.
                 device_capture::stop_all(app);
+                // Uptime writes where each monitor stands.
+                uptime::shutdown(app);
             }
             _ => {}
         });
